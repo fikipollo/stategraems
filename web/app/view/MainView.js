@@ -63,14 +63,12 @@ Ext.define('SL.view.MainView', {
                 showErrorMessage("No experiment selected.\nPlease switch to an existing experiment or create a new one before continue.", {soft: true});
                 return;
             }
-
             application.getController("ExperimentController").inspectCurrentExperimentButtonHandler();
             return;
         } else if (aViewName === "newExperiment") {
             application.getController("ExperimentController").newExperimentButtonHandler();
             return;
         } else if (this.subviews[aViewName] == null) {
-            //DELEGATE TO JobController
             aView = Ext.widget({xtype: aViewName});
             this.subviews[aViewName] = aView;
         }

@@ -1,7 +1,7 @@
 //@require @packageOverrides
 Ext.Loader.setConfig({enabled: true});
 
-forceRefresh = false;
+forceRefresh = true;
 nObservers = 0;
 application = null;
 
@@ -33,7 +33,7 @@ Ext.application({
 
         application.getMainView = function () {
             return this.mainView;
-        }
+        };
     },
     stores: [],
     views: [],

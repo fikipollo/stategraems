@@ -132,7 +132,7 @@ Ext.define('SL.controller.ApplicationController', {
                     Ext.util.Cookies.set('currentExperimentID', currentExperimentID, null, location.pathname);
                     Ext.util.Cookies.set('currentExperimentName', currentExperimentName, null, location.pathname);
 
-                    var mainView = Ext.getCmp('mainView');
+                    var mainView = application.mainView;
                     mainView.changeMainView("HomePanel");
                 },
                 failure: function (form, action) {
@@ -205,7 +205,7 @@ Ext.define('SL.controller.ApplicationController', {
         //THIS FUNCTION IS CALLED WHEN THE "ACCEPT" BUTTON OF MainView IS PRESSED
         //THEN THIS CONTROLLER FIRES A ACCEPT_BUTTON_PRESSED EVENT THAT SHOULD BE CATCHED BY
         //THE CONTROLLER ASSOCIATED FOR THE INNER PANEL.
-        var _panel = Ext.getCmp('mainView').getCurrentView();
+        var _panel = application.mainView.getCurrentView();
 
         if (_panel.getController !== undefined && _panel.getController().acceptButtonPressedHandler !== undefined) {
             _panel.getController().acceptButtonPressedHandler(_panel);
@@ -223,7 +223,7 @@ Ext.define('SL.controller.ApplicationController', {
      * @return      
      *************************************************************************************************/
     cancelButtonHandler: function () {
-        var _panel = Ext.getCmp('mainView').getCurrentView();
+        var _panel = application.mainView.getCurrentView();
 
         if (_panel.getController !== undefined && _panel.getController().cancelButtonPressedHandler !== undefined) {
             _panel.getController().cancelButtonPressedHandler(_panel);
@@ -240,7 +240,7 @@ Ext.define('SL.controller.ApplicationController', {
      * @return      
      *************************************************************************************************/
     editButtonHandler: function () {
-        var _panel = Ext.getCmp('mainView').getCurrentView();
+        var _panel = application.mainView.getCurrentView();
 
         if (_panel.getController !== undefined && _panel.getController().editButtonPressedHandler !== undefined) {
             _panel.getController().editButtonPressedHandler(_panel);
@@ -257,7 +257,7 @@ Ext.define('SL.controller.ApplicationController', {
      * @return      
      *************************************************************************************************/
     nextButtonHandler: function () {
-        var _panel = Ext.getCmp('mainView').getCurrentView();
+        var _panel = application.mainView.getCurrentView();
 
         if (_panel.getController !== undefined && _panel.getController().nextButtonPressedHandler !== undefined) {
             _panel.getController().nextButtonPressedHandler(_panel);
@@ -274,7 +274,7 @@ Ext.define('SL.controller.ApplicationController', {
      * @return      
      *************************************************************************************************/
     backButtonHandler: function () {
-        var _panel = Ext.getCmp('mainView').getCurrentView();
+        var _panel = application.mainView.getCurrentView();
         if (_panel.getController !== undefined && _panel.getController().backButtonPressedHandler !== undefined) {
             _panel.getController().backButtonPressedHandler(_panel);
         } else {

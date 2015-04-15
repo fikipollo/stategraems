@@ -39,6 +39,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
     alias: 'widget.AnalysisWizardViewPanel',
     mixins: {AnalysisWizardViewPanel: 'SL.view.AnalysisViews.AnalysisWizardView'},
     requires: ['SL.view.AnalysisViews.FileLocationSelectorField'],
+    name: "AnalysisWizardViewPanel",
     /**BC******************************************************************************      
      * 
      * SOME ATTRIBUTES
@@ -86,6 +87,12 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
     updateObserver: function () {
         this.loadModel(this.getModel());
     },
+    getCurrentPanel: function () {
+        return this.currentPanel;
+    },
+    getAnalysisEditorView: function () {
+        return this.analysisEditorView;
+    },
     showCurrentStepView: function () {
         this.setLoading(true);
         var newPanel = null;
@@ -101,7 +108,6 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
             this.getModel().addObserver(this.analysisEditorView);
             this.analysisEditorView.setViewMode('wizard');
             newPanel = this.analysisEditorView;
-
         } else if (this.stepNumber === 2) {
             //TODO: COMPROBAR SI HA COMBIADO...
             if (this.analysisDetailsView1 === null) {
@@ -173,7 +179,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
 
         for (var i in this.analysisModels) {
             analysisAux = this.analysisModels[i];
-            modelsAux.push({analysis_name: analysisAux.getName(), is_valid: analysisAux.checkIsValid(this.stepNumber)})
+            modelsAux.push({analysis_name: analysisAux.getName(), is_valid: analysisAux.checkIsValid(this.stepNumber)});
         }
         analysisListView.getStore().add(modelsAux);
     },
@@ -189,18 +195,18 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
 
         Ext.apply(me, {
             border: 0, autoScroll: true, layout: {type: "hbox", align: "stretch"},
-            bodyStyle: {background: "white"},
+//            bodyStyle: {background: "white"},
             items: [
                 {xtype: 'panel', itemId: "lateralPanel", layout: {type: 'accordion', animate: true, activeOnTop: true}, hidden: true, flex: 1, items: [
                         {xtype: "grid", title: "Analysis browser", itemId: "analysisListContainer",
                             store: {fields: ['analysis_name', 'is_valid']},
                             columns: [
                                 {text: "Analysis name", dataIndex: 'analysis_name', flex: 1, sortable: false},
-                                {text: 'Valid', dataIndex: 'is_valid', sortable: false, align: 'center', width: 35, renderer: function (value) {
+                                {text: 'Valid', dataIndex: 'is_valid', sortable: false, align: 'center', width: 60, renderer: function (value) {
                                         if (value) {
-                                            return "<img style='height: 20px;' src='resources/images/valid_32x32.png' />";
+                                            return '<i class="fa fa-check fa-2x" style="color: rgb(81, 199, 136);"></i>';
                                         } else {
-                                            return "<img style='height: 20px;' src='resources/images/error_32x32.png' />";
+                                            return '<i class="fa fa-close fa-2x" style="color: rgb(223, 108, 147);"></i>';
                                         }
                                     }
                                 }
@@ -208,7 +214,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
                             dockedItems: [
                                 {xtype: 'toolbar', itemId: "analysisToolbar",
                                     items: [
-                                        {text: 'Add new analysis', itemId: "addNewAnalysisButton", tooltip: '<i class="fa fa-plus-circle"></i> Add new Analysis', cls: 'button', scope: me,
+                                        {text: '<i class="fa fa-plus-circle"></i> Add new analysis', itemId: "addNewAnalysisButton", tooltip: 'Add new Analysis', cls: 'button', scope: me,
                                             handler: function () {
                                                 this.getController().analysisWizardAddNewAnalysisButtonClickHandler(this);
                                             }
@@ -257,7 +263,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
                                         idProperty: "analytical_rep_id"
                                     }),
                                     columns: [
-                                        {text: "Analytical sample name", flex: 1, sortable: true, dataIndex: 'analytical_rep_name'},
+                                        {text: "Analytical sample name", flex: 1, sortable: true, dataIndex: 'analytical_rep_name'}
                                     ]
                                 }, {xtype: 'button', text: '<i class="fa fa-plus-circle"></i> Use selected', cls: "button", handler: function () {
                                         if (me.lastSampleField !== null) {
@@ -275,18 +281,15 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
                                 }
                             }
 
-                        },
+                        }
                     ]
                 }
             ],
             listeners: {
-                boxready: function () {
-                    this.showCurrentStepView();
-                },
                 afterlayout: function () {
                     //TODO: REMOVE THIS CODE
                     if (debugging === true)
-                        console.info("WizardAnalysisView : Layout");
+                        console.info("AnalysisWizardViewPanel : Layout");
                 },
                 beforedestroy: function () {
                     Ext.destroy([this.analysisEditorView, this.analysisDetailsView1, this.analysisDetailsView2]);
@@ -303,7 +306,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
 
 Ext.define('SL.view.AnalysisViews.AnalysisWizardStep2View', {
     extend: 'Ext.container.Container',
-    mixins: {AnalysisWizardViewPanel: 'SL.view.AnalysisViews.AnalysisWizardView'},
+    mixins: {AnalysisWizardStep2View: 'SL.view.AnalysisViews.AnalysisWizardView'},
     alias: 'widget.AnalysisWizardStep2View',
     requires: ['SL.view.SampleViews.AnalyticalReplicateView'],
     /**BC******************************************************************************      
@@ -375,7 +378,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep2View', {
                             + '<p style=" font-size: 20px; color: #A3A3A3;">To start editing, please choose an Analysis at the "Analysis Browser" panel</p>', flex: 1},
                 {xtype: "container", itemId: "analysisNameContainer", layout: {type: "hbox", pack: "center"}, hidden: true, items: [
                         {xtype: "textfield", itemId: "analysisNameField", fieldLabel: 'Analysis name', labelWidth: 120, allowBlank: false, margin: "15px 0px", flex: 1},
-                        {xtype: "button", text: "Apply changes", cls: 'acceptButton', scope: this, margin: "10",
+                        {xtype: "button", text: '<i class="fa fa-check"></i> Apply changes', cls: 'acceptButton', scope: this, margin: "10",
                             handler: function () {
                                 this.getController().analysisWizardApplyChangesButtonClickHandler(me, 2);
                             }
@@ -403,7 +406,8 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep2View', {
                         }
                     ], // inline buttons
                     dockedItems: [
-                        {xtype: 'toolbar', items: [{text: '<i class="fa fa-plus-circle"></i> Add new samples', tooltip: 'Add new samples to this analysis', cls: 'button',
+                        {xtype: 'toolbar', items: [
+                                {text: '<i class="fa fa-plus-circle"></i> Add new samples', tooltip: 'Add new samples to this analysis', cls: 'button',
                                     handler: function (button) {
                                         Ext.create("SL.view.SampleViews.AnalyticalReplicateSelectorWindow", {multiselection: true,
                                             callBackFn: function (selectedSamples) {
@@ -429,7 +433,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep2View', {
 
 Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3View', {
     extend: 'Ext.container.Container',
-    mixins: {AnalysisWizardViewPanel: 'SL.view.AnalysisViews.AnalysisWizardView'},
+    mixins: {AnalysisWizardStep3View: 'SL.view.AnalysisViews.AnalysisWizardView'},
     alias: 'widget.AnalysisWizardStep3View',
     /**BC******************************************************************************      
      * 
@@ -542,8 +546,8 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3View', {
         try {
             if (this.cytoscape_graph != null)
                 this.cytoscape_graph.resize();
-                this.cytoscape_graph.fit();
-            } catch (error) {
+            this.cytoscape_graph.fit();
+        } catch (error) {
         }
     },
     /**BC****************************************************************************************
@@ -572,7 +576,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3View', {
                             + '<p style=" font-size: 20px; color: #A3A3A3;">To start editing, please choose an Analysis at the "Analysis Browser" panel</p>', flex: 1},
                 {xtype: "container", itemId: "analysisNameContainer", layout: "hbox", hidden: true, items: [
                         {xtype: "label", itemId: "analysisNameLabel", flex: 1},
-                        {xtype: "button", text: "Apply changes", cls: 'acceptButton', margin: "10", scope: this,
+                        {xtype: "button", text: '<i class="fa fa-check"></i> Apply changes', cls: 'acceptButton', margin: "10", scope: this,
                             handler: function () {
                                 var mainView = this.up("AnalysisWizardViewPanel");
                                 mainView.queryById("analysisListContainer").expand();
@@ -611,7 +615,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3View', {
 
 Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3StepView', {
     extend: 'Ext.container.Container',
-    mixins: {AnalysisWizardViewPanel: 'SL.view.AnalysisViews.AnalysisWizardView'},
+    mixins: {AnalysisWizardStep3StepView: 'SL.view.AnalysisViews.AnalysisWizardView'},
     alias: 'widget.AnalysisWizardStep3StepView',
     border: 0, model: null, index: 0,
     loadModel: function (stepModel, analysisName) {
@@ -709,7 +713,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3StepView', {
 
 Ext.define('SL.view.AnalysisViews.AnalysisWizardCreationDialog', {
     extend: 'Ext.window.Window',
-    mixins: {AnalysisWizardViewPanel: 'SL.view.AnalysisViews.AnalysisWizardView'},
+    mixins: {AnalysisWizardCreationDialog: 'SL.view.AnalysisViews.AnalysisWizardView'},
     alias: 'widget.AnalysisWizardCreationDialog',
     analysisModels: null,
     loadModels: function (analysisModels) {
@@ -746,15 +750,15 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardCreationDialog', {
                     store: {fields: ['analysis_name', 'status']},
                     columns: [
                         {text: "Analysis name", dataIndex: 'analysis_name', flex: 1, sortable: false},
-                        {text: '', dataIndex: 'status', sortable: false, align: 'center', width: 150, renderer: function (value) {
+                        {text: 'Status', dataIndex: 'status', sortable: false, align: 'center', width: 80, renderer: function (value) {
                                 if (value === "done") {
-                                    return "<p><img style='height: 15px;' src='resources/images/valid_32x32.png' /> Saved</p>";
+                                    return '<i class="fa fa-check" style="color: rgb(81, 199, 136);"></i> Saved';
                                 } else if (value === "waiting") {
-                                    return "<p><img style='height: 15px;' src='resources/images/loading_32x32.png' /> Waiting...</p>";
+                                    return '<i class="fa fa-clock-o" style="color: rgb(136, 136, 136);"></i> Waiting';
                                 } else if (value === "sending") {
-                                    return "<p><img style='height: 15px;' src='resources/images/loading_32x32.png' /> Sending...</p>";
+                                    return '<i class="fa fa-paper-plane-o" style="color: rgb(19, 153, 223);"></i> Sending';
                                 } else {
-                                    return "<p><img style='height: 15px;' src='resources/images/error_32x32.png' /> Error </p>";
+                                    return '<i class="fa fa-close" style="color: rgb(223, 108, 147);"></i> Failed';
                                 }
                             }
                         }
@@ -762,13 +766,8 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardCreationDialog', {
                 }
             ],
             buttons: [
-                {text: 'Close', cls: 'button', hidden: true, itemId: 'closeButton', scope: me, handler: function () {
-                        //TODO:
-                        console.error("TODO")
-//                        var documentInfoPanel = Ext.getCmp('documentInfoPanel');
-//                        documentInfoPanel.up('panel').layout.setActiveItem('principalTabPanel');
-//                        documentInfoPanel.removeInnerPanel();
-//                        this.close();
+                {text: '<i class="fa fa-check"></i> Close', cls: 'button', hidden: true, itemId: 'closeButton', scope: me, handler: function () {
+                        this.close();
                     }
                 }
             ]

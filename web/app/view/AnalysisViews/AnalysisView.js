@@ -196,11 +196,10 @@ Ext.define('SL.view.AnalysisViews.AnalysisDetailsView', {
         }
 
 
-        Ext.getCmp('mainView').setButtonsStatus(buttons_status);
+        application.mainView.setButtonsStatus(buttons_status);
         this.inEditionMode = (mode === "edition");
         this.inCreationMode = (mode === "creation");
         this.inWizardMode = (mode === "wizard");
-
 
         this.setLoading(false);
         this.queryById('associatedStepsTools').setVisible(editableMode);
@@ -575,7 +574,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisDetailsView', {
             groupHeaderTpl: '{columnName}: {name} ({rows.length} Item{[values.rows.length > 1 ? "s" : ""]})',
             hideGroupedHeader: true,
             startCollapsed: false
-        })
+        });
 
         me.border = 0;
         Ext.apply(me, {
@@ -608,7 +607,12 @@ Ext.define('SL.view.AnalysisViews.AnalysisDetailsView', {
                                             store: Ext.create('Ext.data.ArrayStore', {groupField: 'step_type', fields: ['step_id', 'step_type', 'step_subtype', 'step_name']}),
                                             columns: [
                                                 {text: 'Step type', dataIndex: 'step_type'},
-                                                {text: 'Step name', minWidth: 200, flex: 1, dataIndex: 'step_name'},
+                                                {text: 'Step name', minWidth: 200, flex: 1, dataIndex: 'step_name',
+                                                    renderer: function (value, metaData, record, rowIndex) {
+                                                        if (value === "")
+                                                            return "Unnamed " + record.get("step_type") + " step " + (rowIndex + 1);
+                                                        return value;
+                                                    }},
                                                 {text: 'Step subtype', dataIndex: 'step_subtype', width: 200,
                                                     renderer: function (value) {
                                                         if (value === undefined)
@@ -660,7 +664,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisDetailsView', {
 
 
                             ]
-                        },
+                        }
                     ]
                 },
                 {xtype: 'panel', itemId: 'analysisDataContainer', border: 0, layout: {type: 'vbox', align: 'center'}, defaults: {width: "90%"}, minHeight: 200,
@@ -858,7 +862,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisListView', {
                 {xtype: 'box', itemId: "panelOptionsContainer",
                     html: "  <h2 class='form_subtitle'>Options</h2>" +
                             "<a id='addNewAnalysisOption' class='tableOption addOption' ><i class='fa fa-plus'></i></a>" +
-//                            "<a id='openAnalysisWizardOption' class='tableOption wizardOption'><i class='fa fa-bolt'></i></a>" +
+                            "<a id='openAnalysisWizardOption' class='tableOption wizardOption'><i class='fa fa-bolt'></i></a>" +
                             "<a id='copyAnalysisOption' class='tableOption copyOption'><i class='fa fa-copy'></i></a>" +
                             "<a id='inspectAnalysisOption' class='tableOption detailsOption'><i class='fa fa-search'></i></a>" +
                             "<a id='deleteAnalysisOption' class='tableOption deleteOption'><i class='fa fa-trash'></i></a>"
@@ -1043,7 +1047,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisListView', {
                 boxready: function () {
                     if (Ext.util.Cookies.get('currentExperimentID') === "Not selected" || Ext.util.Cookies.get('currentExperimentID') === "undefined") {
                         showErrorMessage("No experiment selected.\nPlease switch to an existing experiment or create a new one before continue.", {soft: true});
-                        Ext.getCmp('mainView').changeMainView("HomePanel");
+                        application.mainView.changeMainView("HomePanel");
                         return;
                     }
 

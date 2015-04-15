@@ -48,14 +48,14 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
      **GETTERS AND SETTERS
      **
      *EC********************************************************************/
-    getID: function() {
+    getID: function () {
         return this.get('analysis_id');
     },
-    setID: function(analysis_id) {
+    setID: function (analysis_id) {
         this.set('analysis_id', analysis_id);
         this.setChanged();
     },
-    updateID: function(newAnalysisID) {
+    updateID: function (newAnalysisID) {
         var steps = this.getNonProcessedData();
 
         var previousIDPrefix = this.getID().replace("AN", "ST");
@@ -69,24 +69,24 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         }
         this.setID(newAnalysisID);
     },
-    getName: function() {
+    getName: function () {
         return this.get('analysis_name');
     },
-    setName: function(analysis_name) {
+    setName: function (analysis_name) {
         this.set('analysis_name', analysis_name);
         this.setChanged();
     },
-    getAnalysisType: function() {
+    getAnalysisType: function () {
         return this.get('analysis_type');
     },
-    setAnalysisType: function(analysis_type) {
+    setAnalysisType: function (analysis_type) {
         this.set('analysis_type', analysis_type);
         this.setChanged();
     },
-    getNonProcessedData: function() {
+    getNonProcessedData: function () {
         return this.non_processed_data();
     },
-    getNonProcessedDataByID: function(stepID) {
+    getNonProcessedDataByID: function (stepID) {
         var steps = this.getNonProcessedData();
         var step;
         for (var i = 0; i < steps.getCount(); i++) {
@@ -98,28 +98,28 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         }
         return null;
     },
-    addNonProcessedData: function(nonProcessedDataModel) {
+    addNonProcessedData: function (nonProcessedDataModel) {
         this.non_processed_data().add(nonProcessedDataModel);
         this.setChanged();
     },
-    removeNonProcessedData: function(nonProcessedDataModel) {
+    removeNonProcessedData: function (nonProcessedDataModel) {
         this.non_processed_data().remove(nonProcessedDataModel);
         this.setChanged();
     },
-    removeRAWData: function(rawDataModel) {
+    removeRAWData: function (rawDataModel) {
         if (Ext.getClassName(rawDataModel) !== "SL.model.AnalysisModels.RAWDataModels.RAWData") {
             return;
         }
 
         this.non_processed_data().each(
-                function(nonProcessedDataInstance) {
+                function (nonProcessedDataInstance) {
                     if (nonProcessedDataInstance.removePreviousStep !== undefined) {
                         nonProcessedDataInstance.removePreviousStep(rawDataModel.getID());
                     }
                 }
         );
         this.processed_data().each(
-                function(processedDataInstance) {
+                function (processedDataInstance) {
                     if (processedDataInstance.removePreviousStep !== undefined) {
                         processedDataInstance.removePreviousStep(rawDataModel.getID());
                     }
@@ -127,18 +127,18 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         );
         this.setChanged();
     },
-    getProcessedData: function() {
+    getProcessedData: function () {
         return this.processed_data();
     },
-    addProcessedData: function(processed_data_model) {
+    addProcessedData: function (processed_data_model) {
         this.processed_data().add(processed_data_model);
         this.setChanged();
     },
-    removeProcessedData: function(processedDataModel) {
+    removeProcessedData: function (processedDataModel) {
         this.processed_data().remove(processedDataModel);
         this.setChanged();
     },
-    getProcessedDataByID: function(stepID) {
+    getProcessedDataByID: function (stepID) {
         var steps = this.getProcessedData();
         var step;
         for (var i = 0; i < steps.getCount(); i++) {
@@ -150,14 +150,14 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         }
         return null;
     },
-    getStepByID: function(stepID) {
+    getStepByID: function (stepID) {
         var step = this.getNonProcessedDataByID(stepID);
         if (step != null) {
             return step;
         }
         return this.getProcessedDataByID(stepID);
     },
-    addStep: function(stepModel) {
+    addStep: function (stepModel) {
         if (stepModel instanceof SL.model.AnalysisModels.Processed_data) {
             this.getProcessedData().add(stepModel);
         } else {
@@ -165,7 +165,7 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         }
         this.setChanged();
     },
-    removeStep: function(stepModel) {
+    removeStep: function (stepModel) {
         if (stepModel instanceof SL.model.AnalysisModels.Processed_data) {
             this.getProcessedData().remove(stepModel);
         } else {
@@ -173,18 +173,18 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         }
         this.setChanged();
     },
-    getNextStepsByID: function(stepID) {
+    getNextStepsByID: function (stepID) {
         var nextStepsList = [];
 
         this.non_processed_data().each(
-                function(nonProcessedDataInstance) {
+                function (nonProcessedDataInstance) {
                     if (nonProcessedDataInstance.getPreviousStep !== undefined && nonProcessedDataInstance.getPreviousSteps().indexOf(stepID) !== -1) {
                         nextStepsList.push(nonProcessedDataInstance);
                     }
                 }
         );
         this.processed_data().each(
-                function(processedDataInstance) {
+                function (processedDataInstance) {
                     if (processedDataInstance.getPreviousSteps !== undefined && processedDataInstance.getPreviousSteps().indexOf(stepID) !== -1) {
                         nextStepsList.push(processedDataInstance);
                     }
@@ -192,7 +192,7 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         );
         return nextStepsList;
     },
-    setStepsOwner: function(userID) {
+    setStepsOwner: function (userID) {
         var steps = this.getNonProcessedData();
 
         var stepsIDPrefix = this.getID().replace("AN", "ST");
@@ -215,12 +215,12 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
             }
         }
     },
-    getMemento: function() {
+    getMemento: function () {
         var memento = this.toSimpleJSON();
         memento = Ext.encode(memento);
         return memento;
     },
-    restoreFromMemento: function(memento) {
+    restoreFromMemento: function (memento) {
         if (memento !== null) {
             memento = Ext.decode(memento);
             this.non_processed_data().removeAll();
@@ -234,12 +234,12 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
      **OTHER METHODS
      **
      *EC********************************************************************/
-    isRemovableStep: function(toBeRemovedModel) {
+    isRemovableStep: function (toBeRemovedModel) {
         var stepNumber = toBeRemovedModel.get('step_number');
         var stepId = toBeRemovedModel.get('step_id');
         var removable = true;
         //CHECK IF THE STEP IS USED BY LATER STEPS
-        this.non_processed_data().each(function(step_model) {
+        this.non_processed_data().each(function (step_model) {
             if (step_model.get('step_number') > stepNumber && step_model.getPreviousSteps !== undefined) {
                 if (step_model.getPreviousSteps().indexOf(stepId) !== -1) {
                     removable = false;
@@ -249,7 +249,7 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
             }
         });
         if (removable === true)
-            this.processed_data().each(function(step_model) {
+            this.processed_data().each(function (step_model) {
                 if (step_model.getPreviousSteps().indexOf(stepId) !== -1) {
                     removable = false;
                     //break the loop
@@ -258,10 +258,10 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
             });
         return removable;
     },
-    getRAWdataForTreeView: function() {
+    getRAWdataForTreeView: function () {
         var json_data_raw = [];
         this.non_processed_data().each(
-                function(item, index, count) {
+                function (item, index, count) {
                     if (item instanceof SL.model.AnalysisModels.RAWDataModels.RAWData) {
                         json_data_raw.push({text: item.get('raw_data_type'), leaf: true, step_id: item.get('step_id')});
                     }
@@ -269,8 +269,8 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         );
         return json_data_raw;
     },
-    getIntermediateDataForTreeView: function() {
-        var getPrettyName = function(intermediate_data_type) {
+    getIntermediateDataForTreeView: function () {
+        var getPrettyName = function (intermediate_data_type) {
             switch (intermediate_data_type) {
                 case "preprocessing_step":
                     return "Preprocessing step";
@@ -288,7 +288,7 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         };
         var json_data_int = [];
         this.non_processed_data().each(
-                function(item, index, count) {
+                function (item, index, count) {
                     if (item instanceof SL.model.AnalysisModels.IntermediateDataModels.Intermediate_data) {
                         json_data_int.push({text: getPrettyName(item.get('intermediate_data_type')), leaf: true, step_id: item.get('step_id')});
                     }
@@ -296,9 +296,9 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         );
         return json_data_int;
     },
-    getProcessedDataForTreeView: function() {
+    getProcessedDataForTreeView: function () {
         //TODO_ ORDENAR
-        var getPrettyName = function(processed_data_type) {
+        var getPrettyName = function (processed_data_type) {
             switch (processed_data_type) {
                 case "merging_step":
                     return "Merging";
@@ -322,7 +322,7 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         //TODO: if analysis can have more than 1 processed data: here we shopuld change the analysis_id field
         var json_data = [];
         this.processed_data().each(
-                function(item, index, count) {
+                function (item, index, count) {
                     if (item instanceof SL.model.AnalysisModels.Processed_data) {
                         json_data.push({text: getPrettyName(item.get('processed_data_type')), leaf: true, step_id: item.get('step_id')});
                     }
@@ -340,9 +340,9 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
      *	3.	Finally generates the JSON for each RAW DATA
      * @return  the Analysis in JSON format
      **************************************************************************************/
-    getJSONforGraph: function() {
+    getJSONforGraph: function () {
         var json_data = [];
-        this.processed_data().each(function(item) {
+        this.processed_data().each(function (item) {
             var json_aux = item.getJSONforGraph();
             if (json_aux  instanceof Array) {
                 json_data = json_data.concat(json_aux);
@@ -355,14 +355,14 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         var intermediate_steps = [];
 
         this.non_processed_data().each(
-                function(record) {
+                function (record) {
                     if (record instanceof SL.model.AnalysisModels.IntermediateDataModels.Intermediate_data) {
                         intermediate_steps.push(record);
                     } else if (record instanceof SL.model.AnalysisModels.RAWDataModels.RAWData) {
                         rawdatas.push(record);
                     }
                 });
-        intermediate_steps.sort(function(a, b) {
+        intermediate_steps.sort(function (a, b) {
             var n1 = a.get('step_number');
             var n2 = b.get('step_number');
             return n2 - n1;
@@ -383,23 +383,26 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
             if (rawdata.getAssociatedQualityReport() != null) {
                 json_data.push(rawdata.getAssociatedQualityReport().getJSONforGraph());
             }
-            json_data.push(
-                    {
-                        id: rawdata.get('analyticalReplicate_id'),
-                        name: rawdata.get('analyticalReplicate_id'),
-                        nodeName: "",
-                        type: "Analytical Replicate",
-                        nodeType: 'AnalyticalReplicate',
-                        summary: "TODO",
-                        parents_id: ["root"]
-                    });
+            if (rawdata.getAnalyticalReplicateID() !== "") {
+                json_data.push(
+                        {
+                            id: rawdata.getAnalyticalReplicateID(),
+                            name: rawdata.getAnalyticalReplicateID(),
+                            nodeName: "",
+                            type: "Analytical Replicate",
+                            nodeType: 'AnalyticalReplicate',
+                            summary: "TODO",
+                            parents_id: ["root"]
+                        });
+            }
+
         }
         return json_data;
     },
-    toSimpleJSON: function() {
+    toSimpleJSON: function () {
         var JSON_DATA = this.data;
         var non_processed_data_JSON_DATA = [];
-        this.non_processed_data().each(function(item) {
+        this.non_processed_data().each(function (item) {
             non_processed_data_JSON_DATA.push(item.toSimpleJSON());
         });
 
@@ -431,7 +434,7 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
          * @param model if we want to load the data in an already created model 
          * @return the model with the loaded data    
          ********************************************************************************/
-        loadFromJSON: function(jsonData, model) {
+        loadFromJSON: function (jsonData, model) {
             if (model === undefined) {
                 model = Ext.create("SL.model.AnalysisModels.Analysis");
             }
@@ -472,7 +475,7 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
      *  
      *  @return a copy for the current object.
      */
-    clone: function() {
+    clone: function () {
         var newInstance = this.toSimpleJSON();
         //THIS IS NECCESSARY TO BE SURE THAT ALL THE ARRAYS ARE NEW OBJECTS 
         //IF NOT, THE USED DATA ARRAY IN INTERMEDIATE STEPS IS SHARED BETWEEN OBJECTS
@@ -481,7 +484,7 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         newInstance = SL.model.AnalysisModels.Analysis.loadFromJSON(newInstance);
         return newInstance;
     },
-    isValid: function() {
+    isValid: function () {
         /*************************************************************************************
          * This function check if the Analysis model is valid:
          * 1. If all the associated steps are valid.
@@ -492,7 +495,7 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         var errors = this.validate();
 
         if (!errors.isValid()) {
-            errors.each(function(item) {
+            errors.each(function (item) {
                 ERROR_MESSAGE += "</br>-  Analysis metadata error:  Field " + item.field + " " + item.message;
             });
         }
@@ -513,16 +516,16 @@ Ext.define('SL.model.AnalysisModels.Analysis', {
         }
         return (ERROR_MESSAGE === "" ? true : ERROR_MESSAGE);
     },
-    getNextFakeStepID: function() {
+    getNextFakeStepID: function () {
         var nextNPDFakeID = this.non_processed_data().max('step_id');
         var nextPDFakeID = this.processed_data().max('step_id');
         var nextFakeID;
         if (nextNPDFakeID == null && nextPDFakeID == null) {
             nextFakeID = "001";
         } else {
-            nextNPDFakeID = (nextNPDFakeID == null) ? 0 :"" + (parseInt(nextNPDFakeID.substr(-3)) + 1); 
+            nextNPDFakeID = (nextNPDFakeID == null) ? 0 : "" + (parseInt(nextNPDFakeID.substr(-3)) + 1);
             nextPDFakeID = (nextPDFakeID == null) ? 0 : "" + (parseInt(nextPDFakeID.substr(-3)) + 1);
-            
+
             nextFakeID = "" + Math.max(nextNPDFakeID, nextPDFakeID);
 
             var minNumberLength = 3;

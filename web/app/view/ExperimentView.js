@@ -343,7 +343,7 @@ Ext.define('SL.view.ExperimentDetailsView', {
                 break;
         }
         //REMOVE mainView CONTENT (IF EXISTS) AND ADD THE NEW PANEL
-        Ext.getCmp('mainView').setButtonsStatus(buttons_status);
+        application.mainView.setButtonsStatus(buttons_status);
 
         this.setEditableMode(editable_mode);
         this.inEditionMode = (mode === "edition");

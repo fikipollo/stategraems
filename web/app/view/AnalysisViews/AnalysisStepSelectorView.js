@@ -199,7 +199,17 @@ Ext.define('SL.view.AnalysisViews.AnalysisStepSelectorField', {
                 show: function () {
                     this.setLoading(true);
                     //SHOW THE GRAPH
-                    var json_data = Ext.getCmp('mainView').getView('AnalysisDetailsView').getModel().getJSONforGraph();
+                    var json_data;
+                    var view = application.mainView.getCurrentView();
+                    debugger;
+                    if (view.getName() === "AnalysisDetailsView") {
+                        json_data = view.getModel().getJSONforGraph();
+                    } else if (view.getName() === "AnalysisWizardViewPanel") {
+                        json_data = view.getAnalysisEditorView().getModel().getJSONforGraph();
+                    } else {
+                        json_data = application.mainView.getView('AnalysisWizardViewPanel').getModel().getJSONforGraph();
+                    }
+
                     this.cytoscape_graph = configureCytoscapeAnalysisGraph(this.queryById('panelWorkflow'), 'cytoscapeweb_stepSelector', json_data, {showMenu: false});
                     //OVERRIDE THE SELECT EVENT
                     this.cytoscape_graph.off("tap");
@@ -354,7 +364,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisStepSelectorWindow', {
                         this.nextSibling('button').nextSibling('button').setVisible(false);
                     }
                 },
-                {text: 'Next <i class="fa fa-chevron-circle-right"></i>', cls: 'button', itemId: "nextButton", 
+                {text: 'Next <i class="fa fa-chevron-circle-right"></i>', cls: 'button', itemId: "nextButton",
                     handler: function () {
                         var tabBar = this.up('window').down('tabpanel');
                         var activeTab = tabBar.getActiveTab();

@@ -163,7 +163,7 @@ Ext.define('SL.controller.ExperimentController', {
      * @returns {undefined}
      */
     browseExperimentButtonHandler: function () {
-        Ext.getCmp('mainView').changeMainView("ExperimentListView").updateContent();
+        application.mainView.changeMainView("ExperimentListView").updateContent();
     },
     /**
      * This function handles the event fired when the button "Inspect current experiment" is clicked at HomePanel
@@ -194,7 +194,7 @@ Ext.define('SL.controller.ExperimentController', {
      * @returns {undefined}
      */
     showExperimentDetailsHandler: function (experimentID) {
-        var mainView = Ext.getCmp('mainView');
+        var mainView = application.mainView;
         var experimentView = mainView.changeMainView("ExperimentDetailsView");
         console.info((new Date()).toLocaleString() + " OPENING Experiment " + experimentID + " FOR INSPECT");
         var doAfterLoading = function () {
@@ -219,7 +219,7 @@ Ext.define('SL.controller.ExperimentController', {
         newModel.setSubmissionDate(new Date());
 
         //2. Create the new view
-        var mainView = Ext.getCmp('mainView');
+        var mainView = application.mainView;
         var experimentView = mainView.changeMainView("ExperimentDetailsView");
 
         //4.Load the information
@@ -341,7 +341,7 @@ Ext.define('SL.controller.ExperimentController', {
         } else {
             experimentView.clearTaskQueue();
 
-            var mainView = Ext.getCmp('mainView');
+            var mainView = application.mainView;
             mainView.setButtonsStatus(false);
             mainView.changeMainView("ExperimentListView").updateContent();
         }
@@ -558,7 +558,7 @@ Ext.define('SL.controller.ExperimentController', {
                 var jsonResponse = Ext.JSON.decode(response.responseText);
                 var valid_experiment = jsonResponse['valid_experiment'];
                 if (valid_experiment) {
-                    var mainView = Ext.getCmp("mainView");
+                    var mainView = application.mainView;
 
                     console.info((new Date()).toLocaleString() + "CHANGED TO EXPERIMENT " + experimentID + " SUCCESSFULLY");
                     Ext.util.Cookies.set('currentExperimentID', experimentID, null, location.pathname);

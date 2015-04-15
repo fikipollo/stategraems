@@ -107,11 +107,15 @@ Ext.define('SL.view.senchaExtensions.View', {
     controller: null,
     timerID1: null,
     timerID2: null,
+    name: null,
     getController: function () {
         return this.controller;
     },
     setController: function (controller) {
         this.controller = controller;
+    },
+    getName: function () {
+        return this.name;
     },
     initializeCountdownDialogs: function () {
         var me = this;

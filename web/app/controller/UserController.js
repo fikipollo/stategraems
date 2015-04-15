@@ -253,7 +253,7 @@ Ext.define('SL.controller.UserController', {
      * @returns {undefined}
      */
     logoutButtonHandler: function () {
-        var mainView = Ext.getCmp('mainView');
+        var mainView = application.mainView;
 
         var closePanels = function (response, opts) {
             Ext.util.Cookies.clear('loggedUser', location.pathname);

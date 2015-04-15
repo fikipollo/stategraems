@@ -65,7 +65,7 @@ Ext.define('SL.controller.AnalysisController', {
      * @returns {undefined}
      */
     browseAnalysisButtonClickHandler: function () {
-        Ext.getCmp('mainView').changeMainView("AnalysisListView").updateContent();
+        application.mainView.changeMainView("AnalysisListView").updateContent();
     },
     /**
      * This function handles the event fires when
@@ -103,7 +103,7 @@ Ext.define('SL.controller.AnalysisController', {
                         newModel.setAnalysisType(analysisType);
 
                         //2. Create the new view
-                        var mainView = Ext.getCmp('mainView');
+                        var mainView = application.mainView;
                         var analysisView = mainView.changeMainView("AnalysisDetailsView");
 
                         //4.Load the information
@@ -130,7 +130,7 @@ Ext.define('SL.controller.AnalysisController', {
      * @returns {undefined}
      */
     showAnalysisDetailsHandler: function () {
-        var mainView = Ext.getCmp('mainView');
+        var mainView = application.mainView;
 
         var analysisListView = mainView.getView('AnalysisListView');
         var grid = analysisListView.queryById('analysisContainer');
@@ -168,7 +168,7 @@ Ext.define('SL.controller.AnalysisController', {
      * @returns {undefined}
      */
     copyAnalysisButtonClickHandler: function () {
-        var mainView = Ext.getCmp('mainView');
+        var mainView = application.mainView;
 
         var analysisListView = mainView.getView('AnalysisListView');
         var grid = analysisListView.queryById('analysisContainer');
@@ -209,7 +209,7 @@ Ext.define('SL.controller.AnalysisController', {
         var me = this;
         var askToContinue = function (buttonId, text, opt) {
             if (buttonId === "yes") {
-                var mainView = Ext.getCmp('mainView');
+                var mainView = application.mainView;
                 mainView.setLoading(true);
                 var analysisListView = mainView.getView('AnalysisListView');
                 var grid = analysisListView.queryById('analysisContainer');
@@ -429,7 +429,7 @@ Ext.define('SL.controller.AnalysisController', {
                     });
                 }
             } else {
-                var mainView = Ext.getCmp('mainView');
+                var mainView = application.mainView;
                 mainView.setButtonsStatus(false);
                 mainView.changeMainView("AnalysisListView").updateContent();
             }
@@ -528,7 +528,7 @@ Ext.define('SL.controller.AnalysisController', {
      */
     workflowNodeClickHandler: function (analysisView, stepType, stepID) {
         //First check if the step view is already created (improve performance)
-        Ext.getCmp("mainView").setLoading(true);
+        application.mainView.setLoading(true);
         stepType = stepType.toLowerCase();
         var nodeView = null;
         if (stepType === "analyticalreplicate") {
@@ -560,12 +560,12 @@ Ext.define('SL.controller.AnalysisController', {
                     analysisDataContainer.setInnerPanel(bioconditionView, true);
                     analysisView.addSampleView(bioconditionID, bioconditionView);
                     bioconditionView.updateWorkflowPanel();
-                    Ext.getCmp("mainView").setLoading(false);
+                    application.mainView.setLoading(false);
 //                    analysisView.doLayout();
                 };
                 bioconditionView = this.getController('BioConditionController').getBiologicalConditionDetailsPanel(bioconditionID, doAfterLoading);
             } else {
-                Ext.getCmp("mainView").setLoading(false);
+                application.mainView.setLoading(false);
                 return;
             }
 
@@ -594,17 +594,17 @@ Ext.define('SL.controller.AnalysisController', {
                     var analysisDataContainer = analysisView.queryById('analysisDataContainer');
                     analysisDataContainer.setInnerPanel(nodeView, true);
                     analysisView.addStepView(stepID, nodeView);
-                    Ext.getCmp("mainView").setLoading(false);
+                    application.mainView.setLoading(false);
                 }
             });
         } else {
             var analysisDataContainer = analysisView.queryById('analysisDataContainer');
             if (analysisDataContainer.getInnerPanel() === nodeView) {
-                Ext.getCmp("mainView").setLoading(false);
+                application.mainView.setLoading(false);
                 return;
             }
             analysisDataContainer.setInnerPanel(nodeView);
-            Ext.getCmp("mainView").setLoading(false);
+            application.mainView.setLoading(false);
         }
     },
     /*
@@ -1193,7 +1193,7 @@ Ext.define('SL.controller.AnalysisController', {
             success: function (response) {                 // responseText should be in json format
                 try {
                     //1.DECODE THE JSON STRING AND CREATE A JSON OBJECT
-                    Ext.getCmp("mainView").setLoading(true);
+                    application.mainView.setLoading(true);
                     var jsonResponse = Ext.JSON.decode(response.responseText);
                     var analysisList = jsonResponse['analysisList'];
                     var analysisJSONData = analysisList[0];
@@ -1212,15 +1212,15 @@ Ext.define('SL.controller.AnalysisController', {
                         callback();
                     }
 
-                    Ext.getCmp("mainView").setLoading(false);
+                    application.mainView.setLoading(false);
                 } catch (error) {
                     showErrorMessage(new Date() + ': Parsing Error at <i>' + 'AnalysisController:loadAnalysisHandler:success' + '</i></br>Please try again later.</br>Error message: <i>' + error + '</i>', '');
-                    Ext.getCmp("mainView").setLoading(false);
+                    application.mainView.setLoading(false);
                 }
             },
             failure: function (response) {
                 ajaxErrorHandler("AnalysisController", "loadAnalysisHandler", response);
-                Ext.getCmp("mainView").setLoading(false);
+                application.mainView.setLoading(false);
                 this.browseAnalysisButtonClickHandler();
             }
         });
@@ -1231,55 +1231,57 @@ Ext.define('SL.controller.AnalysisController', {
      * @return 
      /**EC*********************************************************************************************************/
     openAnalysisWizardButtonHandler: function () {
-        //TODO
-//        var analysisTypeDialog = Ext.create('Ext.window.Window', {
-//            title: 'Please, choose the type for the new Analysis',
-//            height: 180, width: 400, layout: 'fit',
-//            closable: false, modal: true,
-//            items: [
-//                {xtype: 'panel',
-//                    border: false, layout: {type: 'vbox', align: 'stretch', pack: 'center'},
-//                    padding: 10, style: {'background': 'white'},
-//                    items: [
-//                        {xtype: 'combobox', cls: 'combobox', fieldLabel: 'Analysis type',
-//                            emptyText: "Choose the type for the new Analysis", editable: false,
-//                            displayField: 'value', valueField: 'value',
-//                            store: ['ChIP-seq', 'DNase-seq', 'Methyl-seq', 'mRNA-seq', 'smallRNA-seq', 'Metabolomics', 'Proteomics'],
-//                            value: "Metabolomics"
-//                        }]
-//                }],
-//            buttons: [{
-//                    text: 'Accept', cls: 'acceptButton',
-//                    handler: function() {
-//                        var analysisType = this.up('window').down('combobox').getValue();
-//                        if (analysisType == null) {
-//                            return;
-//                        }
-//        Ext.require(['SL.view.AnalysisViews.AnalysisWizardViewPanel'], function () {
-//            //1. Create the new model
-//            var newModel = Ext.create('SL.model.AnalysisModels.Analysis');
-//            newModel.setID("ANxxxx");
-//            newModel.setAnalysisType("ChIP-seq");
-//            //TODO
-//            //newModel.setAnalysisType(analysisType);
-//            //2. Create the new view
-//            var mainView = Ext.getCmp('mainView');
-//            var analysisWizardWindow = mainView.changeMainView("AnalysisWizardViewPanel");
-//            console.info((new Date()).toLocaleString() + " OPENING ANALYSIS WIZARD");
-//
-//            analysisWizardWindow.setLoading(true);
-//            analysisWizardWindow.loadModel(newModel);
-//            analysisWizardWindow.setLoading(false);
-//        });
-//                    }
-//                },
-//                {text: 'Cancel', cls: 'cancelButton',
-//                    handler: function() {
-//                        this.up('window').close();
-//                    }
-//                }]
-//        });
-//        analysisTypeDialog.show();
+        var analysisTypeDialog = Ext.create('Ext.window.Window', {
+            title: 'Please, choose the omic family for the new Analysis',
+            height: 180, width: 400, layout: 'fit',
+            closable: false, modal: true,
+            items: [
+                {xtype: 'panel',
+                    border: false, layout: {type: 'vbox', align: 'stretch', pack: 'center'},
+                    padding: 10, style: {'background': 'white'},
+                    items: [
+                        {xtype: 'combobox', cls: 'combobox', fieldLabel: 'Analysis type',
+                            emptyText: "Choose the type for the new Analysis", editable: false,
+                            displayField: 'value', valueField: 'value',
+                            store: ['ChIP-seq', 'DNase-seq', 'Methyl-seq', 'mRNA-seq', 'smallRNA-seq', 'Metabolomics', 'Proteomics'],
+                            value: "Metabolomics"
+                        }]
+                }],
+            buttons: [{
+                    text: "<i class='fa fa-check'></i> Accept", cls: 'acceptButton',
+                    handler: function () {
+                        var analysisType = this.up('window').down('combobox').getValue();
+                        if (analysisType == null) {
+                            return;
+                        }
+//                        Ext.require(['SL.view.AnalysisViews.AnalysisWizardViewPanel'], function () {
+                        //1. Create the new model
+                        var newModel = Ext.create('SL.model.AnalysisModels.Analysis');
+                        newModel.setID("ANxxxx");
+                        newModel.setAnalysisType("ChIP-seq");
+                        newModel.setAnalysisType(analysisType);
+
+                        //2. Create the new view
+                        console.info((new Date()).toLocaleString() + " OPENING ANALYSIS WIZARD");
+                        var mainView = application.mainView;
+                        var analysisWizardWindow = mainView.changeMainView("AnalysisWizardViewPanel");
+                        analysisWizardWindow.parent = mainView;
+
+                        analysisWizardWindow.setLoading(true);
+                        analysisWizardWindow.loadModel(newModel);
+                        analysisWizardWindow.showCurrentStepView();
+                        analysisWizardWindow.setLoading(false);
+                        this.up('window').close();
+//                        });
+                    }
+                },
+                {text: "<i class='fa fa-remove'></i> Cancel", cls: 'cancelButton',
+                    handler: function () {
+                        this.up('window').close();
+                    }
+                }]
+        });
+        analysisTypeDialog.show();
     },
     /**BC*********************************************************************************************************
      * This function handles ...
@@ -1422,8 +1424,9 @@ Ext.define('SL.controller.AnalysisController', {
     analysisWizardCancelButtonClickHandler: function () {
         var askToContinue = function (buttonId) {
             if (buttonId === "yes") {
-                //TODO: REMOVE THE MODEL, REMOVE THE VIEW
-                console.error("TODO");
+                var mainView = application.mainView;
+                mainView.setButtonsStatus(false);
+                mainView.changeMainView("AnalysisListView").updateContent();
             }
         };
         Ext.MessageBox.show({
@@ -1485,13 +1488,22 @@ Ext.define('SL.controller.AnalysisController', {
                         console.info((new Date()).toLocaleString() + "ANALYSIS " + analysisModel.getName() + " SAVED IN SERVER SUCCESSFULLY");
                         analysisNumber++;
                         me.sendCreateAnalysisWizard(dialog, analysisNumber);
+                        console.info((new Date()).toLocaleString() + "ANALYSIS " + analysisModel.getName() + " SAVED IN SERVER SUCCESSFULLY");
+                        analysisNumber++;
+                        me.sendCreateAnalysisWizard(dialog, analysisNumber);
                     },
                     failure: function (response) {
                         dialog.changeStatus(analysisNumber, "error");
+                        console.error((new Date()).toLocaleString() + "ANALYSIS " + analysisModel.getName() + " NOTE SAVED IN SERVER");
+                        analysisNumber++;
+                        me.sendCreateAnalysisWizard(dialog, analysisNumber);
                     }
                 });
             } else {
                 dialog.changeStatus(analysisNumber, "error");
+                console.error((new Date()).toLocaleString() + "ANALYSIS " + analysisModel.getName() + " NOTE SAVED IN SERVER");
+                analysisNumber++;
+                me.sendCreateAnalysisWizard(dialog, analysisNumber);
             }
         }
     },

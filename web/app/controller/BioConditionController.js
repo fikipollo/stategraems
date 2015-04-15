@@ -70,7 +70,7 @@ Ext.define('SL.controller.BioConditionController', {
      * @return true if created successfully     
      **EC********************************************************************************************************/
     browseBioConditionButtonClickHandler: function () {
-        Ext.getCmp('mainView').changeMainView("BioConditionListView").updateContent();
+        application.mainView.changeMainView("BioConditionListView").updateContent();
     },
     /**
      * 
@@ -79,7 +79,7 @@ Ext.define('SL.controller.BioConditionController', {
      */
     showBioConditionDetailsHandler: function (bioconditionID) {
         //1. Create a new Biocondition view
-        var mainView = Ext.getCmp('mainView');
+        var mainView = application.mainView;
         var bioconditionView = mainView.changeMainView("BioConditionDetailsView");
         console.info((new Date()).toLocaleString() + " OPENING BioCondition " + bioconditionID + " FOR INSPECT");
 
@@ -99,7 +99,7 @@ Ext.define('SL.controller.BioConditionController', {
      */
     copySelectedBioConditionHandler: function (bioconditionID) {
         //1. Change the content of the MainView
-        var mainView = Ext.getCmp('mainView');
+        var mainView = application.mainView;
         var bioconditionView = mainView.changeMainView("BioConditionDetailsView");
         console.info((new Date()).toLocaleString() + " OPENING BioCondition " + bioconditionID + " FOR COPY");
 
@@ -148,7 +148,7 @@ Ext.define('SL.controller.BioConditionController', {
         //2. Create the new view
 
         //2. Create the new view
-        var mainView = Ext.getCmp('mainView');
+        var mainView = application.mainView;
         var bioconditionView = mainView.changeMainView("BioConditionDetailsView");
 
         //3.Load the information
@@ -438,7 +438,7 @@ Ext.define('SL.controller.BioConditionController', {
             }
         } else {
             bioconditionView.clearTaskQueue();
-            var mainView = Ext.getCmp('mainView');
+            var mainView = application.mainView;
             mainView.setButtonsStatus(false);
             mainView.changeMainView("BioConditionListView").updateContent();
         }
@@ -1182,7 +1182,7 @@ Ext.define('SL.controller.BioConditionController', {
     removeBioConditionHandler: function (bioconditionID, callback) {
         var me = this;
 
-        Ext.getCmp('mainView').setLoading(true);
+        application.mainView.setLoading(true);
 
         Ext.Ajax.defaultHeaders = {'Content-Type': 'application/x-www-form-urlencoded'};
         Ext.Ajax.request({
@@ -1205,8 +1205,8 @@ Ext.define('SL.controller.BioConditionController', {
                     }
 
                     //UPDATE THE LIST OF BIOCONDITIONS
-                    Ext.getCmp('mainView').getView("BioConditionListView").updateContent();
-                    Ext.getCmp('mainView').setLoading(false);
+                    application.mainView.getView("BioConditionListView").updateContent();
+                    application.mainView.setLoading(false);
 
                     showSuccessMessage("Biological Condition removed successfully.");
                 } catch (error) {
@@ -1217,7 +1217,7 @@ Ext.define('SL.controller.BioConditionController', {
                 //REMOVE ALL THE IDS IN THE JSON
                 var jsonData = response.responseText;
                 //1.DECODE THE JSON STRING AND CREATE A JSON OBJECT
-                Ext.getCmp('mainView').setLoading(false);
+                application.mainView.setLoading(false);
                 var jsonResponse = Ext.JSON.decode(jsonData);
                 if (jsonResponse.success === false) {
                     showErrorMessage(new Date() + ': Error while trying to remove the selected Biological Condition.</br>Please try again later.</br>Error message: <i>' + jsonResponse.reason + '</i>', '');

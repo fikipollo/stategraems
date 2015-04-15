@@ -40,31 +40,31 @@ Ext.define('SL.model.AnalysisModels.RAWDataModels.RAWData', {
      **GETTERS AND SETTERS
      **
      *EC********************************************************************/
-    getAnalyticalReplicateID: function() {
+    getAnalyticalReplicateID: function () {
         return this.get('analyticalReplicate_id');
     },
-    setAnalyticalReplicateID: function(analyticalReplicateID) {
+    setAnalyticalReplicateID: function (analyticalReplicateID) {
         this.set('analyticalReplicate_id', analyticalReplicateID);
         this.setChanged();
     },
-    getAnalyticalReplicateName: function() {
+    getAnalyticalReplicateName: function () {
         return this.get('analyticalReplicate_name');
     },
-    setAnalyticalReplicateName: function(analyticalReplicateName) {
+    setAnalyticalReplicateName: function (analyticalReplicateName) {
         this.set('analyticalReplicate_name', analyticalReplicateName);
         this.setChanged();
     },
-    getRawDataType: function() {
+    getRawDataType: function () {
         return this.get('raw_data_type');
     },
-    setRawDataType: function(rawDataType) {
+    setRawDataType: function (rawDataType) {
         this.set('raw_data_type', rawDataType);
         this.setChanged();
     },
-    getExtractionMethod: function() {
+    getExtractionMethod: function () {
         return this.extractionMethod;
     },
-    setExtractionMethod: function(extractionMethod) {
+    setExtractionMethod: function (extractionMethod) {
         if (extractionMethod == null) {
             return;
         }
@@ -85,7 +85,7 @@ Ext.define('SL.model.AnalysisModels.RAWDataModels.RAWData', {
          * @param jsonData the data for the RAWData model in JSON format
          * @return the model with the loaded data    
          ********************************************************************************/
-        loadFromJSON: function(jsonData) {
+        loadFromJSON: function (jsonData) {
             var model = Ext.create('SL.model.AnalysisModels.RAWDataModels.RAWData');
 
             var extractionMethodJSONdata = jsonData['extractionMethod'];
@@ -137,18 +137,19 @@ Ext.define('SL.model.AnalysisModels.RAWDataModels.RAWData', {
      *  
      * @return 
      *EC********************************************************************/
-    getJSONforGraph: function() {
+    getJSONforGraph: function () {
         var _parents_id = [];
-        _parents_id.push(this.get('analyticalReplicate_id'));
-        var json_data =
-                {
-                    id: this.get('step_id'),
-                    name: (this.getName() != null ?  this.getName(): ""),
-                    type: this.get('raw_data_type') , 
-                    nodeType: 'RAWData',
-                    summary: "TODO",
-                    parents_id: _parents_id
-                };
+        if (this.getAnalyticalReplicateID() !== "") {
+            _parents_id.push(this.getAnalyticalReplicateID());
+        }
+        var json_data = {
+            id: this.get('step_id'),
+            name: (this.getName() != null ? this.getName() : ""),
+            type: this.get('raw_data_type'),
+            nodeType: 'RAWData',
+            summary: "TODO",
+            parents_id: _parents_id
+        };
 
         return json_data;
     },
@@ -157,7 +158,7 @@ Ext.define('SL.model.AnalysisModels.RAWDataModels.RAWData', {
      *  
      * @return 
      *EC********************************************************************/
-    toSimpleJSON: function() {
+    toSimpleJSON: function () {
         var JSON_DATA = this.data;
         if (this.getExtractionMethod() != null) {
             JSON_DATA['extractionMethod'] = this.getExtractionMethod().toSimpleJSON();
@@ -183,12 +184,12 @@ Ext.define('SL.model.AnalysisModels.RAWDataModels.RAWData', {
      * This function check if the model is valid:
      * @return  True is everithing is OK, an  String with the error message in other case.
      *EC********************************************************************/
-    isValid: function() {
+    isValid: function () {
         var ERROR_MESSAGE = "";
         var errors = this.validate();
 
         if (!errors.isValid()) {
-            errors.each(function(item) {
+            errors.each(function (item) {
                 ERROR_MESSAGE += "</br>-  RAW data metadata error:   Field " + item.field + " " + item.message;
             });
         }

@@ -150,7 +150,7 @@ Ext.define('SL.view.SampleViews.BioConditionListView', {
                 boxready: function () {
                     if (Ext.util.Cookies.get('currentExperimentID') === "Not selected" || Ext.util.Cookies.get('currentExperimentID') == "undefined") {
                         showErrorMessage("No experiment selected.\nPlease switch to an existing experiment or create a new one before continue.", {soft: true});
-                        Ext.getCmp('mainView').changeMainView("HomePanel");
+                        application.mainView.changeMainView("HomePanel");
                         return;
                     }
                 }
@@ -335,7 +335,7 @@ Ext.define('SL.view.SampleViews.BioConditionDetailsView', {
         //TODO
 //        if (this.parent === documentInfoPanel)
 //            documentInfoPanel.setButtonsStatus(buttons_status);
-        Ext.getCmp('mainView').setButtonsStatus(buttons_status);
+        application.mainView.setButtonsStatus(buttons_status);
         this.inEditionMode = (mode === "edition");
         this.inCreationMode = (mode === "creation");
 

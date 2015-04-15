@@ -1,5 +1,5 @@
-EMS_VERSION = "v0.6r1";
-debugging = false;
+EMS_VERSION = "v0.6r2";
+debugging = true;
 SERVER_URL = window.location.pathname;
 SERVER_PORT = "";
 
