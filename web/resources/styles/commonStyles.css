@@ -1,0 +1,266 @@
+/****************************************************************************
+**** COMMON STYLES **********************************************************
+****************************************************************************/
+/*@font-face {font-family: "Lato-Light"; src: url(./fonts/Lato-Light.ttf) format("truetype");}
+@font-face {font-family: "Lato-Regular"; src: url(./fonts/Lato-Regular.ttf) format("truetype");}*/
+@font-face {font-family: "OpenSans-Light"; src: url(./fonts/OpenSans-Light.ttf) format("truetype");}
+@font-face {font-family: "OpenSans-Regular"; src: url(./fonts/OpenSans-Regular.ttf) format("truetype");}
+
+body{font-family: "OpenSans-Light", tahoma,arial,verdana,sans-serif !important;background-color: white !important}            
+
+.x-form-item {font: normal 16px "OpenSans-Light";}
+.no-icon-menu .x-menu-item-icon { display: none; }
+.x-menu-item-link {padding: 0 4px 0 6px}
+.x-menu-item-link i {margin-right: 12px;}
+.x-tab-inner{padding-top: 2px;}
+/*.x-tab-bar .x-tab-bar-body .x-box-inner .x-tab{background: rgb(234, 237, 255);border-radius: 0px;height: 30px !important;min-width: 80px;box-shadow: none;color: #B9B9B9 !important;}*/
+.x-tab-bar .x-tab-bar-body .x-box-inner .x-tab{border-radius: 0px;height: 30px !important;min-width: 80px;box-shadow: none;color: #B9B9B9 !important;}
+
+.x-form-item-label{margin: 0; font: 14px "OpenSans-Regular";}
+
+.x-form-field, .x-form-display-field {margin: 0; font: 14px "OpenSans-Light"; letter-spacing: 0.05em;}
+
+.x-grid-row .x-grid-cell {font-family: "OpenSans-Light" !important; font-size: 12px;  font-weight: 300}
+.x-grid-rowbody p {font-size: 14px;font-family: "OpenSans-Light", sans-serif !important;padding-left: 15px;}
+.x-grid-rowbody b {color: #0084AD;}
+.x-grid-with-row-lines .x-grid-cell-inner {line-height: 15px;padding-bottom: 2px;}
+
+.x-btn-inner {font-family: sans-serif !important;}
+.x-toolbar .x-toolbar-text, .x-toolbar  .x-btn-inner {font-size: 14px;}
+.x-btn-default-small .x-btn-inner, .x-btn-default-toolbar-small .x-btn-inner {font-weight: normal} 
+
+.bioreplicateView .x-toolbar-default, .bioconditionView .x-toolbar-default  {background: none;}
+
+.panelInPrincipalTabPanel h1{text-align: center; margin-top: 50px; }
+.panelInPrincipalTabPanel h2{font-size: 30px !important; text-align: center; }
+.logged{background: url(../images/user_16x16.png) no-repeat top left;    }
+.not_logged{background: url(../images/warning_16x16.png) no-repeat top left; padding-left: 20px;}
+.logout{background: url(../images/logout_16x16.png) no-repeat top left;  }
+.userSettings{background: url(../images/config_16x16.png) no-repeat top left;  }
+
+.toggleLink {color: #333;text-decoration: none;margin-left: 10px; cursor: pointer}
+a.toggleLink i.fa-toggle-on {color: rgb(98, 169, 64);}
+a.toggleLink i.fa-toggle-off {color: rgb(169, 64, 64);}
+
+.tableOption {border-radius: 2px; cursor: pointer; display: inline-block; border: solid 1px #96B5C5; margin: 1px; font-size: 15px; text-align: center; }
+.tableOption .fa {padding: 8px 15px;}
+.tableOption.addOption{color: #61A33A;}
+.tableOption.wizardOption{color: #F7A510;}
+.tableOption.copyOption{color: #CF5390;}
+.tableOption.detailsOption{color: #159EDA;}
+.tableOption.deleteOption{color: #DD5757;}
+.tableOption.editOption{color: #CF9417;}
+.tableOption.importOption{color: #468AAD;}
+
+.panelHelpTip{color: rgb(72, 130, 187); margin-left:10px; font-size: 11px;}
+/*****************************************************************************
+**** FORMULARY STYLES ********************************************************
+*****************************************************************************/
+.fieldBox{background-color: #fff; box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1), inset 0 -1px 0 rgba(0, 0, 0, .07); margin-bottom: 20px; border-bottom: 1px solid #ccc; border-top: 4px #FFB0B0 solid !important;}
+
+.fieldBox:nth-child(2n){border-top: 4px #F1D460 solid !important;}
+
+.fieldBox:nth-child(3n){border-top: 4px #C6E05C solid !important;}
+
+.form_title{font-size: 34px; margin-bottom: 5px; font-weight: lighter; color: rgb(95, 95, 95);}
+.form_subtitle{font-size: 23px; margin: 10px 0px 10px 0px; color: rgb(0, 133, 185); padding: 3px; border-radius: 2px; font-weight: normal;}
+
+h2.form_subtitle{font-size: 18px;}
+
+input, textarea{border-radius: 3px;}
+input:focus, textarea:focus{-moz-box-shadow: 0px 0px 10px #8dcff3; -webkit-box-shadow: 0px 0px 8px #8dcff3; box-shadow: 0px 0px 8px #8dcff3; }
+.x-grid-row-editor {background: rgb(222, 236, 245);}
+/*****************************************************************************
+**** BUTTONS AND LINKS STYLES ************************************************
+*****************************************************************************/
+/*.acceptButton, .cancelButton, .button, .editButton{height: 30px; margin: 2px 5px 2px 0px; -moz-box-shadow: inset 0px 1px 0px 0px #ffffff; -webkit-box-shadow: inset 0px 1px 0px 0px #ffffff; box-shadow: inset 0px 1px 0px 0px #ffffff; background: -webkit-gradient( linear, left top, left bottom, color-stop(0.05, rgb(223, 223, 223)), color-stop(1, rgb(173, 173, 173)) ); background: -moz-linear-gradient( center top, #dfdfdf 5%, #adadad 100% ); filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#dfdfdf', endColorstr='#adadad'); background-color: rgb(173, 173, 173); -moz-border-radius: 6px; -webkit-border-radius: 6px; border-radius: 6px; border: 1px solid rgb(187, 187, 187); display: inline-block; color: #777777; font-family: arial; font-size: 15px; font-weight: bold; padding: 6px 24px; text-decoration: none; text-shadow: 1px 1px 0px #ffffff;}*/
+
+.acceptButton, .cancelButton, .button, .editButton{height: 35px; border-radius: 2px; margin: 2px 5px 2px 0px; background-color: #999; min-width: 70px; cursor: pointer; background-image: none;}
+.acceptButton .x-btn-inner, .cancelButton .x-btn-inner, .button .x-btn-inner, .editButton .x-btn-inner{color: #ffffff!important; text-decoration: none; font-size: 12px; font-weight: lighter; cursor: pointer; line-height: 26px !important; height: 28px;}
+.backButton:hover, .nextButton:hover, .button:hover{box-shadow:inset 0px 1px 0px 0px #c1ed9c; background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #8dcff3), color-stop(1, #69a8fb) ); background:-moz-linear-gradient( center top, #8dcff3 5%, #69a8fb 100% ); filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#8dcff3', endColorstr='#69a8fb'); background-color:#8dcff3; border:1px solid #69a8fb;}
+.acceptButton {background: #9dce2c;}
+.acceptButton.x-item-disabled {background: #CED6BC;}
+.acceptButton:hover {-moz-box-shadow:inset 0px 1px 0px 0px #c1ed9c; -webkit-box-shadow:inset 0px 1px 0px 0px #c1ed9c; box-shadow:inset 0px 1px 0px 0px #c1ed9c; background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #9dce2c), color-stop(1, #8cb82b) ); background:-moz-linear-gradient( center top, #9dce2c 5%, #8cb82b 100% ); filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#9dce2c', endColorstr='#8cb82b'); background-color:#9dce2c; border:1px solid #83c41a;}
+.acceptButton .x-btn-inner {text-shadow:1px 1px 0px #689324;}
+.cancelButton {background:  #FC4E4E;}
+.cancelButton.x-item-disabled {background: #F1C4C4;}
+.cancelButton:hover{-moz-box-shadow:inset 0px 1px 0px 0px #c1ed9c; -webkit-box-shadow:inset 0px 1px 0px 0px #c1ed9c; box-shadow:inset 0px 1px 0px 0px #c1ed9c; background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #e82727), color-stop(1, #cc0101) ); background:-moz-linear-gradient( center top, #e82727 5%, #cc0101 100% ); filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#e82727', endColorstr='#cc0101'); background-color:#e82727; border:1px solid #e82727;}
+.cancelButton .x-btn-inner {text-shadow:1px 1px 0px #e82727;}
+.editButton {background:  #EEB554;}
+.editButton.x-item-disabled {background: #EED3A6;}
+.editButton:hover , .x-editButtonPressed{-moz-box-shadow:inset 0px 1px 0px 0px #fed897; -webkit-box-shadow:inset 0px 1px 0px 0px #fed897; box-shadow:inset 0px 1px 0px 0px #fed897; background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #f6b33d), color-stop(1, #d29105) ); background:-moz-linear-gradient( center top, #f6b33d 5%, #d29105 100% ); filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#f6b33d', endColorstr='#d29105'); background-color:#f6b33d;border:1px solid #eda933;}
+.editButton .x-btn-inner {text-shadow:1px 1px 0px #cd8a15;}
+.accept_small{background: url(../images/success_16x16.png) no-repeat top left;  }
+.add_small{background: url(../images/add_16x16.png) no-repeat top left;  }
+.add_small_black{background: url(../images/add_16x16_black.png) no-repeat top left;  }
+.add_user_small{background: url(../images/add_user_16x16.png) no-repeat top left;  }
+.cancel_small{background: url(../images/delete_16x16.png) no-repeat top left;  }
+.config_small{background: url(../images/config_16x16.png) no-repeat top left;  }
+.copy_small{background: url(../images/copy_16x16.png) no-repeat top left;  }
+.delete_small{background: url(../images/delete_16x16.png) no-repeat top left;  }
+.edit{background: url(../images/edit_16x16.png) no-repeat top left;  }
+.edit_small{background: url(../images/edit_16x16.png) no-repeat top left;  }
+.edit_small_black{background: url(../images/edit_16x16_black.png) no-repeat top left;  }
+.details_small{background: url(../images/info_16x16.png) no-repeat top center;  }
+.inspect_small{background: url(../images/inspect_16x16.png) no-repeat top center;  }
+.import_step_small{background: url(../images/workflow_16x16.png) no-repeat top center;  }
+.left_small{background: url(../images/left_16x16.png) no-repeat top center;  }
+.path{font-family: monospace;    }
+.pdf-icon{background: url(../images/pdf_20x20.png) no-repeat top center;  }
+.refresh_small{background: url(../images/refresh_16x16.png) no-repeat top left;  }
+.right_small{background: url(../images/right_16x16.png) no-repeat top center;  }
+.search-small{background: url(../images/search_16x16.png) no-repeat top center;  }
+.trash_small{background: url(../images/trash_16x16.png) no-repeat top left;  }
+.unlock_small{background: url(../images/unlock_16x16.png) no-repeat top left;  }
+.upload_small{background: url(../images/upload_16x16.png) no-repeat top left;  }
+.tabHome{background: url(../images/home_16x16.png) no-repeat left;padding-top: 22px;}
+.tabBrowse{background: url(../images/search_16x16.png) no-repeat left;  padding-top: 22px;}
+/****************************************************************************
+**** INSPECT FORM STYLES ****************************************************
+*****************************************************************************/
+/*.DocumentInspectForm .x-form-field {border: none; background-image: none; font-size: 14px;   }
+
+.DocumentInspectForm .x-form-item-label{font-size: 14px; font-weight: bold;}*/
+.analysisPreviewField{cursor: -webkit-zoom-in; cursor: -moz-zoom-in; max-height: 100px;}
+.prettyprint {border: none !important; background-color: #F0F8FF;}
+input[readonly]{border: 0; }
+.combobox input[readonly] {border: 1px solid #7eadd9;}
+/*.x-form-checkbox[readonly]{background: no-repeat; background-image: url('../images/checkbox.gif');}*/
+/*.x-form-cb-checked .x-form-checkbox, .x-form-cb-checked .x-form-radio {background-position: 0 -13px;}*/
+.filefield input[readonly]{border: solid 1px #99bce8;}
+
+.x-window input[readonly]{border: 0; background: none;}
+.x-window .x-form-checkbox[readonly]{background: no-repeat; background-image: url('../images/checkbox.gif');}
+/*.x-window .x-form-cb-checked .x-form-checkbox, .x-form-cb-checked .x-form-radio {background-position: 0 -15px;}*/
+
+.x-window .filefield input[readonly]{border: solid 1px #99bce8;}
+
+.x-window .combobox input[readonly]{border: solid 1px #7eadd9;}
+/****************************************************************************
+**** HOME PANEL STYLES ******************************************************
+*****************************************************************************/
+.buttonHomePanel{background-color: transparent; background-image: none; border: none; height: 180px; width: 250px; margin: 20px; }
+
+.buttonHomePanel:hover{-moz-box-shadow: inset 0 0 5px 5px #cfcfcf; -webkit-box-shadow: inset 0 0 5px 5px #cfcfcf; box-shadow: inset 0 0 3px 1px #cfcfcf; border-radius: 8px; background-image: none; border: none; height: 180px; width: 250px; margin-left: 0.3%;}
+.buttonHomePanel .x-btn-inner{color:#333;padding-top: 0px !important;font-size: 30px;font-weight: lighter; }
+.buttonHomePanel .x-btn-icon{height: 150px;}
+.buttonHomePanel .x-btn-inner{font-family: "OpenSans-Light" !important;}
+
+.menuItemHomePanel {border: none;}
+.menuItemHomePanel .x-vertical-box-overflow-body{background-color: white;}
+.menuItemHomePanel .x-menu-item-text{border: none; font-size: 15px;}
+.menuItemHomePanel .x-menu-item-link{padding:6px 2px 3px 6px; text-align: center;   }
+
+/****************************************************************************
+**** LOGIN PANEL STYLES ******************************************************
+*****************************************************************************/
+.PanelInPrincipalTabPanel .loginPanel, .PanelInPrincipalTabPanel .loginPanel .x-panel-body-default {background-color: transparent; border: none;}
+.PanelInPrincipalTabPanel .loginPanel .x-panel-body-default-framed{background-color: transparent;}
+.PanelInPrincipalTabPanel .loginPanel .x-form-text{height: 28px; border-radius: 5px;}
+.PanelInPrincipalTabPanel .loginPanel .x-form-text:focus{-moz-box-shadow: 0px 0px 10px #8dcff3; -webkit-box-shadow: 0px 0px 8px #8dcff3; box-shadow: 0px 0px 8px #8dcff3; }
+.PanelInPrincipalTabPanel .loginPanel .x-form-item-label{font-size: 20px; margin-bottom: 10px;}
+/**************************************************************************************************
+** ANALYSIS VIEWS STYLES***************************************************************************
+**************************************************************************************************/
+.rawDataView input, .rawDataView textarea, .intermediateDataView input, .intermediateDataView textarea, .processedDataView input, .processedDataView  textarea{border-radius: 3px;}
+.rawDataView input:focus, .rawDataView textarea:focus, .intermediateDataView input:focus, .intermediateDataView textarea:focus, .processedDataView  input:focus, .processedDataView  textarea:focus{-moz-box-shadow: 0px 0px 10px #8dcff3; -webkit-box-shadow: 0px 0px 8px #8dcff3; box-shadow: 0px 0px 8px #8dcff3; }
+.rawDataView h2, .intermediateDataView h2, .processedDataView  h2{font-size: 21px; margin: 25px 0px 15px 10px; color: rgb(143, 143, 143);}
+.rawDataView h3, .intermediateDataView h3, .processedDataView  h3{margin: 15px 0px 10px 50px; font-size: 14px; color: rgb(99, 178, 223);    }
+
+.rawDataView tbody:hover,.intermediateDataView tbody:hover,.processedDataView tbody:hover{background-color: rgb(240, 246, 250);}
+
+.regionSelectedItem, .stepSelectedItem, .fileLocationItem, .softwareConfigurationItem{font-size:12px;border: 2px; left: 5px; top: 5px; margin: 0px; /*height: 60px;*/padding: 10px; margin: 5px; background-color: rgb(255, 255, 255); border: 1px solid rgb(192, 192, 192) !important; border-radius: 2px; border-left: 8px solid rgb(139, 204, 216) !important;}
+.softwareConfigurationItem {background-color: white;font-size: 10px;padding: 2px 10px;}
+.regionSelectorFieldBody, .analysisStepSelectorFieldBody, .fileLocationSelectorFieldBody, .elementSelectorFieldBody{border:1px solid #EBEBEB !important; padding: 5px 0px}
+.regionSelectedItem:nth-child(2n), .stepSelectedItem:nth-child(2n){border-left: 8px solid  #F1D460 !important;}
+.regionSelectedItem:nth-child(3n), .stepSelectedItem:nth-child(3n){border-left: 8px solid  #C6E05C !important;}
+.mobilePhaseView{border: 1px solid rgb(192, 192, 192) !important; border-radius: 2px; border-left: 8px solid rgb(139, 204, 216) !important;}
+.mobilePhaseView, .fractionView{border: 1px solid rgb(192, 192, 192) !important; border-radius: 2px; border-left: 8px solid rgb(139, 204, 216) !important;}
+.mobilePhaseView:nth-child(2n), .fractionView:nth-child(2n){border-left: 8px solid  #F1D460 !important;}
+.mobilePhaseView:nth-child(3n), .fractionView:nth-child(3n){border-left: 8px solid  #C6E05C !important;}
+
+.stepTools .x-menu-item-text{font-size: 14px;}
+
+.steptools .x-menu-icon-separator{border-left: none; background-color: inherit}
+/**************************************************************************************************
+** SAMPLE VIEWS STYLES***************************************************************************
+**************************************************************************************************/
+.analyticalReplicateView{border-radius: 8px; border: solid 1px #cbe1ef; }
+.bioreplicateView{background: #ffffff; }
+
+.bioconditionView .bioreplicateView{border-top: 4px #7DC7A6 solid !important; margin-top: 15px;}
+.bioreplicateView .x-panel-body-default{background: none;}
+.bioreplicateView .x-panel-body-default {background: none;}
+
+.bioreplicateView:nth-child(2n){border-top: 4px #9BCF3E solid !important;}
+
+.bioconditionView  h2, .analysisView h2{font-size: 18px; margin: 5px 0px; color: rgb(143, 143, 143);}
+.bioconditionView  h3, .analysisView h3{margin: 15px 0px 10px 50px; font-size: 14px; color: rgb(99, 178, 223);    }
+.bioconditionView tbody:hover,.bioreplicateView tbody:hover{background-color: rgb(240, 246, 250);}
+
+/**************************************************************************************************
+** EXPERIMENT VIEWS STYLES***************************************************************************
+**************************************************************************************************/
+.experimentView tbody:hover{background-color: rgb(240, 246, 250);}
+
+.experimentView  h2{font-size: 18px; margin: 10px 0px 5px 10px; color: rgb(143, 143, 143);}
+.experimentView  h3{margin: 15px 0px 10px 50px; font-size: 14px; color: rgb(99, 178, 223);    }
+/**************************************************************************************************
+** ANALYTICAL SAMPLES VIEWS STYLES***************************************************************************
+**************************************************************************************************/
+.analyticalReplicateView  h1{font-size: 20px; margin: 5px 0px 5px 0px; background-color: rgb(37, 142, 190); color: white; padding: 3px; border-radius: 2px;}
+.analyticalReplicateView  h2{font-size: 18px; margin: 0px 0px 5px 10px; color: rgb(143, 143, 143);}
+.analyticalReplicateView  h3{margin: 15px 0px 10px 12px; font-size: 14px; color: rgb(99, 178, 223);    }
+.analyticalReplicateView  .analyticalReplicatesList{border: 1px solid rgb(214, 214, 214); border-radius: 5px; background-color: rgb(239, 252, 255);}
+
+/***************************************************************************************************
+** CYTOSCAPE STYLES ********************************************************************************
+***************************************************************************************************/
+#cytoscapeweb, .cytoscapewebPanel {  width: 100%;height: 100%; }
+/***********************************************************/
+/**STYLES FOR LATERAL MENU** *******************************/
+/***********************************************************/
+ul.menu, ul.submenu {margin: 0;padding: 0;}
+.myDataLateralMenu {background-color : #f8f8f8; border: 1px solid #E0E0E0 !important;}
+ul.menu li{display: block;color: #444;font-size: 13px;padding: 10px 10px 10px 20px ;border: 1px solid #E0E0E0;border-top: 0;border-right: 0;}
+ul.menu li.parentOption {padding-left: 7px;font-size: 13px;}
+ul.menu li a {cursor: pointer;color: #626976;text-decoration: none;}
+ul.menu li a:hover {color: #D16065;}
+ul.submenu{background-color :#FDFDFD}
+div.generatingFormWaitDiv{
+    background-image: url(/resources/images/wait_32x32.gif);
+    margin: 200px auto;
+    width: 150px;
+    padding-top: 32px;
+    background-repeat: no-repeat;
+    background-position-x: center;
+    text-align: center;
+}
+#feedbackButton {
+    position: fixed;
+    top: 120px;
+    z-index: 1;
+    transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    -o-transform: rotate(-90deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+    left: 181px;
+}
+
+#feedbackButton a {
+    display: block;
+    background: #3AA1D7;
+    height: 24px;
+    width: 70px;
+    padding: 3px 8px;
+    color: #fff;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: -1px 1px 5px #949494;
+}
+/***********************************************************/
+/**STYLES FOR HEADER** *******************************/
+/***********************************************************/
+#header {width: 100%;}
+#header img {height: 50px;float: left; margin-left: 16px;}

@@ -1,0 +1,376 @@
+#!/bin/bash
+
+previous_location=$(pwd)
+install_dir=""
+tomcat_location=""
+mysql_user=""
+mysql_pass=""
+mysql_database=""
+server_subdomain="stategraems_app"
+
+
+function quit {
+	cd $previous_location
+	if [ "$install_dir" != "" ]; then
+		echo -e "\tCLEANING INSTALLATION FILES"
+		rm -r $install_dir
+	fi
+	exit $1
+}
+
+function checkJavaInstallation {
+	local status
+	local RESP
+
+	echo -en "\tLOOKING FOR JAVA...."
+	status=$(java -version 2> /dev/null)
+	status=$?
+	if [ $status == 1 ]; then 
+		status=$(which java)
+		status=$?
+	fi
+	if [ $status == 1 ]; then 
+		echo -en "\n\tJAVA was not detected in this machine, Is JAVA correctly installed and running? (Yy/Nn)   "	
+		read -p "" RESP
+		if [ "$RESP" = "y" ] || [ "$RESP" = "Y" ]; then
+			echo -e "\t                    .....OK"
+		else
+			echo -e "\tJAVA is required. Please install it first and restart the STATegra EMS installation. more info. http://bioinfo.cipf.es/stategralims/?page_id=78"
+			quit 1;
+		fi
+	else
+		  echo -e ".....OK"
+	fi
+}
+
+function readTomcatLocation {
+	local valid_data
+	local status
+
+	valid_data=1
+	while [ $valid_data == 1 ]; do
+		echo -en "\tPlease type the location of TOMCAT in the system (e.g. /opt/tomcat6/). This location must contains the webapps directory. [Ctrl + C to cancel]  "	
+		read -e -p "" tomcat_location
+
+		status=$(ls $tomcat_location | grep webapps)
+		status=$?
+		if [ $status == 1 ]; then 
+			echo -e "\tThe given location is not valid. Please check if TOMCAT is correctly installed and if so, the correct location for the files."
+		else
+			echo -e "\t                      ...OK Tomcat files located at "$tomcat_location
+			valid_data=0
+		fi
+	done
+}
+
+function checkTomcatInstallation {
+	local status
+	local RESP
+
+	echo -en "\tLOOKING FOR TOMCAT...."
+	tomcat_location=$(ps -Af | grep tomcat | grep java)
+
+	status=$?
+	if [ $status == 1 ]; then 
+		echo -en "\n\tTOMCAT was not detected in this machine, Is TOMCAT correctly installed and running? (Yy/Nn)   "	
+		read -p "" RESP
+		if [ "$RESP" = "y" ] || [ "$RESP" = "Y" ]; then
+			readTomcatLocation
+		else
+			echo -e "\tTOMCAT is required. Please install it first and restart the STATegra EMS installation. more info. http://bioinfo.cipf.es/stategraems/stategra-ems-installation/"
+			quit 1;
+		fi
+	else
+		tomcat_location=$(echo $tomcat_location | awk  '{for (i=1; i<=NF; i++) if ($i ~ /[.]*Dcatalina.home[.]*/){split($i,tmp,"=");printf tmp[2] "\n";}}')
+		status=$(ls $tomcat_location | grep webapps)
+		status=$?
+		if [ $status == 1 ]; then 
+			echo -e "\t"$tomcat_location"does not contain the webapp directory. Please specify manually the location for this directory."
+			readTomcatLocation
+		fi
+
+		echo -e "...OK Tomcat files located at "$tomcat_location
+	fi
+}
+
+
+function checkMySQLInstallation {
+	local status;
+	local RESP;
+	local valid_data;
+
+	echo -en "\tLOOKING FOR MySQL....";
+	#CHECK IF mysql daemon is running
+	status=$(ps -Af | grep mysqld);
+	status=$?;
+	#IF RUNNING, CHECK IF ACCEPT QUERIES 	
+	if [ $status == 0 ];then
+		status=$(echo "exit"| mysql -u testifrunning 2>&1 | awk '{if ($0 ~ /.*Access denied.*/ || $0 ~ /.*ERROR 1045.*/){print 0} else if($0 ~ /.*ERROR 2002.*/) { print "1" } else { print "-1"}} END { if (NR == 0){print "0"} }')
+	fi
+	
+	#IF MYSQL DAEMON IS NOT RUNNING OR CAN NOT BE DETECTED
+	if [ $status == 1 ];then 
+		valid_data=1;
+		while [ $valid_data == 1 ];do
+			echo -en "\n\tMySQL service was not detected in this machine, please start the mysql service and press ENTER to continue.";
+			read -p "" RESP;
+			echo -en "\n\tCheking if MySQL daemon is currently running...";
+			status=$(echo "exit"| mysql -u testifrunning 2>&1 | awk '{if ($0 ~ /.*Access denied.*/ || $0 ~ /.*ERROR 1045.*/){print 0} else if($0 ~ /.*ERROR 2002.*/) { print "1" } else { print "-1"}} END { if (NR == 0){print "0"} }')
+			if [ $status == 0 ]; then
+				valid_data=0;
+			else
+				echo "FAIL";
+			fi
+		done
+	#ELSE IF RUNNING AND ACCEPTY QUERIES
+	elif [ $status == 0 ]; then
+		echo -e "....OK";
+	else 
+		echo -e "\tMySQL is required. Please install it first and restart the STATegra EMS installation. more info. http://bioinfo.cipf.es/stategraems/stategra-ems-installation/";
+		quit 1;
+	fi
+}
+
+function getSTATegraEMSdata {
+	local status
+
+	#CREATE THE TEMPORAL DIRECTORY
+	install_dir=$(mktemp -d)
+	echo "" > $install_dir/install.log
+	#DOWNLOAD THE COMPRESSED FILES
+	status=0
+	wget http://bioinfo.cipf.es/stategraems/dist/STATegraEMS_bin_last.tar.gz -P $install_dir -o $install_dir/install.log
+	status=$(($status || $?))
+	#MOVE TO INSTALLATION DIRECTORY
+	cd $install_dir
+	status=$(($status || $?))
+	#CREATE THE DIR FOR DATA EXTRACTION
+	mkdir $install_dir/STATegraEMS_bin_last
+	status=$(($status || $?))
+	#EXTRACT DATA
+	tar xzvf $install_dir/STATegraEMS_bin_last.tar.gz -C $install_dir/STATegraEMS_bin_last > $install_dir/install.log
+	status=$(($status || $?))
+	#MOVE TO EXTRACTED DIRECTORY
+	cd $install_dir/STATegraEMS_bin_last/STATegraEMS_bin_v*
+	status=$(($status || $?))
+	#CHECK IF EVERYTHING IS OK
+	if [ $status != 0 ];then 
+		echo -e "\n\tUnable to get the STATegra EMS binaries, installation aborted, Try again later.";
+		quit 1
+	fi
+	echo "...DONE"
+}
+
+function getSTATegraEMSinstanceName {
+	local status;
+	local RESP;
+	local valid_data;
+
+	echo -e "            Please type the name for the instance of STATegra EMS to be updated."
+	echo -e "            By default, STATegra EMS should be accesible using http://yourservername/stategraems_app."
+	echo -en "           Do you want to change it? [Yy/Nn]"
+	read -p "" RESP
+	if [ "$RESP" = "y" ] || [ "$RESP" = "Y" ]; then
+		valid_data=1
+		while [ $valid_data == 1 ];do
+			echo -e "            Please type the name for the STATegra EMS instance to updated (default, stategraems_app)."
+			echo -e "            Accepted charset [a-z A-Z 0-9 _ - ]"
+			echo -n "            > "; read -p "" RESP
+			if [[ ! $RESP =~ ^[a-z0-9]+[a-z0-9_-]* ]]; then 
+				echo -e "            Invalid name, please try again.";
+			else
+				server_subdomain=$RESP
+				echo -e "            The STATegra EMS accesible at http://yourservername/"$RESP " will be updated" 
+				echo -en "           Are you agree? [Yy/Nn]"
+				read -p "" RESP
+				if [ "$RESP" = "y" ] || [ "$RESP" = "Y" ]; then
+					valid_data=0
+				else
+					echo ""
+				fi
+			fi
+		done
+		if [ "$server_subdomain" == "" ]; then
+			server_subdomain="stategraems_app"
+		fi
+	else
+		server_subdomain="stategraems_app"
+	fi
+}
+
+
+function savePreviousSTATegraEMSConfiguration {
+	local status
+	status=0
+	
+	mkdir $install_dir/backUp_data
+
+	echo -e "Saving the previous settings..."
+	cat $tomcat_location/webapps/$server_subdomain/resources/ServerConfiguration.js > $install_dir/backUp_data/tmp_ServerConfiguration
+	status=$(($status || $?))
+
+	if [ $status != 0 ];then 
+		echo -e "\n\tUnable to find the ServerConfiguration file at "$tomcat_location". Installation aborted.";
+		quit 1
+	fi
+
+	cat $tomcat_location/webapps/$server_subdomain/WEB-INF/classes/conf/data_location.properties > $install_dir/backUp_data/tmp_data_location.properties
+	status=$(($status || $?))
+
+	if [ $status != 0 ];then 
+		echo -e "\n\tUnable to find the Data location file at "$tomcat_location". Installation aborted.";
+		quit 1
+	fi
+}
+
+function updateSTATegraEMSdatabase {
+	local status
+	status=0
+	local dbName
+
+	cp updateDB.sql updateDB_tmp.sql
+
+	echo -e "\tGetting the name for he MySQL database that will be updated...."	
+	dbName=$(tail -n 1 $tomcat_location/webapps/$server_subdomain/WEB-INF/classes/conf/data_location.properties | cut -d "=" -f 2)
+	dbName=$(grep databasename $dbName/db_config.properties |  cut -d "=" -f 2)
+	sed -i 's/STATegraDB/'${dbName}'/g' updateDB_tmp.sql
+
+	echo -e "\tPlease type the MYSQL user name which will be used to update the database (must have DATABASE and USER CREATION privileges)   "	
+	echo -n "            > "; read -p "" mysql_user
+	echo -e "\tPlease insert your MYSQL user password."
+	echo -n "            > "; read -s mysql_pass
+	echo -e "\n\tCreating a back up for database."
+	mysqldump -u$mysql_user -p$mysql_pass --single-transaction $dbName> $install_dir/backUp_data/backUp.sql
+	status=$(($status || $?))
+	if [[ $status != 0 ]]; then
+		echo -e "\tFailed trying to backup database. Check your MYSQL user name password and privileges and try again."
+		updateSTATegraEMSdatabase
+	else
+		echo "                                             ...DONE"
+	
+		status=$(mysql -s -u$mysql_user -p$mysql_pass < updateDB_tmp.sql 2>&1 | awk 'BEGIN {error=0}{if ($0 ~ /.*Access denied.*/ || $0 ~ /.*ERROR 1045.*/){error=1} else if ($0 ~ /.*ERROR.*/){ error=-1}} END { print error}')
+		if [ $status == -1 ]; then 
+			echo -e "\tAn error ocurred trying to update the MYSQL database. Installation aborted."
+			quit 1
+		elif [ $status == 1 ]; then
+			echo -e "\tFailed trying to update database. Check your MYSQL user name password and privileges and try again."
+			updateSTATegraEMSdatabase
+		else
+			echo "                                             ...DONE"
+		fi
+	fi
+}
+
+
+function deploySTATegraEMS {
+	local status;
+	local RESP;
+	local valid_data;
+
+	status=0
+	rm $tomcat_location/webapps/$server_subdomain".war"
+	status=$(($status || $?))
+	if [ $status != 0 ];then 
+		echo -e "\n\tUnable to remove the previous STATegra EMS version, installation aborted, Try again later.";
+		quit 1
+	fi
+
+	cp stategraems_app.war $tomcat_location/webapps/$server_subdomain".war"
+	status=$(($status || $?))
+	if [ $status != 0 ];then 
+		echo -e "\n\tUnable to get the STATegra EMS binaries, installation aborted, Try again later.";
+		quit 1
+	fi
+	echo "...DONE"
+}
+
+function configureSTATegraEMS {
+	status=0
+	echo -en "\tA. UPDATING STATEGRA EMS CLIENT APP CONFIGURATION..."
+	echo -e "\n\tCopying the ServerConfiguration file to $tomcat_location/webapps/$server_subdomain/resources/...";
+	cp $install_dir/backUp_data/tmp_ServerConfiguration $tomcat_location/webapps/$server_subdomain/resources/ServerConfiguration.js
+	status=$(($status || $?))
+	if [ $status != 0 ];then 
+		echo -e "\n\tUnable to copy the ServerConfiguration file at "$tomcat_location". Installation aborted.";
+		quit 1
+	fi
+	
+	echo -e "\n\tCopying the ServerConfiguration file to $tomcat_location/webapps/$server_subdomain/WEB-INF/classes/conf/data_location.properties...";
+	cp $install_dir/backUp_data/tmp_data_location.properties $tomcat_location/webapps/$server_subdomain/WEB-INF/classes/conf/data_location.properties
+	status=$(($status || $?))
+	if [ $status != 0 ];then 
+		echo -e "\n\tUnable to copy the ServerConfiguration file at "$tomcat_location". Installation aborted.";
+		quit 1
+	fi
+
+	echo -e "CONFIGURATION FINISHED SUCCESSFULLY."
+}
+
+
+
+#---------------------------------------------------------
+#step 1.	CHECK IF SOFTWARE DEPENDENCIES ARE INSTALLED
+echo -e "\033[1mWELCOME TO THE STATegraEMS INSTALLATOR.\033[0m"
+echo -e "     This tool was developed to facilitate upgrading of the STATegra EMS application to the latest version. "
+echo -e "     Although this program has been checked and tested,this program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY and the user must run it under his own risk ."
+echo -e "     "
+echo -e "     It is highly recommended that you back up the contents of the database application and data directory of the application before continuing with the process. We also recommend stopping the application using the Tomcat manager to prevent user access to the application during the upgrade process (but Tomcat should keep running ) ."
+echo -e "     "
+echo -e "     Briefly these are the steps that will be implemented during the upgrade :"
+echo -e "     1. Check the installed services (Java, Tomcat...)."
+echo -e "     2. Download the latest version of STATegraEMS."
+echo -e "     3. Back-up the configuration files for the previous version."
+echo -e "     3. Install the latest version of the program."
+echo -e "     4. Configure the service and cleanup the installation files."
+echo -e "     "
+echo -en "    Continue with upgrading? [Yy/Nn]"
+read -p "" RESP
+if [ "$RESP" != "y" ] && [ "$RESP" != "Y" ]; then
+	echo -en "    Upgrading aborted. Bye."
+fi
+
+#---------------------------------------------------------
+#step 1.	CHECK IF SOFTWARE DEPENDENCIES ARE INSTALLED
+echo -e "STEP 1/6. CHECKING SOFTWARE REQUISITES...."
+#---------------------------------------------------------
+#	step 1.1	CHECK IF JAVA IS INSTALLED -------------
+checkJavaInstallation
+#	step 1.2	CHECK IF TOMCAT IS INSTALLED -------------
+checkTomcatInstallation
+#	step 1.2	CHECK IF MYSQL IS INSTALLED and RUNNING-
+checkMySQLInstallation
+
+getSTATegraEMSinstanceName
+#---------------------------------------------------------
+#step 2.	GET THE STATEGRA EMS BINARIES AND EXTRACT
+echo -en "STEP 2/6. DOWNLOADING THE LAST VERSION OF STATegra EMS..."
+getSTATegraEMSdata
+
+#---------------------------------------------------------
+#step 2.	GET THE STATEGRA EMS BINARIES AND EXTRACT
+echo -e "STEP 3/6. SAVING PREVIOUS STATegra EMS SETTINGS..."
+savePreviousSTATegraEMSConfiguration
+
+#---------------------------------------------------------
+#step 4.	INSTALL DATABASE
+echo -e "STEP 4/6. UPDATING STATegra EMS database..."
+echo -en "Do you want to update the Databases? [Yy/Nn]"
+read -p "" RESP
+if [ "$RESP" = "y" ] || [ "$RESP" = "Y" ]; then
+	updateSTATegraEMSdatabase
+fi
+
+
+#---------------------------------------------------------
+#step 3.	COPY AND DEPLOY THE STATEGRAMEMS BINARY
+echo -e "STEP 5/6. DEPLOYING STATegra EMS..."
+deploySTATegraEMS
+
+
+#---------------------------------------------------------
+#step 5.	CONFIGURE STATegraEMS
+echo -e "STEP 6/6. CONFIGURING STATegra EMS..."
+configureSTATegraEMS
+
+quit 0
+
