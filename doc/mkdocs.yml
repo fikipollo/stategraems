@@ -1,0 +1,6 @@
+site_name: STATegra EMS v0.6 Documentation
+pages:
+- [index.md, Home]
+- [about.md, About]
+- [tutorials.md, Tutorials]
+
