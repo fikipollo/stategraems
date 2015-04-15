@@ -9,4 +9,4 @@ pages:
 - ['tutorials/more_examples.md', 'Tutorials', 'More examples']
 - ['about/license.md', 'About', 'License']
 - ['about/contact.md', 'About', 'Contact']
-
+theme: cosmo
