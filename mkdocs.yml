@@ -1,6 +1,12 @@
-site_name: STATegra EMS v0.6 Documentation
+site_name: STATegra EMS v1.0 Documentation
 pages:
-- [index.md, Home]
-- [about.md, About]
-- [tutorials.md, Tutorials]
+- ['index.md', 'Home']
+- ['introduction/introduction_to_stategraems.md', 'Getting start', 'An introduction to STATegra EMS']
+- ['introduction/data_structure.md', 'Getting start', 'The data structure']
+- ['introduction/app_structure.md', 'Getting start', 'Application structure']
+- ['installation.md', 'Installing STATegraEMS']
+- ['tutorials/use_case.md', 'Tutorials', 'Use case']
+- ['tutorials/more_examples.md', 'Tutorials', 'More examples']
+- ['about/license.md', 'About', 'License']
+- ['about/contact.md', 'About', 'Contact']
 
