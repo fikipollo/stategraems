@@ -35,7 +35,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardView', {
 });
 
 Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
-    extend: 'Ext.panel.Panel',
+    extend: 'Ext.container.Container',
     alias: 'widget.AnalysisWizardViewPanel',
     mixins: {AnalysisWizardViewPanel: 'SL.view.AnalysisViews.AnalysisWizardView'},
     requires: ['SL.view.AnalysisViews.FileLocationSelectorField'],
@@ -53,7 +53,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
     analysisEditorView: null,
     currentPanel: null,
     lastFileLocationField: null,
-    lastSampleField: null,
+    inEditionMode: true,
     /**BC******************************************************************************      
      * 
      * GETTERS AND SETTERS
@@ -97,36 +97,65 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
         this.setLoading(true);
         var newPanel = null;
         if (this.stepNumber === 1) {
+            $("#headerPanelStepTitle").html("Analysis Wizard - Step 1. Workflow definition");
+            $("#headerPanelStepHelp").html("<i class='fa fa-info-circle'></i> Please, define the common pipeline for all the Analysis.");
+
+            //CREATE THE ANALYSIS DETAILS VIEW (DESIGN THE ANALYSIS PIPELINE)
             if (this.analysisEditorView === null) {
                 this.analysisEditorView = Ext.create('SL.view.AnalysisViews.AnalysisDetailsView', {parent: this, updatedNeeded: true, flex: 1});
             }
+
             this.analysisEditorView.flex = 1;
+
+            //REMOVE PREVIOUS MODEL
+            //TODO: REVISAR ESTO
             if (this.analysisEditorView.getModel() != null) {
                 this.analysisEditorView.getModel().deleteObserver(this.analysisEditorView);
             }
+
+            //LOAD THE TEMPLATE MODEL
             this.analysisEditorView.loadModel(this.getModel());
             this.getModel().addObserver(this.analysisEditorView);
             this.analysisEditorView.setViewMode('wizard');
             newPanel = this.analysisEditorView;
+
         } else if (this.stepNumber === 2) {
-            //TODO: COMPROBAR SI HA COMBIADO...
+            $("#headerPanelStepTitle").html("Analysis Wizard - Step 2. Analysis creation");
+            $("#headerPanelStepHelp").html(" <i class='fa fa-info-circle'></i> Please, for each analysis specify a name and the set of samples associated to each analysis." +
+                    " Use \"Apply changes\" button to save the information.");
+
+            //TODO: COMPROBAR SI HA CAMBIADO...           
+            //CREATE THE ANALYSIS CREATION PANEL
             if (this.analysisDetailsView1 === null) {
                 this.analysisDetailsView1 = Ext.create('SL.view.AnalysisViews.AnalysisWizardStep2View', {parent: this, flex: 2});
             }
+
             this.updateAnalysisListView();
             newPanel = this.analysisDetailsView1;
+
         } else if (this.stepNumber === 3) {
+            $("#headerPanelStepTitle").html("Analysis Wizard - Step 3. Samples and files assignament");
+            $("#headerPanelStepHelp").html("<i class='fa fa-info-circle'></i> Please, for each analysis, fill the information for all steps in the pipeline," +
+                    " i.e. type a name for each step, indicate the location of resulting files (if any) and for <i>raw data acquisition steps</i>, indicate which samples were used as input. " +
+                    " Use \"Apply changes\" button to save the information.");
+
             //TODO: COMPROBAR SI HA COMBIADO...
+            //CREATE THE ANALYSIS STEP EDITOR PANEL
             if (this.analysisDetailsView2 === null) {
                 this.analysisDetailsView2 = Ext.create('SL.view.AnalysisViews.AnalysisWizardStep3View', {parent: this, flex: 2});
             }
             //RESET THE TEMPORAL VARIABLES
             this.lastFileLocationField = null;
             this.lastSampleField = null;
-
             newPanel = this.analysisDetailsView2;
+
         } else if (this.stepNumber === 4) {
+            $("#headerPanelStepTitle").html("Analysis Wizard - Step 4. Specific details");
+            $("#headerPanelStepHelp").html(" <i class='fa fa-info-circle'></i> Finally, specify for each analysis the specific details for the pipeline, i.e. new steps not in the common pipeline, alternative settings for existing steps, etc. Use \"Apply changes\" button to save the information.");
+
             this.analysisEditorView.flex = 2;
+
+            //CREATE THE ANALYSIS STEP EDITOR PANEL
             if (this.analysisEditorView.getModel() != null) {
                 this.analysisEditorView.getModel().deleteObserver(this.analysisEditorView);
             }
@@ -137,18 +166,22 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
 
             newPanel = this.analysisEditorView;
         }
-        //SHOW / HIDE THE ANALYSIS SELECTOR PANEL
+
+        //SHOW OR HIDE THE ANALYSIS SELECTOR PANEL (ONLY HIDDEN FOR STEP 1)
         this.queryById("lateralPanel").setVisible(this.stepNumber !== 1);
-        //SHOW / HIDE THE ANALYSIS TOOLBAR
+
+        //SHOW OR HIDE THE ANALYSIS TOOLBAR (ONLY VISIBLE FOR STEP 2)
         this.queryById("analysisToolbar").setVisible(this.stepNumber === 2);
-        //SHOW / HIDE THE FILE SELECTOR AND SAMPLE SELECTOR PANELS
-        this.queryById("fileLocationSelectorContainer").setDisabled(this.stepNumber !== 3);
-        this.queryById("sampleListContainer").setDisabled(this.stepNumber !== 3);
-        this.queryById("analysisListContainer").expand();
+
+        //HIDE THE FILE SELECTOR PANEL 
+        this.queryById("fileLocationSelectorContainer").setVisible(false);
 
         if (this.currentPanel !== null) {
             this.remove(this.currentPanel, false);
         }
+
+        newPanel.region = "center";
+
         this.currentPanel = newPanel;
         this.add(this.currentPanel);
 
@@ -194,34 +227,53 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
         this.setController(application.getController("AnalysisController"));
 
         Ext.apply(me, {
-            border: 0, autoScroll: true, layout: {type: "hbox", align: "stretch"},
-//            bodyStyle: {background: "white"},
+            border: 0, layout: 'border', padding: 5,
             items: [
-                {xtype: 'panel', itemId: "lateralPanel", layout: {type: 'accordion', animate: true, activeOnTop: true}, hidden: true, flex: 1, items: [
-                        {xtype: "grid", title: "Analysis browser", itemId: "analysisListContainer",
+                {xtype: 'box', region: 'north', itemId: "headerPanel",
+                    html: "<h1 id='headerPanelStepTitle' class='form_title'></h1><p id='headerPanelStepHelp' style='font-size: 12px; color: #A3A3A3;'></p>"
+                },
+                {xtype: 'container', itemId: "lateralPanel", region: 'west', border: 0,
+                    layout: {type: 'vbox', align: "stretch"}, hidden: true, flex: 1,
+                    items: [
+                        {xtype: "grid", itemId: "analysisListContainer", flex: 1,
                             store: {fields: ['analysis_name', 'is_valid']},
-                            columns: [
-                                {text: "Analysis name", dataIndex: 'analysis_name', flex: 1, sortable: false},
-                                {text: 'Valid', dataIndex: 'is_valid', sortable: false, align: 'center', width: 60, renderer: function (value) {
-                                        if (value) {
-                                            return '<i class="fa fa-check fa-2x" style="color: rgb(81, 199, 136);"></i>';
-                                        } else {
-                                            return '<i class="fa fa-close fa-2x" style="color: rgb(223, 108, 147);"></i>';
+                            columns: {
+                                defaults: {sortable: false, align: 'center', width: 45},
+                                items: [
+                                    {text: "", dataIndex: 'row_number', width: 18,
+                                        renderer: function (value, metaData, record, rowIndex) {
+                                            return rowIndex + 1;
                                         }
+                                    },
+                                    {text: "Analysis name", dataIndex: 'analysis_name', flex: 1, align: 'left', sortable: true},
+                                    {text: 'Valid', dataIndex: 'is_valid',
+                                        renderer: function (value) {
+                                            if (value) {
+                                                return '<i class="fa fa-check fa-2x" style="color: rgb(81, 199, 136);"></i>';
+                                            } else {
+                                                return '<i class="fa fa-close fa-2x" style="color: rgb(242, 105, 105);"></i>';
+                                            }
+                                        }
+                                    },
+                                    {xtype: 'customactioncolumn', text: "",
+                                        items: [
+                                            {icon: "fa-trash-o fa-2x", text: "", style: "color: rgb(242, 105, 105);", tooltip: 'Delete this analysis.',
+                                                handler: function (grid, rowIndex, colIndex) {
+                                                    alert("TODO");
+                                                }
+                                            }]
                                     }
-                                }
-                            ],
+                                ]},
                             dockedItems: [
                                 {xtype: 'toolbar', itemId: "analysisToolbar",
                                     items: [
+                                        '->',
                                         {text: '<i class="fa fa-plus-circle"></i> Add new analysis', itemId: "addNewAnalysisButton", tooltip: 'Add new Analysis', cls: 'button', scope: me,
                                             handler: function () {
+                                                if (me.analysisModels.length > 0) {
+                                                    me.getController().analysisWizardApplyChangesButtonClickHandler(me.currentPanel, me.stepNumber);
+                                                }
                                                 this.getController().analysisWizardAddNewAnalysisButtonClickHandler(this);
-                                            }
-                                        },
-                                        {text: '<i class="fa fa-remove"></i> Remove selected analysis', itemId: 'removeAnalysisButton', tooltip: 'Remove the selected item', cls: 'cancelButton',
-                                            handler: function () {
-                                                alert("TODO")
                                             }
                                         }
                                     ]
@@ -229,14 +281,17 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
                             ],
                             listeners: {
                                 itemclick: function (dv, record, item, index, e) {
+                                    me.getController().analysisWizardApplyChangesButtonClickHandler(me.currentPanel, me.stepNumber);
                                     me.showAnalysisDetails(index);
                                 }
                             }
                         },
-                        {xtype: 'panel', title: "File browser", itemId: "fileLocationSelectorContainer", layout: {type: "hbox", align: "stretch"},
+                        {xtype: 'container', itemId: "fileLocationSelectorContainer", flex: 1, border: 0,
+                            layout: {type: "vbox", align: "stretch"},
                             items: [
-                                {xtype: "FileLocationSelectorPanel", flex: 1},
-                                {xtype: 'button', text: '<i class="fa fa-plus-circle"></i> Add Selection', cls: "button", handler: function () {
+                                {xtype: "FileLocationSelectorPanel", flex: 1, border: 0},
+                                {xtype: 'button', text: '<i class="fa fa-plus-circle"></i> Add Selection', cls: "button",
+                                    handler: function () {
                                         if (me.lastFileLocationField !== null) {
                                             var prevValue = me.lastFileLocationField.getValue();
                                             prevValue = (prevValue !== "" ? prevValue.chomp() + "\n" : prevValue);
@@ -248,39 +303,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardViewPanel', {
                                         }
                                     }
                                 }
-                            ],
-                            listeners: {
-                                beforecollapse: function () {
-                                    me.lastFileLocationField = null;
-                                }
-                            }
-                        },
-                        {xtype: 'panel', title: "Sample browser", itemId: "sampleListContainer", layout: {type: "hbox", align: "stretch"},
-                            items: [
-                                {xtype: "grid", flex: 1,
-                                    store: Ext.create('Ext.data.Store', {
-                                        fields: [{name: 'analytical_rep_id'}, {name: 'analytical_rep_name'}],
-                                        idProperty: "analytical_rep_id"
-                                    }),
-                                    columns: [
-                                        {text: "Analytical sample name", flex: 1, sortable: true, dataIndex: 'analytical_rep_name'}
-                                    ]
-                                }, {xtype: 'button', text: '<i class="fa fa-plus-circle"></i> Use selected', cls: "button", handler: function () {
-                                        if (me.lastSampleField !== null) {
-                                            var selected = this.previousSibling("grid").getSelectionModel().getLastSelected();
-                                            if (selected != null) {
-                                                me.lastSampleField.setRawValue(selected.get("analytical_rep_name"));
-                                                me.lastSampleField.nextSibling("textfield").setRawValue(selected.get("analytical_rep_id"));
-                                            }
-                                        }
-                                    }}
-                            ],
-                            listeners: {
-                                beforecollapse: function () {
-                                    me.lastSampleField = null;
-                                }
-                            }
-
+                            ]
                         }
                     ]
                 }
@@ -365,14 +388,6 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep2View', {
 
         Ext.apply(me, {autoScroll: true, layout: {type: "vbox", align: "stretch", padding: 20},
             items: [
-                {xtype: "box", itemId: "helpBox",
-                    html: "<h1 class='form_title'>Analysis Wizard - Step 2. Analysis creation</h1>" +
-                            "<h1 class='form_subtitle'>New Analysis -  Name and Samples</h1>" +
-                            "<p style=' font-size: 18px; color: #A3A3A3; margin-left: 5px;'>" +
-                            " Please, type a name for the new analysis and choose the samples that were used during the analysis pipeline.</br>" +
-                            " Remember to click on \"Apply changes\" button to save the information." +
-                            "</p>"
-                },
                 {xtype: "box", itemId: "emptyBox", style: "background-color: #FAFAFA;text-align: center;",
                     html: '<h1 style="font-size: 25px; color: #DB5A74;margin-top: 22%;">No analysis selected</h1>'
                             + '<p style=" font-size: 20px; color: #A3A3A3;">To start editing, please choose an Analysis at the "Analysis Browser" panel</p>', flex: 1},
@@ -454,11 +469,6 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3View', {
         this.model = model;
         this.queryById('analysisNameLabel').update("<h1 class='form_subtitle'>" + this.model.getName() + "</h1>");
 
-        //SET THE CONTENT OF THE SAMPLES GRID
-        var selectedSamples = this.model.getUsedSamples();
-        var selectedSamplesGrid = this.up("AnalysisWizardViewPanel").queryById("sampleListContainer");
-        selectedSamplesGrid.down("grid").getStore().loadRawData(selectedSamples);
-
         var rawDataStepsContainer = this.queryById("rawDataStepsContainer");
         var intermediateDataStepsContainer = this.queryById("intermediateDataStepsContainer");
         var processedDataStepsContainer = this.queryById("processedDataStepsContainer");
@@ -473,7 +483,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3View', {
         var stepView, stepModel;
         for (var i = 0; i < steps.getCount(); i++) {
             stepModel = steps.getAt(i);
-            stepView = Ext.widget("AnalysisWizardStep3StepView");
+            stepView = Ext.widget("AnalysisWizardStep3StepView", {parent: this});
             stepView.loadModel(stepModel, this.model.getName());
             if (stepModel.getType() === "rawdata") {
                 rawDataStepsContainer.add(stepView);
@@ -484,18 +494,18 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3View', {
 
         steps = this.model.getProcessedData();
         for (var i = 0; i < steps.getCount(); i++) {
-            stepView = Ext.widget("AnalysisWizardStep3StepView");
+            stepView = Ext.widget("AnalysisWizardStep3StepView", {parent: this});
             stepView.loadModel(steps.getAt(i), this.model.getName());
             processedDataStepsContainer.add(stepView);
         }
 
-        if (rawDataStepsContainer.child() == null) {
+        if (rawDataStepsContainer.child() === null) {
             rawDataStepsContainer.update('<p style="font-size: 18px; color: #DB5A74;padding-left: 15px;">No steps were added</p>');
         }
-        if (intermediateDataStepsContainer.child() == null) {
+        if (intermediateDataStepsContainer.child() === null) {
             intermediateDataStepsContainer.update('<p style="font-size: 18px; color: #DB5A74;padding-left: 15px;">No steps were added</p>');
         }
-        if (processedDataStepsContainer.child() == null) {
+        if (processedDataStepsContainer.child() === null) {
             processedDataStepsContainer.update('<p style="font-size: 18px; color: #DB5A74;padding-left: 15px;">No steps were added</p>');
         }
 
@@ -561,16 +571,6 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3View', {
 
         Ext.apply(me, {layout: {type: "vbox", align: "stretch", padding: 20},
             items: [
-                {xtype: "box", itemId: "helpBox",
-                    html: "<h1 class='form_title'>Analysis Wizard - Step 2. Analysis creation</h1>" +
-                            "<h1 class='form_subtitle'>Step informations</h1>" +
-                            "<p style=' font-size: 18px; color: #A3A3A3; margin-left: 5px;'>" +
-                            " Please, for each analysis, fill the information for all steps in the pipeline," +
-                            " i.e. type a name for each step, indicate the location of resulting files (if any) and for <i>raw data acquisition steps</i>, indicate which samples were used as input.</br>" +
-                            " Remember to click on \"Apply changes\" button to save the information." +
-                            "</p>"
-
-                },
                 {xtype: "box", itemId: "emptyBox", style: "background-color: #FAFAFA;text-align: center;",
                     html: '<h1 style="font-size: 25px; color: #DB5A74;margin-top: 22%;">No analysis selected</h1>'
                             + '<p style=" font-size: 20px; color: #A3A3A3;">To start editing, please choose an Analysis at the "Analysis Browser" panel</p>', flex: 1},
@@ -579,7 +579,8 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3View', {
                         {xtype: "button", text: '<i class="fa fa-check"></i> Apply changes', cls: 'acceptButton', margin: "10", scope: this,
                             handler: function () {
                                 var mainView = this.up("AnalysisWizardViewPanel");
-                                mainView.queryById("analysisListContainer").expand();
+                                mainView.queryById("fileLocationSelectorContainer").setVisible(false);
+                                mainView.queryById("analysisListContainer").setVisible(true);
                                 this.getController().analysisWizardApplyChangesButtonClickHandler(me, 3);
                             }
                         }
@@ -617,7 +618,13 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3StepView', {
     extend: 'Ext.container.Container',
     mixins: {AnalysisWizardStep3StepView: 'SL.view.AnalysisViews.AnalysisWizardView'},
     alias: 'widget.AnalysisWizardStep3StepView',
-    border: 0, model: null, index: 0,
+    /********************************************************************************      
+     * SOME ATTRIBUTES
+     ********************************************************************************/
+    border: 0, model: null, index: 0, parent: null,
+    /********************************************************************************      
+     * FUNCTION DEFINITION
+     ********************************************************************************/
     loadModel: function (stepModel, analysisName) {
         this.model = stepModel;
         var stepName = this.model.getName();
@@ -633,17 +640,13 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3StepView', {
         }
         this.queryById("stepNameField").setValue(stepName);
         if (this.model.getType() === "rawdata") {
-            this.queryById("usedSampleNameField").setVisible(true);
+            this.queryById("usedSampleIDField").setVisible(true);
             this.queryById("usedSampleIDField").setValue(this.model.getAnalyticalReplicateID());
-            this.queryById("usedSampleNameField").setValue(this.model.getAnalyticalReplicateName());
         }
         this.queryById("fileLocationArea").setValue(this.model.getFileLocation());
     },
     getModel: function () {
         return this.model;
-    },
-    getName: function () {
-        return this.queryById("stepNameField").getValue();
     },
     getFileLocation: function () {
         return this.queryById("fileLocationArea").getValue();
@@ -651,15 +654,11 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3StepView', {
     getAnalyticalReplicateID: function () {
         return this.queryById("usedSampleIDField").getValue();
     },
-    getAnalyticalReplicateName: function () {
-        return this.queryById("usedSampleNameField").getValue();
-    },
     validate: function () {
-        this.queryById("stepNameField").validate();
-        this.queryById("usedSampleNameField").validate();
+        this.queryById("usedSampleIDField").validate();
         this.queryById("fileLocationArea").validate();
     },
-    /**BC****************************************************************************************
+    /**BC**************************************************************************************** 
      * 
      * COMPONENT DEFINITION
      * 
@@ -669,26 +668,36 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3StepView', {
         this.setController(application.getController("AnalysisController"));
 
         Ext.apply(me, {
-            padding: 20, cls: 'fieldBox', defaults: {width: "100%", labelAlign: "top", labelWidth: 500},
+            padding: 10, cls: 'fieldBox', defaults: {width: "100%", labelAlign: "top", labelWidth: 500},
             items: [
-                {xtype: 'textfield', itemId: "stepNameField", fieldLabel: 'Step name', allowBlank: false},
-                {xtype: 'textfield', itemId: "usedSampleNameField", fieldLabel: 'Used sample name', hidden: true,
-                    validator: function () {
-                        //TODO: CHECK IF THE NAME AND THE ID ARE IN THE SAMPLES LIST
-                        return (me.getModel().getType() !== "rawdata") || (this.getValue() !== "");
-                    },
+                {xtype: 'textfield', itemId: "stepNameField", fieldLabel: 'Step name', allowBlank: false,
                     listeners: {
                         focus: function () {
                             var mainView = this.up("AnalysisWizardViewPanel");
-                            mainView.queryById("sampleListContainer").expand();
-                            mainView.lastSampleField = this;
-                            mainView = this.up("AnalysisWizardStep3View");
-                            mainView.cytoscape_graph.deselect()
-                            mainView.cytoscape_graph.select("nodes", [me.getModel().getID()]);
+                            mainView.queryById("fileLocationSelectorContainer").setVisible(false);
+                            mainView.queryById("analysisListContainer").setVisible(true);
+                            mainView.lastFileLocationField = null;
                         }
                     }
                 },
-                {xtype: 'textfield', itemId: "usedSampleIDField", hidden: true},
+                {xtype: 'combo', itemId: "usedSampleIDField", fieldLabel: 'Used sample name', width: "100%",
+                    hidden: true, displayField: 'analytical_rep_name', valueField: 'analytical_rep_id',
+                    validator: function () {
+                        return (me.getModel().getType() !== "rawdata") || (this.getValue() !== "");
+                    },
+                    store: Ext.create('Ext.data.Store', {
+                        fields: [{name: 'analytical_rep_id'}, {name: 'analytical_rep_name'}], idProperty: "analytical_rep_id",
+                        data: me.parent.getModel().getUsedSamples()
+                    }),
+                    listeners: {
+                        focus: function () {
+                            var mainView = this.up("AnalysisWizardViewPanel");
+                            mainView.queryById("fileLocationSelectorContainer").setVisible(false);
+                            mainView.queryById("analysisListContainer").setVisible(true);
+                            mainView.lastFileLocationField = null;
+                        }
+                    }
+                },
                 {xtype: 'textarea', fieldLabel: 'Location for generated files', itemId: 'fileLocationArea', minHeight: 150,
                     validator: function () {
                         //TODO: CHECK IF THE NAME AND THE ID ARE IN THE SAMPLES LIST
@@ -697,15 +706,23 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardStep3StepView', {
                     listeners: {
                         focus: function () {
                             var mainView = this.up("AnalysisWizardViewPanel");
-                            mainView.queryById("fileLocationSelectorContainer").expand();
+                            mainView.queryById("fileLocationSelectorContainer").setVisible(true);
+                            mainView.queryById("analysisListContainer").setVisible(false);
                             mainView.lastFileLocationField = this;
-                            mainView = this.up("AnalysisWizardStep3View");
-                            mainView.cytoscape_graph.deselect()
-                            mainView.cytoscape_graph.select("nodes", [me.getModel().getID()]);
                         }
                     }
                 }
-            ]
+            ],
+            listeners: {
+                boxready: function () {
+                    $(this.getEl().dom).mouseenter(function () {
+//                            mainView.cytoscape_graph.select("nodes", [me.getModel().getID()]);
+                    });
+                    $(this.getEl().dom).mouseout(function () {
+//                            mainView.cytoscape_graph.deselect();
+                    });
+                },
+            }
         });
         me.callParent(arguments);
     }
@@ -758,7 +775,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisWizardCreationDialog', {
                                 } else if (value === "sending") {
                                     return '<i class="fa fa-paper-plane-o" style="color: rgb(19, 153, 223);"></i> Sending';
                                 } else {
-                                    return '<i class="fa fa-close" style="color: rgb(223, 108, 147);"></i> Failed';
+                                    return '<i class="fa fa-close" style="color: rgb(242, 105, 105);"></i> Failed';
                                 }
                             }
                         }

@@ -1357,7 +1357,6 @@ Ext.define('SL.controller.AnalysisController', {
 
                 if (stepModel.getType() === "rawdata") {
                     stepModel.setAnalyticalReplicateID(stepView.getAnalyticalReplicateID());
-                    stepModel.setAnalyticalReplicateName(stepView.getAnalyticalReplicateName());
                 }
             }
         }
@@ -1425,8 +1424,13 @@ Ext.define('SL.controller.AnalysisController', {
         var askToContinue = function (buttonId) {
             if (buttonId === "yes") {
                 var mainView = application.mainView;
+                var previousView = mainView.getCurrentView();
+                previousView.inEditionMode = false;
                 mainView.setButtonsStatus(false);
+                
                 mainView.changeMainView("AnalysisListView").updateContent();
+
+                mainView.deleteView("AnalysisWizardViewPanel");
             }
         };
         Ext.MessageBox.show({

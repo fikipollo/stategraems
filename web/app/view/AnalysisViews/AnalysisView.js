@@ -179,8 +179,10 @@ Ext.define('SL.view.AnalysisViews.AnalysisDetailsView', {
                 buttons_status = "00101";
                 editableMode = true;
                 //THE QUEUE OF TASKS THAT SHOULD BE CARRIED OUT WHEN PRESSING "ACCEPT" BUTTON
-                this.setMainTitle("Analysis Wizard - Step 1. Workflow definition");
-                this.setHelpContent("Please, define the common pipeline for all the Analysis.");
+//                this.setMainTitle("Analysis Wizard - Step 1. Workflow definition");
+//                this.setHelpContent("Please, define the common pipeline for all the Analysis.");
+                this.setMainTitle("");
+                this.setHelpContent("");
 
                 break;
 

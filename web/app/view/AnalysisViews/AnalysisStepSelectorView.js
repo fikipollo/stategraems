@@ -201,7 +201,7 @@ Ext.define('SL.view.AnalysisViews.AnalysisStepSelectorField', {
                     //SHOW THE GRAPH
                     var json_data;
                     var view = application.mainView.getCurrentView();
-                    debugger;
+
                     if (view.getName() === "AnalysisDetailsView") {
                         json_data = view.getModel().getJSONforGraph();
                     } else if (view.getName() === "AnalysisWizardViewPanel") {

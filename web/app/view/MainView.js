@@ -91,6 +91,14 @@ Ext.define('SL.view.MainView', {
 
         return aView;
     },
+    deleteView: function (aViewName) {
+        var view = this.subviews[aViewName];
+
+        if (view != null && view !== this.getCurrentView()) {
+            Ext.destroy(view);
+            delete this.subviews[aViewName];
+        }
+    },
     getCurrentView: function () {
         return this.currentView;
     },
@@ -161,7 +169,7 @@ Ext.define('SL.view.MainView', {
                             + " </ul>"
                             + " <li class='parentOption'><a target='_blank' href='mailto:stategraemsdev@gmail.com'><i class='fa fa-envelope-o'></i>  Contact us</a> </li>"
                             + "</ul>"
-                            + '<div id="feedbackButton"><a target="_blank" href="http://bioinfo.cipf.es/stategraems/contact/">Feedback</a></div>'
+//                            + '<div id="feedbackButton"><a target="_blank" href="http://bioinfo.cipf.es/stategraems/contact/">Feedback</a></div>'
                 },
                 {xtype: 'panel', region: 'center', id: 'mainViewCenterPanel', itemId: 'mainViewCenterPanel', overflowY: "auto", defaults: {border: 0}, layout: 'fit', items: [],
                     dockedItems: [

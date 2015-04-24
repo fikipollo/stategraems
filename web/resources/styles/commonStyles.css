@@ -17,7 +17,7 @@ body{font-family: "OpenSans-Light", tahoma,arial,verdana,sans-serif !important;b
 .x-tab-bar .x-tab-bar-body .x-box-inner .x-tab{border-radius: 0px;height: 30px !important;min-width: 80px;box-shadow: none;color: #B9B9B9 !important;}
 
 .x-form-item-label{margin: 0; font: 14px "OpenSans-Regular";}
-
+.x-border-layout-ct { background-color: #fff;}
 .x-form-field, .x-form-display-field {margin: 0; font: 14px "OpenSans-Light"; letter-spacing: 0.05em;}
 
 .x-grid-row .x-grid-cell {font-family: "OpenSans-Light" !important; font-size: 12px;  font-weight: 300}
@@ -62,8 +62,8 @@ a.toggleLink i.fa-toggle-off {color: rgb(169, 64, 64);}
 
 .fieldBox:nth-child(3n){border-top: 4px #C6E05C solid !important;}
 
-.form_title{font-size: 34px; margin-bottom: 5px; font-weight: lighter; color: rgb(95, 95, 95);}
-.form_subtitle{font-size: 23px; margin: 10px 0px 10px 0px; color: rgb(0, 133, 185); padding: 3px; border-radius: 2px; font-weight: normal;}
+.form_title{font-size: 25px; margin-bottom: 5px; font-weight: lighter; color: rgb(95, 95, 95);}
+.form_subtitle{font-size: 20px; margin: 5px 0px; color: rgb(0, 133, 185); padding: 3px; font-weight: normal;}
 
 h2.form_subtitle{font-size: 18px;}
 
