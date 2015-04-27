@@ -1,3 +1,7 @@
+<div class="imageContainer" style="" >
+    <img src="img/stategraems_logo.png" title="STATegra EMS LOGO."/>
+</div>
+
 STATegraEMS v1.0 was developed by the [Genomics of Gene Expression Lab](http://bioinfo.cipf.es/aconesawp/)  at [Príncipe Felipe Research Centre](http://www.cipf.es/).
 
 **Rafael Hernández de Diego**, Main Developer, [stategraemsdev@gmail.com](mailto:stategraemsdev@gmail.com).

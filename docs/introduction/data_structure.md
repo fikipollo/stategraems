@@ -1,3 +1,7 @@
+<div class="imageContainer" style="" >
+    <img src="img/stategraems_logo.png" title="STATegra EMS LOGO."/>
+</div>
+
 # STATegra EMS: The data structure
 
 The overall objective of the STATegra EMS is to serve as a logbook for high-throughput genomics projects performed at research labs by providing an easy-to-use tool for the annotation of experimental design, samples, measurements, and the analysis pipelines applied to the data. Experimental data and metadata are organized in the EMS around three major metadata modules (Figure 2): the Experiment module that records experimental design information and associated samples; the Samples module that collects all information on the used biomaterial; and the Analysis module that contains analysis pipelines and results. Both Sample and Analysis modules have been defined broadly to accommodate data from different type of omics experiments and still provide a common annotation framework. Commonly used standards in omics experimental data annotations were used when defining data specifications to facilitate EMS interoperability. In particular, we leveraged MIAPE [16] for proteomics analysis annotation, metabolomics guidelines proposed by [17] and [18] and MIAME [19] and MINSEQE [20] for sequencing experiments.

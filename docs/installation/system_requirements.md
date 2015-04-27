@@ -1,3 +1,7 @@
+<div class="imageContainer" style="" >
+    <img src="img/stategraems_logo.png" title="STATegra EMS LOGO."/>
+</div>
+
 #System requirements
 
 STATegra EMS was developed to run under a UNIX SYSTEM. In spite of the software in which depends on can also work under other environments (e.g. Windows OS), it is not guaranteed that STATegra EMS does.

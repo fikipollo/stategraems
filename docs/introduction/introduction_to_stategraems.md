@@ -1,3 +1,7 @@
+<div class="imageContainer" style="" >
+    <img src="img/stategraems_logo.png" title="STATegra EMS LOGO."/>
+</div>
+
 #What is the STATegra EMS?
 
 High-throughput sequencing and NGS-based assays have become popular to study different levels of genome organization. The decreasing costs and widespread availability of sequencing and the little or not a priori genome knowledge required, have put the technology within reach of most laboratories, which can now use one or more NGS assays in their research projects. However, while the number of samples and replicates in these experiments are relatively modest, these can quickly grow to several dozens of files and thus require standardized annotation, storage and management of preprocessing steps.

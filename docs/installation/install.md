@@ -1,3 +1,7 @@
+<div class="imageContainer" style="" >
+    <img src="img/stategraems_logo.png" title="STATegra EMS LOGO."/>
+</div>
+
 # STATegra EMS Autoinstaller
 
 However an auto-install bash script for UNIX environments has been developed.
