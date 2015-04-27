@@ -12,9 +12,9 @@ Anyway, a short description of the application...
 
 ## Contact
 
-** Rafael Hernández de Diego **, Main Developer,  [stategraemsdev@gmail.com](mailto:stategraemsdev@gmail.com).
+**Rafael Hernández de Diego**, Main Developer,  [stategraemsdev@gmail.com](mailto:stategraemsdev@gmail.com).
 
-** Ana Conesa, PhD. **, Head Genomics of Gene Expression Lab.
+**Ana Conesa, PhD.**, Head Genomics of Gene Expression Lab.
 
 For any question on STATegraEMS, users can send a mail to [stategraemsdev@gmail.com](mailto:stategraemsdev@gmail.com).
 
