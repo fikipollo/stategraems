@@ -7,7 +7,7 @@
 The following sections contain a brief use case in which we will note a study composed by mRNA-seq, DNase-seq and metabolomics experiments performed over a set of samples obtained by time series (batches).
 
 ## Use case video
-[![STATegra EMS Use case video](http://img.youtube.com/vi/JSxkLGfCD7g/0.jpg)](http://www.youtube.com/watch?v=JSxkLGfCD7g)
+[![STATegra EMS Use case video](http://img.youtube.com/vi/oI55W0mVNeM/0.jpg)](http://www.youtube.com/watch?v=oI55W0mVNeM)
 
 
 ## Web Application: general features
