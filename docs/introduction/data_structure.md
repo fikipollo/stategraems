@@ -1,5 +1,5 @@
 <div class="imageContainer" style="" >
-    <img src="img/stategraems_logo.png" title="STATegra EMS LOGO."/>
+    <img src="../img/stategraems_logo.png" title="STATegra EMS LOGO."/>
 </div>
 
 # STATegra EMS: The data structure
@@ -7,7 +7,7 @@
 The overall objective of the STATegra EMS is to serve as a logbook for high-throughput genomics projects performed at research labs by providing an easy-to-use tool for the annotation of experimental design, samples, measurements, and the analysis pipelines applied to the data. Experimental data and metadata are organized in the EMS around three major metadata modules (Figure 2): the Experiment module that records experimental design information and associated samples; the Samples module that collects all information on the used biomaterial; and the Analysis module that contains analysis pipelines and results. Both Sample and Analysis modules have been defined broadly to accommodate data from different type of omics experiments and still provide a common annotation framework. Commonly used standards in omics experimental data annotations were used when defining data specifications to facilitate EMS interoperability. In particular, we leveraged MIAPE [16] for proteomics analysis annotation, metabolomics guidelines proposed by [17] and [18] and MIAME [19] and MINSEQE [20] for sequencing experiments.
 
 <div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
-    <img src="img/2_data-structure_1.jpg" title="Figure 1 Metadata Module structure in STATegra EMS. "/>
+    <img src="../img/2_data-structure_1.jpg" title="Figure 1 Metadata Module structure in STATegra EMS. "/>
     <p class="imageLegend">Figure 1 Metadata Module structure in STATegra EMS. The Sample module stores information of biological conditions, biological replicates and the associated analytical samples. The analysis module contains all analysis steps from raw to processed data. Both samples and analyses are associated to one or more experiments within the Experiment module.</p>
 </div>
 
@@ -40,11 +40,11 @@ Sample and Analysis modules contain distinct Information Units (IUs), which are 
     In terms of data consistency, a unique Analysis ID is always associated to one Processed Data ID and describes the set of steps involved in obtaining that particular processed data. Moreover, an Analysis is always associated to one or more Experiments and, since the Analysis workflow can be traced back to raw data and its associated analytical samples, the Analysis provides the link between the Experiment and the Sample modules. By default, when a new Analysis is created, it will be assigned to the currently active Experiment. Figure 5 shows the data input window at the Analysis module. The central panel displays the input form for the different analysis steps, while at the bottom a graphical representation of the workflow allows easily monitoring the elements and structure of the Analysis.
 
 <div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
-    <img src="img/2_data-structure_2.jpg" title="Figure 2. STATegra EMS analysis workflow components."/>
+    <img src="../img/2_data-structure_2.jpg" title="Figure 2. STATegra EMS analysis workflow components."/>
     <p class="imageLegend">Figure 2. STATegra EMS analysis workflow components. The workflow is linked to an analytical sample object and consists of raw, intermediate and processed data IUs.</p>
 </div>
 
 <div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
-    <img src="img/2_data-structure_3.jpg" title="Figure 3. STATegra EMS analysis workflow components."/>
+    <img src="../img/2_data-structure_3.jpg" title="Figure 3. STATegra EMS analysis workflow components."/>
     <p class="imageLegend">Figure 3. Example of primary and secondary workflow for a DNase-seq analysis. Primary workflow (a) involves calling DNase hypersensitivity regions (DHR) by applying a peak-calling algorithm to a BAM file of mapped reads whereas secondary workflow (b) involves merging of DHR.bed files from different samples to obtain a set of consolidated regions and then counting the number of reads of each sample in the consolidated region set to generate a per-sample signal value file.</p>
 </div>

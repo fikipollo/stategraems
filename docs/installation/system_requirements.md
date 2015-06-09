@@ -1,5 +1,5 @@
 <div class="imageContainer" style="" >
-    <img src="img/stategraems_logo.png" title="STATegra EMS LOGO."/>
+    <img src="../img/stategraems_logo.png" title="STATegra EMS LOGO."/>
 </div>
 
 #System requirements
@@ -8,7 +8,7 @@ STATegra EMS was developed to run under a UNIX SYSTEM. In spite of the software 
 In order to install STATegra EMS, you must first install the software dependencies. The required steps are outlined in the following subsections, which were followed to successfully install STATegra EMS on a Debian machine (Debian 7.1).
 
 <div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
-    <img src="img/4_installation_1.jpg" title="System requirements."/>
+    <img src="../img/4_installation_1.jpg" title="System requirements."/>
 </div>
 
 ## JDK

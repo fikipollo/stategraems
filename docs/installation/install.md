@@ -1,5 +1,5 @@
 <div class="imageContainer" style="" >
-    <img src="img/stategraems_logo.png" title="STATegra EMS LOGO."/>
+    <img src="../img/stategraems_logo.png" title="STATegra EMS LOGO."/>
 </div>
 
 # STATegra EMS Autoinstaller
@@ -12,7 +12,7 @@ Since version 0.6, the STATegra EMS includes an auto-installer script which make
     -  Finally, the application will be deployed and configured. 
 
 <div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
-    <img src="img/4_installation_3.png" title="STATegra EMS autoinstaller."/>
+    <img src="../img/4_installation_3.png" title="STATegra EMS autoinstaller."/>
 </div>
 
 2. Now, open your favourite browser, navigate to the STATegra EMS application instance ( *http://yourservernameandport/**stategraems_app***) and follow the instructions to finish the installation.
@@ -27,7 +27,7 @@ Whatever location you decide, please do not forget to allow **read/write** permi
 **Note: in case that you changed the default subdomain**, the application must be reloaded after configuration, in order to update the new settings (e.g. via the Tomcat Manager). 
 
 <div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
-    <img src="img/4_installation_2.png" title="Fill the form to finish the installation."/>
+    <img src="../img/4_installation_2.png" title="Fill the form to finish the installation."/>
 </div>
 
 

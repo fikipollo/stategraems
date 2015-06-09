@@ -1,5 +1,5 @@
 <div class="imageContainer" style="" >
-    <img src="img/stategraems_logo.png" title="STATegra EMS LOGO."/>
+    <img src="../img/stategraems_logo.png" title="STATegra EMS LOGO."/>
 </div>
 
 The **STATegra EMS** application is distributed under **GNU General Public License, Version 3**.
@@ -14,10 +14,10 @@ You should have received a copy of the GNU General Public License along with thi
 **STATegra EMS** is part of the [STATegra Project](http://stategra.eu) and was developed by the [Genomics of Gene Expression Lab](http://bioinfo.cipf.es/aconesawp/) at [Príncipe Felipe Research Centre](http://www.cipf.es/).
 
 <div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
-    <img src="img/stategra_logo.png" title="The STATegra Project logo."/>
-    <img src="img/stategra_logo2.png" title="7th FRAMEWORK PROGRAMME, EUROPEAN COMMISSION"/>
+    <img src="../img/stategra_logo.png" title="The STATegra Project logo."/>
+    <img src="../img/stategra_logo2.png" title="7th FRAMEWORK PROGRAMME, EUROPEAN COMMISSION"/>
 </div>
 
 <div class="imageContainer" style="margin-top:50px; text-align:center; font-size:10px; color:#898989" >
-    <img src="img/stategra_partners_logo.jpg" title="The STATegra Consorcium."/>
+    <img src="../img/stategra_partners_logo.jpg" title="The STATegra Consorcium."/>
 </div>

@@ -1,5 +1,5 @@
 <div class="imageContainer" style="" >
-    <img src="img/stategraems_logo.png" title="STATegra EMS LOGO."/>
+    <img src="../img/stategraems_logo.png" title="STATegra EMS LOGO."/>
 </div>
 
 #What is the STATegra EMS?
@@ -14,12 +14,12 @@ The STATegra EMS is an experiment oriented management system designed for storag
 In contrast to other solutions that put the focus on sample management, the STATegra EMS has its primary goal in the annotation of experiments designed and run at research laboratories, providing an easy-to-use tool for the annotation of experimental design, samples, measurements and the analysis pipelines for different analytical platforms and sequencing services.
 
 <div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
-    <img src="img/1_introduction_1.jpg" title="Experiments, analysis and samples are widely related in bioinformatics."/>
+    <img src="../img/1_introduction_1.jpg" title="Experiments, analysis and samples are widely related in bioinformatics."/>
     <p class="imageLegend">Experiments, analysis and samples are widely related in bioinformatics. The STATegra EMS allows the annotation of experimental design, samples, measurements and the analysis pipelines for different analytical platforms and sequencing services.</p>
 </div>
 
 <div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
-    <img src="img/1_introduction_2.jpg" title="Annotation details at Experiment module."/>
+    <img src="../img/1_introduction_2.jpg" title="Annotation details at Experiment module."/>
     <p class="imageLegend">Annotation details at Experiment module.</p>
 </div>
 
@@ -28,7 +28,7 @@ In contrast to other solutions that put the focus on sample management, the STAT
 Keep your information about samples organized and centralized. Collect all the information about the used biomaterial of your experiments: biological material description, experimental conditions, batch processed, biological replicate.
 
 <div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
-    <img src="img/1_introduction_3.jpg" title="Sample form."/>
+    <img src="../img/1_introduction_3.jpg" title="Sample form."/>
     <p class="imageLegend">Sample form. The sample form provides fields to annotate biological condition details including data on the associated biological replicates and analytical samples.</p>
 </div>
 
@@ -39,7 +39,7 @@ Keep your information about samples organized and centralized. Collect all the i
 The STATegra LIMS supports annotation forms for mRNA-seq, ChIP-seq, DNase-seq, Methyl-seq, miRNA-seq, Proteomics and Metabolomics and can be easily adapted to other high-throughput experiments.
 
 <div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
-    <img src="img/1_introduction_4.jpg" title="STATegra EMS analysis workflow components."/>
+    <img src="../img/1_introduction_4.jpg" title="STATegra EMS analysis workflow components."/>
     <p class="imageLegend">STATegra EMS analysis workflow components. The workflow is linked to an analytical sample object and consists of raw, intermediate and processed data IUs.</p>
 </div>
 
@@ -48,7 +48,7 @@ The STATegra LIMS supports annotation forms for mRNA-seq, ChIP-seq, DNase-seq, M
 Annotate all the analysis pipelines performed during your experiments using user –friendly interfaces with visual pipelines.
 
 <div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
-    <img src="img/1_introduction_5.jpg" title="Analysis module input window."/>
+    <img src="../img/1_introduction_5.jpg" title="Analysis module input window."/>
     <p class="imageLegend">Analysis module input window.</p>
 </div>
 
