@@ -11,7 +11,7 @@ Since version 0.6, the STATegra EMS includes an auto-installer script which make
     -  By default, the application will be accessible using *http://yourservernameandport/**stategraems_app***, but the installer will ask you to change that, in case that you prefer other subdomain, e.g. use *experiment_manager* instead of *stategraems_app*.
     -  Finally, the application will be deployed and configured. 
 
-<div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
+<div class="imageContainer" style="box-shadow: 0px 0px 20px #D0D0D0; text-align:center; font-size:10px; color:#898989" >
     <img src="../img/4_installation_3.png" title="STATegra EMS autoinstaller."/>
 </div>
 
@@ -26,7 +26,7 @@ Whatever location you decide, please do not forget to allow **read/write** permi
 3. If everything is valid, you should be automatically redirected to the main page of the STATegra EMS.  
 **Note: in case that you changed the default subdomain**, the application must be reloaded after configuration, in order to update the new settings (e.g. via the Tomcat Manager). 
 
-<div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
+<div class="imageContainer" style="box-shadow: 0px 0px 20px #D0D0D0; text-align:center; font-size:10px; color:#898989" >
     <img src="../img/4_installation_2.png" title="Fill the form to finish the installation."/>
 </div>
 

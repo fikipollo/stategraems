@@ -5,7 +5,7 @@
 # STATegra EMS: Application architecture
 The STATegra EMS was designed as a multiuser web application and is divided in two components: the SERVER SIDE application and the CLIENT SIDE web application (Figure 1).
 
-<div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
+<div class="imageContainer" style="box-shadow: 0px 0px 20px #D0D0D0; text-align:center; font-size:10px; color:#898989" >
     <img src="../img/3_app-structure_1.jpg" title="Figure 1. Overview of the STATegra EMS architecture."/>
     <p class="imageLegend">Figure 1. Overview of the STATegra EMS architecture.</p>
 </div>

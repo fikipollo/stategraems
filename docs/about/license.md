@@ -3,6 +3,9 @@
 </div>
 
 The **STATegra EMS** application is distributed under **GNU General Public License, Version 3**.
+<div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
+    <img src="../img/gplv3-127x51.png" title="GNU GENERAL PUBLIC LICENSE Version 3 logo."/>
+</div>
 
 This program is **free software**; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
 

@@ -7,7 +7,7 @@
 STATegra EMS was developed to run under a UNIX SYSTEM. In spite of the software in which depends on can also work under other environments (e.g. Windows OS), it is not guaranteed that STATegra EMS does.
 In order to install STATegra EMS, you must first install the software dependencies. The required steps are outlined in the following subsections, which were followed to successfully install STATegra EMS on a Debian machine (Debian 7.1).
 
-<div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
+<div class="imageContainer" style="box-shadow: 0px 0px 20px #D0D0D0; text-align:center; font-size:10px; color:#898989" >
     <img src="../img/4_installation_1.jpg" title="System requirements."/>
 </div>
 
