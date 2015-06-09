@@ -1,10 +1,8 @@
 <div class="imageContainer" style="" >
-    <img src="img/stategraems_logo.png" title="STATegra EMS LOGO."/>
+    <img src="docs/img/stategraems_logo.png" title="STATegra EMS LOGO."/>
 </div>
 
-# STATegraEMS, The Experiment Management System
- 
-Welcome to STATegraEMS v1.0 documentation.
+### Welcome to STATegraEMS v1.0 documentation.
 
 **Note**: this documentation is temporal, we still developing the tool and we'll fill this documentation as soon as we release a first version.
 
