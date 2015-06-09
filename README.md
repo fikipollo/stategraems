@@ -1,5 +1,5 @@
 <div class="imageContainer" style="" >
-    <img src="docs/img/stategraems_logo.png" title="STATegra EMS LOGO."/>
+    <img src="docs/stategraems_logo.png" title="STATegra EMS LOGO."/>
 </div>
 
 ### Welcome to STATegraEMS v1.0 documentation.
