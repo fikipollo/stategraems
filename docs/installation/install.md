@@ -10,21 +10,30 @@ Since version 0.6, the STATegra EMS includes an auto-installer script which make
     -  First, the auto-installer will check all the dependencies and download the last binaries.
     -  By default, the application will be accessible using *http://yourservernameandport/**stategraems_app***, but the installer will ask you to change that, in case that you prefer other subdomain, e.g. use *experiment_manager* instead of *stategraems_app*.
     -  Finally, the application will be deployed and configured. 
-2. The STATegra EMS will store some files and images while users add new information into the system so we need to specify the location for those files (default location is */data*).
-Whatever location you decide, please do not forget to **set allow read/write access** in this location to the Tomcat user.   
-
-2. Now, open your favourite browser, navigate to the STATegra EMS application instance ( *http://yourservernameandport/**stategraems_app***) and follow the instructions to finish the installation.   
-If everything is valid, you will be redirected to the main page of the STATegra EMS.   
-**Note:** in case that you changed the default subdomain, the application must be reloaded after configuration, in order to update the new settings (e.g. via the Tomcat Manager). 
 
 <div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
-    <img src="img/4_installation_2.jpg" title="Fill the form to finish the installation."/>
+    <img src="img/4_installation_3.png" title="STATegra EMS autoinstaller."/>
+</div>
+
+2. Now, open your favourite browser, navigate to the STATegra EMS application instance ( *http://yourservernameandport/**stategraems_app***) and follow the instructions to finish the installation.
+    -  **Install or upgrade: **First, choose between Installing a new empty instance of STATegraEMS (this case) or Upgrade an existing one for a previous version.
+    -  **Database configuration: ** this installator will create the MySQL databases used by STATegraEMS, therefore we need to provide a valid MySQL user with the DATABASE CREATION, USER CREATION and GRANT privileges.  
+    By default, the STATegraEMS database is called "STATegraDB" and the installator will create an MySQL user with the corresponding privileges for database management (by default *emsuser*).
+    -  **EMS configuration: ** the STATegraEMS includes an special user *admin* which corresponds with the administrator user. Here you can set the correspoding password.
+    -  **Data location: ** the STATegraEMS needs to store some files and images as users add new information into the system, therefore we need to specify the location for those files. The default location is **/data**, where **/** is the root of your filesystem (do not confuse with the *root* of Tomcat) however, you can change this location according to your preferences. 
+Whatever location you decide, please do not forget to allow **read/write** permissions on that location for the Tomcat's user.  
+  
+3. If everything is valid, you should be automatically redirected to the main page of the STATegra EMS.  
+**Note: in case that you changed the default subdomain**, the application must be reloaded after configuration, in order to update the new settings (e.g. via the Tomcat Manager). 
+
+<div class="imageContainer" style="text-align:center; font-size:10px; color:#898989" >
+    <img src="img/4_installation_2.png" title="Fill the form to finish the installation."/>
 </div>
 
 
 # STATegra EMS Manual installation
 
-Alternatively, you can install the application manually, instead of using the auto-installer.
+**Alternatively**, you can install the application manually, instead of using the auto-installer.
     
 1. Download the last version of the STATegra EMS binaries from this [link](http://bioinfo.cipf.es/stategraems/get-stategra-ems/) and follow the instructions:
     
