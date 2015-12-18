@@ -1,12 +1,13 @@
 site_name: STATegra EMS v1.0 Documentation
 pages:
 - ['index.md', 'Home']
-- ['introduction/introduction_to_stategraems.md', 'Getting start', 'An introduction to STATegra EMS']
-- ['introduction/data_structure.md', 'Getting start', 'The data structure']
+- ['introduction/introduction_to_stategraems.md', 'Getting start', 'Introduction']
+- ['introduction/data_structure.md', 'Getting start', 'Data structure']
 - ['introduction/app_structure.md', 'Getting start', 'Application structure']
-- ['installation.md', 'Installing STATegraEMS']
+- ['installation/system_requirements.md', 'Installing STATegraEMS', 'System Requirements']
+- ['installation/install.md', 'Installing STATegraEMS', 'Installation']
 - ['tutorials/use_case.md', 'Tutorials', 'Use case']
 - ['tutorials/more_examples.md', 'Tutorials', 'More examples']
 - ['about/license.md', 'About', 'License']
 - ['about/contact.md', 'About', 'Contact']
-theme: cosmo
+theme: readthedocs

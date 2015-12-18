@@ -1,6 +1,8 @@
-# STATegraEMS, The Experiment Management System
- 
-Welcome to STATegraEMS v1.0 documentation.
+<div class="imageContainer" style="" >
+    <img src="docs/stategraems_logo.png" title="STATegra EMS LOGO."/>
+</div>
+
+### Welcome to STATegraEMS v1.0 documentation.
 
 **Note**: this documentation is temporal, we still developing the tool and we'll fill this documentation as soon as we release a first version.
 
@@ -12,9 +14,9 @@ Anyway, a short description of the application...
 
 ## Contact
 
-** Rafael Hernández de Diego **, Main Developer,  [stategraemsdev@gmail.com](mailto:stategraemsdev@gmail.com).
+**Rafael Hernández de Diego**, Main Developer,  [stategraemsdev@gmail.com](mailto:stategraemsdev@gmail.com).
 
-** Ana Conesa, PhD. **, Head Genomics of Gene Expression Lab.
+**Ana Conesa, PhD.**, Head Genomics of Gene Expression Lab.
 
 For any question on STATegraEMS, users can send a mail to [stategraemsdev@gmail.com](mailto:stategraemsdev@gmail.com).
 
