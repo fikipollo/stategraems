@@ -95,14 +95,18 @@ Ext.define('SL.view.AnalysisViews.SoftwareConfigurationField', {
                 }
             ],
             loadModel: function (text) {
-                this.queryById('software_configuration_static').update('<pre class="prettyprint">' + text + '</pre>');
+                this.queryById('software_configuration_static').update('<pre><code class="prettyprint bash">' + text + '</code></pre>');
                 this.down('textarea').setValue((text == null ? "" : text));
-                prettyPrint();
+                $('.prettyprint').each(function (i, block) {
+                    hljs.highlightBlock(block);
+                });
             }
         });
         creationWindow.loadModel(creationWindow.parent.getValue());
         creationWindow.show();
-        prettyPrint();
+        $('.prettyprint').each(function (i, block) {
+            hljs.highlightBlock(block);
+        });
     }
 });
 
@@ -126,9 +130,11 @@ Ext.define('SL.view.AnalysisViews.SoftwareConfigurationFieldItem', {
         }
         data = data.join("\n");
 
-        _html += '<pre class="prettyprint">' + data + '</pre>';
+        _html += '<pre><code class="prettyprint bash">' + data + '</code></pre>';
         this.update(_html.replace(/(https?:\/\/|ftp:\/\/)([\da-z\.-]+)\.([a-z\.]{2,6})(\:[\d]+)?\/?([\da-zA-Z\.\-\/_\#\?%=]*)/g, "<a href='$&' target='_blank'>$&</a>"), false, function () {
-            prettyPrint();
+            $('.prettyprint').each(function (i, block) {
+                hljs.highlightBlock(block);
+            });
         });
 
         return this;
@@ -152,7 +158,7 @@ Ext.define('SL.view.AnalysisViews.SoftwareConfigurationFieldItem', {
                                 me.parent.showSoftwareConfigDetailsButtonClickHandler();
                                 console.log("edit");
                             }
-                    ).css("display", (me.editable_mode === false?"none":"")).qtip(qtipData);
+                    ).css("display", (me.editable_mode === false ? "none" : "")).qtip(qtipData);
 
                     qtipData.content = "Show complete code";
                     $(this.getEl().dom).find("a.detailsOption").click(
@@ -161,7 +167,9 @@ Ext.define('SL.view.AnalysisViews.SoftwareConfigurationFieldItem', {
                                 console.log("details");
                             }
                     ).qtip(qtipData);
-                    prettyPrint();
+                    $('.prettyprint').each(function (i, block) {
+                        hljs.highlightBlock(block);
+                    });
                 }
             }
         });

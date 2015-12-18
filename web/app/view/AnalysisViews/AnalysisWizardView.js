@@ -24,6 +24,8 @@
  * - AnalysisWizardCreationDialog
  * 
  */
+/* global Ext */
+
 Ext.define('SL.view.AnalysisViews.AnalysisWizardView', {
     requires: ['SL.model.AnalysisModels.Analysis'],
     mixins: {

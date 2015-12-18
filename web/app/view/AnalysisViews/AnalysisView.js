@@ -870,7 +870,10 @@ Ext.define('SL.view.AnalysisViews.AnalysisListView', {
                             "<a id='deleteAnalysisOption' class='tableOption deleteOption'><i class='fa fa-trash'></i></a>"
                 },
                 {xtype: "gridpanel", itemId: 'analysisContainer', flex: 1, autoScroll: true, multiSelect: false, width: "90%",
-                    store: Ext.create('Ext.data.Store', {model: "SL.model.AnalysisModels.Analysis"}),
+                    store: Ext.create('Ext.data.Store', {
+                        model: "SL.model.AnalysisModels.Analysis",
+                        sorters: [{property: 'analysis_type', direction: 'ASC'}]
+                    }),
                     columns: [{text: 'Analysis ID', dataIndex: 'analysis_id'}, {text: 'Analysis type', dataIndex: 'analysis_type'}, {text: 'Last step name', flex: 1, dataIndex: 'last_step_name'}],
                     viewConfig: {stripeRows: true, enableTextSelection: false},
                     setData: function (data) {

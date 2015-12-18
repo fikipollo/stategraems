@@ -10,8 +10,8 @@ body{font-family: "OpenSans-Light", tahoma,arial,verdana,sans-serif !important;b
 
 .x-form-item {font: normal 16px "OpenSans-Light";}
 .no-icon-menu .x-menu-item-icon { display: none; }
-.x-menu-item-link {padding: 0 4px 0 6px}
-.x-menu-item-link i {margin-right: 12px;}
+/*.x-menu-item-link {padding: 0 4px 0 6px}
+.x-menu-item-link i {margin-right: 12px;}*/
 .x-tab-inner{padding-top: 2px;}
 /*.x-tab-bar .x-tab-bar-body .x-box-inner .x-tab{background: rgb(234, 237, 255);border-radius: 0px;height: 30px !important;min-width: 80px;box-shadow: none;color: #B9B9B9 !important;}*/
 .x-tab-bar .x-tab-bar-body .x-box-inner .x-tab{border-radius: 0px;height: 30px !important;min-width: 80px;box-shadow: none;color: #B9B9B9 !important;}
