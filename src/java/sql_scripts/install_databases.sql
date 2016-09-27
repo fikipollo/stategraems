@@ -1018,8 +1018,6 @@ INSERT IGNORE INTO `STATegraDB`.`appVersion` (version) VALUES('0.6');
 INSERT IGNORE INTO `STATegraDB`.`users` (user_id, password) VALUES('admin',SHA1('adminpassword'));
 
 use mysql;
-INSERT IGNORE INTO mysql.user (Host,User,Password) VALUES('localhost','emsuser',PASSWORD('emsuser#123'));
-flush privileges;
-
+CREATE USER 'emsuser'@'localhost' IDENTIFIED BY 'emsuser#123';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER ON STATegraDB.* TO 'emsuser'@'localhost';
 flush privileges;

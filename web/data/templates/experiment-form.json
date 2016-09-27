@@ -1,0 +1,73 @@
+{
+    "id": "experiment-form",
+    "content": [
+        {
+            "name": "section_1",
+            "title": "General details",
+            "fields": [
+                {
+                    "name": "experiment_id",
+                    "label": "Experiment ID",
+                    "type": "text"
+                },
+                {
+                    "name": "title",
+                    "label": "Title",
+                    "type": "text"
+                },
+                {
+                    "name": "experimentDataDirectory",
+                    "label": "Data Directory",
+                    "type": "text"
+                },
+                {
+                    "name": "experiment_description",
+                    "label": "Description",
+                    "type": "text"
+                },
+                {
+                    "name": "public_references",
+                    "label": "Public references",
+                    "type": "text"
+                }
+            ]
+        },
+        {
+            "name": "section_2",
+            "title": "Experimental design",
+            "fields": [
+                {
+                    "name": "tags",
+                    "label": "Experiment tags",
+                    "type": "tag"
+                }
+            ]
+        },
+        {
+            "name": "section_3",
+            "title": "Other information",
+            "fields": [
+                {
+                    "name": "experiment_owners",
+                    "label": "Owners",
+                    "type": "user_selector"
+                },
+                {
+                    "name": "experiment_members",
+                    "label": "Members",
+                    "type": "user_selector"
+                },
+                {
+                    "name": "submission_date",
+                    "label": "Submission date",
+                    "type": "date"
+                },
+                {
+                    "name": "last_edition_date",
+                    "label": "Last edition",
+                    "type": "date"
+                }
+            ]
+        }
+    ]
+}

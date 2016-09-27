@@ -1,0 +1,24 @@
+<div class="experiment-card">
+    <div class="experiment-card-body">
+        <h2 class="experiment-card-name">{{experiment.title}}</h2>
+        <div class="experiment-card-description" ng-if="experiment.experiment_description !== undefined">
+            <div ng-if="experiment.isMember === false" style="text-align: center;">
+                <span  class='text-danger'>{{experiment.annotation}}</span>
+                <span >
+                    <a class="btn btn-default btn-sm" style="margin-top: 20px;" ng-click="controller.requestAccessToExperimentHandler(experiment);">
+                        <i class="fa fa-plus"></i> Request access to this experiment.
+                    </a>
+                </span>
+            </div>
+            <span ng-if="experiment.isMember !== false">{{(experiment.annotation !== ""?experiment.experiment_description:"No description provided")}}</span>
+        </div>
+        <div class="experiment-card-tags-list">
+            <i class="tag {{getTagColor(tag)}}" ng-repeat="tag in experiment.tags| orderBy">{{tag}}</i>
+        </div>
+    </div>
+    <div class="experiment-card-author">
+        Created by <span style="color:#0F8CDA;">{{experiment.owner}}</span>
+    </div>
+    <a ng-if="experiment.public !== false" class="btn btn-info runExperimentButton" ui-sref="experimentDetail({viewMode : 'view', experiment_id : experiment.experiment_id})"> <i class="fa fa-info-circle"></i> More details </a>
+    <a ng-if="experiment.public === false" ng-disabled="true" class="btn btn-info runExperimentButton"> <i class="fa fa-info-circle"></i> More details </a>
+</div>

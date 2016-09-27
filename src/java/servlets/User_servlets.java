@@ -23,6 +23,8 @@ import bdManager.DAO.DAO;
 import bdManager.DAO.DAOProvider;
 import bdManager.DAO.User_JDBCDAO;
 import classes.User;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -107,8 +109,12 @@ public class User_servlets extends Servlet {
                  * NoSuchAlgorithmException, GO TO STEP 2b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                String user_id = request.getParameter("user_id");
-                String password = request.getParameter("password");
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+                
+                String user_id = requestData.get("user_id").getAsString();
+                String password = requestData.get("password").getAsString();
+                
                 password = SHA1.getHash(password);
                 boolean last_experiment = true;
                 Object[] params = {password, last_experiment};
@@ -143,7 +149,8 @@ public class User_servlets extends Servlet {
                      * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
                      * *******************************************************
                      */
-                    response.getWriter().print("{success: " + true + ", user_data : [" + user.toJSON() + "] }");
+                    response.setStatus(200);
+                    response.getWriter().print(user.toJSON());
                 }
                 /**
                  * *******************************************************

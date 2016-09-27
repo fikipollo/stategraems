@@ -24,6 +24,8 @@ import bdManager.DAO.DAOProvider;
 import bdManager.DAO.Experiment_JDBCDAO;
 import bdManager.DBConnectionManager;
 import classes.Experiment;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import common.BlockedElementsManager;
 import common.ServerErrorManager;
 import common.UserSessionManager;
@@ -99,6 +101,11 @@ public class Experiment_servlets extends Servlet {
             DAO dao_instance = null;
 
             try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
 
                 /**
                  * *******************************************************
@@ -107,7 +114,7 @@ public class Experiment_servlets extends Servlet {
                  * 6b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
@@ -127,9 +134,8 @@ public class Experiment_servlets extends Servlet {
                  * throws JsonParseException, GO TO STEP 6b ELSE --> GO TO STEP
                  * 4 *******************************************************
                  */
-                String experiment_json_data = request.getParameter("experiment_json_data");
                 Experiment experiment = null;
-                experiment = Experiment.fromJSON(experiment_json_data);
+                experiment = Experiment.fromJSON(requestData.get("experiment_json_data"));
 
                 /**
                  * *******************************************************
@@ -191,7 +197,8 @@ public class Experiment_servlets extends Servlet {
                         dao_instance.doRollback();
                     }
                 } else {
-                    response.getWriter().print("{success: " + true + ", newID : '" + BLOCKED_ID + "' }");
+                    response.setContentType("application/json");
+                    response.getWriter().print("newID : '" + BLOCKED_ID + "'");
                 }
 
                 if (BLOCKED_ID != null) {
@@ -229,7 +236,13 @@ public class Experiment_servlets extends Servlet {
                  * 6b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
+
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
@@ -239,7 +252,6 @@ public class Experiment_servlets extends Servlet {
                  * --> GO TO STEP 3
                  * *******************************************************
                  */
-                String experiment_json_data = request.getParameter("experiment_json_data");
 
                 /**
                  * *******************************************************
@@ -248,7 +260,7 @@ public class Experiment_servlets extends Servlet {
                  * TO STEP 4
                  * *******************************************************
                  */
-                Experiment experiment = Experiment.fromJSON(experiment_json_data);
+                Experiment experiment = Experiment.fromJSON(requestData.get("experiment_json_data"));
 
                 /**
                  * *******************************************************
@@ -318,6 +330,12 @@ public class Experiment_servlets extends Servlet {
             ArrayList<Object> experimentsList = null;
             try {
 
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
+
                 /**
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
@@ -325,8 +343,8 @@ public class Experiment_servlets extends Servlet {
                  * 5b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
-                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. Please sign in again.");
                 }
 
                 /**
@@ -336,7 +354,7 @@ public class Experiment_servlets extends Servlet {
                  * *******************************************************
                  */
                 dao_instance = DAOProvider.getDAOByName("Experiment");
-                boolean loadRecursive = false;
+                boolean loadRecursive = true;
                 Object[] params = {loadRecursive};
                 experimentsList = dao_instance.findAll(params);
 
@@ -357,14 +375,15 @@ public class Experiment_servlets extends Servlet {
                      * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
                      * *******************************************************
                      */
-                    String experimentsJSON = "experimentList : [";
+                    response.setContentType("application/json");
+                    String experimentsJSON = "[";
 
-                    for (Object experiment : experimentsList) {
-                        experimentsJSON += ((Experiment) experiment).toJSON() + ", ";
+                    for (int i = 0; i < experimentsList.size(); i++) {
+                        experimentsJSON += ((Experiment)experimentsList.get(i)).toJSON() + ((i < experimentsList.size() - 1)?",":"");
                     }
                     experimentsJSON += "]";
 
-                    response.getWriter().print("{success: " + true + ", " + experimentsJSON + " }");
+                    response.getWriter().print(experimentsJSON);
                 }
                 /**
                  * *******************************************************
@@ -492,12 +511,12 @@ public class Experiment_servlets extends Servlet {
             if (ServerErrorManager.errorStatus()) {
                 response.setStatus(400);
                 response.getWriter().print(ServerErrorManager.getErrorResponse());
-            } else {
-                /**
-                 * *******************************************************
-                 * STEP 3A WRITE RESPONSE ERROR.
-                 * *******************************************************
-                 */
+            } else /**
+             * *******************************************************
+             * STEP 3A WRITE RESPONSE ERROR.
+             * *******************************************************
+             */
+            {
                 if (alreadyLocked) {
                     response.getWriter().print("{success: " + false + ", reason: '" + BlockedElementsManager.getErrorMessage() + "'}");
                 } else {
@@ -544,12 +563,12 @@ public class Experiment_servlets extends Servlet {
             if (ServerErrorManager.errorStatus()) {
                 response.setStatus(400);
                 response.getWriter().print(ServerErrorManager.getErrorResponse());
-            } else {
-                /**
-                 * *******************************************************
-                 * STEP 3A WRITE RESPONSE ERROR.
-                 * *******************************************************
-                 */
+            } else /**
+             * *******************************************************
+             * STEP 3A WRITE RESPONSE ERROR.
+             * *******************************************************
+             */
+            {
                 if (alreadyLocked) {
                     response.getWriter().print("{success: " + false + ", reason: '" + BlockedElementsManager.getErrorMessage() + "'}");
                 } else {
@@ -824,7 +843,7 @@ public class Experiment_servlets extends Servlet {
                 dao_instance = DAOProvider.getDAOByName("Experiment");
                 Experiment experiment = (Experiment) dao_instance.findByID(experiment_id, null);
                 directoryContent = experiment.getExperimentDataDirectoryContent(DATA_LOCATION);
-                
+
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_analysis_handler", e.getMessage());
             } finally {

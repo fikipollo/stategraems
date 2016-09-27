@@ -1,0 +1,79 @@
+/****************************************************************************
+**** ItemSelector FORM STYLES ****************************************************
+*****************************************************************************/
+.ItemSelector  .x-form-item-label{font-size: 14px; min-width: 140px;}
+.ItemSelector  .x-form-cb-wrap{}
+.ItemSelector  .x-form-cb-label{font-size: 14px; margin-left: 10px;}
+.ItemSelector  .x-boundlist-item{float: left; padding : 5px; border: solid 1px #777; margin: 3px; border-radius: 5px; font-size: 14px;}
+.ItemSelector  .fromPanel .x-boundlist-item{background-color: #cfcfcf;}
+.ItemSelector  .toPanel .x-boundlist-item{background-color: #d8fdc6;}
+.ItemSelector  .fromPanel  .x-boundlist-selected{border: solid 3px #777; margin: 1px;}
+.ItemSelector  .toPanel  .x-boundlist-selected{border: solid 3px #90d36f; margin: 1px;}
+.ItemSelector  .x-form-item {margin: 0;}
+.ItemSelector  .x-form-itemselector-up {background-image: url(../images/up_16x16.png);}
+.ItemSelector  .x-form-itemselector-down {background-image: url(../images/down_16x16.png);}
+/****************************************************************************
+**** UserListTextField FORM STYLES ****************************************************
+*****************************************************************************/
+.UserListTextField  .x-form-item-label{font-size: 14px; min-width: 100px; line-height: 50px;}
+.UserListTextField  .x-form-cb-label{font-size: 14px; margin-left: 10px;}
+.UserListTextField  .x-boundlist-item{float: left; padding : 5px; border: solid 1px #777; margin: 3px;border-radius: 5px; font-size: 14px;}
+.UserListTextField  .fromPanel .x-boundlist-item{background-color: #cfcfcf;}
+.UserListTextField  .toPanel .x-boundlist-item{background-color: #d8fdc6;}
+.UserListTextField  .fromPanel  .x-boundlist-selected{border: solid 3px #777; margin: 1px;}
+.UserListTextField  .toPanel  .x-boundlist-selected{border: solid 3px #90d36f; margin: 1px;}
+.UserListTextField  .x-btn{margin: 7px; /*margin-top: 7px;*/}
+.UserListTextField  .x-form-itemselector-add {background-image: url(../images/add_user_16x16.png);}
+.UserListTextField  .x-form-itemselector-remove {background-image: url(../images/trash_16x16.png);}
+/****************************************************************************
+**** UserListTextField FORM STYLES ******************************************
+*****************************************************************************/
+.FilterListTextField  .x-form-item-label{font-size: 14px;min-width: 100px; line-height: 50px;}
+.FilterListTextField  .x-form-cb-wrap{}
+.FilterListTextField  .x-form-cb-label{font-size: 14px;margin-left: 10px;}
+.FilterListTextField  .x-boundlist-item{float: left;padding: 2px 4px;border: solid 1px #777;margin: 1px 2px;border-radius: 2px;font-size: 11px;}
+.FilterListTextField  .fromPanel .x-boundlist-item{background-color: #cfcfcf;}
+.FilterListTextField  .toPanel .x-boundlist-item{background-color: #d8fdc6;}
+.FilterListTextField  .fromPanel  .x-boundlist-selected{border: solid 3px #777; margin: 1px;}
+.FilterListTextField  .toPanel  .x-boundlist-selected{border: solid 3px #90d36f; margin: 1px;}
+.FilterListTextField  .x-btn{margin: 7px; /*margin-top: 7px;*/}
+.FilterListTextField  .x-form-itemselector-remove {background-image: url(../images/trash_16x16.png);}
+/***********************************************************/
+/**STYLES FOR MESSAGE DIALOGS*******************************/
+/***********************************************************/
+.MessageBox_SUCCESS{background: url(../images/success_32x32.png) no-repeat top left;}
+.MessageBox_ERROR{background: url(../images/error_32x32.png) no-repeat top left;}
+#msg-div {position:absolute; left:35%; top:10px; width:300px; z-index:20000; text-align: center}
+.msg .x-box-mc,.error_msg .x-box-mc,.warning_msg .x-box-mc {font-size:14px;}
+#msg-div .msg,#msg-div .error_msg ,#msg-div .warning_msg  {border-radius: 8px; -moz-border-radius: 8px; background: #eaffce; border: 2px solid #a2d662; margin-top: 2px; padding: 10px 15px; color: #555;}
+#msg-div .error_msg {background: #fedddd; border: 2px solid #fd8080;}
+#msg-div .warning_msg {background: #ffedc4; border: 2px solid #fec643;}
+#msg-div .msg h3,#msg-div .error_msg h3,#msg-div .warning_msg h3 {margin: 0 0 8px; /*font-weight: bold;*/font-size: 15px; text-align: center}
+#msg-div .msg p, #msg-div .error_msg p, #msg-div .warning_msg p {margin: 0;}
+/***********************************************************/
+/**STYLES FOR help tips ************************************/
+/***********************************************************/
+.formfieldHelpTip {padding: 0 3px;cursor: help;color: #2AA0D3;font-size: 14px}
+.warningTip {background-image: url('../images/warning_12x12.png'); background-repeat: no-repeat; padding-left: 12px; line-height: 19px; background-position-y: center; font-style: italic; color: rgb(163, 163, 163);}
+.x-tip-body{font-size: 13px;}
+/*.icon-help{background-image:url(../images/info_16x16.png) !important;background-repeat:no-repeat;background-position:center;}*/
+/***********************************************************/
+/**STYLES FOR MESSAGE DIALOGS*******************************/
+/***********************************************************/
+.x-tab-bar-strip {top: 30px !important; /* Default value is 20, we add 20 = 40 */}
+.x-tab-bar .x-tab-bar-body {height: 33px !important; /* Default value is 23, we add 20 = 43 */border: 0 !important; /* Overides the border that appears on resizing the grid */}
+.x-tab-bar .x-tab-bar-body .x-box-inner {height: 31px !important; /* Default value is 21, we add 20 = 41 */}
+.x-tab-bar .x-tab-bar-body .x-box-inner .x-tab button {/*height: 31px !important;*/     line-height: 33px !important; font-size: 14px;}
+.x-tab button .x-tab-inner {height: 16px;}
+.x-tab-center{margin-top: -10px; }
+/***********************************************************/
+/**STYLES FOR CHECKABLE ROWS *******************************/
+/***********************************************************/
+.x-grid-cell-checkcolumn .x-grid-cell-inner { padding-top: 4px; padding-bottom: 2px; line-height: 14px;}
+.x-grid-with-row-lines .x-grid-cell-checkcolumn .x-grid-cell-inner { padding-top: 3px;}
+.x-grid-checkheader { height: 14px; background-image: url('../images/unchecked.gif'); background-position: 50% -2px; background-repeat: no-repeat; background-color: transparent;}
+.x-grid-checkheader-checked { background-image: url('../images/checked.gif');}
+.x-grid-checkheader-editor .x-form-cb-wrap { text-align: center;}
+
+.customactioncolumn {font-size: 11px; line-height: 20px; text-align: center !important;}
+.customactioncolumn a { padding: 0px 4px;}

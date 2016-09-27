@@ -1,0 +1,87 @@
+<div ng-controller="ExperimentListController as controller">
+    <nav class="navbar navbar-default navbar-top title-bar">
+        <h1 class="form_title">Experiment browser</h1>
+    </nav>
+    <div class="navbar-form navbar-default top-toolbar">
+        <h2 class="form_subtitle">Options</h2>
+        <div class="row" style=" text-align: center; ">
+            <button class="btn btn-primary" type="button" ui-sref="experimentDetail({viewMode : 'creation'})"><i class="fa fa-plus-circle"></i> Annotate new experiment</button>
+            <button class="btn btn-default" type="button" ng-click="controller.applySearchHandler()"><i class="fa fa-search"></i> Inspect selected</button>
+            <button class="btn btn-success" type="button" ng-click="controller.applySearchHandler()"><i class="fa fa-random"></i> Switch to selected experiment</button>
+        </div>
+    </div>
+    <div class="navbar-form navbar-default top-toolbar" role="search">
+        <h2 class="form_subtitle">Search and filter</h2>
+        <div class="row">
+            <div class="col-sm-8">
+                <div class="input-group" style="width: 100%;margin-bottom: 4px;">
+                    <input type="text" class="form-control" placeholder="Search for..." ng-model="searchFor" ng-enter="controller.applySearchHandler()">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" ng-click="controller.applySearchHandler()">
+                            <span class="glyphicon glyphicon-search"></span>
+                        </button>
+                    </span>
+                </div><!-- /input-group -->
+                <div class="currentSearchTagContainer">
+                    <i class="tag" ng-repeat="item in filters">
+                        <span class="tag-name ">
+                            <i class="fa fa-times" ng-click="controller.removeFilterHandler(item);"></i>{{item}}
+                        </span>
+                    </i>
+                </div>
+            </div>
+            <div class="col-sm-4" style="padding-top: 8px;">
+                Popular tags:
+                <span ng-repeat="item in tags| orderBy:'-times' | limitTo: 4" style="font-size:10px;">
+                    <i class="tag {{item.color}}">{{item.times}}</i><i> {{item.name}} </i>
+                </span>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="navbar-form">
+        <div style="margin: auto;display: block;max-width: 625px;">
+            <ul class="nav navbar-nav">
+                <li class="dropdown">
+                    <label for="sortBySelector">Show:</label>
+                    <select style="display:inline-block;" class="form-control" id="sortBySelector"
+                            ng-model="show"
+                            ng-init="show = 'my_experiments'"
+                            ng-change="controller.showExperimentChooserChangeHandler(value);"
+                            >
+                        <option value="my_experiments">Only my experiments</option>
+                        <option value="all_experiments">All public experiments</option>
+                    </select>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav" style="margin-left: 15px;">
+                <li class="dropdown">
+                    <label for="sortBySelector">Sort by:</label>
+                    <select class="form-control" id="sortBySelector" ng-model="sortBy" ng-init="sortBy = 'name'">
+                        <option value="name">Name</option>
+                        <option value="owner">Author</option>
+                    </select>
+                </li>
+            </ul>
+            <i ng-show="isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
+                <i class="fa fa-spinner fa-pulse fa-fw"></i> Loading experiments...
+            </i>
+            <i ng-show="!isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
+                Found {{filteredExperiments}} experiments
+                <a ng-click="controller.retrieveExperimentsData(true);" style="margin-left:10px; font-size: 10px;"><i class="fa fa-refresh"></i>Refresh list</a>
+            </i>
+        </div>
+    </div>
+    <div class="row experiment-card-container" id="experimentContainer">
+        <experiment-card  ng-repeat="experiment in experiments| filter:filterExperiments() | orderBy : sortBy | limitTo : visibleExperiments"></experiment-card>
+        <div class="row" style="text-align: center;">
+            <button class="btn btn-lg btn-success" type="button" ng-click="controller.showMoreExperimentsHandler()" ng-show="(filteredExperiments - visibleExperiments) > 0">
+                Show more experiments ({{filteredExperiments - visibleExperiments}} left)
+            </button>
+        </div>
+    </div>
+    <nav class=" navbar-fixed-bottom" style="left: initial;">
+        <back-top scroll-speed=600 button-theme="btn btn-default btn-sm navbar-right"></back-top>
+    </nav>
+</div>

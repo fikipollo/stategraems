@@ -1,0 +1,33 @@
+<div ng-controller="ExperimentDetailController as controller" ng-init="invocation.valid = true" >
+    <form class="form-horizontal">
+        <nav class="navbar navbar-default navbar-top title-bar">
+            <h1 class="form_title">{{panel_title}}</h1>
+            <h1 class="form_subtitle">Experiment</h1>
+        </nav>
+        <div ng-if="template === undefined">
+            <p>Generating the form...</p>
+        </div>
+
+        <div ng-if="template !== undefined">
+            <div class="section_box" ng-repeat="section in template.content">
+                <h2 class="section_title">{{section.title}}</h2>
+                <form-field ng-repeat="field in section.fields"></form-field>
+                <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+            </div>
+        </div>
+
+        <nav class="navbar navbar-default navbar-fixed-bottom progressNavigator" >
+            <div class="container">
+                <a class="btn btn-danger btn-md navbar-right" ui-sref="experiments()" >
+                    <i class="fa fa-chevron-left"></i> Cancel
+                </a>
+                <a class="btn btn-warning btn-md navbar-right" ng-click="controller.editButtonHandler();">
+                    <i class="fa fa-chevron-left"></i> Edit
+                </a>
+                <a class="btn btn-success btn-md navbar-right"  ng-click="controller.acceptButtonHandler()" >
+                    <i class="fa fa-bolt fa-fw" ></i> Accept
+                </a>
+            </div>
+        </nav>
+    </form>
+</div>

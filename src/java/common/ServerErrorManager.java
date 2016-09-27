@@ -190,6 +190,6 @@ public class ServerErrorManager {
     public static String getErrorResponse() {
         ServerErrorManager serverErrorManager = ServerErrorManager.getServerErrorManager();
 
-        return "{success : " + false + ", reason : \"" + serverErrorManager.getErrorMessages(true) + "\"}";
+        return "'reason' : '" + serverErrorManager.getErrorMessages(true) + "'";
     }
 }

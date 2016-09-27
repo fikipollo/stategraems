@@ -20,6 +20,7 @@
 package classes;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -72,7 +73,7 @@ public class Experiment {
      * @param jsonString the JSON object
      * @return the new Object.
      */
-    public static Experiment fromJSON(String jsonString) {
+    public static Experiment fromJSON(JsonElement jsonString) {
         Gson gson = new Gson();
         Experiment experiment = gson.fromJson(jsonString, Experiment.class);
 

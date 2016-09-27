@@ -337,7 +337,7 @@ public class Experiment_JDBCDAO extends DAO {
                     }
                 }
 
-                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT user_id FROM experiment_owners WHERE experiment_id = ?");
+                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT user_id, role FROM experiment_owners WHERE experiment_id = ?");
                 ps.setString(1, experiment.getExperimentID());
                 rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
                 ArrayList<User> owners = new ArrayList<User>();
