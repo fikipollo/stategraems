@@ -18,60 +18,60 @@
  *     and others.
  *
  * THIS FILE CONTAINS THE FOLLOWING MODULE DECLARATION
- * - experiments.services.experiment-list
+ * - samples.services.sample-list
  *
  */
 (function () {
-    var app = angular.module('experiments.services.experiment-list', []);
+    var app = angular.module('samples.services.sample-list', []);
 
-    app.factory("ExperimentList", ['$rootScope', function ($rootScope) {
-            var experiments = [];
+    app.factory("SampleList", ['$rootScope', function ($rootScope) {
+            var bioconditions = [];
             var tags = [];
             var filters = [];
             var tagColors = ['yellow', 'green', 'red', 'blue', 'purple', 'pink', 'yellow2', 'green2', 'red2', 'blue2', 'purple2', 'pink2']
             var old = new Date(0);
             //http://stackoverflow.com/questions/18247130/how-to-store-the-data-to-local-storage
             return {
-                getExperiments: function () {
-                    return experiments;
+                getSamples: function () {
+                    return bioconditions;
                 },
-                setExperiments: function (_experiments) {
-                    experiments = this.adaptInformation(_experiments);
+                setSamples: function (_bioconditions) {
+                    bioconditions = this.adaptInformation(_bioconditions);
                     old = new Date();
                     return this;
                 },
-                getExperiment: function (experiment_id) {
-                    for (var i in experiments) {
-                        if (experiments[i].experiment_id === experiment_id) {
-                            return experiments[i];
+                getBiocondition: function (biocondition_id) {
+                    for (var i in bioconditions) {
+                        if (bioconditions[i].biocondition_id === biocondition_id) {
+                            return bioconditions[i];
                         }
                     }
                     return null;
                 },
-                addExperiment: function (experiment) {
-                    var previous = this.getExperiment(experiment.experiment_id);
+                addBiocondition: function (biocondition) {
+                    var previous = this.getBiocondition(biocondition.biocondition_id);
                     if (previous === null) {
-                        experiments.push(experiment);
+                        bioconditions.push(biocondition);
                     } else {
-                        return this.updateExperiment(experiment);
+                        return this.updateBiocondition(biocondition);
                     }
                     this.updateTags();
-                    return experiment;
+                    return biocondition;
                 },
-                updateExperiment: function (_experiment) {
-                    var previous = this.getExperiment(_experiment.experiment_id);
+                updateBiocondition: function (_biocondition) {
+                    var previous = this.getBiocondition(_biocondition.biocondition_id);
                     if (previous !== null) {
-                        for (var i in _experiment) {
-                            previous[i] = _experiment[i];
+                        for (var i in _biocondition) {
+                            previous[i] = _biocondition[i];
                         }
                     }
                     this.updateTags();
                     return previous;
                 },
-                deleteExperiment: function (experiment_id) {
-                    for (var i in experiments) {
-                        if (experiments[i].experiment_id === experiment_id) {
-                            experiments.splice(i, 1);
+                deleteBiocondition: function (biocondition_id) {
+                    for (var i in bioconditions) {
+                        if (bioconditions[i].biocondition_id === biocondition_id) {
+                            biocondition_id.splice(i, 1);
                             break;
                         }
                     }
@@ -96,8 +96,8 @@
                 updateTags: function () {
                     var tagsAux = {}, _tags;
 
-                    for (var i in experiments) {
-                        _tags = experiments[i].tags;
+                    for (var i in bioconditions) {
+                        _tags = bioconditions[i].tags;
                         for (var j in _tags) {
                             tagsAux[_tags[j]] = {
                                 name: _tags[j],
@@ -115,7 +115,7 @@
                     }
 
 
-                    tags.push({name: "All", times: experiments.length});
+                    tags.push({name: "All", times: bioconditions.length});
 
                     return this;
                 },
@@ -136,37 +136,37 @@
                 getOld: function () {
                     return (new Date() - old) / 60000;
                 },
-                adaptInformation: function (_experiments) {
-                    for (var i in _experiments) {
+                adaptInformation: function (_bioconditions) {
+                    for (var i in _bioconditions) {
                         //ADAPT THE DATES
-                        var date = _experiments[i].submission_date;
+                        var date = _bioconditions[i].submission_date;
                         if (date.indexOf("/") === -1) {
                             date = date.substr(0, 4) + "/" + date.substr(4, 2) + "/" + date.substr(6, 2);
                         }
-                        _experiments[i].submission_date = new Date(date);
+                        _bioconditions[i].submission_date = new Date(date);
 
-                        date = _experiments[i].last_edition_date;
+                        date = _bioconditions[i].last_edition_date;
                         if (date.indexOf("/") === -1) {
                             date = date.substr(0, 4) + "/" + date.substr(4, 2) + "/" + date.substr(6, 2);
                         }
-                        _experiments[i].last_edition_date = new Date(date);
+                        _bioconditions[i].last_edition_date = new Date(date);
 
                         //ADAPT THE TAGS
-//                        _experiments[i].tags = ((_experiments[i].tags !== undefined) ? _experiments[i].tags.split(",") : ["Case-control"]);
+//                        _samples[i].tags = ((_samples[i].tags !== undefined) ? _samples[i].tags.split(",") : ["Case-control"]);
                     }
-                    return _experiments;
+                    return _bioconditions;
                 },
-                isOwner: function (experiment, user_id) {
-                    for (var i in experiment.experiment_owners) {
-                        if (experiment.experiment_owners[i].user_id === user_id) {
+                isOwner: function (biocondition, user_id) {
+                    for (var i in biocondition.owners) {
+                        if (biocondition.owners[i].user_id === user_id) {
                             return true;
                         }
                     }
                     return false;
                 },
-                isMember: function (experiment, user_id) {
-                    for (var i in experiment.experiment_members) {
-                        if (experiment.experiment_members[i].user_id === user_id) {
+                isMember: function (biocondition, user_id) {
+                    for (var i in biocondition.members) {
+                        if (biocondition.members[i].user_id === user_id) {
                             return true;
                         }
                     }

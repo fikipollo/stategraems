@@ -45,36 +45,31 @@ public class Experiment_JDBCDAO extends DAO {
 
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "INSERT INTO experiments SET "
-                + "  experiment_id = ?, title = ?, experiment_description = ?, is_time_course_type = ?, is_case_control_type = ?, "
-                + "  is_survival_type = ?, is_single_condition = ?, is_multiple_conditions = ?, is_other_type = ?, biological_rep_no = ?,"
+                + "  experiment_id = ?, title = ?, experiment_description = ?,  "
+                + "  biological_rep_no = ?,"
                 + "  technical_rep_no = ?, contains_chipseq = ?, "
                 + "  contains_dnaseseq = ?, contains_metabolomics = ?, contains_methylseq = ?, contains_mirnaseq = ?, contains_mrnaseq = ?,  "
                 + "  contains_proteomics = ?, contains_other = ?, public_references = ?, submission_date = ?, last_edition_date = ?,"
-                + "  experimentDataDirectory = ? ");
+                + "  tags= ?, experimentDataDirectory = ? ");
 
         ps.setString(1, experiment.getExperimentID());
         ps.setString(2, experiment.getTitle());
         ps.setString(3, experiment.getExperimentDescription());
-        ps.setBoolean(4, experiment.isTimeCourseType());
-        ps.setBoolean(5, experiment.isCaseControlType());
-        ps.setBoolean(6, experiment.isSurvivalType());
-        ps.setBoolean(7, experiment.isSingleCondition());
-        ps.setBoolean(8, experiment.isMultipleConditions());
-        ps.setBoolean(9, experiment.isOtherType());
-        ps.setInt(10, experiment.getBiologicalRepNo());
-        ps.setInt(11, experiment.getTechnicalRepNo());
-        ps.setBoolean(12, (experiment.getContainsChipseq() == 2 || experiment.getContainsChipseq() == 3));
-        ps.setBoolean(13, (experiment.getContainsDNaseseq() == 2 || experiment.getContainsDNaseseq() == 3));
-        ps.setBoolean(14, (experiment.getContainsMetabolomics() == 2 || experiment.getContainsMetabolomics() == 3));
-        ps.setBoolean(15, (experiment.getContainsMethylseq() == 2 || experiment.getContainsMethylseq() == 3));
-        ps.setBoolean(16, (experiment.getContainsSmallRNAseq() == 2 || experiment.getContainsSmallRNAseq() == 3));
-        ps.setBoolean(17, (experiment.getContainsMRNAseq() == 2 || experiment.getContainsMRNAseq() == 3));
-        ps.setBoolean(18, (experiment.getContainsProteomics() == 2 || experiment.getContainsProteomics() == 3));
-        ps.setBoolean(19, experiment.getContainsOther());
-        ps.setString(20, experiment.getPublicReferences());
-        ps.setString(21, experiment.getSubmissionDate().replaceAll("/", ""));
-        ps.setString(22, experiment.getLastEditionDate().replaceAll("/", ""));
-        ps.setString(23, experiment.getExperimentDataDirectory());
+        ps.setInt(4, experiment.getBiologicalRepNo());
+        ps.setInt(5, experiment.getTechnicalRepNo());
+        ps.setBoolean(6, (experiment.getContainsChipseq() == 2 || experiment.getContainsChipseq() == 3));
+        ps.setBoolean(7, (experiment.getContainsDNaseseq() == 2 || experiment.getContainsDNaseseq() == 3));
+        ps.setBoolean(8, (experiment.getContainsMetabolomics() == 2 || experiment.getContainsMetabolomics() == 3));
+        ps.setBoolean(9, (experiment.getContainsMethylseq() == 2 || experiment.getContainsMethylseq() == 3));
+        ps.setBoolean(10, (experiment.getContainsSmallRNAseq() == 2 || experiment.getContainsSmallRNAseq() == 3));
+        ps.setBoolean(11, (experiment.getContainsMRNAseq() == 2 || experiment.getContainsMRNAseq() == 3));
+        ps.setBoolean(12, (experiment.getContainsProteomics() == 2 || experiment.getContainsProteomics() == 3));
+        ps.setBoolean(13, experiment.getContainsOther());
+        ps.setString(14, experiment.getPublicReferences());
+        ps.setString(15, experiment.getSubmissionDate().replaceAll("/", ""));
+        ps.setString(16, experiment.getLastEditionDate().replaceAll("/", ""));
+        ps.setString(17, String.join(", ", experiment.getTags()));
+        ps.setString(18, experiment.getExperimentDataDirectory());
         ps.execute();
 
         //Add new entries into the experiment_owners table.
@@ -117,37 +112,32 @@ public class Experiment_JDBCDAO extends DAO {
         //Insert the Experiment in the experiments table
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "UPDATE experiments SET "
-                + "  title = ?, experiment_description = ?, is_time_course_type = ?, is_case_control_type = ?, "
-                + "  is_survival_type = ?, is_single_condition = ?, is_multiple_conditions = ?, is_other_type = ?, biological_rep_no = ?,"
+                + "  title = ?, experiment_description = ?, "
+                + "  biological_rep_no = ?,"
                 + "  technical_rep_no = ?, contains_chipseq = ?, "
                 + "  contains_dnaseseq = ?, contains_metabolomics = ?, contains_methylseq = ?, contains_mirnaseq = ?, contains_mrnaseq = ?,  "
                 + "  contains_proteomics = ?, contains_other = ?, public_references = ?, submission_date = ?, last_edition_date = ?, "
-                + "  experimentDataDirectory = ? "
+                + "  tags = ?, experimentDataDirectory = ? "
                 + "WHERE experiment_id = ?");
 
         ps.setString(1, experiment.getTitle());
         ps.setString(2, experiment.getExperimentDescription());
-        ps.setBoolean(3, experiment.isTimeCourseType());
-        ps.setBoolean(4, experiment.isCaseControlType());
-        ps.setBoolean(5, experiment.isSurvivalType());
-        ps.setBoolean(6, experiment.isSingleCondition());
-        ps.setBoolean(7, experiment.isMultipleConditions());
-        ps.setBoolean(8, experiment.isOtherType());
-        ps.setInt(9, experiment.getBiologicalRepNo());
-        ps.setInt(10, experiment.getTechnicalRepNo());
-        ps.setBoolean(11, (experiment.getContainsChipseq() == 2 || experiment.getContainsChipseq() == 3));
-        ps.setBoolean(12, (experiment.getContainsDNaseseq() == 2 || experiment.getContainsDNaseseq() == 3));
-        ps.setBoolean(13, (experiment.getContainsMetabolomics() == 2 || experiment.getContainsMetabolomics() == 3));
-        ps.setBoolean(14, (experiment.getContainsMethylseq() == 2 || experiment.getContainsMethylseq() == 3));
-        ps.setBoolean(15, (experiment.getContainsSmallRNAseq() == 2 || experiment.getContainsSmallRNAseq() == 3));
-        ps.setBoolean(16, (experiment.getContainsMRNAseq() == 2 || experiment.getContainsMRNAseq() == 3));
-        ps.setBoolean(17, (experiment.getContainsProteomics() == 2 || experiment.getContainsProteomics() == 3));
-        ps.setBoolean(18, experiment.getContainsOther());
-        ps.setString(19, experiment.getPublicReferences());
-        ps.setString(20, experiment.getSubmissionDate().replaceAll("/", ""));
-        ps.setString(21, experiment.getLastEditionDate().replaceAll("/", ""));
-        ps.setString(22, experiment.getExperimentDataDirectory());
-        ps.setString(23, experiment.getExperimentID());
+        ps.setInt(3, experiment.getBiologicalRepNo());
+        ps.setInt(4, experiment.getTechnicalRepNo());
+        ps.setBoolean(5, (experiment.getContainsChipseq() == 2 || experiment.getContainsChipseq() == 3));
+        ps.setBoolean(6, (experiment.getContainsDNaseseq() == 2 || experiment.getContainsDNaseseq() == 3));
+        ps.setBoolean(7, (experiment.getContainsMetabolomics() == 2 || experiment.getContainsMetabolomics() == 3));
+        ps.setBoolean(8, (experiment.getContainsMethylseq() == 2 || experiment.getContainsMethylseq() == 3));
+        ps.setBoolean(9, (experiment.getContainsSmallRNAseq() == 2 || experiment.getContainsSmallRNAseq() == 3));
+        ps.setBoolean(10, (experiment.getContainsMRNAseq() == 2 || experiment.getContainsMRNAseq() == 3));
+        ps.setBoolean(11, (experiment.getContainsProteomics() == 2 || experiment.getContainsProteomics() == 3));
+        ps.setBoolean(12, experiment.getContainsOther());
+        ps.setString(13, experiment.getPublicReferences());
+        ps.setString(14, experiment.getSubmissionDate().replaceAll("/", ""));
+        ps.setString(15, experiment.getLastEditionDate().replaceAll("/", ""));
+        ps.setString(16, String.join(", ", experiment.getTags()));
+        ps.setString(17, experiment.getExperimentDataDirectory());
+        ps.setString(18, experiment.getExperimentID());
 
         ps.execute();
 
@@ -215,12 +205,6 @@ public class Experiment_JDBCDAO extends DAO {
             experiment.setExperimentID(experiment_id);
             experiment.setTitle(rs.getString("title"));
             experiment.setExperimentDescription(rs.getString("experiment_description"));
-            experiment.setIsTimeCourseType(rs.getBoolean("is_time_course_type"));
-            experiment.setIsCaseControlType(rs.getBoolean("is_case_control_type"));
-            experiment.setIsSurvivalType(rs.getBoolean("is_survival_type"));
-            experiment.setIsSingleCondition(rs.getBoolean("is_single_condition"));
-            experiment.setIsMultipleConditions(rs.getBoolean("is_multiple_conditions"));
-            experiment.setIsOtherType(rs.getBoolean("is_other_type"));
             experiment.setBiologicalRepNo(rs.getInt("biological_rep_no"));
             experiment.setTechnicalRepNo(rs.getInt("technical_rep_no"));
             experiment.setContainsChipseq((rs.getBoolean("contains_chipseq") ? 2 : 0));
@@ -235,6 +219,7 @@ public class Experiment_JDBCDAO extends DAO {
             experiment.setSubmissionDate(rs.getString("submission_date"));
             experiment.setLastEditionDate(rs.getString("last_edition_date"));
             experiment.setExperimentDataDirectory(rs.getString("experimentDataDirectory"));
+            experiment.setTags(rs.getString("tags"));
         }
 
         if (experiment != null && loadRecursive) {
@@ -296,12 +281,6 @@ public class Experiment_JDBCDAO extends DAO {
             experiment.setExperimentID(rs.getString("experiment_id"));
             experiment.setTitle(rs.getString("title"));
             experiment.setExperimentDescription(rs.getString("experiment_description"));
-            experiment.setIsTimeCourseType(rs.getBoolean("is_time_course_type"));
-            experiment.setIsCaseControlType(rs.getBoolean("is_case_control_type"));
-            experiment.setIsSurvivalType(rs.getBoolean("is_survival_type"));
-            experiment.setIsSingleCondition(rs.getBoolean("is_single_condition"));
-            experiment.setIsMultipleConditions(rs.getBoolean("is_multiple_conditions"));
-            experiment.setIsOtherType(rs.getBoolean("is_other_type"));
             experiment.setBiologicalRepNo(rs.getInt("biological_rep_no"));
             experiment.setTechnicalRepNo(rs.getInt("technical_rep_no"));
             experiment.setContainsChipseq((rs.getBoolean("contains_chipseq") ? 2 : 0));
@@ -316,6 +295,7 @@ public class Experiment_JDBCDAO extends DAO {
             experiment.setSubmissionDate(rs.getString("submission_date"));
             experiment.setLastEditionDate(rs.getString("last_edition_date"));
             experiment.setExperimentDataDirectory(rs.getString("experimentDataDirectory"));
+            experiment.setTags(rs.getString("tags"));
             experimentsList.add(experiment);
         }
 
@@ -439,5 +419,14 @@ public class Experiment_JDBCDAO extends DAO {
     @Override
     public boolean remove(String[] object_id_list) throws SQLException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public boolean removeOwnership(String user_id, String experiment_id) throws SQLException {
+        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                + "DELETE FROM experiment_owners WHERE experiment_id = ? AND user_id = ?");
+        ps.setString(1, experiment_id);
+        ps.setString(2, user_id);
+        ps.execute();
+        return true;
     }
 }

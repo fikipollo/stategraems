@@ -60,6 +60,7 @@ color: #FFFFFF;
     background-color: #fff;
     max-width: 1024px;
     margin: auto;
+    margin-bottom: 80px;
 }
 
 #wrapper.toggled #page-content-wrapper {
@@ -269,9 +270,8 @@ table.table td:nth-child(1) {text-align: left;}
 
 .section_box {
     background-color: #fff;
-    box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1), inset 0 -1px 0 rgba(0, 0, 0, .07);
     margin-bottom: 20px;
-    border-bottom: 1px solid #ccc;
+    border: 1px solid #eaeaea;
     border-top: 4px #FFB0B0 solid !important;
 }
 
@@ -280,14 +280,22 @@ table.table td:nth-child(1) {text-align: left;}
 
 .section_box:nth-child(3n){border-top: 4px #C6E05C solid !important;}
 
+.field-group {
+    margin: 10px 0px;
+}
+
+.field-group label {
+    max-width: 150px;
+    width: 150px;
+    text-align: right;
+    margin-right: 10px;
+}
+
+.bootstrap-tagsinput{margin-left: -15px;}
 
 
-
-
-
-
-
-
+input:read-only {border: none !important;}
+textarea:read-only {border-color: #e4e4e4;}
 
 /******************************************************************************************/
 /* STYLES FOR progress INDICATOR                                                          */
@@ -351,8 +359,10 @@ table.table td:nth-child(1) {text-align: left;}
     z-index: 999;
 }
 .progressNavigator > div.container{
-    max-width: 900px;
     margin: auto;
+}
+.progressNavigator > div.container > a.btn {
+    margin-right: 10px;
 }
 .progressStep .description {
     margin-bottom: 15px;
@@ -378,12 +388,10 @@ div.sessionToolbar button, div.sessionToolbar li{
 /*STYLES FOR LOGIN                                      */
 /*------------------------------------------------------*/
 .form-signin {
-    max-width: 420px;
+    max-width: 520px;
     padding: 30px 38px 66px;
     margin: 0 auto;
     margin-top: 90px;
-    background-color: #eee;
-    border: 3px dotted rgba(0,0,0,0.1);
 }
 
 .form-signin-heading {
@@ -442,7 +450,7 @@ div.sessionToolbar button, div.sessionToolbar li{
 }
 .experiment-card-container{text-align: center;}
 
-.experiment-card {
+.iu-card {
     text-align: left;
     min-height: 180px;
     margin: 12px;
@@ -451,7 +459,7 @@ div.sessionToolbar button, div.sessionToolbar li{
     min-width: 380px;
     box-shadow: 0 5px 12px rgb(202, 202, 202),0 5px 10px rgb(253, 253, 253);
 }
-.experiment-card-body {
+.iu-card-body {
     padding: 10px 5px;
     background: #ffffff;
     border: 1px solid #BFBFBF;
@@ -459,7 +467,7 @@ div.sessionToolbar button, div.sessionToolbar li{
     max-height: 190px;
     overflow: hidden;
 }
-.experiment-card h2.experiment-card-name {
+.iu-card h2.iu-card-name {
     font-size: 18px;
     color: #333;
     max-height: 40px;
@@ -467,25 +475,25 @@ div.sessionToolbar button, div.sessionToolbar li{
     height: 40px;
     margin-top: 10px;
 }
-.experiment-card div.experiment-card-description {
+.iu-card div.iu-card-description {
     font-size: 12px;
     color: #9c9c9c;
     max-height: 70px;
     overflow: hidden;
     height: 70px;
 }
-.experiment-card-author {
+.iu-card-author {
     background: #F7F7F7;
     border: 1px solid #BFBFBF;
     border-top: 0px;
     font-size: 15px;
     padding: 10px;
 }
-.experiment-card-description {
+.iu-card-description {
     font-style: italic;
     color: #8A8A8A;
 }
-.experiment-card-tags-list {
+.iu-card-tags-list {
     padding: 10px 0px;
     max-height: 35px;
     overflow: hidden;
@@ -519,7 +527,7 @@ i.tag.blue2 {background-color: #34495E; color: #fff;}
 i.tag.purple2 {background-color: #8c5d81; color: #fff;}
 i.tag.pink2 {background-color: #db6070; color: #fff;}
 
-.experiment-card a.runExperimentButton {
+.iu-card a.open-iu-button {
     width: 100%;
     border-radius: 0px;
 }

@@ -19,7 +19,9 @@
  *  *************************************************************** */
 package common;
 
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -150,7 +152,7 @@ public class ServerErrorManager {
 
             ServerErrorManager.addErrorMessage(-1, className, functionName, errorMessage);
         }
-        System.err.println(String.format("%tc", new Date()) + " STATEGRAEMS LOG > HANDLED EXPECTION: " + (exception != null?exception.getClass().getName():"") + errorMessage);
+        System.err.println(String.format("%tc", new Date()) + " STATEGRAEMS LOG > HANDLED EXPECTION: " + (exception != null ? exception.getClass().getName() : "") + errorMessage);
     }
 
     public static void addErrorMessage(int errorType, String className, String functionName, String errorMessage) {
@@ -189,7 +191,8 @@ public class ServerErrorManager {
      */
     public static String getErrorResponse() {
         ServerErrorManager serverErrorManager = ServerErrorManager.getServerErrorManager();
-
-        return "'reason' : '" + serverErrorManager.getErrorMessages(true) + "'";
+        JsonObject obj = new JsonObject();
+        obj.add("reason", new JsonPrimitive(serverErrorManager.getErrorMessages(true)));
+        return obj.toString();
     }
 }

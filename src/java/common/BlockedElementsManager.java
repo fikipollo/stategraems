@@ -206,6 +206,15 @@ public class BlockedElementsManager {
         }
         return false;
     }
+    
+    public String getLockerID(String element_id) {
+            LockedElement newPair = new LockedElement(element_id, "");
+            int pos = INSTANCE.lockedObjects.indexOf(newPair);
+            if (pos != -1) {
+                return INSTANCE.lockedObjects.get(pos).getUserID();
+            }
+            return null;
+    }
 
     public static String getErrorMessage() {
         //TODO

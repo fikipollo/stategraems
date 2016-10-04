@@ -54,6 +54,9 @@ public class BioCondition {
     private Bioreplicate[] associatedBioreplicates;
     private Experiment[] associatedExperiments;
     private boolean hasTreatmentDocument = false;
+    
+    String[] tags;
+    boolean isPublic = true;
 
     public BioCondition() {
     }
@@ -300,6 +303,29 @@ public class BioCondition {
         this.hasTreatmentDocument = hasTreatmentDocument;
     }
 
+    
+    public String[] getTags() {
+        return tags;
+    }
+
+    public void setTags(String[] tags) {
+        this.tags = tags;
+    }
+
+    public void setTags(String tags) {
+        if (tags != null) {
+            this.tags = tags.split(", ");
+        }
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+    
     //***********************************************************************
     //* OTHER FUNCTIONS *****************************************************
     //***********************************************************************

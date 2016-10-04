@@ -25,6 +25,7 @@ import bdManager.DAO.User_JDBCDAO;
 import classes.User;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -58,8 +59,8 @@ public class User_servlets extends Servlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.addHeader("Access-Control-Allow-Origin", "*");
-        response.setContentType("text/html");
-//        response.setContentType("application/json");
+        response.setContentType("application/json");
+//        response.setContentType("text/html");
 
         if (request.getServletPath().equals("/login")) {
             userLoginPostHandler(request, response);
@@ -111,15 +112,17 @@ public class User_servlets extends Servlet {
                  */
                 JsonParser parser = new JsonParser();
                 JsonObject requestData = (JsonObject) parser.parse(request.getReader());
-                
-                String user_id = requestData.get("user_id").getAsString();
+
+                String email = requestData.get("email").getAsString();
                 String password = requestData.get("password").getAsString();
-                
                 password = SHA1.getHash(password);
+
+                boolean isEmail = true;
                 boolean last_experiment = true;
-                Object[] params = {password, last_experiment};
+                Object[] params = {password, last_experiment, isEmail};
                 dao_instance = DAOProvider.getDAOByName("User");
-                user = (User) dao_instance.findByID(user_id, params);
+                
+                user = (User) ((User_JDBCDAO)dao_instance).findByID(email, params);
                 /**
                  * *******************************************************
                  * STEP 2 Check if user exists. IF NOT --> throws Exception, GO
@@ -130,7 +133,7 @@ public class User_servlets extends Servlet {
                     throw new Exception("User not found. Please check the username and password.");
                 } else {
                 }
-                user.setSessionToken(UserSessionManager.getUserSessionManager().registerNewUser(user_id));
+                user.setSessionToken(UserSessionManager.getUserSessionManager().registerNewUser(email));
 
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, User_servlets.class.getName(), "userLoginPostHandler", e.getMessage());
@@ -184,16 +187,21 @@ public class User_servlets extends Servlet {
      * @throws IOException
      */
     private void userLogoutPostHandler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String user_id = request.getParameter("loggedUser");
-        String sessionToken = request.getParameter("sessionToken");
+        JsonParser parser = new JsonParser();
+        JsonObject requestData = (JsonObject) parser.parse(request.getReader());
 
-        UserSessionManager.getUserSessionManager().removeUser(user_id, sessionToken);
+        String loggedUser = requestData.get("loggedUser").getAsString();
+        String sessionToken = requestData.get("sessionToken").getAsString();
+
+        UserSessionManager.getUserSessionManager().removeUser(loggedUser, sessionToken);
         //If some errors occurred
         if (ServerErrorManager.errorStatus()) {
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         } else {
-            response.getWriter().print("{success: " + true + " }");
+            JsonObject obj = new JsonObject();
+            obj.add("success", new JsonPrimitive(true));
+            response.getWriter().print(obj.toString());
         }
     }
 
@@ -208,8 +216,13 @@ public class User_servlets extends Servlet {
         try {
             DAO dao_instance = null;
             ArrayList<Object> userList = null;
+            String loggedUser = "";
             try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
 
+                loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
                 /**
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
@@ -217,7 +230,7 @@ public class User_servlets extends Servlet {
                  * 3b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
@@ -243,15 +256,15 @@ public class User_servlets extends Servlet {
                     response.setStatus(400);
                     response.getWriter().print(ServerErrorManager.getErrorResponse());
                 } else {
-                    String usersJSON = "userList : [";
-                    for (Object user : userList) {
-                        if (request.getParameter("loggedUser").equals("admin")) {
-                            ((User) user).setLoggedIn(UserSessionManager.getUserSessionManager().isLoggedUser(((User) user).getUserID()));
+                    String usersJSON = "[";
+                    for (int i = 0; i < userList.size(); i++) {
+                        if (loggedUser.equals("admin")) {
+                            ((User) userList.get(i)).setLoggedIn(UserSessionManager.getUserSessionManager().isLoggedUser(((User) userList.get(i)).getUserID()));
                         }
-                        usersJSON += ((User) user).toJSON() + ", ";
+                        usersJSON += ((User) userList.get(i)).toJSON() + ((i < userList.size() - 1) ? "," : "");
                     }
                     usersJSON += "]";
-                    response.getWriter().print("{success: " + true + ", " + usersJSON + " }");
+                    response.getWriter().print(usersJSON);
                 }
                 if (dao_instance != null) {
                     dao_instance.closeConnection();
@@ -276,6 +289,11 @@ public class User_servlets extends Servlet {
             DAO dao_instance = null;
             User user = null;
             try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
 
                 /**
                  * *******************************************************
@@ -284,7 +302,7 @@ public class User_servlets extends Servlet {
                  * 3b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
@@ -296,8 +314,14 @@ public class User_servlets extends Servlet {
                  * *******************************************************
                  */
                 dao_instance = DAOProvider.getDAOByName("User");
-                String userID = request.getParameter("user_id");
-                user = (User) dao_instance.findByID(userID, null);
+                String email = requestData.get("email").getAsString();
+                if ("current".equalsIgnoreCase(email)) {
+                    email = loggedUser;
+                }
+                
+                boolean isEmail = true;
+                Object[] params = {null, false, isEmail};
+                user = (User) ((User_JDBCDAO)dao_instance).findByID(email, params);
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, User_servlets.class.getName(), "getUserPostHandler", e.getMessage());
             } finally {
@@ -311,10 +335,7 @@ public class User_servlets extends Servlet {
                     response.setStatus(400);
                     response.getWriter().print(ServerErrorManager.getErrorResponse());
                 } else {
-                    String usersJSON = "userList : [";
-                    usersJSON += user.toJSON();
-                    usersJSON += "]";
-                    response.getWriter().print("{success: " + true + ", " + usersJSON + " }");
+                    response.getWriter().print(user.toJSON());
                 }
                 if (dao_instance != null) {
                     dao_instance.closeConnection();

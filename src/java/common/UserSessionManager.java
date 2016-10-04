@@ -60,7 +60,7 @@ public class UserSessionManager {
         return INSTANCE;
     }
 
-    public String registerNewUser(String user_id) {
+    public String registerNewUser(String email) {
 
         //IF USER IS ALREADY LOGGED (MAYBE BECAUSE LAST TIME HE USED THE APP HE DIDN'T LOG OUT) UPDATE SESSION TOKEN
         //TODO: MAYBE WARNING THE USER?
@@ -69,11 +69,11 @@ public class UserSessionManager {
 //        }
 
         String sessionToken = Long.toHexString(Double.doubleToLongBits(Math.random()));
-        INSTANCE.logged_users.put(user_id, sessionToken);
+        INSTANCE.logged_users.put(email, sessionToken);
         return sessionToken;
     }
 
-    public boolean removeUser(String user_id, String sessionToken) {
+    public boolean removeUser(String email, String sessionToken) {
 //        if (INSTANCE == null) {
 //        IMPOSSIBLE CASE
 //            ServerErrorManager.addErrorMessage(3, UserSessionManager.class.getName(), "removeUser", "Your session is not initialized");
@@ -81,10 +81,10 @@ public class UserSessionManager {
 //            return false;
 //        }
 
-        String assignedSessionToken = INSTANCE.logged_users.get(user_id);
+        String assignedSessionToken = INSTANCE.logged_users.get(email);
 
         if (assignedSessionToken != null && assignedSessionToken.equals(sessionToken)) {
-            INSTANCE.logged_users.remove(user_id);
+            INSTANCE.logged_users.remove(email);
             return true;
         }
 

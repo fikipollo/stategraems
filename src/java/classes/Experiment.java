@@ -39,12 +39,6 @@ public class Experiment {
     String experiment_id;
     String title;
     String experiment_description;
-    boolean is_time_course_type;
-    boolean is_case_control_type;
-    boolean is_survival_type;
-    boolean is_single_condition;
-    boolean is_multiple_conditions;
-    boolean is_other_type;
     int biological_rep_no;
     int technical_rep_no;
     int contains_chipseq;
@@ -59,6 +53,7 @@ public class Experiment {
     String submission_date;
     String last_edition_date;
     String experimentDataDirectory;
+    String[] tags;
 
     User[] experiment_owners;
     User[] experiment_members;
@@ -76,7 +71,7 @@ public class Experiment {
     public static Experiment fromJSON(JsonElement jsonString) {
         Gson gson = new Gson();
         Experiment experiment = gson.fromJson(jsonString, Experiment.class);
-
+        experiment.adaptDates();
         return experiment;
     }
 
@@ -112,54 +107,6 @@ public class Experiment {
 
     public void setExperimentDescription(String experiment_description) {
         this.experiment_description = experiment_description;
-    }
-
-    public boolean isTimeCourseType() {
-        return is_time_course_type;
-    }
-
-    public void setIsTimeCourseType(boolean is_time_course_type) {
-        this.is_time_course_type = is_time_course_type;
-    }
-
-    public boolean isCaseControlType() {
-        return is_case_control_type;
-    }
-
-    public void setIsCaseControlType(boolean is_case_control_type) {
-        this.is_case_control_type = is_case_control_type;
-    }
-
-    public boolean isSurvivalType() {
-        return is_survival_type;
-    }
-
-    public void setIsSurvivalType(boolean is_survival_type) {
-        this.is_survival_type = is_survival_type;
-    }
-
-    public boolean isSingleCondition() {
-        return is_single_condition;
-    }
-
-    public void setIsSingleCondition(boolean is_single_condition) {
-        this.is_single_condition = is_single_condition;
-    }
-
-    public boolean isMultipleConditions() {
-        return is_multiple_conditions;
-    }
-
-    public void setIsMultipleConditions(boolean is_multiple_conditions) {
-        this.is_multiple_conditions = is_multiple_conditions;
-    }
-
-    public boolean isOtherType() {
-        return is_other_type;
-    }
-
-    public void setIsOtherType(boolean is_other_type) {
-        this.is_other_type = is_other_type;
     }
 
     public int getBiologicalRepNo() {
@@ -284,6 +231,18 @@ public class Experiment {
         this.last_edition_date = last_edition_date;
     }
 
+    public void adaptDates() {
+        if (this.submission_date.contains("-")) {
+            String[] aux = this.submission_date.split("T");
+            this.submission_date = aux[0].replaceAll("-", "");
+        }
+        if (this.last_edition_date.contains("-")) {
+            String[] aux = this.last_edition_date.split("T");
+            this.last_edition_date = aux[0].replaceAll("-", "");
+        }
+
+    }
+
     public User[] getExperimentOwners() {
         return experiment_owners;
     }
@@ -292,12 +251,30 @@ public class Experiment {
         this.experiment_owners = experiment_owners;
     }
 
+    public boolean isOwner(String user_id) {
+        for (User experiment_owner : experiment_owners) {
+            if (experiment_owner.getUserID().equals(user_id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public User[] getExperimentMembers() {
         return experiment_members;
     }
 
     public void setExperimentMembers(User[] experiment_members) {
         this.experiment_members = experiment_members;
+    }
+
+    public boolean isMember(String user_id) {
+        for (User experiment_member : experiment_members) {
+            if (experiment_member.getUserID().equals(user_id)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String getExperimentDataDirectory() {
@@ -396,6 +373,20 @@ public class Experiment {
         }
 
         return "'Directory not specified'";
+    }
+
+    public String[] getTags() {
+        return tags;
+    }
+
+    public void setTags(String[] tags) {
+        this.tags = tags;
+    }
+
+    public void setTags(String tags) {
+        if (tags != null) {
+            this.tags = tags.split(", ");
+        }
     }
 
     //***********************************************************************

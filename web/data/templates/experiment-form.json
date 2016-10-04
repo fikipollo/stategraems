@@ -23,12 +23,12 @@
                 {
                     "name": "experiment_description",
                     "label": "Description",
-                    "type": "text"
+                    "type": "textarea"
                 },
                 {
                     "name": "public_references",
                     "label": "Public references",
-                    "type": "text"
+                    "type": "textarea"
                 }
             ]
         },

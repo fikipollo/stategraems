@@ -18,14 +18,24 @@
  *     and others.
  *
  * THIS FILE CONTAINS THE FOLLOWING MODULE DECLARATION
- * - experiment-list
+ * - samples.directives.biocondition-card
  *
  */
-(function(){
-    var app = angular.module('experiments.experiment-list', []);
+(function () {
+    var app = angular.module('samples.directives.biocondition-card', [
+    ]);
 
     /***************************************************************************/
     /*DIRECTIVES ***************************************************************/
     /***************************************************************************/
-
-  })();
+    app.directive("bioconditionCard", function ($timeout) {
+        return {
+            restrict: 'E',
+            templateUrl: "app/samples/biocondition-card.tpl.html",
+            link: function (scope, element, attrs) {
+                //Execute the afterRender function (linked to a controller function)
+                $timeout(scope.$eval(attrs.afterRender), 0);
+            }
+        };
+    });
+})();

@@ -1,6 +1,6 @@
 {
     "success": true,
-    "cell_lines": [
+    "cell_line": [
         {
             "cell_line": "GM12878",
             "description": "B-lymphocyte, lymphoblastoid, International HapMap Project - CEPH/Utah - European Caucasion, Epstein-Barr Virus",

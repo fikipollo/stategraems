@@ -6,12 +6,13 @@
         'angular-toArrayFilter',
         'users.directives.user-session',
         'experiments.controllers',
+        'samples.controllers',
         'templates.services.template-list'
     ]);
 
     app.constant('myAppConfig', {
         VERSION: '0.8',
-        GALAXY_SERVER: "/"
+        EMS_SERVER: "/"
     });
     //Define the events that are fired when an user login, log out etc.
     app.constant('AUTH_EVENTS', {
@@ -22,8 +23,11 @@
         notAuthenticated: 'auth-not-authenticated',
         notAuthorized: 'auth-not-authorized'
     });
-    app.constant('HISTORY_EVENTS', {
-        historyChanged: 'history-changed'
+    app.constant('INFO_EVENTS', {
+        experimentDeleted: 'experiment-deleted',
+        sampleCreated: 'sample-created',
+        analysisCreated: 'analysis-created',
+        userCreated: 'user-created'
     });
 
     //DEFINE THE ENTRIES FOR THE WEB APP
@@ -60,13 +64,30 @@
                     experiment_id: null,
                 },
                 data: {requireLogin: true}
+            },
+            samples = {
+                name: 'samples',
+                url: '/samples',
+                templateUrl: "app/samples/sample-list.tpl.html",
+                data: {requireLogin: true}
+            },
+            sampleDetail = {
+                name: 'sampleDetail',
+                url: '/sample-detail/',
+                templateUrl: "app/samples/biocondition-form.tpl.html",
+                params: {
+                    viewMode: 'view', //creation, edition
+                    biocondition_id: null,
+                },
+                data: {requireLogin: true}
             };
             $stateProvider.state(signin);
             $stateProvider.state(home);
             $stateProvider.state(experiments);
             $stateProvider.state(experimentDetail);
-        }]
-            );
+            $stateProvider.state(samples);
+            $stateProvider.state(sampleDetail);
+        }]);
 
     app.controller('MainController', function ($rootScope, $scope, $state, $http, $dialogs, myAppConfig, TemplateList) {
         var me = this;
@@ -75,44 +96,45 @@
 
         this.pages = [
             {name: 'home', title: 'Home', icon: 'home', isParent: true},
-            {name: 'experiments', title: 'Experiments', icon: 'share-alt', isParent: true}
+            {name: 'experiments', title: 'Experiments', icon: 'book', isParent: true},
+            {name: 'samples', title: 'Samples', icon: 'flask', isParent: true}
         ];
 
         $rootScope.getRequestPath = function (service, extra) {
             extra = (extra || "");
             switch (service) {
                 case "user-sign-in":
-                    return myAppConfig.GALAXY_SERVER + "login";
+                    return myAppConfig.EMS_SERVER + "login";
+                case "user-sign-out":
+                    return myAppConfig.EMS_SERVER + "logout";
                 case "user-sign-up":
-                    return myAppConfig.GALAXY_SERVER + "user/create?cntrller=user";
+                    return null;
                 case "user-info":
-                    return myAppConfig.GALAXY_SERVER + "api/users/" + extra;
+                    return myAppConfig.EMS_SERVER + "get_user";
+                case "user-list":
+                    return myAppConfig.EMS_SERVER + "get_user_list";
                 case "experiment-list":
-                    return myAppConfig.GALAXY_SERVER + "get_all_experiments";
-                case "experiment-create":
-                    return myAppConfig.GALAXY_SERVER + "add_experiment";
+                    return myAppConfig.EMS_SERVER + "get_all_experiments";
                 case "experiment-info":
-                    return myAppConfig.GALAXY_SERVER + "get_experiment";
-                case "experiment-run":
-                    return myAppConfig.GALAXY_SERVER + "api/experiments/" + extra + "/invocations";
-                case "experiment-import":
-                    return myAppConfig.GALAXY_SERVER + "api/experiments/" + extra;
+                    return myAppConfig.EMS_SERVER + "get_experiment";
+                case "experiment-create":
+                    return myAppConfig.EMS_SERVER + "add_experiment";
+                case "experiment-update":
+                    return myAppConfig.EMS_SERVER + "update_experiment";
                 case "experiment-delete":
-                    return myAppConfig.GALAXY_SERVER + "api/experiments/" + extra;
-                case "invocation-state":
-                    return myAppConfig.GALAXY_SERVER + "api/experiments/" + extra[0] + "/invocations/" + extra[1];
-                case "invocation-result":
-                    return myAppConfig.GALAXY_SERVER + "api/experiments/" + extra[0] + "/invocations/" + extra[1] + "/steps/" + extra[2];
-                case "tools-info":
-                    return myAppConfig.GALAXY_SERVER + "api/tools/" + extra + "/build";
-                case "datasets-list":
-                    return myAppConfig.GALAXY_SERVER + "api/histories/" + extra + "/contents";
-                case "dataset-details":
-                    return myAppConfig.GALAXY_SERVER + "api/datasets/" + extra[0];
-                case "history-list":
-                    return myAppConfig.GALAXY_SERVER + "api/histories/" + extra;
-                case "dataset-upload":
-                    return myAppConfig.GALAXY_SERVER + "api/tools/" + extra;
+                    return myAppConfig.EMS_SERVER + "remove_experiment";
+                case "experiment-lock":
+                    return myAppConfig.EMS_SERVER + "lock_experiment";
+                case "experiment-unlock":
+                    return myAppConfig.EMS_SERVER + "unlock_experiment";
+                case "experiment-selection":
+                    return myAppConfig.EMS_SERVER + "change_current_experiment";
+                case "sample-list":
+                    return myAppConfig.EMS_SERVER + "get_all_bioconditions";
+                case "sample-info":
+                    return myAppConfig.EMS_SERVER + "get_biocondition";
+                case "sample-create":
+                    return myAppConfig.EMS_SERVER + "add_sample";
                 default:
                     return "";
             }
@@ -121,9 +143,7 @@
         $rootScope.getHttpRequestConfig = function (method, service, options) {
             options = (options || {});
             options.params = (options.params || {});
-            if (Cookies.get("sessionToken")) {
-                options.params = angular.merge(options.params, {"key": window.atob(Cookies.get("sessionToken"))});
-            }
+
             if (options.urlEncodedRequest === true) {
                 //CONVERT TO URL ENCODE DATA
                 options.transformRequest = function (obj) {
@@ -183,9 +203,9 @@
         $rootScope.setLoading = function (loading) {
             //TODO:
             if (loading === true) {
-              //$dialogs.showInfoDialog("Loading!", {title: "Hello world!"});
+                //$dialogs.showInfoDialog("Loading!", {title: "Hello world!"});
             } else {
-              //$dialogs.showInfoDialog("This is a dialog!", {title: "Hello world!"});
+                //$dialogs.showInfoDialog("This is a dialog!", {title: "Hello world!"});
             }
         };
         $rootScope.getCredentialsParams = function (request_params) {
@@ -196,6 +216,7 @@
 
             credentials['sessionToken'] = Cookies.get("sessionToken");
             credentials['loggedUser'] = Cookies.get("loggedUser");
+            credentials['loggedUserID'] = Cookies.get("loggedUserID");
             credentials['currentExperimentID'] = Cookies.get('currentExperimentID');
             return credentials;
         };

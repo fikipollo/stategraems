@@ -1,0 +1,18 @@
+<div class="biocondition-card iu-card">
+    <div class="iu-card-body">
+        <h2 class="iu-card-name">{{biocondition.title}}</h2>
+        <div class="iu-card-description" ng-if="biocondition.biocondition_description !== undefined">
+            <span>{{(biocondition.biocondition_description !== ""?biocondition.biocondition_description:"No description provided")}}</span>
+        </div>
+        <div class="iu-card-tags-list">
+            <i class="tag {{getTagColor(tag)}}" ng-repeat="tag in biocondition.tags| orderBy">{{tag}}</i>
+        </div>
+    </div>
+    <div class="iu-card-author">
+         <div ng-if="(!isMember(biocondition) && biocondition.public === false)"  style="text-align: center;">
+             <h4>Sorry, this sample is private.</h4>
+        </div>
+    </div>
+    <a ng-if="!isMember(biocondition) && biocondition.public === false" class="btn btn-default" type="button" ng-click="controller.requestAccessToSampleHandler(biocondition)"><i class="fa fa-question-circle-o"></i> Request access to this sample</a>
+    <a ng-if="isMember(biocondition) || biocondition.public !== false" class="btn btn-info open-iu-button" ui-sref="sampleDetail({viewMode : 'view', biocondition_id : biocondition.biocondition_id})"> <i class="fa fa-info-circle"></i> More details </a>
+</div>

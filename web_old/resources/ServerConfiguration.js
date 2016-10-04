@@ -11,22 +11,22 @@ LOCKED_TIME = 30;
  * WEB SERVICES URLS         *****************************************
  *********************************************************************/
 //EXPERIMENT URLS
-SERVER_URL_GET_ALL_EXPERIMENTS = "/get_all_experiments";
-SERVER_URL_GET_EXPERIMENT = "/get_experiment";
-SERVER_URL_ADD_EXPERIMENT = "/add_experiment";
-SERVER_URL_UPDATE_EXPERIMENT = "/update_experiment";
-SERVER_URL_REMOVE_EXPERIMENT = "/remove_experiment";
-SERVER_URL_LOCK_EXPERIMENT = "/lock_experiment";
-SERVER_URL_UNLOCK_EXPERIMENT = "/unlock_experiment";
-SERVER_URL_CHANGE_CURRENT_EXPERIMENT = "/change_current_experiment";
+// SERVER_URL_GET_ALL_EXPERIMENTS = "/get_all_experiments";
+// SERVER_URL_GET_EXPERIMENT = "/get_experiment";
+// SERVER_URL_ADD_EXPERIMENT = "/add_experiment";
+// SERVER_URL_UPDATE_EXPERIMENT = "/update_experiment";
+// SERVER_URL_REMOVE_EXPERIMENT = "/remove_experiment";
+// SERVER_URL_LOCK_EXPERIMENT = "/lock_experiment";
+// SERVER_URL_UNLOCK_EXPERIMENT = "/unlock_experiment";
+// SERVER_URL_CHANGE_CURRENT_EXPERIMENT = "/change_current_experiment";
 SERVER_URL_DUMPDB = "/dump_database";
 SERVER_URL_GET_EXPERIMENT_DIRECTORY_CONTENT = "/get_experiment_directory_content";
 
 //USER URLS
-SERVER_URL_LOGIN = "/login";
-SERVER_URL_LOGOUT = "/logout";
-SERVER_URL_GET_USER_LIST = "/get_user_list";
-SERVER_URL_GET_USER = "/get_user";
+// SERVER_URL_LOGIN = "/login";
+// SERVER_URL_LOGOUT = "/logout";
+// SERVER_URL_GET_USER_LIST = "/get_user_list";
+// SERVER_URL_GET_USER = "/get_user";
 SERVER_URL_CREATE_USER = "/add_user";
 SERVER_URL_UPDATE_USER = "/update_user";
 SERVER_URL_REMOVE_USER = "/remove_user";
@@ -46,8 +46,8 @@ SERVER_URL_LOCK_ANALYSIS = "/lock_analysis";
 SERVER_URL_UNLOCK_ANALYSIS = "/unlock_analysis";
 
 //SAMPLES URLS
-SERVER_URL_GET_ALL_BIOCONDITIONS = "/get_all_bioconditions";
-SERVER_URL_GET_BIOCONDITION = "/get_biocondition";
+// SERVER_URL_GET_ALL_BIOCONDITIONS = "/get_all_bioconditions";
+// SERVER_URL_GET_BIOCONDITION = "/get_biocondition";
 SERVER_URL_GET_ALL_BIOREPLICATES = "/get_all_bioreplicates";
 SERVER_URL_ADD_BIOCONDITION = "/add_biocondition";
 SERVER_URL_REMOVE_BIOCONDITION = "/remove_biocondition";

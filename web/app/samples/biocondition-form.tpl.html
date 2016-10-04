@@ -1,0 +1,43 @@
+<div ng-controller="SampleDetailController as controller" >
+    <form class="form-horizontal">
+        <nav class="navbar navbar-default navbar-top title-bar">
+            <h1 class="form_title">{{panel_title}}</h1>
+        </nav>
+        <uib-tabset>
+            <uib-tab index="0" heading="Biological conditions">
+                <h2 class="form_subtitle">Biological conditions</h2>
+                <div ng-if="template === undefined">
+                    <p>Generating the form...</p>
+                </div>
+
+                <div ng-if="template !== undefined">
+                    <div class="section_box row" ng-repeat="section in template.content">
+                        <h2 class="section_title">{{section.title}}</h2>
+                        <form-field ng-repeat="field in section.fields"></form-field>
+                        <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+                    </div>
+                </div>
+
+                <nav class="navbar navbar-default navbar-fixed-bottom progressNavigator" >
+                    <div class="container">
+                        <a class="btn btn-danger btn-md navbar-right" ng-click="controller.cancelButtonHandler();">
+                            <i class="fa fa-times"></i> <span ng-if="viewMode === 'view'">Close</span><span ng-if="viewMode !== 'view'">Cancel</span> 
+                        </a>
+                        <a class="btn btn-warning btn-md navbar-right" ng-show="viewMode === 'view'" ng-click="controller.editButtonHandler();">
+                            <i class="fa fa-pencil-square-o"></i> Edit
+                        </a>
+                        <a class="btn btn-success btn-md navbar-right" ng-show="viewMode !== 'view'"  ng-click="controller.acceptButtonHandler()" >
+                            <i class="fa fa-check fa-fw" ></i> Accept
+                        </a>
+                    </div>
+                </nav>
+            </uib-tab>
+            <uib-tab index="2" select="alertMe()">
+                <uib-tab-heading>
+                    <i class="glyphicon glyphicon-bell"></i> Alert!
+                </uib-tab-heading>
+                I've got an HTML heading, and a select callback. Pretty cool!
+            </uib-tab>
+        </uib-tabset>
+    </form>
+</div>

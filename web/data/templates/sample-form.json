@@ -1,0 +1,128 @@
+{
+    "id": "sample-form",
+    "content": [
+        {
+            "name": "section_1",
+            "title": "General details",
+            "fields": [
+                {
+                    "name": "biocondition_id",
+                    "label": "BioCondition ID",
+                    "type": "text"
+                },
+                {
+                    "name": "name",
+                    "label": "Name",
+                    "type": "text"
+                },
+                {
+                    "name": "title",
+                    "label": "Title",
+                    "type": "text"
+                }
+            ]
+        },
+        {
+            "name": "section_2",
+            "title": "Biomaterial details",
+            "fields": [
+                {
+                    "name": "organism",
+                    "label": "Organism",
+                    "type": "select",
+                    "source": "data/organisms.json"
+                }, {
+                    "name": "tissue_type",
+                    "label": "Tissue/Organ",
+                    "type": "text"
+                }, {
+                    "name": "cell_type",
+                    "label": "Cell type",
+                    "type": "text"
+                }, {
+                    "name": "cell_line",
+                    "label": "Cell line",
+                    "type": "select",
+                    "source": "data/cell_lines.json"
+                }, {
+                    "name": "gender",
+                    "label": "Gender",
+                    "type": "text"
+                }, {
+                    "name": "genotype",
+                    "label": "Genotype/Variation",
+                    "type": "text"
+                }, {
+                    "name": "other_biomaterial",
+                    "label": "Other details",
+                    "type": "textarea"
+                }
+            ]
+        },
+        {
+            "name": "section_3",
+            "title": "Experimental conditions",
+            "fields": [
+                {
+                    "name": "treatment",
+                    "label": "Treatment",
+                    "type": "select"
+                }, {
+                    "name": "dose",
+                    "label": "Dose",
+                    "type": "text"
+                }, {
+                    "name": "time",
+                    "label": "Time",
+                    "type": "text"
+                }, {
+                    "name": "other_exp_cond",
+                    "label": "Other details",
+                    "type": "textarea"
+                }, {
+                    "name": "protocol_description",
+                    "label": "Protocol Description",
+                    "type": "textarea"
+                }, {
+                    "name": "treatment_document",
+                    "label": "Treatment Document",
+                    "type": "file"
+                }, {
+                    "name": "treatment_document",
+                    "label": "Treatment Document",
+                    "type": "display"
+                }
+            ]
+        },
+        {
+            "name": "section_4",
+            "title": "Other details",
+            "fields": [
+                {
+                    "name": "owners",
+                    "label": "Owners",
+                    "type": "user_selector"
+                },
+                {
+                    "name": "members",
+                    "label": "Members",
+                    "type": "user_selector"
+                },
+                {
+                    "name": "submission_date",
+                    "label": "Submission date",
+                    "type": "date"
+                },
+                {
+                    "name": "last_edition_date",
+                    "label": "Last edition",
+                    "type": "date"
+                }, {
+                    "name": "external_links",
+                    "label": "External links",
+                    "type": "textarea"
+                }
+            ]
+        }
+    ]
+}

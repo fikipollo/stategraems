@@ -30,6 +30,8 @@ import classes.samples.Batch;
 import classes.samples.Bioreplicate;
 import classes.samples.BioCondition;
 import classes.samples.Treatment;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import common.BlockedElementsManager;
 
 import java.io.IOException;
@@ -92,8 +94,8 @@ public class Samples_servlets extends Servlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         response.addHeader("Access-Control-Allow-Origin", "*");
-        response.setContentType("text/html");
-//        response.setContentType("application/json");
+        response.setContentType("application/json");
+        //response.setContentType("text/html");
 
         if (request.getServletPath().equals("/get_all_bioconditions")) {
             get_all_bioconditions_handler(request, response);
@@ -767,6 +769,11 @@ public class Samples_servlets extends Servlet {
             ArrayList<Object> bioconditionsList = null;
             try {
 
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
                 /**
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
@@ -774,7 +781,7 @@ public class Samples_servlets extends Servlet {
                  * 5b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
@@ -786,6 +793,10 @@ public class Samples_servlets extends Servlet {
                  */
                 dao_instance = DAOProvider.getDAOByName("BioCondition");
                 boolean loadRecursive = false;
+                if(requestData.has("recursive")){
+                    loadRecursive = requestData.get("loggedUser").getAsBoolean();
+                }
+
                 Object[] params = {loadRecursive};
                 bioconditionsList = dao_instance.findAll(params);
 
@@ -806,14 +817,13 @@ public class Samples_servlets extends Servlet {
                      * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
                      * *******************************************************
                      */
-                    String bioconditionsJSON = "bioconditionsList : [";
-
-                    for (Object biocondition : bioconditionsList) {
-                        bioconditionsJSON += ((BioCondition) biocondition).toJSON() + ", ";
+                    String bioconditionsJSON = "[";
+                    for (int i = 0; i < bioconditionsList.size(); i++) {
+                        bioconditionsJSON += ((BioCondition) bioconditionsList.get(i)).toJSON() + ((i < bioconditionsList.size() - 1) ? "," : "");
                     }
                     bioconditionsJSON += "]";
 
-                    response.getWriter().print("{success: " + true + ", " + bioconditionsJSON + " }");
+                    response.getWriter().print(bioconditionsJSON);
                 }
                 /**
                  * *******************************************************
@@ -844,7 +854,11 @@ public class Samples_servlets extends Servlet {
             DAO dao_instance = null;
             BioCondition biocondition = null;
             try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
 
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
                 /**
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
@@ -852,7 +866,7 @@ public class Samples_servlets extends Servlet {
                  * 5b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
@@ -863,9 +877,10 @@ public class Samples_servlets extends Servlet {
                  * *******************************************************
                  */
                 dao_instance = DAOProvider.getDAOByName("BioCondition");
-                boolean loadRecursive = true;
+                boolean loadRecursive = requestData.get("recursive").getAsBoolean();;
                 Object[] params = {loadRecursive};
-                String biocondition_id = request.getParameter("biocondition_id");
+                
+                String biocondition_id = requestData.get("biocondition_id").getAsString();
                 biocondition = (BioCondition) dao_instance.findByID(biocondition_id, params);
 
                 /**
@@ -896,11 +911,7 @@ public class Samples_servlets extends Servlet {
                      * STEP 4A WRITE RESPONSE ERROR. GO TO STEP 5
                      * *******************************************************
                      */
-                    String bioconditionsJSON = "bioconditionsList : [";
-                    bioconditionsJSON += biocondition.toJSON() + ", ";
-                    bioconditionsJSON += "]";
-
-                    response.getWriter().print("{success: " + true + ", " + bioconditionsJSON + " }");
+                    response.getWriter().print(biocondition.toJSON());
                 }
                 /**
                  * *******************************************************

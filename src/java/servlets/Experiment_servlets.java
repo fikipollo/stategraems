@@ -26,6 +26,7 @@ import bdManager.DBConnectionManager;
 import classes.Experiment;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import common.BlockedElementsManager;
 import common.ServerErrorManager;
 import common.UserSessionManager;
@@ -56,8 +57,8 @@ public class Experiment_servlets extends Servlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.addHeader("Access-Control-Allow-Origin", "*");
-        response.setContentType("text/html");
-//        response.setContentType("application/json");
+        response.setContentType("application/json");
+//        response.setContentType("text/html");
 
         if (request.getServletPath().equals("/get_all_experiments")) {
             get_all_experiments_handler(request, response);
@@ -197,8 +198,9 @@ public class Experiment_servlets extends Servlet {
                         dao_instance.doRollback();
                     }
                 } else {
-                    response.setContentType("application/json");
-                    response.getWriter().print("newID : '" + BLOCKED_ID + "'");
+                    JsonObject obj = new JsonObject();
+                    obj.add("newID", new JsonPrimitive(BLOCKED_ID));
+                    response.getWriter().print(obj.toString());
                 }
 
                 if (BLOCKED_ID != null) {
@@ -252,7 +254,6 @@ public class Experiment_servlets extends Servlet {
                  * --> GO TO STEP 3
                  * *******************************************************
                  */
-
                 /**
                  * *******************************************************
                  * STEP 3 Get the EXPERIMENT Object by parsing the JSON data. IF
@@ -298,7 +299,9 @@ public class Experiment_servlets extends Servlet {
                         dao_instance.doRollback();
                     }
                 } else {
-                    response.getWriter().print("{success: " + true + " }");
+                    JsonObject obj = new JsonObject();
+                    obj.add("success", new JsonPrimitive(true));
+                    response.getWriter().print(obj.toString());
                 }
                 /**
                  * *******************************************************
@@ -375,11 +378,10 @@ public class Experiment_servlets extends Servlet {
                      * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
                      * *******************************************************
                      */
-                    response.setContentType("application/json");
                     String experimentsJSON = "[";
 
                     for (int i = 0; i < experimentsList.size(); i++) {
-                        experimentsJSON += ((Experiment)experimentsList.get(i)).toJSON() + ((i < experimentsList.size() - 1)?",":"");
+                        experimentsJSON += ((Experiment) experimentsList.get(i)).toJSON() + ((i < experimentsList.size() - 1) ? "," : "");
                     }
                     experimentsJSON += "]";
 
@@ -415,6 +417,12 @@ public class Experiment_servlets extends Servlet {
             Experiment experiment = null;
             try {
 
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
+
                 /**
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
@@ -422,7 +430,7 @@ public class Experiment_servlets extends Servlet {
                  * 5b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
@@ -435,7 +443,7 @@ public class Experiment_servlets extends Servlet {
                 dao_instance = DAOProvider.getDAOByName("Experiment");
                 boolean loadRecursive = true;
                 Object[] params = {loadRecursive};
-                String experiment_id = request.getParameter("experiment_id");
+                String experiment_id = requestData.get("experiment_id").getAsString();
                 experiment = (Experiment) dao_instance.findByID(experiment_id, params);
 
             } catch (Exception e) {
@@ -455,11 +463,7 @@ public class Experiment_servlets extends Servlet {
                      * STEP 4A WRITE RESPONSE ERROR. GO TO STEP 5
                      * *******************************************************
                      */
-                    String experimentJSON = "experimentList : [";
-                    experimentJSON += experiment.toJSON() + ", ";
-                    experimentJSON += "]";
-
-                    response.getWriter().print("{success: " + true + ", " + experimentJSON + " }");
+                    response.getWriter().print(experiment.toJSON());
                 }
                 /**
                  * *******************************************************
@@ -480,15 +484,22 @@ public class Experiment_servlets extends Servlet {
 
     private void lock_experiment_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         boolean alreadyLocked = false;
+        String locker_id = "";
         try {
+
+            JsonParser parser = new JsonParser();
+            JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+            String loggedUser = requestData.get("loggedUser").getAsString();
+            String sessionToken = requestData.get("sessionToken").getAsString();
+
             /**
              * *******************************************************
              * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
              * --> throws exception if not valid session, GO TO STEP ELSE --> GO
              * TO STEP 2 *******************************************************
              */
-            String loggedUser = request.getParameter("loggedUser");
-            if (!checkAccessPermissions(loggedUser, request.getParameter("sessionToken"))) {
+            if (!checkAccessPermissions(loggedUser, sessionToken)) {
                 throw new AccessControlException("Your session is invalid. User or session token not allowed.");
             }
 
@@ -498,8 +509,11 @@ public class Experiment_servlets extends Servlet {
              * exception, GO TO STEP ELSE --> GO TO STEP 3
              * *******************************************************
              */
-            String experimentID = request.getParameter("experiment_id");
+            String experimentID = requestData.get("experiment_id").getAsString();
             alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().lockObject(experimentID, loggedUser);
+            if (alreadyLocked) {
+                locker_id = BlockedElementsManager.getBlockedElementsManager().getLockerID(experimentID);
+            }
         } catch (Exception e) {
             ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "lock_experiment_handler", e.getMessage());
         } finally {
@@ -511,17 +525,21 @@ public class Experiment_servlets extends Servlet {
             if (ServerErrorManager.errorStatus()) {
                 response.setStatus(400);
                 response.getWriter().print(ServerErrorManager.getErrorResponse());
-            } else /**
-             * *******************************************************
-             * STEP 3A WRITE RESPONSE ERROR.
-             * *******************************************************
-             */
-            {
+            } else {
+                /**
+                 * *******************************************************
+                 * STEP 3A WRITE RESPONSE .
+                 * *******************************************************
+                 */
+                JsonObject obj = new JsonObject();
                 if (alreadyLocked) {
-                    response.getWriter().print("{success: " + false + ", reason: '" + BlockedElementsManager.getErrorMessage() + "'}");
+                    obj.add("success", new JsonPrimitive(false));
+                    obj.add("reason", new JsonPrimitive(BlockedElementsManager.getErrorMessage()));
+                    obj.add("user_id", new JsonPrimitive(locker_id));
                 } else {
-                    response.getWriter().print("{success: " + true + " }");
+                    obj.add("success", new JsonPrimitive(true));
                 }
+                response.getWriter().print(obj.toString());
             }
         }
     }
@@ -534,13 +552,19 @@ public class Experiment_servlets extends Servlet {
     private void unlock_experiment_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         boolean alreadyLocked = false;
         try {
+            JsonParser parser = new JsonParser();
+            JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+            String loggedUser = requestData.get("loggedUser").getAsString();
+            String sessionToken = requestData.get("sessionToken").getAsString();
+
             /**
              * *******************************************************
              * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
              * --> throws exception if not valid session, GO TO STEP ELSE --> GO
              * TO STEP 2 *******************************************************
              */
-            if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+            if (!checkAccessPermissions(loggedUser, sessionToken)) {
                 throw new AccessControlException("Your session is invalid. User or session token not allowed.");
             }
 
@@ -550,7 +574,7 @@ public class Experiment_servlets extends Servlet {
              * exception, GO TO STEP ELSE --> GO TO STEP 3
              * *******************************************************
              */
-            String experiment_id = request.getParameter("experiment_id");
+            String experiment_id = requestData.get("experiment_id").getAsString();
             alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(experiment_id);
         } catch (Exception e) {
             ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "lock_analysis_handler", e.getMessage());
@@ -563,17 +587,20 @@ public class Experiment_servlets extends Servlet {
             if (ServerErrorManager.errorStatus()) {
                 response.setStatus(400);
                 response.getWriter().print(ServerErrorManager.getErrorResponse());
-            } else /**
-             * *******************************************************
-             * STEP 3A WRITE RESPONSE ERROR.
-             * *******************************************************
-             */
-            {
+            } else {
+                /**
+                 * *******************************************************
+                 * STEP 3A WRITE RESPONSE ERROR.
+                 * *******************************************************
+                 */
+                JsonObject obj = new JsonObject();
                 if (alreadyLocked) {
-                    response.getWriter().print("{success: " + false + ", reason: '" + BlockedElementsManager.getErrorMessage() + "'}");
+                    obj.add("success", new JsonPrimitive(false));
+                    obj.add("reason", new JsonPrimitive(BlockedElementsManager.getErrorMessage()));
                 } else {
-                    response.getWriter().print("{success: " + true + " }");
+                    obj.add("success", new JsonPrimitive(true));
                 }
+                response.getWriter().print(obj.toString());
             }
         }
     }
@@ -591,6 +618,13 @@ public class Experiment_servlets extends Servlet {
             DAO dao_instance = null;
 
             try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String loggedUserID = requestData.get("loggedUserID").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
+
                 /**
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
@@ -598,42 +632,52 @@ public class Experiment_servlets extends Servlet {
                  * 4b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
-                if (!"admin".equals(request.getParameter("loggedUser"))) {
-                    throw new AccessControlException(request.getParameter("loggedUser") + " is no allowed for this operation.");
+                String experiment_id = requestData.get("experiment_id").getAsString();
+                boolean alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().lockObject(experiment_id, loggedUserID);
+                if (alreadyLocked) {
+                    String locker_id = BlockedElementsManager.getBlockedElementsManager().getLockerID(experiment_id);
+                    if (!locker_id.equals(loggedUser)) {
+                        throw new Exception("Sorry but this experiment is being edited by other user. Please try later.");
+                    }
                 }
 
-                String experiment_id = request.getParameter("experiment_id");
-
-                if (UserSessionManager.getUserSessionManager().getLoggedUsersCount() > 1) {
-                    throw new Exception("Unable to remove Experiment " + experiment_id + ". Reason: All users must be disconnected before experiment removing.");
-                }
-
-                /**
-                 * *******************************************************
-                 * STEP 2 UPDATE IN DATABASE. IF ERROR --> throws exception if
-                 * not valid session, GO TO STEP 4b ELSE --> GO TO STEP 3
-                 * *******************************************************
-                 */
+                //Get the experiment
                 dao_instance = DAOProvider.getDAOByName("Experiment");
                 dao_instance.disableAutocommit();
                 ROLLBACK_NEEDED = true;
-                new Experiment_JDBCDAO().remove(experiment_id);
 
-                /**
-                 * *******************************************************
-                 * STEP 3 REMOVE THE FOLDER ERROR --> throws ioSQL , GO TO STEP
-                 * 4b ELSE --> GO TO STEP 7
-                 * ******************************************************
-                 */
-                try {
-                    FileUtils.deleteDirectory(new File(DATA_LOCATION + File.separator + experiment_id));
-                    // Directory creation failed
-                } catch (IOException exception) {
-                    throw new Exception("Unable to remove the Experiment folder. Please check if the Tomcat user has read/write permissions over the data application directory.");
+                boolean loadRecursive = true;
+                Object[] params = {loadRecursive};
+                Experiment experiment = (Experiment) dao_instance.findByID(experiment_id, params);
+
+                //Check if user is member or owner
+                if (experiment.isMember(loggedUserID) && !"admin".equals(loggedUserID)) {
+                    //If is a member, remove the entry in the table of ownerships
+                    ((Experiment_JDBCDAO) dao_instance).removeOwnership(loggedUserID, experiment_id);
+                } else if (experiment.isOwner(loggedUserID) || "admin".equals(loggedUserID)) {
+                    if (experiment.getExperimentOwners().length == 1 || "admin".equals(loggedUserID)) {
+                        //If is the last owner or the admin, remove the entire experiment
+                        dao_instance.remove(experiment_id);
+                        /**
+                         * *******************************************************
+                         * STEP 3 REMOVE THE FOLDER ERROR --> throws ioSQL , GO
+                         * TO STEP 4b ELSE --> GO TO STEP 7
+                         * ******************************************************
+                         */
+                        try {
+                            FileUtils.deleteDirectory(new File(DATA_LOCATION + File.separator + experiment_id));
+                            // Directory creation failed
+                        } catch (IOException exception) {
+                            throw new Exception("Unable to remove the Experiment folder. Please check if the Tomcat user has read/write permissions over the data application directory.");
+                        }
+                    } else {
+                        //else just remove the entry in the table of ownerships
+                        ((Experiment_JDBCDAO) dao_instance).removeOwnership(loggedUserID, experiment_id);
+                    }
                 }
 
                 /**
@@ -666,7 +710,9 @@ public class Experiment_servlets extends Servlet {
                         dao_instance.doRollback();
                     }
                 } else {
-                    response.getWriter().print("{success: " + true + "}");
+                    JsonObject obj = new JsonObject();
+                    obj.add("success", new JsonPrimitive(true));
+                    response.getWriter().print(obj.toString());
                 }
                 /**
                  * *******************************************************
@@ -697,6 +743,11 @@ public class Experiment_servlets extends Servlet {
             DAO dao_instance = null;
             boolean valid_experiment = false;
             try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
 
                 /**
                  * *******************************************************
@@ -705,7 +756,7 @@ public class Experiment_servlets extends Servlet {
                  * 5b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
@@ -716,8 +767,8 @@ public class Experiment_servlets extends Servlet {
                  * *******************************************************
                  */
                 dao_instance = DAOProvider.getDAOByName("Experiment");
-                String experiment_id = request.getParameter("experiment_id");
-                String user_id = request.getParameter("loggedUser");
+                String experiment_id = requestData.get("experiment_id").getAsString();
+                String user_id = requestData.get("loggedUserID").getAsString();
                 valid_experiment = ((Experiment_JDBCDAO) dao_instance).checkValidExperiment(experiment_id, user_id);
 
             } catch (Exception e) {
@@ -737,7 +788,9 @@ public class Experiment_servlets extends Servlet {
                      * STEP 4A WRITE RESPONSE ERROR. GO TO STEP 5
                      * *******************************************************
                      */
-                    response.getWriter().print("{success: " + true + ", valid_experiment: " + valid_experiment + " }");
+                    JsonObject obj = new JsonObject();
+                    obj.add("valid_experiment", new JsonPrimitive(valid_experiment));
+                    response.getWriter().print(obj.toString());
                 }
                 /**
                  * *******************************************************

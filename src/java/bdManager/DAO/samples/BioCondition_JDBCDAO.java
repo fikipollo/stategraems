@@ -51,7 +51,7 @@ public class BioCondition_JDBCDAO extends DAO {
                 + "  biocondition_id = ?, organism = ?, title = ?, name = ?, cell_type = ?, "
                 + "  tissue_type = ?, cell_line = ?, gender = ?, genotype = ?, other_biomaterial = ?, "
                 + "  treatment = ?, dosis = ?, time = ?, other_exp_cond = ?, protocol_description = ?, "
-                + "  submission_date = ?, last_edition_date = ?, external_links = ? ");
+                + "  submission_date = ?, last_edition_date = ?, external_links = ?, tags = ?, public = ? ");
 
         ps.setString(1, biocondition.getBioConditionID());
         ps.setString(2, biocondition.getOrganism());
@@ -71,6 +71,8 @@ public class BioCondition_JDBCDAO extends DAO {
         ps.setString(16, biocondition.getSubmissionDate().replaceAll("/", ""));
         ps.setString(17, biocondition.getLastEditionDate().replaceAll("/", ""));
         ps.setString(18, biocondition.getExternalLinks());
+        ps.setString(19, String.join(", ", biocondition.getTags()));
+        ps.setBoolean(20, biocondition.isPublic());
         ps.execute();
 
         if (biocondition.getAssociatedBioreplicates() != null) {
@@ -167,7 +169,7 @@ public class BioCondition_JDBCDAO extends DAO {
                 + "UPDATE biocondition SET "
                 + "  organism = ?, title = ?, name = ?, cell_type = ?, tissue_type = ?, cell_line = ?, gender = ?, "
                 + "  genotype = ?, other_biomaterial = ?, treatment = ?, dosis = ?, time = ?, other_exp_cond = ?, "
-                + "  protocol_description = ?, last_edition_date = ?, external_links = ? "
+                + "  protocol_description = ?, last_edition_date = ?, external_links = ?, tags = ?, public = ? "
                 + "WHERE biocondition_id = ?");
 
         ps.setString(1, biocondition.getOrganism());
@@ -186,7 +188,9 @@ public class BioCondition_JDBCDAO extends DAO {
         ps.setString(14, biocondition.getProtocolDescription());
         ps.setString(15, biocondition.getLastEditionDate().replaceAll("/", ""));
         ps.setString(16, biocondition.getExternalLinks());
-        ps.setString(17, biocondition.getBioConditionID());
+        ps.setString(17, String.join(", ", biocondition.getTags()));
+        ps.setBoolean(18, biocondition.isPublic());
+        ps.setString(19, biocondition.getBioConditionID());
         ps.execute();
 
         //Remove all the previous entries in the experiment_owners table
@@ -253,14 +257,11 @@ public class BioCondition_JDBCDAO extends DAO {
             biocondition.setLastEditionDate(rs.getString("last_edition_date"));
             biocondition.setSubmissionDate(rs.getString("submission_date"));
             biocondition.setExternalLinks(rs.getString("external_links"));
+            biocondition.setTags(rs.getString("tags"));
+            biocondition.setPublic(rs.getBoolean("public"));
         }
 
-        if (biocondition != null && loadRecursive) {
-            Object[] params = {biocondition_id, loadRecursive};
-
-            ArrayList<Object> bioreplicates = new Bioreplicate_JDBCDAO().findAll(params);
-            biocondition.setAssociatedBioreplicates(bioreplicates.toArray(new Bioreplicate[bioreplicates.size()]));
-
+        if (biocondition != null) {
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT user_id FROM biocondition_owners WHERE biocondition_id = ?");
             ps.setString(1, biocondition_id);
 
@@ -271,6 +272,13 @@ public class BioCondition_JDBCDAO extends DAO {
                 owners.add(new User(rs.getString(1), ""));
             }
             biocondition.setOwners(owners.toArray(new User[owners.size()]));
+        }
+
+        if (biocondition != null && loadRecursive) {
+            Object[] params = {biocondition_id, loadRecursive};
+
+            ArrayList<Object> bioreplicates = new Bioreplicate_JDBCDAO().findAll(params);
+            biocondition.setAssociatedBioreplicates(bioreplicates.toArray(new Bioreplicate[bioreplicates.size()]));
         }
 
         return biocondition;
@@ -289,9 +297,10 @@ public class BioCondition_JDBCDAO extends DAO {
             loadRecursive = (Boolean) otherParams[0];
         }
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT * FROM biocondition");
-
+        
         ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
-
+        ResultSet rs2;
+        
         ArrayList<Object> bioconditionsList = new ArrayList<Object>();
         BioCondition biocondition = null;
         while (rs.next()) {
@@ -314,6 +323,18 @@ public class BioCondition_JDBCDAO extends DAO {
             biocondition.setLastEditionDate(rs.getString("last_edition_date"));
             biocondition.setSubmissionDate(rs.getString("submission_date"));
             biocondition.setExternalLinks(rs.getString("external_links"));
+            biocondition.setTags(rs.getString("tags"));
+            biocondition.setPublic(rs.getBoolean("public"));
+
+            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT user_id FROM biocondition_owners WHERE biocondition_id = ?");
+            ps.setString(1, rs.getString("biocondition_id"));
+            rs2 = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
+
+            ArrayList<User> owners = new ArrayList<User>();
+            while (rs2.next()) {
+                owners.add(new User(rs2.getString(1), ""));
+            }
+            biocondition.setOwners(owners.toArray(new User[owners.size()]));
 
             bioconditionsList.add(biocondition);
         }
@@ -343,15 +364,15 @@ public class BioCondition_JDBCDAO extends DAO {
         //IF NO ENTRIES WERE FOUND IN THE DB, THEN WE RETURN THE FIRST ID 		
         String newID = "";
         if (previousID == null) {
-            newID = "BC" + "001";
+            newID = "BC" + "00001";
         } else {
-            newID = previousID.substring(previousID.length() - 3);
-            newID = String.format("%03d", Integer.parseInt(newID) + 1);
+            newID = previousID.substring(previousID.length() - 5);
+            newID = String.format("%05d", Integer.parseInt(newID) + 1);
             newID = "BC" + newID;
         }
         while (!BlockedElementsManager.getBlockedElementsManager().lockID(newID)) {
-            newID = newID.substring(newID.length() - 3);
-            newID = String.format("%03d", Integer.parseInt(newID) + 1);
+            newID = newID.substring(newID.length() - 5);
+            newID = String.format("%05d", Integer.parseInt(newID) + 1);
             newID = "BC" + newID;
         }
 
@@ -373,6 +394,9 @@ public class BioCondition_JDBCDAO extends DAO {
 
     @Override
     public boolean remove(String[] object_id_list) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        for(String id:object_id_list){
+            remove(id);
+        }
+        return true;
     }
 }

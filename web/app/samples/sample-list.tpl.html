@@ -1,6 +1,6 @@
-<div ng-controller="ExperimentListController as controller">
+<div ng-controller="SampleListController as controller">
     <nav class="navbar navbar-default navbar-top title-bar">
-        <h1 class="form_title">Experiment browser</h1>
+        <h1 class="form_title">Sample browser</h1>
     </nav>
     <div class="navbar-form navbar-default top-toolbar" role="search">
         <h2 class="form_subtitle">Search and filter</h2>
@@ -39,11 +39,11 @@
                     <label for="sortBySelector">Show:</label>
                     <select style="display:inline-block;" class="form-control" id="sortBySelector"
                             ng-model="show"
-                            ng-init="show = 'my_experiments'"
-                            ng-change="controller.showExperimentChooserChangeHandler(value);"
+                            ng-init="show = 'my_samples'"
+                            ng-change="controller.showSampleChooserChangeHandler(value);"
                             >
-                        <option value="my_experiments">Only my experiments</option>
-                        <option value="all_experiments">All public experiments</option>
+                        <option value="my_samples">Only my samples</option>
+                        <option value="all_samples">All public samples</option>
                     </select>
                 </li>
             </ul>
@@ -57,24 +57,24 @@
                 </li>
             </ul>
             <i ng-show="isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
-                <i class="fa fa-spinner fa-pulse fa-fw"></i> Loading experiments...
+                <i class="fa fa-spinner fa-pulse fa-fw"></i> Loading samples...
             </i>
             <i ng-show="!isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
-                Found {{filteredExperiments}} experiments
-                <a ng-click="controller.retrieveExperimentsData('', true);" style="margin-left:10px; font-size: 10px; cursor: pointer;"><i class="fa fa-refresh"></i>Refresh list</a>
+                Found {{filteredSamples}} samples
+                <a ng-click="controller.retrieveSamplesData(true);" style="margin-left:10px; font-size: 10px; cursor: pointer;"><i class="fa fa-refresh"></i>Refresh list</a>
             </i>
         </div>
     </div>
     <div class="navbar-form">
         <div style="margin: auto;display: block;max-width: 625px;text-align: center;margin-top: 34px;">
-            <button class="btn btn-lg btn-primary" type="button" ui-sref="experimentDetail({viewMode : 'creation'})"><i class="fa fa-plus-circle"></i> Annotate new experiment</button>
+            <button class="btn btn-lg btn-primary" type="button" ui-sref="sampleDetail({viewMode : 'creation'})"><i class="fa fa-plus-circle"></i> Annotate new sample</button>
         </div>
     </div>
-    <div class="row experiment-card-container" id="experimentContainer">
-        <experiment-card  ng-repeat="experiment in experiments| filter:filterExperiments() | orderBy : sortBy | limitTo : visibleExperiments"></experiment-card>
+    <div class="row sample-card-container" id="sampleContainer">
+        <biocondition-card  ng-repeat="biocondition in samples| filter:filterSamples() | orderBy : sortBy | limitTo : visibleSamples"></biocondition-card>
         <div class="row" style="text-align: center;">
-            <button class="btn btn-lg btn-success" type="button" ng-click="controller.showMoreExperimentsHandler()" ng-show="(filteredExperiments - visibleExperiments) > 0">
-                Show more experiments ({{filteredExperiments - visibleExperiments}} left)
+            <button class="btn btn-lg btn-success" type="button" ng-click="controller.showMoreSamplesHandler()" ng-show="(filteredSamples - visibleSamples) > 0">
+                Show more samples ({{filteredSamples - visibleSamples}} left)
             </button>
         </div>
     </div>
