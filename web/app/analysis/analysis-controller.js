@@ -18,74 +18,87 @@
  *     and others.
  *
  * THIS FILE CONTAINS THE FOLLOWING MODULE DECLARATION
- * - SampleListController
- * - BioconditionDetailController
- * - BioreplicateDetailController
+ * - AnalysisListController
+ * - AnalysisDetailController
  */
 (function () {
-    var app = angular.module('samples.controllers', [
+    var app = angular.module('analysis.controllers', [
         'common.dialogs',
         'angular.backtop',
-        'samples.services.sample-list',
-        'samples.directives.sample-views',
+        'analysis.services.analysis-list',
+        'analysis.directives.analysis-views',
         'templates.directives.template',
-        'protocols.services.protocol-list',
         'ui.bootstrap'
     ]);
+
+    //TODO: MOVE TO DIRECTIVES
+    app.directive('ngEnter', function () {
+        return function (scope, element, attrs) {
+            element.bind("keydown keypress", function (event) {
+                if (event.which === 13) {
+                    scope.$apply(function () {
+                        scope.$eval(attrs.ngEnter);
+                    });
+                    event.preventDefault();
+                }
+            });
+        };
+    });
 
     /***************************************************************************/
     /*CONTROLLERS **************************************************************/
     /***************************************************************************/
-    app.controller('SampleListController', function ($rootScope, $scope, $http, $dialogs, INFO_EVENTS, SampleList) {
+    app.controller('AnalysisListController', function ($rootScope, $scope, $http, $dialogs, INFO_EVENTS, AnalysisList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
         /**
-         * This function retrieves all the samples registered in the system
-         * @param {type} group, limit the search to "user's" samples (not used)
+         * This function retrieves all the analysis registered in the system
+         * @param {type} group, limit the search to "user's" analysis (not used)
          * @param {type} force
          * @returns this
          */
-        this.retrieveSamplesData = function (group, force) {
+        this.retrieveAnalysisData = function (group, force) {
             $scope.isLoading = true;
 
-            if (SampleList.getOld() > 1 || force) { //Max age for data 5min.
-                $http($rootScope.getHttpRequestConfig("POST", "sample-list", {
+            if (AnalysisList.getOld() > 1 || force) { //Max age for data 5min.
+                $http($rootScope.getHttpRequestConfig("POST", "analysis-list", {
                     headers: {'Content-Type': 'application/json'},
                     data: $rootScope.getCredentialsParams()
                 })).then(
                         function successCallback(response) {
                             $scope.isLoading = false;
-                            $scope.samples = SampleList.setSamples(response.data).getSamples();
-                            $scope.tags = SampleList.updateTags().getTags();
-                            $scope.filteredSamples = $scope.samples.length;
+                            $scope.analysis = AnalysisList.setAnalysis(response.data).getAnalysis();
+                            $scope.tags = AnalysisList.updateTags().getTags();
+                            $scope.analysisTypes = AnalysisList.updateAnalysisTypes().getAnalysisTypes();
+                            $scope.filteredAnalysis = $scope.analysis.length;
 
-                            //Display the samples in batches
+                            //Display the analysis in batches
                             if (window.innerWidth > 1500) {
-                                $scope.visibleSamples = 14;
+                                $scope.visibleAnalysis = 14;
                             } else if (window.innerWidth > 1200) {
-                                $scope.visibleSamples = 10;
+                                $scope.visibleAnalysis = 10;
                             } else {
-                                $scope.visibleSamples = 6;
+                                $scope.visibleAnalysis = 6;
                             }
 
-                            $scope.visibleSamples = Math.min($scope.filteredSamples, $scope.visibleSamples);
+                            $scope.visibleAnalysis = Math.min($scope.filteredAnalysis, $scope.visibleAnalysis);
                         },
                         function errorCallback(response) {
                             $scope.isLoading = false;
 
                             debugger;
-                            var message = "Failed while retrieving the samples list.";
+                            var message = "Failed while retrieving the analysis list.";
                             $dialogs.showErrorDialog(message, {
-                                logMessage: message + " at SampleListController:retrieveSamplesData."
+                                logMessage: message + " at AnalysisListController:retrieveAnalysisData."
                             });
                             console.error(response.data);
                         }
                 );
             } else {
-                $scope.samples = SampleList.getSamples();
-                $scope.tags = SampleList.getTags();
-                $scope.filteredSamples = $scope.samples.length;
+                $scope.analysis = AnalysisList.getAnalysis();
+                $scope.tags = AnalysisList.getTags();
+                $scope.filteredAnalysis = $scope.analysis.length;
                 $scope.isLoading = false;
             }
 
@@ -93,47 +106,47 @@
         };
 
         /**
-         * This function defines the behaviour for the "filterSamples" function.
-         * Given a item (sample) and a set of filters, the function evaluates if
+         * This function defines the behaviour for the "filterAnalysis" function.
+         * Given a item (analysis) and a set of filters, the function evaluates if
          * the current item contains the set of filters within the different attributes
          * of the model.
          *
          * @returns {Boolean} true if the model passes all the filters.
          */
-        $scope.filterSamples = function () {
-            $scope.filteredSamples = 0;
+        $scope.filterAnalysis = function () {
+            $scope.filteredAnalysis = 0;
             $scope.user_id = $scope.user_id || Cookies.get("loggedUserID");
             return function (item) {
-                if ($scope.show === "my_samples") {
-                    if (!SampleList.isOwner(item, $scope.user_id) && !SampleList.isMember(item, $scope.user_id)) {
+                if ($scope.show !== "All analysis types") {
+                    if (item.analysis_type !== $scope.show) {
                         return false;
                     }
                 }
-                //
+
                 var filterAux, item_tags;
                 for (var i in $scope.filters) {
                     filterAux = $scope.filters[i].toLowerCase();
                     item_tags = item.tags.join("");
-                    if (!((item.title.toLowerCase().indexOf(filterAux)) !== -1 || (item.sample_description.toLowerCase().indexOf(filterAux)) !== -1 || (item_tags.toLowerCase().indexOf(filterAux)) !== -1)) {
+                    if (!((item.title.toLowerCase().indexOf(filterAux)) !== -1 || (item.analysis_description.toLowerCase().indexOf(filterAux)) !== -1 || (item_tags.toLowerCase().indexOf(filterAux)) !== -1)) {
                         return false;
                     }
                 }
-                $scope.filteredSamples++;
+                $scope.filteredAnalysis++;
                 return true;
             };
         };
 
         $scope.getTagColor = function (_tag) {
-            var tag = SampleList.getTag(_tag);
+            var tag = AnalysisList.getTag(_tag);
             if (tag !== null) {
                 return tag.color;
             }
             return "";
         }
 
-        $scope.isMember = function (sample) {
+        $scope.isMember = function (analysis) {
             $scope.user_id = $scope.user_id || Cookies.get("loggedUserID");
-            return (SampleList.isOwner(sample, $scope.user_id) || SampleList.isMember(sample, $scope.user_id));
+            return (AnalysisList.isOwner(analysis, $scope.user_id) || AnalysisList.isMember(analysis, $scope.user_id));
         }
 
 
@@ -141,42 +154,79 @@
         //--------------------------------------------------------------------
         // EVENT HANDLERS
         //--------------------------------------------------------------------
+        $scope.$on(INFO_EVENTS.analysisDeleted, function (event, args) {
+            debugger;
+            this.retrieveAnalysisData('', true);
+        });
+
+        this.showAnalysisChooserChangeHandler = function () {
+            this.retrieveAnalysisData($scope.show);
+        };
 
 
-        this.showSampleChooserChangeHandler = function () {
-            this.retrieveSamplesData($scope.show);
-        }
+        /**BC****************************************************************************      
+         * This function try to change the current selected analysis to a given one (if
+         * user is member or owner).
+         *
+         * @param analysis_id the Analysis id
+         * @return      
+         **EC****************************************************************************/
+        this.changeCurrentAnalysisHandler = function (analysis_id) {
+            $http($rootScope.getHttpRequestConfig("POST", "analysis-selection", {
+                headers: {'Content-Type': 'application/json; charset=utf-8'},
+                data: $rootScope.getCredentialsParams({'analysis_id': analysis_id}),
+            })).then(
+                    function successCallback(response) {
+                        if (response.data.valid_analysis) {
+                            console.info((new Date()).toLocaleString() + "CHANGED TO EXPERIMENT " + analysis_id + " SUCCESSFULLY");
+                            Cookies.set('currentAnalysisID', analysis_id, null, location.pathname);
+                            $dialogs.showSuccessDialog("Now you are working with Analysis.");
+                        } else {
+                            showErrorMessage("You are not member of the selected analysis. Please, contact administrator or analysis owners to become a member.");
+                        }
+                    },
+                    function errorCallback(response) {
+                        var message = "Failed while changing the current analysis.";
+                        $dialogs.showErrorDialog(message, {
+                            logMessage: message + " at AnalysisListController:changeCurrentAnalysisHandler."
+                        });
+                        console.error(response.data);
+                        debugger
+                    }
+            );
+        };
+
         /**
          * This function applies the filters when the user clicks on "Search"
          */
         this.applySearchHandler = function () {
             var filters = arrayUnique($scope.filters.concat($scope.searchFor.split(" ")));
-            $scope.filters = SampleList.setFilters(filters).getFilters();
+            $scope.filters = AnalysisList.setFilters(filters).getFilters();
         };
 
         this.filterByTag = function (tag) {
             if (tag !== "All") {
                 var filters = arrayUnique($scope.filters.concat(tag));
-                $scope.filters = SampleList.setFilters(filters).getFilters();
+                $scope.filters = AnalysisList.setFilters(filters).getFilters();
             }
-        }
+        };
 
         /**
          * This function remove a given filter when the user clicks at the "x" button
          */
         this.removeFilterHandler = function (filter) {
-            $scope.filters = SampleList.removeFilter(filter).getFilters();
+            $scope.filters = AnalysisList.removeFilter(filter).getFilters();
         };
 
-        this.showMoreSamplesHandler = function () {
+        this.showMoreAnalysisHandler = function () {
             if (window.innerWidth > 1500) {
-                $scope.visibleSamples += 10;
+                $scope.visibleAnalysis += 10;
             } else if (window.innerWidth > 1200) {
-                $scope.visibleSamples += 6;
+                $scope.visibleAnalysis += 6;
             } else {
-                $scope.visibleSamples += 4;
+                $scope.visibleAnalysis += 4;
             }
-            $scope.visibleSamples = Math.min($scope.filteredSamples, $scope.visibleSamples);
+            $scope.visibleAnalysis = Math.min($scope.filteredAnalysis, $scope.visibleAnalysis);
         }
 
         //--------------------------------------------------------------------
@@ -184,60 +234,71 @@
         //--------------------------------------------------------------------
         var me = this;
 
-        //This controller uses the SampleList, which defines a Singleton instance of
-        //a list of samples + list of tags + list of filters. Hence, the application will not
-        //request the data everytime that the sample list panel is displayed (data persistance).
-        $scope.samples = SampleList.getSamples();
-        $scope.tags = SampleList.getTags();
-        $scope.filters = SampleList.getFilters();
-        $scope.filteredSamples = $scope.samples.length;
+        //This controller uses the AnalysisList, which defines a Singleton instance of
+        //a list of analysis + list of tags + list of filters. Hence, the application will not
+        //request the data everytime that the analysis list panel is displayed (data persistance).
+        $scope.analysis = AnalysisList.getAnalysis();
+        $scope.tags = AnalysisList.getTags();
+        $scope.analysisTypes = AnalysisList.getAnalysisTypes();
+        $scope.filters = AnalysisList.getFilters();
+        $scope.filteredAnalysis = $scope.analysis.length;
 
-        //Display the samples in batches
+        //Display the analysis in batches
         if (window.innerWidth > 1500) {
-            $scope.visibleSamples = 14;
+            $scope.visibleAnalysis = 14;
         } else if (window.innerWidth > 1200) {
-            $scope.visibleSamples = 10;
+            $scope.visibleAnalysis = 10;
         } else {
-            $scope.visibleSamples = 6;
+            $scope.visibleAnalysis = 6;
         }
 
-        $scope.visibleSamples = Math.min($scope.filteredSamples, $scope.visibleSamples);
+        $scope.visibleAnalysis = Math.min($scope.filteredAnalysis, $scope.visibleAnalysis);
 
 
-        if ($scope.samples.length === 0) {
-            this.retrieveSamplesData("my_samples");
+        if ($scope.analysis.length === 0) {
+            this.retrieveAnalysisData("my_analysis");
         }
     });
 
-    app.controller('BioconditionDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $dialogs, INFO_EVENTS, SampleList, TemplateList) {
+    app.controller('AnalysisDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $dialogs, INFO_EVENTS, AnalysisList, TemplateList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
 
         /**
-         * This function gets the details for a given Sample
-         * @param biocondition_id the id for the Sample to be retieved
+         * This function gets the details for a given Analysis
+         * @param analysis_id the id for the Analysis to be retieved
          */
-        this.retrieveSampleDetails = function (biocondition_id, force) {
+        this.retrieveAnalysisDetails = function (analysis_id, force) {
             $scope.setLoading(true);
 
-            $scope.model = SampleList.getBiocondition(biocondition_id);
+            $scope.model = AnalysisList.findAnalysis(analysis_id);
 
-            if ($scope.model === null || $scope.model.bioreplicates === undefined || force === true) {
-                $http($rootScope.getHttpRequestConfig("POST", "sample-info", {
+            //TODO: EXTRA FIELDS
+//            $scope.model.extra = {
+//                section_1: [
+//                    {
+//                        "name": "title",
+//                        "label": "Extra 2",
+//                        "type": "text"
+//                    }
+//                ]
+//            };
+            if ($scope.model === null || force === true || ($scope.model.non_processed_data === undefined && $scope.model.processed_data === undefined)) {
+                $http($rootScope.getHttpRequestConfig("POST", "analysis-info", {
                     headers: {'Content-Type': 'application/json'},
-                    data: $rootScope.getCredentialsParams({biocondition_id: biocondition_id, recursive: true})
+                    data: $rootScope.getCredentialsParams({analysis_id: analysis_id})
                 })).then(
                         function successCallback(response) {
-                            $scope.model = SampleList.addBiocondition(response.data);
-                            SampleList.adaptInformation([$scope.model])[0];
+                            $scope.model = AnalysisList.addAnalysis(response.data);
+                            AnalysisList.adaptInformation([$scope.model])[0];
                             $scope.setLoading(false);
                         },
                         function errorCallback(response) {
                             debugger;
-                            var message = "Failed while retrieving the sample's details.";
+                            var message = "Failed while retrieving the analysis's details.";
                             $dialogs.showErrorDialog(message, {
-                                logMessage: message + " at BioconditionDetailController:retrieveSampleDetails."
+                                logMessage: message + " at AnalysisDetailController:retrieveAnalysisDetails."
                             });
                             console.error(response.data);
                             $scope.setLoading(false);
@@ -248,21 +309,21 @@
         };
 
         /******************************************************************************      
-         * This function send the sample information contain in a given sample_view 
-         * to the SERVER in order to save a NEW sample in the database .
+         * This function send the analysis information contain in a given analysis_view 
+         * to the SERVER in order to save a NEW analysis in the database .
          * Briefly the way of work is :
          *	1.	Check if the formulary's content is valid. If not, throws an error that should 
          *		catched in the caller function.
          *
-         *	2.	If all fields are correct, then the sample model is converted from JSON to a 
+         *	2.	If all fields are correct, then the analysis model is converted from JSON to a 
          *		JSON format STRING and sent to the server using POST. After that the function finished.
          *	
          *	3.	After a while, the server returns a RESPONSE catched inside this function. 
          *		The response has 2 possible status: SUCCESS and FAILURE.
-         *		a.	If SUCCESS, then the new sample identifier is set in the sample_view. 
+         *		a.	If SUCCESS, then the new analysis identifier is set in the analysis_view. 
          *			After that,  isthe callback function is called, in this case the 
          *       	callback function is the "execute_task" function that will execute the next
-         *           task in the TASK QUEUE of the given SampleDetailsView panel. This function is called
+         *           task in the TASK QUEUE of the given AnalysisDetailsView panel. This function is called
          *           with the status flag sets to TRUE (~ success).
          *		b.	If FAILURE, then the callback function is called (the "execute_task" function again)
          *       	but this time with the status flag sets to FALSE (~ failure), in this case, 
@@ -273,44 +334,41 @@
          * @param  callback_function the function invoked by the callback_caller after the success/failure event
          * @return   
          ******************************************************************************/
-        this.send_create_sample = function (callback_caller, callback_function) {
-            debugger;
+        this.send_create_analysis = function (callback_caller, callback_function) {
             $scope.setLoading(true);
 
-            $http($rootScope.getHttpRequestConfig("POST", "sample-create", {
+            $http($rootScope.getHttpRequestConfig("POST", "analysis-create", {
                 headers: {'Content-Type': 'application/json'},
-                data: $rootScope.getCredentialsParams({'biocondition_json_data': $scope.model}),
+                data: $rootScope.getCredentialsParams({'analysis_json_data': $scope.model}),
             })).then(
                     function successCallback(response) {
-                        console.info((new Date()).toLocaleString() + "Sample " + $scope.model.biocondition_id + " successfully saved in server");
-                        $scope.model.biocondition_id = response.data.newID;
-
-                        SampleList.addBiocondition($scope.model);
-//                        //Notify all the other controllers that a new sample exists
-//                        $rootScope.$broadcast(INFO_EVENTS.sampleCreated);
+                        console.info((new Date()).toLocaleString() + "Analysis " + $scope.model.analysis_id + " successfully saved in server");
+                        $scope.model.analysis_id = response.data.newID;
+                        AnalysisList.addAnalysis($scope.model);
+//                        //Notify all the other controllers that a new analysis exists
+//                        $rootScope.$broadcast(INFO_EVENTS.analysisCreated);
                         $scope.setLoading(false);
 
                         callback_caller[callback_function](true);
                     },
                     function errorCallback(response) {
                         debugger;
-                        var message = "Failed while creating a new sample.";
+                        var message = "Failed while creating a new analysis.";
                         $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at BioconditionDetailController:send_create_sample."
+                            logMessage: message + " at AnalysisDetailController:send_create_analysis."
                         });
                         console.error(response.data);
 
-                        $scope.taskQueue.unshift({command: "create_new_sample", object: null});
+                        $scope.taskQueue.unshift({command: "create_new_analysis", object: null});
                         $scope.setLoading(false);
                         callback_caller[callback_function](false);
                     }
             );
         };
-
         /******************************************************************************      
          * This function send the BioReplicatess information of the given biorepicate_model 
          * to the SERVER in order to save a NEW BIOREPLICATE in the database associated to the 
-         * sample given by the Sample_view.
+         * analysis given by the Analysis_view.
          *
          * Briefly the way of work is :
          *
@@ -323,7 +381,7 @@
          *		The response has 2 possible status: SUCCESS and FAILURE.
          *		a.	If SUCCESS, then the callback function is called, in this case the 
          *        	callback function is the "execute_task" function that will execute the next
-         *           task in the TASK QUEUE of the given SampleVIEW panel. This function is called
+         *           task in the TASK QUEUE of the given AnalysisVIEW panel. This function is called
          *           with the status flag sets to TRUE (~ success).
          *		b.	If FAILURE, then the callback function is called (the "execute_task" function again)
          *       	but this time with the status flag sets to FALSE (~ failure), in this case, 
@@ -331,33 +389,32 @@
          *           The insertion process is aborted, however all "TO DO" steps are saved in order to be executed again.
          *  
          *  
-         * @param  sampleView the SampleDetailsView panel which fires the create action and contains the TASK QUEUE. Needed for the callback function.
+         * @param  analysisView the AnalysisDetailsView panel which fires the create action and contains the TASK QUEUE. Needed for the callback function.
          * @param  callback_caller after the success/failure event, this object will call to the callback_function. Is needed to preserve the enviroment.
          * @param  callback_function the function invoked by the callback_caller after the success/failure event
          * @return    
          ******************************************************************************/
-        this.send_update_sample = function (callback_caller, callback_function) {
-            debugger;
+        this.send_update_analysis = function (callback_caller, callback_function) {
             $scope.setLoading(true);
 
-            $http($rootScope.getHttpRequestConfig("POST", "sample-update", {
+            $http($rootScope.getHttpRequestConfig("POST", "analysis-update", {
                 headers: {'Content-Type': 'application/json'},
-                data: $rootScope.getCredentialsParams({'biocondition_json_data': $scope.model}),
+                data: $rootScope.getCredentialsParams({'analysis_json_data': $scope.model}),
             })).then(
                     function successCallback(response) {
-                        console.info((new Date()).toLocaleString() + "Sample " + $scope.model.biocondition_id + " successfully updated in server");
+                        console.info((new Date()).toLocaleString() + "Analysis " + $scope.model.analysis_id + " successfully updated in server");
                         $scope.setLoading(false);
                         callback_caller[callback_function](true);
                     },
                     function errorCallback(response) {
                         debugger;
-                        var message = "Failed while updating the sample.";
+                        var message = "Failed while updating the analysis.";
                         $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at BioconditionDetailController:send_update_sample."
+                            logMessage: message + " at AnalysisDetailController:send_update_analysis."
                         });
                         console.error(response.data);
 
-                        $scope.taskQueue.unshift({command: "update_sample", object: null});
+                        $scope.taskQueue.unshift({command: "update_analysis", object: null});
                         $scope.setLoading(false);
                         callback_caller[callback_function](false);
                     }
@@ -365,29 +422,29 @@
         };
 
         /******************************************************************************      
-         * This function lock a sample for editing.  
+         * This function lock a analysis for editing.  
          * @param {String} newViewMode the new viewMode in case of success
          * @return this;  
          ******************************************************************************/
-        this.send_lock_sample = function (newViewMode) {
+        this.send_lock_analysis = function (newViewMode) {
             $scope.setLoading(true);
 
-            $http($rootScope.getHttpRequestConfig("POST", "sample-lock", {
+            $http($rootScope.getHttpRequestConfig("POST", "analysis-lock", {
                 headers: {'Content-Type': 'application/json'},
-                data: $rootScope.getCredentialsParams({'biocondition_id': $scope.model.biocondition_id}),
+                data: $rootScope.getCredentialsParams({'analysis_id': $scope.model.analysis_id}),
             })).then(
                     function successCallback(response) {
                         if (response.data.success) {
                             console.info((new Date()).toLocaleString() + "object locked successfully");
                             if (newViewMode === "edition") {
                                 $scope.initializeCountdownDialogs();
-                                $scope.memento = SampleList.getMemento($scope.model);
+                                $scope.memento = AnalysisList.getMemento($scope.model);
                             }
                             $scope.setViewMode(newViewMode || 'view');
                             $scope.setLoading(false);
                         } else {
                             $dialogs.showErrorDialog('Apparently user ' + response.data.user_id + ' opened this object for editing. </br>Please, try again later. If the problem persists, please contact with tecnical support.', {
-                                logMessage: ((new Date()).toLocaleString() + "EDITION DENIED FOR Sample " + $scope.model.biocondition_id)
+                                logMessage: ((new Date()).toLocaleString() + "EDITION DENIED FOR Analysis " + $scope.model.analysis_id)
                             });
                             $scope.setLoading(false);
                         }
@@ -396,7 +453,7 @@
                         debugger;
                         var message = "Failed while sending lock request.";
                         $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at BioconditionDetailController:send_lock_sample."
+                            logMessage: message + " at AnalysisDetailController:send_lock_analysis."
                         });
                         console.error(response.data);
                         $scope.setLoading(false);
@@ -407,15 +464,15 @@
 
 
         /******************************************************************************      
-         * This function lock a sample for editing.  
+         * This function lock a analysis for editing.  
          * @return this;  
          ******************************************************************************/
-        this.send_unlock_sample = function (callback_caller, callback_function) {
+        this.send_unlock_analysis = function (callback_caller, callback_function) {
             $scope.setLoading(true);
 
-            $http($rootScope.getHttpRequestConfig("POST", "sample-unlock", {
+            $http($rootScope.getHttpRequestConfig("POST", "analysis-unlock", {
                 headers: {'Content-Type': 'application/json'},
-                data: $rootScope.getCredentialsParams({'biocondition_id': $scope.model.biocondition_id}),
+                data: $rootScope.getCredentialsParams({'analysis_id': $scope.model.analysis_id}),
             })).then(
                     function successCallback(response) {
                         console.info((new Date()).toLocaleString() + "object unlocked successfully");
@@ -430,7 +487,7 @@
                         debugger;
                         var message = "Failed while sending unlock request.";
                         $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at BioconditionDetailController:send_unlock_sample."
+                            logMessage: message + " at AnalysisDetailController:send_unlock_analysis."
                         });
                         console.error(response.data);
                         callback_caller[callback_function](false);
@@ -453,27 +510,17 @@
                 }
 
                 //IF THE QUEUE INCLUDES A CREATION TASK
-                //The create_new_sample task must be always in the first position (if we are creating a new sample)
-                if (tasks_queue[0].command === "create_new_sample") {
-                    //The sample creation send all the information (sample, bioreplicates, ... )to the server in only one step 
+                //The create_new_analysis task must be always in the first position (if we are creating a new analysis)
+                if (tasks_queue[0].command === "create_new_analysis") {
+                    //The analysis creation send all the information (analysis, bioreplicates, ... )to the server in only one step 
                     //So it's neccessary to remove all the tasks related with bioreplicates and analytical replicates insertion.
-                    //After that only "create_new_sample" and others tasks like "send_treatment_document" should be in the queue
+                    //After that only "create_new_analysis" and others tasks like "send_treatment_document" should be in the queue
                     var tasks_queue_temp = [tasks_queue[0]];
-                    //TODO: SEND DOCUMENT
-                    //for (var i = tasks_queue.length - 1; i > 0; i--) {
-                    //    if ("send_treatment_document" === tasks_queue[i].command) {
-                    //        tasks_queue_temp.push(tasks_queue[i]);
-                    //        break;
-                    //    }
-                    //}
                     return tasks_queue_temp;
-                } else {
-                    var tasks_queue_temp = [];
-                    tasks_queue_temp.push({command: "update_sample", object: null});
-                    //TODO: SEND DOCUMENT
-                    tasks_queue_temp.push({command: "clear_locked_status", object: null});
                 }
-
+                var tasks_queue_temp = [];
+                tasks_queue_temp.push({command: "update_analysis", object: null});
+                tasks_queue_temp.push({command: "clear_locked_status", object: null});
                 return tasks_queue_temp;
             } catch (error) {
                 $dialogs.showErrorDialog('ERROR CLEANING TASK QUEUE: ' + error, {soft: false});
@@ -482,10 +529,10 @@
         };
 
         /**********************************************************************************************
-         * This function handles the tasks execution for a given sampleView and should be only called after 
-         * sample creation/edition.
+         * This function handles the tasks execution for a given analysisView and should be only called after 
+         * analysis creation/edition.
          *
-         * ACCEPT BUTTON should be only visible during new OBJECTS creation/edition (eg. during a sample creation/edition) 
+         * ACCEPT BUTTON should be only visible during new OBJECTS creation/edition (eg. during a analysis creation/edition) 
          *
          * Briefly, the way of work of this function is:
          * 	1. 	Get the next task that should be carried out.
@@ -509,21 +556,21 @@
                 try {
                     switch (current_task.command)
                     {
-                        case "create_new_sample":
-                            console.info((new Date()).toLocaleString() + "SENDING SAVE NEW sample REQUEST TO SERVER");
-                            this.send_create_sample(this, "execute_tasks");
-                            console.info((new Date()).toLocaleString() + "SAVE NEW sample REQUEST SENT TO SERVER");
+                        case "create_new_analysis":
+                            console.info((new Date()).toLocaleString() + "SENDING SAVE NEW analysis REQUEST TO SERVER");
+                            this.send_create_analysis(this, "execute_tasks");
+                            console.info((new Date()).toLocaleString() + "SAVE NEW analysis REQUEST SENT TO SERVER");
                             break;
-                        case "update_sample":
-                            console.info((new Date()).toLocaleString() + "SENDING UPDATE Sample REQUEST TO SERVER");
-                            this.send_update_sample(this, "execute_tasks");
-                            console.info((new Date()).toLocaleString() + "UPDATE Sample REQUEST SENT TO SERVER");
+                        case "update_analysis":
+                            console.info((new Date()).toLocaleString() + "SENDING UPDATE Analysis REQUEST TO SERVER");
+                            this.send_update_analysis(this, "execute_tasks");
+                            console.info((new Date()).toLocaleString() + "UPDATE Analysis REQUEST SENT TO SERVER");
                             break;
                         case "clear_locked_status":
                             //TODO:
-                            console.info(new Date().toLocaleString() + "SENDING UNLOCK Sample " + $scope.model.biocondition_id + " REQUEST TO SERVER");
-                            this.send_unlock_sample(this, "execute_tasks");
-                            console.info(new Date().toLocaleString() + "UNLOCK Sample " + $scope.model.biocondition_id + " REQUEST SENT TO SERVER");
+                            console.info(new Date().toLocaleString() + "SENDING UNLOCK Analysis " + $scope.model.analysis_id + " REQUEST TO SERVER");
+                            this.send_unlock_analysis(this, "execute_tasks");
+                            console.info(new Date().toLocaleString() + "UNLOCK Analysis " + $scope.model.analysis_id + " REQUEST SENT TO SERVER");
                             break;
                         default:
                             status = false;
@@ -543,8 +590,8 @@
             else if (status) {
                 //TODO: $scope.cleanCountdownDialogs();
                 $scope.setViewMode("view");
-                this.retrieveSampleDetails($scope.model.biocondition_id, true);
-                $dialogs.showSuccessDialog('Sample ' + $scope.model.biocondition_id + ' saved successfully');
+                this.retrieveAnalysisDetails($scope.model.analysis_id, true);
+                $dialogs.showSuccessDialog('Analysis ' + $scope.model.analysis_id + ' saved successfully');
             } else {
                 status = false;
                 $scope.taskQueue.unshift(current_task);
@@ -555,42 +602,40 @@
         //--------------------------------------------------------------------
         // EVENT HANDLERS
         //--------------------------------------------------------------------
-
-        this.deleteBiologicalConditionHandler = function () {
-            debugger;
+        this.deleteAnalysisHandler = function () {
             var me = this;
             var current_user_id = '' + Cookies.get('loggedUserID');
 
-            if (SampleList.isOwner($scope.model, current_user_id) || current_user_id === "admin") {
+            if (AnalysisList.isOwner($scope.model, current_user_id) || current_user_id === "admin") {
                 //ONLY OWNERS CAN REMOVE THE EXPERIMENT, OTHERWISE THE USER WILL BE REMOVED FROM MEMBERS LIST
                 var message = "";
-                if ($scope.model.owners.length > 1 && current_user_id !== "admin") {
+                if ($scope.model.analysis_owners.length > 1 && current_user_id !== "admin") {
                     //Remove the user from the owners list
-                    message = 'Delete these samples from your collection?<br>You will be removed from the owners list but the samples will not deleted before all the other owners remove the samples.';
+                    message = 'Delete this analysis from your collection?<br>You will be removed from the owners list but the analysis will not deleted before all the administrators remove the analysis.';
                 } else {
-                    //No more owners --> remove the entire experiment
-                    message = 'Delete these samples from the system?<br>This action will remove all the data for the samples, including biological condition details and aliquots.<br>This action cannot be undone.';
+                    //No more owners --> remove the entire analysis
+                    message = 'Delete this analysis from the system?<br>This action will remove all the data for the analysis from database, including all associated analysis.<br>This action cannot be undone.';
                 }
 
                 $dialogs.showConfirmationDialog(message, {
                     title: "Please confirm this action.",
                     callback: function (result) {
                         if (result === 'ok') {
-                            $http($rootScope.getHttpRequestConfig("POST", "sample-delete", {
+                            $http($rootScope.getHttpRequestConfig("POST", "analysis-delete", {
                                 headers: {'Content-Type': 'application/json; charset=utf-8'},
-                                data: $rootScope.getCredentialsParams({'biocondition_id': $scope.model.biocondition_id, loggedUserID: current_user_id}),
+                                data: $rootScope.getCredentialsParams({'analysis_id': $scope.model.analysis_id, loggedUserID: current_user_id}),
                             })).then(
                                     function successCallback(response) {
-                                        $dialogs.showSuccessDialog("All the samples were successfully deleted.");
+                                        $dialogs.showSuccessDialog("The analysis was successfully deleted.");
                                         //Notify all the other controllers that user has signed in
-                                        $rootScope.$broadcast(INFO_EVENTS.sampleDeleted);
-                                        me.send_unlock_sample();
-                                        $state.go('samples');
+                                        $rootScope.$broadcast(INFO_EVENTS.analysisDeleted);
+                                        me.send_unlock_analysis();
+                                        $state.go('analysis');
                                     },
                                     function errorCallback(response) {
-                                        var message = "Failed while deleting the samples.";
+                                        var message = "Failed while deleting the analysis.";
                                         $dialogs.showErrorDialog(message, {
-                                            logMessage: message + " at SampleDetailController:deleteBiologicalConditionHandler."
+                                            logMessage: message + " at AnalysisDetailController:deleteAnalysisHandler."
                                         });
                                         console.error(response.data);
                                         debugger
@@ -602,17 +647,6 @@
             }
         };
 
-
-        /**
-         * This function handles the event when the "Add new sample" is pressed
-         */
-        this.addNewBioreplicateButtonHandler = function () {
-            $scope.model.associatedBioreplicates.push({
-                bioreplicate_name: "",
-                associatedAnalyticalReplicates: [],
-                status: "new"
-            });
-        };
 
         /**
          * This function handles the event accept_button_pressed fires in other Controller (eg. ApplicationController)
@@ -628,10 +662,10 @@
         };
 
         /**
-         * This function send a Edition request to the server in order to block the Sample
+         * This function send a Edition request to the server in order to block the Analysis
          * avoiding that other users edit it before the user saves the changes.
-         * Each user has 30 minutes max. to edit a Sample, after that the user will be 
-         * ask again, if no answer is given, the Sample is unblocked and changes will be  
+         * Each user has 30 minutes max. to edit a Analysis, after that the user will be 
+         * ask again, if no answer is given, the Analysis is unblocked and changes will be  
          * lost.
          * This is neccessary because if the user leaves the application without save or close the panel,
          * the server MUST free the blocked object in order to let other users edit it.
@@ -641,18 +675,18 @@
          * @returns this;
          */
         this.editButtonHandler = function () {
-            //1. CHECK IF THE USER HAS EDITING PRIVILEGES OVER THE Sample (ONLY OWNERS)
+            //1. CHECK IF THE USER HAS EDITING PRIVILEGES OVER THE Analysis (ONLY OWNERS)
             //TODO: THIS CODE COULD BE BETTER IN THE SERVER (JAVASCRIPT IS VULNERABLE)
             var current_user_id = '' + Cookies.get('loggedUserID');
-            if (!SampleList.isOwner($scope.model, current_user_id) && current_user_id !== "admin") {
-                console.error((new Date()).toLocaleString() + " EDITION REQUEST DENIED. Error message: User " + current_user_id + " has not Edition privileges over the Sample " + $scope.model.biocondition_id);
-                $dialogs.showErrorDialog("Your user is not allowed to edit this sample");
+            if (!AnalysisList.isOwner($scope.model, current_user_id) && current_user_id !== "admin") {
+                console.error((new Date()).toLocaleString() + " EDITION REQUEST DENIED. Error message: User " + current_user_id + " has not Edition privileges over the Analysis " + $scope.model.analysis_id);
+                $dialogs.showErrorDialog("Your user is not allowed to edit this analysis");
                 return;
             }
 
             //2. SEND LOCK REQUEST
-            console.info((new Date()).toLocaleString() + "SENDING EDIT REQUEST FOR Sample " + $scope.model.biocondition_id + " TO SERVER");
-            this.send_lock_sample('edition');
+            console.info((new Date()).toLocaleString() + "SENDING EDIT REQUEST FOR Analysis " + $scope.model.analysis_id + " TO SERVER");
+            this.send_lock_analysis('edition');
 
             return this;
         };
@@ -660,12 +694,12 @@
         /**
          * This function handles the cancel_button_pressed thown by the Application Controller
          * when the Cancel button located in MainView is pressed and the inner panel is an
-         * SampleDetailsView panel.
+         * AnalysisDetailsView panel.
          * Asks the user if close without save changes. If user selects "Yes", the panel is closed.
          * if the panel was in a "Editing mode" (if the panel has a timer id), then sends a signal to the server in order to unblock
-         * the Sample in the list of blocked elements.
+         * the Analysis in the list of blocked elements.
          * 
-         * @param {type} sampleView
+         * @param {type} analysisView
          * @param {type} force
          * @returns {undefined}
          */
@@ -673,13 +707,12 @@
             $scope.clearTaskQueue();
 
             if ($scope.viewMode === 'view') {
-                $state.go('samples');
+                $state.go('analysis');
             } else if ($scope.viewMode === 'edition') {
-                this.send_unlock_sample();
+                this.send_unlock_analysis();
             } else {
-                $state.go('samples');
+                $state.go('analysis');
             }
-
         };
 
         this.backButtonHandler = function () {
@@ -699,17 +732,17 @@
 
         $scope.setViewMode = function (mode, restore) {
             if (mode === 'view') {
-                $scope.panel_title = "Sample details.";
+                $scope.panel_title = "Analysis details.";
                 $scope.clearCountdownDialogs();
                 if (restore === true) {
-                    SampleList.restoreFromMemento($scope.model, $scope.memento);
+                    AnalysisList.restoreFromMemento($scope.model, $scope.memento);
                     $scope.memento = null;
                 }
             } else if (mode === 'creation') {
-                $scope.panel_title = "Sample creation.";
-                $scope.addNewTask("create_new_sample", null);
+                $scope.panel_title = "Analysis creation.";
+                $scope.addNewTask("create_new_analysis", null);
             } else if (mode === 'edition') {
-                $scope.panel_title = "Sample edition.";
+                $scope.panel_title = "Analysis edition.";
                 this.addNewTask("clear_locked_status", null);
             }
             $scope.viewMode = mode;//'view', 'creation', 'edition'
@@ -735,34 +768,27 @@
         $scope.loadingComplete = false;
         $scope.model = {};
         $scope.setViewMode($stateParams.viewMode || 'view');
-        $scope.getFormTemplate($scope, 'biocondition-form');
+        $scope.getFormTemplate($scope, 'analysis-form');
 
-        if ($stateParams.biocondition_id !== null) {
-            this.retrieveSampleDetails($stateParams.biocondition_id, true);
+        if ($stateParams.analysis_id !== null) {
+            this.retrieveAnalysisDetails($stateParams.analysis_id);
         } else {
-            $scope.model.biocondition_id = "[Autogenerated after saving]";
-            $scope.model.bioreplicates = [];
-            $scope.model.tags = [];
-            $scope.model.owners = [{user_id: Cookies.get("loggedUserID")}];
+            $scope.model.analysis_id = "[Autogenerated after saving]";
             $scope.model.submission_date = new Date();
             $scope.model.last_edition_date = new Date();
-            $scope.model.associatedBioreplicates = [];
+            $scope.model.analysis_owners = [{user_id: Cookies.get("loggedUserID")}];
+            $scope.model.analysis_members = [];
+            $scope.model.tags = [];
         }
 
     });
 
-    app.controller('BioreplicateDetailController', function ($state, $rootScope, $scope, $http, SampleList, ProtocolList, TemplateList) {
+
+    app.controller('StepDetailController', function ($state, $rootScope, $scope, $http, AnalysisList, SampleList, TemplateList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
 
-        $scope.getProtocolName = function (protocol_id) {
-            return protocol_id;
-//            return ProtocolList.getProtocol(protocol_id).name;
-        };
-        $scope.getTotalExtractionProcotols = function () {
-            return Object.keys($scope.model.extractionProtocols || {}).length;
-        };
         this.removableModel = function () {
             return $scope.viewMode !== 'view' && ($scope.model.status === undefined || $scope.model.status.indexOf('deleted') === -1);
         };
@@ -776,31 +802,13 @@
         //--------------------------------------------------------------------
         // EVENT HANDLERS
         //--------------------------------------------------------------------
-        /**
-         * This function handles the event when the "Add new sample" is pressed
-         */
-        this.addNewAnalyticalReplicateButtonHandler = function (protocol_id) {
-            $scope.model.associatedAnalyticalReplicates.push({
-                analytical_rep_name: "",
-                treatment_id: protocol_id,
-                status: "new"
-            });
-            SampleList.adaptBioreplicatesInformation([$scope.model]);
-        };
-
-        this.removeBioreplicateHandler = function () {
+        this.removeStepHandler = function () {
             //TODO: CHECK IF CONTAINS NOT REMOVABLE AS
-            SampleList.updateModelStatus($scope.model, "deleted");
-            for (var i in $scope.model.associatedAnalyticalReplicates) {
-                SampleList.updateModelStatus($scope.model.associatedAnalyticalReplicates[i], "deleted");
-            }
+            AnalysisList.updateModelStatus($scope.model, "deleted");
         };
 
-        this.unremoveBioreplicateHandler = function () {
-            SampleList.updateModelStatus($scope.model, "undo");
-            for (var i in $scope.model.associatedAnalyticalReplicates) {
-                SampleList.updateModelStatus($scope.model.associatedAnalyticalReplicates[i], "undo");
-            }
+        this.unremoveStepHandler = function () {
+            AnalysisList.updateModelStatus($scope.model, "undo");
         };
 
         $scope.$watch('model', function (newValues, oldValues, scope) {
@@ -821,58 +829,16 @@
 
         //The corresponding view will be watching to this variable
         //and update its content after the http response
-        $scope.getFormTemplate($scope, 'bioreplicate-form');
-
-        if ($scope.model && !$scope.model.bioreplicate_id) {
-            $scope.model.bioreplicate_id = "[Autogenerated after saving]";
+        if ($scope.model && $scope.model.type === "rawdata") {
+            $scope.getFormTemplate($scope, 'rawdata-form');
+        }else if ($scope.model && $scope.model.type === "intermediate_data") {
+            $scope.getFormTemplate($scope, 'intermediatedata-form');
+        } else if ($scope.model && $scope.model.type === "processed_data") {
+            $scope.getFormTemplate($scope, 'processeddata-form');
         }
-    });
 
-    app.controller('AnalyticalReplicateDetailController', function ($state, $rootScope, $scope, $http, SampleList, ProtocolList, TemplateList) {
-        //--------------------------------------------------------------------
-        // CONTROLLER FUNCTIONS
-        //--------------------------------------------------------------------
-        this.removableModel = function () {
-            return $scope.viewMode !== 'view' && ($scope.model.status === undefined || $scope.model.status.indexOf('deleted') === -1);
-        };
-
-        this.unremovableModel = function () {
-            return $scope.viewMode !== 'view' && //if mode is edition or creation
-                    ($scope.$parent.$parent.model.status === undefined || $scope.$parent.$parent.model.status.indexOf("deleted") === -1) && //if parent IU is not deleted
-                    ($scope.model.status !== undefined && $scope.model.status.indexOf('deleted') !== -1); //if this IU is deleted
-        };
-
-        //--------------------------------------------------------------------
-        // EVENT HANDLERS
-        //--------------------------------------------------------------------
-
-        this.removeAnalyticalReplicateHandler = function () {
-            //CHECK IF REMOVABLE
-            SampleList.updateModelStatus($scope.model, "deleted");
-        };
-
-        this.unremoveAnalyticalReplicateHandler = function () {
-            SampleList.updateModelStatus($scope.model, "undo");
-        };
-
-        $scope.$watch('model', function (newValues, oldValues, scope) {
-            var hasChanged = (oldValues.analytical_rep_name !== newValues.analytical_rep_name) || (oldValues.protocol_id !== newValues.protocol_id);
-            if (hasChanged) {
-                SampleList.updateModelStatus($scope.model, "edited");
-                return;
-            }
-            //TODO: EXTRA FIELDS
-        }, true);
-
-        //--------------------------------------------------------------------
-        // INITIALIZATION
-        //--------------------------------------------------------------------
-        var me = this;
-
-        //The corresponding view will be watching to this variable
-        //and update its content after the http response
-        if ($scope.model && !$scope.model.analytical_rep_id) {
-            $scope.model.analytical_rep_id = "[Autogenerated after saving]";
+        if ($scope.model && !$scope.model.step_id) {
+            $scope.model.step_id = "[Autogenerated after saving]";
         }
     });
 })();

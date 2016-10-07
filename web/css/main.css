@@ -2,6 +2,7 @@
 font-family: 'Open Sans';
 src: url('fonts/OpenSans-Light.ttf');
 }*/
+
 html{background-color: #fff;}
 body{font-family: 'Open Sans', sans-serif; font-weight: lighter;  }
 
@@ -24,6 +25,8 @@ color: #FFFFFF;
 .navbar-default{border-radius: 0;}
 
 #header .navbar-header{background-image: url('stategraems_logo_250x50.png'); width: 250px; margin: 0px 10px; background-size: cover; height: 50px;}
+
+a.clickable{text-decoration: none; cursor: pointer;}
 
 #sidebar-wrapper {
     z-index: 1000;
@@ -88,12 +91,14 @@ color: #FFFFFF;
     border-right: 0;
     text-decoration: none;
     cursor: pointer;
+    background: #FDFDFD;
 }
 .sidebar-nav li a i.fa {margin-right: 5px;}
 
 .sidebar-nav li a.parentOption {
     padding-left: 7px;
     font-size: 13px;
+    background: #f8f8f8;
 }
 
 .sidebar-nav li:hover a, .sidebar-nav li.currentPage a {
@@ -164,7 +169,7 @@ color: #FFFFFF;
 }
 
 #page-content-wrapper .title-bar {
-    margin: 20px -35px 0 -35px;
+    margin: 30px -35px 20px -35px;
     padding: 0px 10px;
     background: none;
     position: relative;
@@ -268,6 +273,12 @@ table.table td:nth-child(1) {text-align: left;}
     color: rgb(143, 143, 143);
 }
 
+h3.section_subtitle {
+    font-size: 16px;
+    margin: 10px 0px;
+}
+
+
 .section_box {
     background-color: #fff;
     margin-bottom: 20px;
@@ -279,6 +290,26 @@ table.table td:nth-child(1) {text-align: left;}
 .section_box:nth-child(2n){border-top: 4px #F1D460 solid !important;}
 
 .section_box:nth-child(3n){border-top: 4px #C6E05C solid !important;}
+
+.section_box.edited {border-top: 4px #ff9800 solid !important;}
+.section_box.new {border-top: 4px #62c2e4 solid !important;}
+.section_box.deleted {
+    border-top: 4px #bdbdbd solid !important;
+    text-decoration: line-through !important;
+    background-color: #fbfbfb;
+}
+.section_box tr.deleted{
+    background-color: #fbfbfb;
+}
+.section_box.deleted input, .section_box tr.deleted input {
+    text-decoration: line-through;
+    background: #fbfbfb;
+    border-color: #bdbdbd;
+    font-style: italic;
+}
+.section_box tr.edited td input {
+    border: 1px solid #ffd882;
+}
 
 .field-group {
     margin: 10px 0px;
@@ -294,8 +325,16 @@ table.table td:nth-child(1) {text-align: left;}
 .bootstrap-tagsinput{margin-left: -15px;}
 
 
+input:read-only, input:disabled {background: none;}
 input:read-only {border: none !important;}
 textarea:read-only {border-color: #e4e4e4;}
+select:disabled {
+    background: none;
+    border: none !important;;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
 
 /******************************************************************************************/
 /* STYLES FOR progress INDICATOR                                                          */
@@ -418,16 +457,6 @@ div.sessionToolbar button, div.sessionToolbar li{
     border-top-right-radius: 0;
 }
 
-.colorgraph {
-    height: 7px;
-    border-top: 0;
-    background: #c4e17f;
-    border-radius: 5px;
-    background-image: -webkit-linear-gradient(left, #c4e17f, #c4e17f 12.5%, #f7fdca 12.5%, #f7fdca 25%, #fecf71 25%, #fecf71 37.5%, #f0776c 37.5%, #f0776c 50%, #db9dbe 50%, #db9dbe 62.5%, #c49cde 62.5%, #c49cde 75%, #669ae1 75%, #669ae1 87.5%, #62c2e4 87.5%, #62c2e4);
-    background-image: -moz-linear-gradient(left, #c4e17f, #c4e17f 12.5%, #f7fdca 12.5%, #f7fdca 25%, #fecf71 25%, #fecf71 37.5%, #f0776c 37.5%, #f0776c 50%, #db9dbe 50%, #db9dbe 62.5%, #c49cde 62.5%, #c49cde 75%, #669ae1 75%, #669ae1 87.5%, #62c2e4 87.5%, #62c2e4);
-    background-image: -o-linear-gradient(left, #c4e17f, #c4e17f 12.5%, #f7fdca 12.5%, #f7fdca 25%, #fecf71 25%, #fecf71 37.5%, #f0776c 37.5%, #f0776c 50%, #db9dbe 50%, #db9dbe 62.5%, #c49cde 62.5%, #c49cde 75%, #669ae1 75%, #669ae1 87.5%, #62c2e4 87.5%, #62c2e4);
-    background-image: linear-gradient(to right, #c4e17f, #c4e17f 12.5%, #f7fdca 12.5%, #f7fdca 25%, #fecf71 25%, #fecf71 37.5%, #f0776c 37.5%, #f0776c 50%, #db9dbe 50%, #db9dbe 62.5%, #c49cde 62.5%, #c49cde 75%, #669ae1 75%, #669ae1 87.5%, #62c2e4 87.5%, #62c2e4);
-}
 
 /******************************************************************************************/
 /* STYLES FOR WORKFLOW PANELS                                                             */
@@ -442,13 +471,13 @@ div.sessionToolbar button, div.sessionToolbar li{
     max-width: none;
     height: 100px;
 }
-.experiment-card-container, .experiment-run-container, .histories-container, .home-container {
+.experiment-card-container, .sample-card-container, .analysis-card-container, .home-container {
     max-width: 1400px;
     padding: 10px 30px;
     margin: auto;
     margin-top: 15px;
 }
-.experiment-card-container{text-align: center;}
+.experiment-card-container, .sample-card-container, .analysis-card-container{text-align: center;}
 
 .iu-card {
     text-align: left;

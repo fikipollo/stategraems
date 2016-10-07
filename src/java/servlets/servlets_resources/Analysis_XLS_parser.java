@@ -330,7 +330,12 @@ public class Analysis_XLS_parser {
     public static void main(String[] args) {
         try {
             //TODO: INDICAR TIPO ANALYSIS EN LA VENTANA DE IMPORTAR XLS
-            Analysis analysisInstance = new Analysis("ANxxxxx", "Proteomics", "open");
+            Analysis analysisInstance = new Analysis();
+            analysisInstance.setAnalysisID("ANxxxxx");
+            analysisInstance.setAnalysisType("Proteomics");
+            analysisInstance.setAnalysisName("test");
+            analysisInstance.setStatus("open");
+
             String[] owners = new String[]{"rafa"};
             RAWdata rawdata = parse_GCMS_XLSfile(new File("/home/rhernandez/Dropbox/CIPF/Proyectos/Proyecto STATegra/LIMS Documentation/STATegraEMS - Tutorials/STATegra_EMS_tutorials/Proteomics/MIAPE-LCMS_example.xls"), owners);
 

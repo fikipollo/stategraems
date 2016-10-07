@@ -43,20 +43,30 @@
                         if (model.type === "text") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
-                                    '<input class="col-sm-9" type="text" name="{{field.name}}" ng-model="model.' + model.name + '" ' + (model.required ? "required" : "") + ' ng-readonly="viewMode === \'view\'">';
+                                    '<input class="col-sm-9" type="text" placeholder="Not specified" name="{{field.name}}" ng-model="model.' + model.name + '" ' + (model.required ? "required" : "") + ' ng-readonly="viewMode === \'view\'">';
                         } else if (model.type === "textarea") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
                                     '<textarea class="col-sm-9" rows="8" cols="50" name="{{field.name}}" ng-model="model.' + model.name + '" ' + (model.required ? "required" : "") + ' ng-readonly="viewMode === \'view\'">';
                         } else if (model.type === "select") {
-                            template +=
-                                    '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
-                                    '<select class="col-sm-9" class="form-control" name="{{field.name}}"' +
-                                    '      ng-readonly="viewMode === \'view\'"' +
-                                    '      ng-model="model.' + model.name + '" ' +
-                                    '      ng-options="option.value as option.label for option in ' + model.name + '_options"' +
-                                    '      ' + (model.required ? "required" : "") + '>' +
-                                    '</select>';
+                            if (model.free === false) {
+                                template +=
+                                        '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
+                                        '<select  placeholder="Not specified" class="col-sm-9" class="form-control" name="{{field.name}}"' +
+                                        '      ng-disabled="viewMode === \'view\'"' +
+                                        '      ng-model="model.' + model.name + '" ' +
+                                        '      ng-options="option.value as option.label for option in ' + model.name + '_options"' +
+                                        '      ' + (model.required ? "required" : "") + '>' +
+                                        '</select>';
+                            } else {
+                                template +=
+                                        '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
+                                        '<input class="col-sm-9" type="text" placeholder="Not specified" name="{{field.name}}" ' +
+                                        '       ng-model="model.' + model.name + '" ' +
+                                        '       uib-typeahead="option.label for option in ' + model.name + '_options | filter:$viewValue:startsWith"' +
+                                        '   ' + (model.required ? "required" : "") +
+                                        '       ng-readonly="viewMode === \'view\'">';
+                            }
 
                             if (model.source) {
                                 $http({
@@ -93,7 +103,7 @@
                         } else if (model.type === "display") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
-                                    '<input class="col-sm-9" type="text" ng-model="model.' + model.name + '" ng-readonly="true">';
+                                    '<input class="col-sm-9" type="text" ng-model="model.' + model.name + '" ng-readonly="viewMode === \'view\'" disabled>';
                         } else if (model.type === "user_selector") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +

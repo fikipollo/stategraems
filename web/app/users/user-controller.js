@@ -95,7 +95,7 @@
                             Cookies.set("loggedUserID", $scope.userInfo.user_id, {expires: 1, path: window.location.pathname});
                             Cookies.set("sessionToken", response.data.sessionToken, {expires: 1, path: window.location.pathname});
 
-                            
+
                             delete $scope.userInfo.password;
                             delete $scope.signForm;
 
@@ -103,19 +103,20 @@
                             $rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
 
                             $state.go('home');
-                        }, function errorCallback(response) {
-                    if ([404001, 401001].indexOf(response.data.err_code) !== -1) {
-                        $dialogs.showErrorDialog("Invalid user or password.");
-                        return;
-                    }
+                        },
+                        function errorCallback(response) {
+                            if (response.data.code === "00003a") {
+                                $dialogs.showErrorDialog("Invalid user or password.");
+                                return;
+                            }
 
-                    debugger;
-                    var message = "Failed during sign-in process.";
-                    $dialogs.showErrorDialog(message, {
-                        logMessage: message + " at UserSessionController:signInButtonHandler."
-                    });
-                    console.error(response.data);
-                }
+                            debugger;
+                            var message = "Failed during sign-in process.";
+                            $dialogs.showErrorDialog(message, {
+                                logMessage: message + " at UserSessionController:signInButtonHandler."
+                            });
+                            console.error(response.data);
+                        }
                 );
             }
             ;
@@ -179,7 +180,7 @@
 
             delete $scope.userInfo.email;
             delete $scope.userInfo.user_id;
-            
+
             $state.go('signin');
             $rootScope.$broadcast(AUTH_EVENTS.logoutSuccess); //Notify all the other controllers that user has signed in
         };
@@ -287,19 +288,19 @@
          */
         this.changeSelectedUsersButtonHandler = function () {
             $scope.isDialog = true;
-            
+
             $scope.browseDialog = $uibModal.open({
                 templateUrl: 'app/users/user-list.tpl.html',
                 controller: 'UserListController',
                 controllerAs: 'controller',
                 scope: $scope
             });
-            
+
             return this;
         };
-        
-        
-        this.closeBrowseDialogHandler = function(){
+
+
+        this.closeBrowseDialogHandler = function () {
             $scope.browseDialog.dismiss("cancel");
             delete $scope.browseDialog;
         };
@@ -352,7 +353,7 @@
             $scope.filters = UserList.removeFilter(filter).getFilters();
         };
 
-        
+
         //--------------------------------------------------------------------
         // INITIALIZATION
         //--------------------------------------------------------------------

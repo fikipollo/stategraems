@@ -1,0 +1,22 @@
+<div class="analysis-card  iu-card" >
+    <div class="iu-card-body">
+        <h2 class="iu-card-name">{{analysis.analysis_name}}</h2>
+        <div class="iu-card-description" >
+            <span>{{(analysis.analysis_description || "No description provided")}}</span>
+        </div>
+        <div class="iu-card-tags-list">
+            <i class="tag {{getTagColor(tag)}}" ng-repeat="tag in analysis.tags| orderBy">{{tag}}</i>
+        </div>
+    </div>
+    <div class="iu-card-author">
+         <div ng-if="!isMember(analysis)"  style="text-align: center;">
+            <a class="btn btn-default" type="button" ng-click="controller.requestAccessToAnalysisHandler(analysis)"><i class="fa fa-question-circle-o"></i> Request access to this analysis</a>
+        </div>
+        <div ng-if="isMember(analysis)"  style="text-align: center;">
+            <a class="btn btn-success" type="button" ng-click="controller.changeCurrentAnalysisHandler(analysis.analysis_id)"><i class="fa fa-random"></i> Switch to this analysis</a>
+        </div>
+        <!--Created by <span style="color:#0F8CDA;">{{analysis.analysis_owners[0].user_id + (analysis.analysis_owners.length > 1 ? " et al." : "")}}</span>-->
+    </div>
+    <a ng-if="analysis.public !== false" class="btn btn-info open-iu-button" ui-sref="analysisDetail({viewMode : 'view', analysis_id : analysis.analysis_id})"> <i class="fa fa-info-circle"></i> More details </a>
+    <a ng-if="analysis.public === false" ng-disabled="true" class="btn btn-info open-iu-button"> <i class="fa fa-info-circle"></i> More details </a>
+</div>

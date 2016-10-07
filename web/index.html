@@ -60,8 +60,14 @@
             <div id="sidebar-wrapper">
                 <ul class="sidebar-nav">
                     <li ng-repeat="page in controller.pages">
-                        <a ng-click="controller.setPage(page.name)" ng-class="(page.isParent ? 'parentOption' : '')"><i class="fa" ng-class="'fa-' + page.icon" aria-hidden="true"></i>{{page.title}}</a>
+                        <a ng-if="page.isParent" class="parentOption"><i class="fa" ng-class="'fa-' + page.icon" aria-hidden="true"></i> {{page.title}}</a>
+                        <a ng-if="!page.isParent" ng-click="controller.setPage(page)" ng-class="(page.isParent ? 'parentOption' : '')">
+                            <i class="fa" ng-class="'fa-' + page.icon" aria-hidden="true"></i> {{page.title}}
+                        </a>
                     </li>
+                    <li><a class="parentOption"><i class="fa fa-paper-plane-o" aria-hidden="true"></i> Documentation</a></li>
+                    <li><a style="font-size: 10px;" target="_blank" href="http://stategraems.readthedocs.io/en/latest/">  STATegra EMS documentation</a></li>
+                    <li><a style="font-size: 10px;" href="http://www.biomedcentral.com/1752-0509/8/S2/S9"><b>STATegra EMS: an Experiment Management System for complex next-generation omics experiments</b>. Hernandez-de-Diego et al. BMC Systems Biology</a></li>
                 </ul>
             </div>
             <div id="page-content-wrapper" >
@@ -70,22 +76,26 @@
                 </div>
             </div>
         </div><!-- /#wrapper -->
+        <script type="text/javascript" src="app/app.js"></script>
+        <script type="text/javascript" src="app/users/user-controller.js"></script>
+        <script type="text/javascript" src="app/users/user-session-dir.js"></script>
+        <script type="text/javascript" src="app/users/user-list-dir.js"></script>
+        <script type="text/javascript" src="app/users/user-list-service.js"></script>
+        <script type="text/javascript" src="app/experiments/experiment-controller.js"></script>
+        <script type="text/javascript" src="app/experiments/experiment-list-service.js"></script>
+        <script type="text/javascript" src="app/experiments/experiment-list-dir.js"></script>
+        <script type="text/javascript" src="app/experiments/experiment-card-dir.js"></script>
+        <script type="text/javascript" src="app/samples/sample-controller.js"></script>
+        <script type="text/javascript" src="app/samples/sample-list-service.js"></script>
+        <script type="text/javascript" src="app/samples/sample-dir.js"></script>
+        <script type="text/javascript" src="app/analysis/analysis-controller.js"></script>
+        <script type="text/javascript" src="app/analysis/analysis-list-service.js"></script>
+        <script type="text/javascript" src="app/analysis/analysis-dir.js"></script>
+        <script type="text/javascript" src="app/templates/template-list-service.js"></script>
+        <script type="text/javascript" src="app/templates/template-dir.js"></script>
+        <script type="text/javascript" src="app/protocols/protocol-list-service.js"></script>
+        <script type="text/javascript" src="common/services/toArrayFilter.js"></script>
+        <script type="text/javascript" src="common/resources/common.js"></script>
+        <script type="text/javascript" src="common/resources/dialogs.js"></script>
     </body>
-    <script type="text/javascript" src="app/app.js"></script>
-    <script type="text/javascript" src="app/users/user-controller.js"></script>
-    <script type="text/javascript" src="app/users/user-session-dir.js"></script>
-    <script type="text/javascript" src="app/users/user-list-dir.js"></script>
-    <script type="text/javascript" src="app/users/user-list-service.js"></script>
-    <script type="text/javascript" src="app/experiments/experiment-list-service.js"></script>
-    <script type="text/javascript" src="app/experiments/experiment-list-dir.js"></script>
-    <script type="text/javascript" src="app/experiments/experiment-card-dir.js"></script>
-    <script type="text/javascript" src="app/experiments/experiment-controller.js"></script>
-    <script type="text/javascript" src="app/samples/sample-list-service.js"></script>
-    <script type="text/javascript" src="app/samples/biocondition-card-dir.js"></script>
-    <script type="text/javascript" src="app/samples/sample-controller.js"></script>
-    <script type="text/javascript" src="app/templates/template-list-service.js"></script>
-    <script type="text/javascript" src="app/templates/template-dir.js"></script>
-    <script type="text/javascript" src="common/services/toArrayFilter.js"></script>
-    <script type="text/javascript" src="common/resources/common.js"></script>
-    <script type="text/javascript" src="common/resources/dialogs.js"></script>
 </html>

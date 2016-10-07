@@ -1,0 +1,19 @@
+<div class="section_box row" ng-controller="StepDetailController as controller" ng-class="(model.status)?model.status.replace('_', ' '):''">
+    <a class="clickable text-danger" style="float: right;margin: 10px;" ng-click="controller.removeStepHandler();" ng-show="controller.removableModel()" >
+        <i class="fa fa-trash-o"></i> Delete this step
+    </a>
+    <a class="clickable text-info" style="float: right; margin: 10px;" ng-click="controller.unremoveStepHandler();" ng-show="controller.unremovableModel()">
+        <i class="fa fa-undo"></i> Restore this step
+    </a>
+    <h2 class="section_title">Step details</h2>
+    <div class="row" ng-repeat="section in template.content">
+        <h3 ng-if="section.title" class="section_subtitle">{{section.title}}</h3>
+        <form-field ng-repeat="field in section.fields"></form-field>
+        <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+    </div>
+    <div class="row" ng-repeat="section in subtemplate.content">
+        <h3 ng-if="section.title" class="section_subtitle">{{section.title}}</h3>
+        <form-field ng-repeat="field in section.fields"></form-field>
+        <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+    </div>
+</div>

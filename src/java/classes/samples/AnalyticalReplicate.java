@@ -32,6 +32,7 @@ public class AnalyticalReplicate {
     private String analytical_rep_name;
     private String bioreplicate_id;
     private String treatment_id;
+    String status = null;
 
     /**
      *
@@ -119,6 +120,15 @@ public class AnalyticalReplicate {
         this.treatment_id = treatment_id;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    
     //***********************************************************************
     //* OTHER FUNCTIONS *****************************************************
     //***********************************************************************

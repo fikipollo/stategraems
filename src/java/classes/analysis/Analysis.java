@@ -35,19 +35,15 @@ import java.util.Arrays;
 public class Analysis {
 
     private String analysis_id;
+    private String analysis_name;
     private String analysis_type;
     private String status;
     private String associated_experiment; //ONLY LOCAL INSTANCES, NOT IN DATABASE
     private NonProcessedData[] non_processed_data;
     private ProcessedData[] processed_data;
+    String[] tags;
 
     public Analysis() {
-    }
-
-    public Analysis(String analysis_id, String analysisType, String status) {
-        this.analysis_id = analysis_id;
-        this.analysis_type = analysisType;
-        this.status = status;
     }
 
     /**
@@ -89,9 +85,9 @@ public class Analysis {
     public String getAnalysisID() {
         return analysis_id;
     }
-
-    public void setAnalysisss_id(String new_analysis_id) {
-        this.analysis_id = new_analysis_id;
+    
+    public void setAnalysisID(String analysis_id) {
+        this.analysis_id = analysis_id;
     }
 
     public void updateAnalysisID(String newAnalysisID) {
@@ -126,6 +122,14 @@ public class Analysis {
         this.analysis_type = analysisType;
     }
 
+    public String getAnalysisName() {
+        return analysis_name;
+    }
+
+    public void setAnalysisName(String analysis_name) {
+        this.analysis_name = analysis_name;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -134,6 +138,20 @@ public class Analysis {
         this.status = status;
     }
 
+    public String[] getTags() {
+        return tags;
+    }
+
+    public void setTags(String[] tags) {
+        this.tags = tags;
+    }
+
+    public void setTags(String tags) {
+        if (tags != null) {
+            this.tags = tags.split(", ");
+        }
+    }
+    
     public NonProcessedData[] getNonProcessedData() {
         //TODO: REPLACE ARRAYS BY ARRAYLIST
         if(this.non_processed_data == null){

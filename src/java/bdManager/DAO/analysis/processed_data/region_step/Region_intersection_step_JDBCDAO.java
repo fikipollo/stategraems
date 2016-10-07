@@ -149,7 +149,7 @@ public class Region_intersection_step_JDBCDAO extends ProcessedData_JDBCDAO {
 //        }
 //
 //        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-//                //                + "SELECT t1.step_id, t1.motivation, t2.analysisType FROM processed_data AS t1, analysis AS t2 WHERE t1.region_step_type = 'region_intersection_step' AND t1.analysis_id = t2.analysis_id");
+//                //                + "SELECT t1.step_id, t1.motivation, t2.analysis_type FROM processed_data AS t1, analysis AS t2 WHERE t1.region_step_type = 'region_intersection_step' AND t1.analysis_id = t2.analysis_id");
 //                + "SELECT step_id, motivation, FROM processed_data WHERE region_step_type = 'region_intersection_step'");
 //        ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
 //
@@ -159,7 +159,7 @@ public class Region_intersection_step_JDBCDAO extends ProcessedData_JDBCDAO {
 //            regionStepInstance = new Region_intersection_step();
 //            regionStepInstance.setStepID(rs.getString("step_id"));
 //            regionStepInstance.setMotivation(rs.getString("motivation"));
-////            region_intersection_step.setAnalysisType(rs.getString("analysisType"));
+////            region_intersection_step.setAnalysisType(rs.getString("analysis_type"));
 //
 //            Object[] params = {regionStepInstance};
 //            super.findByID(regionStepInstance.getStepID(), params);

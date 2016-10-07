@@ -32,6 +32,8 @@ import classes.analysis.Analysis;
 import classes.analysis.NonProcessedData;
 import classes.analysis.ProcessedData;
 import classes.analysis.processed_data.Region_step;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import common.BlockedElementsManager;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -80,8 +82,8 @@ public class Analysis_servlets extends Servlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.addHeader("Access-Control-Allow-Origin", "*");
-        response.setContentType("text/html");
-//        response.setContentType("application/json");
+        response.setContentType("application/json");
+//        response.setContentType("text/html");
 
         if (request.getServletPath().equals("/get_all_analysis")) {
             get_all_analysis_handler(request, response);
@@ -125,6 +127,12 @@ public class Analysis_servlets extends Servlet {
             ArrayList<Object> analysisList = null;
             try {
 
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
+
                 /**
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
@@ -132,8 +140,8 @@ public class Analysis_servlets extends Servlet {
                  * 5b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
-                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. Please sign in again.");
                 }
 
                 /**
@@ -143,18 +151,20 @@ public class Analysis_servlets extends Servlet {
                  * *******************************************************
                  */
                 boolean loadRecursive = false;
-                if (request.getParameter("loadRecursive") != null) {
-                    loadRecursive = Boolean.parseBoolean(request.getParameter("loadRecursive"));
+                if (requestData.has("loadRecursive")) {
+                    loadRecursive = requestData.get("loadRecursive").getAsBoolean();
                 }
 
-                String experiment_id = request.getParameter("experimentID");
-                if(experiment_id == ""){
-                    experiment_id = request.getParameter("currentExperimentID");
+                String experiment_id = null;
+                if (requestData.has("experiment_id")) {
+                    loadRecursive = requestData.get("loadRecursive").getAsBoolean();
+                } else {
+                    loadRecursive = requestData.get("currentExperimentID").getAsBoolean();
                 }
+
                 Object[] params = {loadRecursive, experiment_id};
                 dao_instance = DAOProvider.getDAOByName("Analysis");
                 analysisList = dao_instance.findAll(params);
-
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_analysis_handler", e.getMessage());
             } finally {
@@ -172,21 +182,14 @@ public class Analysis_servlets extends Servlet {
                      * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
                      * *******************************************************
                      */
-                    //If some errors occurred
-                    String analysisJSON = "analysisList : [";
+                    String analysisJSON = "[";
 
-                    for (Object analysis : analysisList) {
-                        analysisJSON += ((Analysis) analysis).toJSON() + ", ";
+                    for (int i = 0; i < analysisList.size(); i++) {
+                        analysisJSON += ((Analysis) analysisList.get(i)).toJSON() + ((i < analysisList.size() - 1) ? "," : "");
                     }
                     analysisJSON += "]";
-                    
-                    OutputStream out1 = response.getOutputStream();
-                    PrintWriter out = new PrintWriter(new GZIPOutputStream(out1), false);
 
-                    response.setHeader("Content-Encoding", "gzip");
-                    response.setHeader("Content-Type", "application/json");
-                    out.print("{success: " + true + ", " + analysisJSON + " }");
-                    out.close();
+                    response.getWriter().print(analysisJSON);
                 }
                 /**
                  * *******************************************************
@@ -216,6 +219,11 @@ public class Analysis_servlets extends Servlet {
             DAO dao_instance = null;
             Analysis analysis = null;
             try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
 
                 /**
                  * *******************************************************
@@ -224,8 +232,8 @@ public class Analysis_servlets extends Servlet {
                  * 5b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
-                    throw new AccessControlException("Your session is invalid. User or session token not valid.");
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
                 /**
@@ -234,10 +242,10 @@ public class Analysis_servlets extends Servlet {
                  * MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
                  * *******************************************************
                  */
+                dao_instance = DAOProvider.getDAOByName("Analysis");
                 boolean loadRecursive = true;
                 Object[] params = {loadRecursive};
-                dao_instance = DAOProvider.getDAOByName("Analysis");
-                String analysis_id = request.getParameter("analysis_id");
+                String analysis_id = requestData.get("analysis_id").getAsString();
                 analysis = (Analysis) dao_instance.findByID(analysis_id, params);
 
             } catch (Exception e) {
@@ -257,18 +265,7 @@ public class Analysis_servlets extends Servlet {
                      * STEP 3A WRITE SUCCESS RESPONSE. GO TO STEP 4
                      * *******************************************************
                      */
-                    String analysisJSON = "analysisList : [";
-                    analysisJSON += analysis.toJSON() + ", ";
-                    analysisJSON += "]";
-                    
-                                        
-                    OutputStream out1 = response.getOutputStream();
-                    PrintWriter out = new PrintWriter(new GZIPOutputStream(out1), false);
-
-                    response.setHeader("Content-Encoding", "gzip");
-                    response.setHeader("Content-Type", "application/json");
-                    out.print("{success: " + true + ", " + analysisJSON + " }");
-                    out.close();
+                    response.getWriter().print(analysis.toJSON());
                 }
                 /**
                  * *******************************************************

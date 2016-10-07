@@ -1,0 +1,31 @@
+{
+    "id": "analysis-form",
+    "content": [
+        {
+            "name": "section_1",
+            "fields": [
+                {
+                    "name": "analysis_id",
+                    "label": "Analysis ID",
+                    "type": "display"
+                },
+                {
+                    "name": "analysis_name",
+                    "label": "Analysis name",
+                    "type": "text"
+                },
+                {
+                    "name": "analysis_type",
+                    "label": "Analysis type",
+                    "type": "select",
+                    "source": "data/analysis_types.json"
+                },
+                {
+                    "name": "tags",
+                    "label": "Analysis tags",
+                    "type": "tag"
+                }
+            ]
+        }
+    ]
+}

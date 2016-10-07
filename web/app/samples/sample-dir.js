@@ -18,11 +18,11 @@
  *     and others.
  *
  * THIS FILE CONTAINS THE FOLLOWING MODULE DECLARATION
- * - samples.directives.biocondition-card
+ * - bioconditionCard
  *
  */
 (function () {
-    var app = angular.module('samples.directives.biocondition-card', [
+    var app = angular.module('samples.directives.sample-views', [
     ]);
 
     /***************************************************************************/
@@ -36,6 +36,13 @@
                 //Execute the afterRender function (linked to a controller function)
                 $timeout(scope.$eval(attrs.afterRender), 0);
             }
+        };
+    });
+
+    app.directive("bioreplicateForm", function () {
+        return {
+            restrict: 'E',
+            templateUrl: "app/samples/bioreplicate-form.tpl.html"
         };
     });
 })();

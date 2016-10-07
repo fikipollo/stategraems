@@ -32,6 +32,7 @@ import classes.samples.BioCondition;
 import classes.samples.Treatment;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import common.BlockedElementsManager;
 
 import java.io.IOException;
@@ -146,6 +147,11 @@ public class Samples_servlets extends Servlet {
             DAO dao_instance = null;
 
             try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
 
                 /**
                  * *******************************************************
@@ -154,7 +160,7 @@ public class Samples_servlets extends Servlet {
                  * 6b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
@@ -174,9 +180,7 @@ public class Samples_servlets extends Servlet {
                  * throws JsonParseException, GO TO STEP 6b ELSE --> GO TO STEP
                  * 4 *******************************************************
                  */
-                String biocondition_json_data = request.getParameter("biocondition_json_data");
-                BioCondition biocondition = null;
-                biocondition = BioCondition.fromJSON(biocondition_json_data);
+                BioCondition biocondition = BioCondition.fromJSON(requestData.get("biocondition_json_data"));
 
                 /**
                  * *******************************************************
@@ -230,7 +234,9 @@ public class Samples_servlets extends Servlet {
                         dao_instance.doRollback();
                     }
                 } else {
-                    response.getWriter().print("{success: " + true + ", newID : '" + BLOCKED_ID + "' }");
+                    JsonObject obj = new JsonObject();
+                    obj.add("newID", new JsonPrimitive(BLOCKED_ID));
+                    response.getWriter().print(obj.toString());
                 }
 
                 if (BLOCKED_ID != null) {
@@ -269,103 +275,87 @@ public class Samples_servlets extends Servlet {
                  * 6b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                String loggedUser = request.getParameter("loggedUser");
-                if (!checkAccessPermissions(loggedUser, request.getParameter("sessionToken"))) {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String loggedUserID = requestData.get("loggedUserID").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
+
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
                 /**
                  * *******************************************************
-                 * STEP 2 READ ALL PARAMETERS --> ARRAYS WITH ALL TASKS. ELSE
-                 * --> GO TO STEP 3
-                 * *******************************************************
+                 * STEP 3 Get the Object by parsing the JSON data. IF ERROR -->
+                 * throws JsonParseException, GO TO STEP 6b ELSE --> GO TO STEP
+                 * 4 *******************************************************
                  */
-                String[] to_be_created_BR = request.getParameterValues("to_be_created_BR");
-                String[] to_be_created_AR = request.getParameterValues("to_be_created_AR");
-                String[] to_be_edited_BR = request.getParameterValues("to_be_edited_BR");
-                String[] to_be_edited_AR = request.getParameterValues("to_be_edited_AR");
-                String[] to_be_deleted_BR = request.getParameterValues("to_be_deleted_BR");
-                String[] to_be_deleted_AR = request.getParameterValues("to_be_deleted_AR");
-                String biocondition_json_data = request.getParameter("biocondition_json_data");
+                BioCondition biocondition = BioCondition.fromJSON(requestData.get("biocondition_json_data"));
 
-                /**
-                 * *******************************************************
-                 * STEP 3 Get the BIOCONDITION Object by parsing the JSON data.
-                 * IF ERROR --> throws JsonParseException, GO TO STEP ? ELSE -->
-                 * GO TO STEP 4
-                 * *******************************************************
-                 */
-                BioCondition biocondition = BioCondition.fromJSON(biocondition_json_data);
-
-                String bioconditionID = biocondition.getBioConditionID();
                 dao_instance = DAOProvider.getDAOByName("BioCondition");
-
-                //CHECK IF THE USER IS IN THE LIST OF OWNERS, AS WE ALREADY CHECKED THAT SESSION IS VALID
-                //AND OWNERSHIP SHOULD BE CHECKED FIRST AT CLIENT LEVEL
-                //SO IF WE FAIL NOW, WE SHOULD SUPPOSE THAT USER IS TRYING TO HACK THE CODE, SO LET'S KILL HIS SESSION
-                boolean loadRecursive = true;
-//                Object[] params =;
-                BioCondition bioconditionAux = (BioCondition) dao_instance.findByID(bioconditionID, new Object[]{loadRecursive});
-                if (!bioconditionAux.isOwner(loggedUser) && !loggedUser.equals("admin")) {
+                //CHECK IF CURRENT USER IS A VALID OWNER (AVOID HACKING)
+                boolean loadRecursive = false;
+                BioCondition bioconditionAux = (BioCondition) dao_instance.findByID(biocondition.getBioConditionID(), new Object[]{loadRecursive});
+                if (!bioconditionAux.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
                     throw new AccessControlException("Cannot update selected Biological Condition. Current user has not privileges over this Biological Condition.");
                 }
 
                 /**
                  * *******************************************************
-                 * STEP 4 Get all the BIOREPLICATE Objects by parsing the JSON
-                 * data. IF ERROR --> throws JsonParseException, GO TO STEP ?
-                 * throws SQL Exception, GO TO STEP ? ELSE --> GO TO STEP 5
+                 * STEP 4 READ ALL BIOREPLICATES AND AS AND CREATE THE LIST OF
+                 * TASKS.
                  * *******************************************************
                  */
-                Object[] params = {biocondition.getBioConditionID()};
-                ArrayList<Bioreplicate> to_be_created_BR_instances = new ArrayList<Bioreplicate>();
-                if (to_be_created_BR != null) {
-                    for (String bioreplicate_json_data : to_be_created_BR) {
-                        Bioreplicate bioreplicate = Bioreplicate.fromJSON(bioreplicate_json_data);
-                        String nextID = new Bioreplicate_JDBCDAO().getNextObjectID(params);
+                Bioreplicate_JDBCDAO bioreplicateDAO = (Bioreplicate_JDBCDAO) (DAOProvider.getDAOByName("Bioreplicate"));
+                AnalyticalReplicate_JDBCDAO analyticalSampleDAO = (AnalyticalReplicate_JDBCDAO) (DAOProvider.getDAOByName("AnalyticalReplicate"));
+
+                ArrayList<Bioreplicate> to_be_created_BR = new ArrayList<Bioreplicate>();
+                ArrayList<Bioreplicate> to_be_updated_BR = new ArrayList<Bioreplicate>();
+                ArrayList<String> to_be_deleted_BR = new ArrayList<String>();
+
+                ArrayList<AnalyticalReplicate> to_be_created_AS = new ArrayList<AnalyticalReplicate>();
+                ArrayList<AnalyticalReplicate> to_be_updated_AS = new ArrayList<AnalyticalReplicate>();
+                ArrayList<String> to_be_deleted_AS = new ArrayList<String>();
+
+                for (Bioreplicate bioreplicate : biocondition.getAssociatedBioreplicates()) {
+                    if ("new_deleted".equals(bioreplicate.getStatus())) {
+                        continue; //ignore
+                    } else if ("deleted".equals(bioreplicate.getStatus()) || "edited_deleted".equals(bioreplicate.getStatus())) {
+                        to_be_deleted_BR.add(bioreplicate.getBioreplicateID()); //DELETES THE AS
+                    } else if ("new".equals(bioreplicate.getStatus())) {
+                        Object[] params = {biocondition.getBioConditionID()};
+                        String nextID = bioreplicateDAO.getNextObjectID(params);
                         bioreplicate.setBioreplicate_id(nextID);
-                        to_be_created_BR_instances.add(bioreplicate);
-                    }
-                }
-
-                ArrayList<Bioreplicate> to_be_edited_BR_instances = new ArrayList<Bioreplicate>();
-                if (to_be_edited_BR != null) {
-                    for (String bioreplicate_json_data : to_be_edited_BR) {
-                        Bioreplicate bioreplicate = Bioreplicate.fromJSON(bioreplicate_json_data);
-                        to_be_edited_BR_instances.add(bioreplicate);
-                    }
-                }
-
-                /**
-                 * *******************************************************
-                 * STEP 5 Get all the ANALYTICAL REPLICATES Objects by parsing
-                 * the JSON data. IF ERROR --> throws JsonParseException, GO TO
-                 * STEP ? throws SQL Exception, GO TO STEP ? ELSE --> GO TO STEP
-                 * 6 *******************************************************
-                 */
-                ArrayList<AnalyticalReplicate> to_be_created_AR_instances = new ArrayList<AnalyticalReplicate>();
-                if (to_be_created_AR != null) {
-                    for (String analytical_rep_json_data : to_be_created_AR) {
-                        AnalyticalReplicate analyticalReplicate = AnalyticalReplicate.fromJSON(analytical_rep_json_data);
-                        Object[] _params = {analyticalReplicate.getBioreplicate_id()};
-                        String nextID = new AnalyticalReplicate_JDBCDAO().getNextObjectID(_params);
-                        analyticalReplicate.setAnalyticalReplicateID(nextID);
-                        to_be_created_AR_instances.add(analyticalReplicate);
-                    }
-                }
-
-                ArrayList<AnalyticalReplicate> to_be_edited_AR_instances = new ArrayList<AnalyticalReplicate>();
-                if (to_be_edited_AR != null) {
-                    for (String analytical_rep_json_data : to_be_edited_AR) {
-                        AnalyticalReplicate analyticalReplicate = AnalyticalReplicate.fromJSON(analytical_rep_json_data);
-                        to_be_edited_AR_instances.add(analyticalReplicate);
+                        bioreplicate.setBioConditionID(biocondition.getBioConditionID());
+                        to_be_created_BR.add(bioreplicate); //CREATES THE AS
+                    } else {
+                        if ("edited".equals(bioreplicate.getStatus())) {
+                            to_be_updated_BR.add(bioreplicate);
+                        }
+                        for (AnalyticalReplicate analyticalReplicate : bioreplicate.getAssociatedAnalyticalReplicates()) {
+                            if ("new_deleted".equals(analyticalReplicate.getStatus())) {
+                                continue; //ignore
+                            } else if ("deleted".equals(analyticalReplicate.getStatus()) || "edited_deleted".equals(analyticalReplicate.getStatus())) {
+                                to_be_deleted_AS.add(analyticalReplicate.getAnalytical_rep_id());
+                            } else if ("new".equals(analyticalReplicate.getStatus())) {
+                                Object[] params = {bioreplicate.getBioreplicateID()};
+                                String nextID = analyticalSampleDAO.getNextObjectID(params);
+                                analyticalReplicate.setAnalyticalReplicateID(nextID);
+                                analyticalReplicate.setBioreplicate_id(bioreplicate.getBioreplicateID());
+                                to_be_created_AS.add(analyticalReplicate); //CREATES THE AS
+                            } else if ("edited".equals(analyticalReplicate.getStatus())) {
+                                to_be_updated_AS.add(analyticalReplicate);
+                            }
+                        }
                     }
                 }
 
                 /**
                  * *******************************************************
-                 * STEP 6 UPDATE THE BIOCONDITION IN DATABASE. IF ERROR -->
-                 * throws SQL Exception, GO TO STEP ? ELSE --> GO TO STEP 7
+                 * STEP 5 UPDATE THE BIOCONDITION IN DATABASE. IF ERROR -->
+                 * throws SQL Exception, GO TO STEP ? ELSE --> GO TO STEP 5
                  * *******************************************************
                  */
                 dao_instance.disableAutocommit();
@@ -374,38 +364,23 @@ public class Samples_servlets extends Servlet {
 
                 /**
                  * *******************************************************
-                 * STEP 7 APPLY THE BIOREPLICATE TASKS IN DATABASE. IF ERROR -->
+                 * STEP 6 APPLY THE BIOREPLICATE TASKS IN DATABASE. IF ERROR -->
                  * throws SQL Exception, GO TO STEP ? ELSE --> GO TO STEP 8
                  * *******************************************************
                  */
-                dao_instance = new Bioreplicate_JDBCDAO();
-                ((Bioreplicate_JDBCDAO) dao_instance).insert(to_be_created_BR_instances.toArray(new Bioreplicate[]{}));
-                ((Bioreplicate_JDBCDAO) dao_instance).update(to_be_edited_BR_instances.toArray(new Bioreplicate[]{}));
-                ((Bioreplicate_JDBCDAO) dao_instance).remove(to_be_deleted_BR);
+                bioreplicateDAO.insert(to_be_created_BR.toArray(new Bioreplicate[]{}));
+                bioreplicateDAO.update(to_be_updated_BR.toArray(new Bioreplicate[]{}));
+                bioreplicateDAO.remove(to_be_deleted_BR.toArray(new String[]{}));
 
-
-                /*
-                 *
-                 * for (String bioreplicate_id : to_be_deleted_BR) {
-                 * try {
-                 * ((Bioreplicate_JDBCDAO) dao_instance).remove(to_be_deleted_BR);
-                 * } catch (SQLException ex) {
-                 * if (ex.getClass().getSimpleName().equals("MySQLIntegrityConstraintViolationException")) {
-                 * warningMessage +=
-                 * }
-                 * }
-                 * }
-                 */
                 /**
                  * *******************************************************
-                 * STEP 8 APPLY THE ANALYTICAL REP TASKS IN DATABASE. IF ERROR
+                 * STEP 7 APPLY THE ANALYTICAL REP TASKS IN DATABASE. IF ERROR
                  * --> throws SQL Exception, GO TO STEP ? ELSE --> GO TO STEP 9
                  * *******************************************************
                  */
-                dao_instance = new AnalyticalReplicate_JDBCDAO();
-                ((AnalyticalReplicate_JDBCDAO) dao_instance).insert(to_be_created_AR_instances.toArray(new AnalyticalReplicate[]{}));
-                ((AnalyticalReplicate_JDBCDAO) dao_instance).update(to_be_edited_AR_instances.toArray(new AnalyticalReplicate[]{}));
-                ((AnalyticalReplicate_JDBCDAO) dao_instance).remove(to_be_deleted_AR);
+                analyticalSampleDAO.insert(to_be_created_AS.toArray(new AnalyticalReplicate[]{}));
+                analyticalSampleDAO.update(to_be_updated_AS.toArray(new AnalyticalReplicate[]{}));
+                analyticalSampleDAO.remove(to_be_deleted_AS.toArray(new String[]{}));
 
                 /**
                  * *******************************************************
@@ -419,8 +394,6 @@ public class Samples_servlets extends Servlet {
             } catch (Exception e) {
                 if (e.getClass().getSimpleName().equals("MySQLIntegrityConstraintViolationException")) {
                     ServerErrorManager.handleException(null, null, null, "Unable to update the Biological condition information.</br>One or more Analysis are associated with at least a deleted element.</br>Remove or Edit first those Analysis or change the associated Analytical sample and try again later.");
-//                } else if (e.getClass().getSimpleName().equals("AccessControlException")) {
-//                    ServerErrorManager.handleException(null, null, null, e.getMessage());
                 } else {
                     ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "update_biocondition_handler", e.getMessage());
                 }
@@ -441,7 +414,9 @@ public class Samples_servlets extends Servlet {
                         dao_instance.doRollback();
                     }
                 } else {
-                    response.getWriter().print("{success: " + true + " }");
+                    JsonObject obj = new JsonObject();
+                    obj.add("success", new JsonPrimitive(true));
+                    response.getWriter().print(obj.toString());
                 }
                 /**
                  * *******************************************************
@@ -793,7 +768,7 @@ public class Samples_servlets extends Servlet {
                  */
                 dao_instance = DAOProvider.getDAOByName("BioCondition");
                 boolean loadRecursive = false;
-                if(requestData.has("recursive")){
+                if (requestData.has("recursive")) {
                     loadRecursive = requestData.get("loggedUser").getAsBoolean();
                 }
 
@@ -879,7 +854,7 @@ public class Samples_servlets extends Servlet {
                 dao_instance = DAOProvider.getDAOByName("BioCondition");
                 boolean loadRecursive = requestData.get("recursive").getAsBoolean();;
                 Object[] params = {loadRecursive};
-                
+
                 String biocondition_id = requestData.get("biocondition_id").getAsString();
                 biocondition = (BioCondition) dao_instance.findByID(biocondition_id, params);
 
@@ -937,6 +912,8 @@ public class Samples_servlets extends Servlet {
      */
     private void lock_biocondition_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         boolean alreadyLocked = false;
+        String locker_id = "";
+
         try {
             /**
              * *******************************************************
@@ -945,18 +922,33 @@ public class Samples_servlets extends Servlet {
              * GO TO STEP 2
              * *******************************************************
              */
-            String loggedUser = request.getParameter("loggedUser");
-            if (!checkAccessPermissions(loggedUser, request.getParameter("sessionToken"))) {
-                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-            }
+            JsonParser parser = new JsonParser();
+            JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+            String loggedUser = requestData.get("loggedUser").getAsString();
+            String sessionToken = requestData.get("sessionToken").getAsString();
+
             /**
              * *******************************************************
-             * STEP 2 Try to lock the Object . IF FAILED --> throws exception,
-             * GO TO STEP 3b ELSE --> GO TO STEP 3
+             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
+             * --> throws exception if not valid session, GO TO STEP ELSE --> GO
+             * TO STEP 2 *******************************************************
+             */
+            if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+            }
+
+            /**
+             * *******************************************************
+             * STEP 2 GET THE OBJECT ID AND TRY TO LOCK IT. IF ERROR --> throws
+             * exception, GO TO STEP ELSE --> GO TO STEP 3
              * *******************************************************
              */
-            String bioconditionID = request.getParameter("biocondition_id");
-            alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().lockObject(bioconditionID, loggedUser);
+            String biocondition_id = requestData.get("biocondition_id").getAsString();
+            alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().lockObject(biocondition_id, loggedUser);
+            if (alreadyLocked) {
+                locker_id = BlockedElementsManager.getBlockedElementsManager().getLockerID(biocondition_id);
+            }
         } catch (Exception e) {
             ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "lock_biocondition_handler", e.getMessage());
         } finally {
@@ -971,14 +963,18 @@ public class Samples_servlets extends Servlet {
             } else {
                 /**
                  * *******************************************************
-                 * STEP 4A WRITE RESPONSE ERROR. GO TO STEP 5
+                 * STEP 3A WRITE RESPONSE .
                  * *******************************************************
                  */
+                JsonObject obj = new JsonObject();
                 if (alreadyLocked) {
-                    response.getWriter().print("{success: " + false + ", reason: '" + BlockedElementsManager.getErrorMessage() + "'}");
+                    obj.add("success", new JsonPrimitive(false));
+                    obj.add("reason", new JsonPrimitive(BlockedElementsManager.getErrorMessage()));
+                    obj.add("user_id", new JsonPrimitive(locker_id));
                 } else {
-                    response.getWriter().print("{success: " + true + " }");
+                    obj.add("success", new JsonPrimitive(true));
                 }
+                response.getWriter().print(obj.toString());
             }
         }
 
@@ -990,26 +986,31 @@ public class Samples_servlets extends Servlet {
      * @param response
      */
     private void unlock_biocondition_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        boolean alreadyUnLocked = false;
+        boolean alreadyLocked = false;
         try {
+            JsonParser parser = new JsonParser();
+            JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+            String loggedUser = requestData.get("loggedUser").getAsString();
+            String sessionToken = requestData.get("sessionToken").getAsString();
+
             /**
              * *******************************************************
              * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
              * --> throws exception if not valid session, GO TO STEP ELSE --> GO
              * TO STEP 2 *******************************************************
              */
-            if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+            if (!checkAccessPermissions(loggedUser, sessionToken)) {
                 throw new AccessControlException("Your session is invalid. User or session token not allowed.");
             }
-
             /**
              * *******************************************************
              * STEP 2 GET THE OBJECT ID AND TRY TO LOCK IT. IF ERROR --> throws
              * exception, GO TO STEP ELSE --> GO TO STEP 3
              * *******************************************************
              */
-            String biocondition_id = request.getParameter("biocondition_id");
-            alreadyUnLocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(biocondition_id);
+            String biocondition_id = requestData.get("biocondition_id").getAsString();
+            alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(biocondition_id);
         } catch (Exception e) {
             ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "unlock_biocondition_handler", e.getMessage());
         } finally {
@@ -1027,11 +1028,14 @@ public class Samples_servlets extends Servlet {
                  * STEP 3A WRITE RESPONSE ERROR.
                  * *******************************************************
                  */
-                if (alreadyUnLocked) {
-                    response.getWriter().print("{success: " + false + ", reason: '" + BlockedElementsManager.getErrorMessage() + "'}");
+                JsonObject obj = new JsonObject();
+                if (alreadyLocked) {
+                    obj.add("success", new JsonPrimitive(false));
+                    obj.add("reason", new JsonPrimitive(BlockedElementsManager.getErrorMessage()));
                 } else {
-                    response.getWriter().print("{success: " + true + " }");
+                    obj.add("success", new JsonPrimitive(true));
                 }
+                response.getWriter().print(obj.toString());
             }
         }
     }
@@ -1043,69 +1047,80 @@ public class Samples_servlets extends Servlet {
      */
     private void remove_biocondition_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            boolean succesfullyLocked = false;
-            String bioconditionID = "";
+            String biocondition_id = "";
 
             boolean ROLLBACK_NEEDED = false;
             DAO dao_instance = null;
             try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String loggedUserID = requestData.get("loggedUserID").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
+
                 /**
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
                  * ERROR --> throws exception if not valid session, GO TO STEP
-                 * 5b ELSE --> GO TO STEP 2
+                 * 4b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                String loggedUser = request.getParameter("loggedUser");
-                if (!checkAccessPermissions(loggedUser, request.getParameter("sessionToken"))) {
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
+
                 /**
                  * *******************************************************
                  * STEP 2 Try to lock the Object . IF FAILED --> throws
                  * exception, GO TO STEP 3b ELSE --> GO TO STEP 3
                  * *******************************************************
                  */
-                bioconditionID = request.getParameter("biocondition_id");
-                succesfullyLocked = BlockedElementsManager.getBlockedElementsManager().lockObject(bioconditionID, loggedUser);
-                //IF THE BIOLOGICAL CONDITION IS BEEN EDITED BY SOMEONE
-                if (!succesfullyLocked) {
-                    response.getWriter().print("{success: " + false + ", reason: 'Cannot remove the selected Biological Condition. Another user is editing the information.'}");
-                } else {
-                    //REMOVE THE BIOCONDITION
-                    /**
-                     * *******************************************************
-                     * STEP 3 REMOVE THE BIOCONDITION. IF ERROR --> throws MySQL
-                     * exception, GO TO STEP 3b ELSE --> GO TO STEP 3
-                     * *******************************************************
-                     */
-                    dao_instance = DAOProvider.getDAOByName("Biocondition");
-                    boolean loadRecursive = true;
-                    Object[] params = {loadRecursive};
-                    BioCondition bioCondition = (BioCondition) dao_instance.findByID(bioconditionID, params);
-
-                    if (!bioCondition.isOwner(loggedUser) && !loggedUser.equals("admin")) {
-                        throw new AccessControlException("Cannot remove selected Biological Condition. Current user has not removing privileges over this Biological Condition.");
+                biocondition_id = requestData.get("biocondition_id").getAsString();
+                boolean alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().lockObject(biocondition_id, loggedUserID);
+                if (alreadyLocked) {
+                    String locker_id = BlockedElementsManager.getBlockedElementsManager().getLockerID(biocondition_id);
+                    if (!locker_id.equals(loggedUser)) {
+                        throw new Exception("Sorry but this biological condition is being edited by other user. Please try later.");
                     }
-                    dao_instance.disableAutocommit();
-
-                    ROLLBACK_NEEDED = true;
-                    dao_instance.remove(bioconditionID);
-
-                    /**
-                     * *******************************************************
-                     * STEP 9 COMMIT CHANGES TO DATABASE. throws SQLException IF
-                     * ERROR --> throws SQL Exception, GO TO STEP ? ELSE --> GO
-                     * TO STEP 10
-                     * *******************************************************
-                     */
-                    dao_instance.doCommit();
-
-                    //RETURN TRUE
-                    response.getWriter().print("{success: " + true + " }");
                 }
+                
+                dao_instance = DAOProvider.getDAOByName("Biocondition");
+                dao_instance.disableAutocommit();
+                ROLLBACK_NEEDED = true;
+
+                boolean loadRecursive = true;
+                Object[] params = {loadRecursive};
+                BioCondition bioCondition = (BioCondition) dao_instance.findByID(biocondition_id, params);
+
+                //Check if user is member or owner
+                if (bioCondition.isOwner(loggedUserID) || "admin".equals(loggedUserID)) {
+                    if (bioCondition.getOwners().length == 1 || "admin".equals(loggedUserID)) {
+                        //If is the last owner or the admin, remove the entire experiment
+                        dao_instance.remove(biocondition_id);
+                    } else {
+                        //else just remove the entry in the table of ownerships
+                        ((BioCondition_JDBCDAO) dao_instance).removeOwnership(loggedUserID, biocondition_id);
+                    }
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 9 COMMIT CHANGES TO DATABASE. throws SQLException IF
+                 * ERROR --> throws SQL Exception, GO TO STEP ? ELSE --> GO TO
+                 * STEP 10
+                 * *******************************************************
+                 */
+                dao_instance.doCommit();
+
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "remove_biocondition_handler", e.getMessage());
+                if (e.getClass().getSimpleName().equals("MySQLIntegrityConstraintViolationException")) {
+                    ServerErrorManager.handleException(null, null, null, "Unable to remove the selected Biocondition.</br>This Biocondition contains one or more Analytical samples that are being used by some Raw data.</br>Remove first those Raw data and try again later.");
+                } else if (e.getClass().getSimpleName().equals("AccessControlException")) {
+                    ServerErrorManager.handleException(null, null, null, e.getMessage());
+                } else {
+                    ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "remove_biocondition_handler", e.getMessage());
+                }
             } finally {
                 /**
                  * *******************************************************
@@ -1119,11 +1134,13 @@ public class Samples_servlets extends Servlet {
                     if (ROLLBACK_NEEDED) {
                         dao_instance.doRollback();
                     }
+                } else {
+                    JsonObject obj = new JsonObject();
+                    obj.add("success", new JsonPrimitive(true));
+                    response.getWriter().print(obj.toString());
                 }
 
-                if (succesfullyLocked) {
-                    BlockedElementsManager.getBlockedElementsManager().unlockObject(bioconditionID);
-                }
+                BlockedElementsManager.getBlockedElementsManager().unlockObject(biocondition_id);
 
                 /**
                  * *******************************************************
@@ -1141,12 +1158,12 @@ public class Samples_servlets extends Servlet {
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
     }
-
     //************************************************************************************
     //************************************************************************************
     //*****BIOREPLICATE SERVLET HANDLERS *************************************************
     //************************************************************************************
     //************************************************************************************
+
     /**
      * This function returns all the bioreplicates stored in the DB for a given
      * BioReplicateID

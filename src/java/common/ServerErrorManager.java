@@ -39,10 +39,10 @@ public class ServerErrorManager {
 
     //THIS CLASS IMPLEMENT THE SINGLETON PATTERN
     private static ServerErrorManager serverErrorManager_instance = null;
-    private HashMap<Long, String> errorsInstances = null;
+    private HashMap<Long, Error> errorsInstances = null;
 
     private ServerErrorManager() {
-        errorsInstances = new HashMap<Long, String>();
+        errorsInstances = new HashMap<Long, Error>();
     }
 
     /**
@@ -88,9 +88,9 @@ public class ServerErrorManager {
      * @param reset, if true, reset the error status.
      * @return the error message.
      */
-    public String getErrorMessages(boolean reset) {
+    public Error getErrorMessages(boolean reset) {
         long threadID = Thread.currentThread().getId();
-        String error = "";
+        Error error = null;
         if (errorsInstances.containsKey(threadID)) {
             error = errorsInstances.get(threadID);
             if (reset) {
@@ -103,13 +103,13 @@ public class ServerErrorManager {
     /**
      * Returns the error message for the current thread.
      * <p/>
-     * @param reset, if true, reset the error status.
-     * @return the error message.
+     * @param errorCode
+     * @param errorMessage
      */
-    public void setErrorMessages(String errorMessage) {
+    public void setErrorMessages(String errorCode, String errorMessage) {
         long threadID = Thread.currentThread().getId();
-        errorsInstances.put(threadID, errorMessage);
-        System.err.println(String.format("%tc", new Date()) + " STATEGRAEMS LOG > THREAD " + threadID + " NEW ERROR DETECTED: " + errorMessage);
+        errorsInstances.put(threadID, new Error(errorCode, errorMessage));
+        System.err.println(String.format("%tc", new Date()) + " STATEGRAEMS LOG > THREAD " + threadID + " NEW ERROR DETECTED: Error " + errorCode + ", " + errorMessage);
     }
 
     /**
@@ -129,7 +129,7 @@ public class ServerErrorManager {
         } else if (exception instanceof SQLException) {
             ServerErrorManager.addErrorMessage(1, className, functionName, errorMessage != null ? errorMessage : exception.getMessage());
         } else if (exception instanceof JsonParseException) {
-            ServerErrorManager.addErrorMessage(4, className, functionName, errorMessage != null ? errorMessage : exception.getMessage());
+            ServerErrorManager.addErrorMessage(2, className, functionName, errorMessage != null ? errorMessage : exception.getMessage());
         } else if (exception instanceof AccessControlException) {
             ServerErrorManager.addErrorMessage(3, className, functionName, errorMessage != null ? errorMessage : exception.getMessage());
         } else if (exception instanceof IOException) {
@@ -152,36 +152,51 @@ public class ServerErrorManager {
 
             ServerErrorManager.addErrorMessage(-1, className, functionName, errorMessage);
         }
-        System.err.println(String.format("%tc", new Date()) + " STATEGRAEMS LOG > HANDLED EXPECTION: " + (exception != null ? exception.getClass().getName() : "") + errorMessage);
     }
 
     public static void addErrorMessage(int errorType, String className, String functionName, String errorMessage) {
         ServerErrorManager serverErrorManager = ServerErrorManager.getServerErrorManager();
 
-        String errorLog = serverErrorManager.getErrorMessages(false);
+        Error errorLog = serverErrorManager.getErrorMessages(false);
+        String errorCode = "";
 
         if (errorMessage == null) {
             errorMessage = "Unknown Error";
         }
 
-        errorMessage = errorMessage + "";
         errorMessage = errorMessage.replaceAll("'", "");
-
         if (errorType == 0) {
-            errorLog += errorMessage;
+            errorCode = "00000";
         } else if (errorType == 1) {
-            errorLog += "</br>ERROR 0x00001 : SQL ERROR, FAILED TRYING TO QUERY THE DATABASE AT " + className + " ." + functionName + ". ERROR MESSAGE: " + errorMessage;
+            errorCode = "00001";
+            errorMessage = "SQL ERROR, FAILED TRYING TO QUERY THE DATABASE AT " + className + " ." + functionName + ". ERROR MESSAGE: " + errorMessage;
         } else if (errorType == 2) {
-            errorLog += "</br>ERROR 0x00002 : REQUEST ERROR AT " + className + " ." + functionName + ". ERROR MESSAGE: " + errorMessage;
+            errorCode = "00002";
+            errorMessage = "REQUEST ERROR AT " + className + " ." + functionName + ". ERROR MESSAGE: " + errorMessage;
         } else if (errorType == 3) {
-            errorLog += "</br>ERROR 0x00003 : SESSION ERROR: AT " + className + " ." + functionName + ". ERROR MESSAGE: " + errorMessage;
+            if (errorMessage.contains("User not found")) {
+                errorCode = "00003a";
+            } else {
+                errorCode = "00003";
+            }
+            errorMessage = "SESSION ERROR: AT " + className + " ." + functionName + ". ERROR MESSAGE: " + errorMessage;
         } else if (errorType == 4) {
-            errorLog += "</br>ERROR 0x00004 : INTERNAL PROCESSING ERROR AT " + className + " ." + functionName + ". ERROR MESSAGE: " + errorMessage;
+            errorCode = "00004";
+            errorMessage = "INTERNAL PROCESSING ERROR AT " + className + " ." + functionName + ". ERROR MESSAGE: " + errorMessage;
         } else {
-            errorLog += "</br>ERROR 0x0000A" + " : ERROR AT " + className + " ." + functionName + ". ERROR MESSAGE: " + errorMessage;
+            errorCode = "0000A";
+            errorMessage = "ERROR AT " + className + " ." + functionName + ". ERROR MESSAGE: " + errorMessage;
         }
 
-        serverErrorManager.setErrorMessages(errorLog);
+        if (errorLog != null) {
+            String extra = "Besides, the following errors were detected: ";
+            if (!errorLog.getMessage().contains(extra)) {
+                errorLog.setMessage(errorLog.getMessage() + ". " + extra);
+            }
+            errorLog.setMessage(errorLog.getMessage() + "Error " + errorCode + " - " + errorMessage + ". ");
+        } else {
+            serverErrorManager.setErrorMessages(errorCode, errorMessage);
+        }
     }
 
     /**
@@ -192,7 +207,36 @@ public class ServerErrorManager {
     public static String getErrorResponse() {
         ServerErrorManager serverErrorManager = ServerErrorManager.getServerErrorManager();
         JsonObject obj = new JsonObject();
-        obj.add("reason", new JsonPrimitive(serverErrorManager.getErrorMessages(true)));
+        Error error = serverErrorManager.getErrorMessages(true);
+        obj.add("code", new JsonPrimitive(error.getErrorCode()));
+        obj.add("reason", new JsonPrimitive(error.getMessage()));
         return obj.toString();
+    }
+
+    public class Error {
+
+        private String errorCode = "";
+        private String message = "";
+
+        public Error(String x, String y) {
+            this.errorCode = x;
+            this.message = y;
+        }
+
+        public String getErrorCode() {
+            return errorCode;
+        }
+
+        public void setErrorCode(String errorCode) {
+            this.errorCode = errorCode;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
     }
 }

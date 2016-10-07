@@ -188,7 +188,7 @@ public class BioCondition_JDBCDAO extends DAO {
         ps.setString(14, biocondition.getProtocolDescription());
         ps.setString(15, biocondition.getLastEditionDate().replaceAll("/", ""));
         ps.setString(16, biocondition.getExternalLinks());
-        ps.setString(17, String.join(", ", biocondition.getTags()));
+        ps.setString(17, String.join(", ", biocondition.getTags()).replace(", ,", ", "));
         ps.setBoolean(18, biocondition.isPublic());
         ps.setString(19, biocondition.getBioConditionID());
         ps.execute();
@@ -297,10 +297,10 @@ public class BioCondition_JDBCDAO extends DAO {
             loadRecursive = (Boolean) otherParams[0];
         }
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT * FROM biocondition");
-        
+
         ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
         ResultSet rs2;
-        
+
         ArrayList<Object> bioconditionsList = new ArrayList<Object>();
         BioCondition biocondition = null;
         while (rs.next()) {
@@ -394,9 +394,18 @@ public class BioCondition_JDBCDAO extends DAO {
 
     @Override
     public boolean remove(String[] object_id_list) throws SQLException {
-        for(String id:object_id_list){
+        for (String id : object_id_list) {
             remove(id);
         }
+        return true;
+    }
+    
+    public boolean removeOwnership(String user_id, String object_id) throws SQLException {
+        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                + "DELETE FROM biocondition_owners WHERE biocondition_id = ? AND user_id = ?");
+        ps.setString(1, object_id);
+        ps.setString(2, user_id);
+        ps.execute();
         return true;
     }
 }

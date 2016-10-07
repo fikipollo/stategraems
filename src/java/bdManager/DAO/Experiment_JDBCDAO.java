@@ -226,7 +226,7 @@ public class Experiment_JDBCDAO extends DAO {
             String[] analysisTypes = {"ChIP-seq", "DNAse-seq", "Methyl-seq", "mRNA-seq", "smallRNA-seq", "Metabolomics", "Proteomics"};
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                     + "SELECT t1.analysis_id FROM analysis AS t1, experiments_contains_analysis AS t2 "
-                    + "WHERE t2.experiment_id = ? AND t2.analysis_id = t1.analysis_id AND t1.analysisType = ?");
+                    + "WHERE t2.experiment_id = ? AND t2.analysis_id = t1.analysis_id AND t1.analysis_type = ?");
             for (String analysisType : analysisTypes) {
                 ps.setString(1, experiment_id);
                 ps.setString(2, analysisType);
@@ -307,7 +307,7 @@ public class Experiment_JDBCDAO extends DAO {
                 String[] analysisTypes = {"ChIP-seq", "DNAse-seq", "Methyl-seq", "mRNA-seq", "smallRNA-seq", "Metabolomics", "Proteomics"};
                 ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                         + "SELECT t1.analysis_id FROM analysis AS t1, experiments_contains_analysis AS t2 "
-                        + "WHERE t2.experiment_id = ? AND t2.analysis_id = t1.analysis_id AND t1.analysisType = ?");
+                        + "WHERE t2.experiment_id = ? AND t2.analysis_id = t1.analysis_id AND t1.analysis_type = ?");
                 for (String analysisType : analysisTypes) {
                     ps.setString(1, experiment.getExperimentID());
                     ps.setString(2, analysisType);

@@ -29,7 +29,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import common.BlockedElementsManager;
 import common.ServerErrorManager;
-import common.UserSessionManager;
 import java.io.File;
 import java.io.IOException;
 import java.security.AccessControlException;
@@ -242,6 +241,7 @@ public class Experiment_servlets extends Servlet {
                 JsonObject requestData = (JsonObject) parser.parse(request.getReader());
 
                 String loggedUser = requestData.get("loggedUser").getAsString();
+                String loggedUserID = requestData.get("loggedUserID").getAsString();
                 String sessionToken = requestData.get("sessionToken").getAsString();
 
                 if (!checkAccessPermissions(loggedUser, sessionToken)) {
@@ -270,6 +270,14 @@ public class Experiment_servlets extends Servlet {
                  * *******************************************************
                  */
                 dao_instance = DAOProvider.getDAOByName("Experiment");
+
+                //CHECK IF CURRENT USER IS A VALID OWNER (AVOID HACKING)
+                boolean loadRecursive = false;
+                Experiment experimentAux = (Experiment) dao_instance.findByID(experiment.getExperimentID(), new Object[]{loadRecursive});
+                if (!experimentAux.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
+                    throw new AccessControlException("Cannot update selected Experiment. Current user has not privileges over this Experiment.");
+                }
+
                 dao_instance.disableAutocommit();
                 ROLLBACK_NEEDED = true;
                 dao_instance.update(experiment);
@@ -360,7 +368,6 @@ public class Experiment_servlets extends Servlet {
                 boolean loadRecursive = true;
                 Object[] params = {loadRecursive};
                 experimentsList = dao_instance.findAll(params);
-
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "get_all_experiments_handler", e.getMessage());
             } finally {
@@ -486,7 +493,6 @@ public class Experiment_servlets extends Servlet {
         boolean alreadyLocked = false;
         String locker_id = "";
         try {
-
             JsonParser parser = new JsonParser();
             JsonObject requestData = (JsonObject) parser.parse(request.getReader());
 
@@ -577,7 +583,7 @@ public class Experiment_servlets extends Servlet {
             String experiment_id = requestData.get("experiment_id").getAsString();
             alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(experiment_id);
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "lock_analysis_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "unlock_analysis_handler", e.getMessage());
         } finally {
             /**
              * *******************************************************
@@ -616,7 +622,8 @@ public class Experiment_servlets extends Servlet {
         try {
             boolean ROLLBACK_NEEDED = false;
             DAO dao_instance = null;
-
+            String experiment_id = null;
+            
             try {
                 JsonParser parser = new JsonParser();
                 JsonObject requestData = (JsonObject) parser.parse(request.getReader());
@@ -636,7 +643,7 @@ public class Experiment_servlets extends Servlet {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
-                String experiment_id = requestData.get("experiment_id").getAsString();
+                experiment_id = requestData.get("experiment_id").getAsString();
                 boolean alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().lockObject(experiment_id, loggedUserID);
                 if (alreadyLocked) {
                     String locker_id = BlockedElementsManager.getBlockedElementsManager().getLockerID(experiment_id);
@@ -645,7 +652,12 @@ public class Experiment_servlets extends Servlet {
                     }
                 }
 
-                //Get the experiment
+                /**
+                 * *******************************************************
+                 * STEP 3 REMOVE THE EXPERIMENT. IF ERROR --> throws MySQL
+                 * exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * *******************************************************
+                 */
                 dao_instance = DAOProvider.getDAOByName("Experiment");
                 dao_instance.disableAutocommit();
                 ROLLBACK_NEEDED = true;
@@ -714,6 +726,9 @@ public class Experiment_servlets extends Servlet {
                     obj.add("success", new JsonPrimitive(true));
                     response.getWriter().print(obj.toString());
                 }
+
+                BlockedElementsManager.getBlockedElementsManager().unlockObject(experiment_id);
+
                 /**
                  * *******************************************************
                  * STEP 5 Close connection.

@@ -130,9 +130,9 @@ public class User_servlets extends Servlet {
                  * *******************************************************
                  */
                 if (user == null) {
-                    throw new Exception("User not found. Please check the username and password.");
-                } else {
+                    throw new AccessControlException("User not found. Please check the username and password.");
                 }
+                
                 user.setSessionToken(UserSessionManager.getUserSessionManager().registerNewUser(email));
 
             } catch (Exception e) {

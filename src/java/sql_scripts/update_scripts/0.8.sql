@@ -16,9 +16,15 @@ ALTER TABLE experiments DROP COLUMN is_single_condition;
 ALTER TABLE experiments DROP COLUMN is_survival_type;
 ALTER TABLE experiments DROP COLUMN is_time_course_type;
 
+UPDATE biocondition SET biocondition_id=REPLACE(biocondition_id, 'BC', 'BC00');
 ALTER TABLE biocondition ADD COLUMN tags TEXT;
 ALTER TABLE biocondition ADD COLUMN public BOOLEAN DEFAULT TRUE;
 
+ALTER TABLE analyticalReplicate MODIFY COLUMN treatment_id VARCHAR(50);
+
+ALTER TABLE analysis CHANGE analysisType analysis_type varchar(200);
+ALTER TABLE analysis CHANGE analysisName analysis_name varchar(200);
+ALTER TABLE analysis ADD COLUMN tags TEXT;
 
 COMMIT;
 

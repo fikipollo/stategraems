@@ -7,6 +7,7 @@
         'users.directives.user-session',
         'experiments.controllers',
         'samples.controllers',
+        'analysis.controllers',
         'templates.services.template-list'
     ]);
 
@@ -80,6 +81,22 @@
                     biocondition_id: null,
                 },
                 data: {requireLogin: true}
+            },
+            analysis = {
+                name: 'analysis',
+                url: '/analysis',
+                templateUrl: "app/analysis/analysis-list.tpl.html",
+                data: {requireLogin: true}
+            },
+            analysisDetail = {
+                name: 'analysisDetail',
+                url: '/analysis-detail/',
+                templateUrl: "app/analysis/analysis-form.tpl.html",
+                params: {
+                    viewMode: 'view', //creation, edition
+                    analysis_id: null,
+                },
+                data: {requireLogin: true}
             };
             $stateProvider.state(signin);
             $stateProvider.state(home);
@@ -87,6 +104,8 @@
             $stateProvider.state(experimentDetail);
             $stateProvider.state(samples);
             $stateProvider.state(sampleDetail);
+            $stateProvider.state(analysis);
+            $stateProvider.state(analysisDetail);
         }]);
 
     app.controller('MainController', function ($rootScope, $scope, $state, $http, $dialogs, myAppConfig, TemplateList) {
@@ -96,8 +115,16 @@
 
         this.pages = [
             {name: 'home', title: 'Home', icon: 'home', isParent: true},
-            {name: 'experiments', title: 'Experiments', icon: 'book', isParent: true},
-            {name: 'samples', title: 'Samples', icon: 'flask', isParent: true}
+            {name: '', title: 'Experiments', icon: 'book', isParent: true},
+            {name: 'experiments', title: 'Browse experiments', icon: 'angle-right', isParent: false},
+            {name: 'experimentDetail', title: 'Show current experiment', icon: 'angle-right', isParent: false, params: {viewMode: 'view', experiment_id: "promise"}},
+            {name: 'experimentDetail', title: 'Annotate new Experiment', icon: 'angle-right', isParent: false, params: {viewMode: 'creation'}},
+            {name: '', title: 'Samples', icon: 'flask', isParent: true},
+            {name: 'samples', title: 'Browse samples', icon: 'angle-right', isParent: false},
+            {name: 'sampleDetail', title: 'Annotate new samples', icon: 'angle-right', isParent: false, params: {viewMode: 'creation'}},
+            {name: '', title: 'Analysis', icon: 'sitemap', isParent: true},
+            {name: 'analysis', title: 'Browse analysis', icon: 'angle-right', isParent: false},
+            {name: 'analysisDetail', title: 'Annotate new analysis', icon: 'angle-right', isParent: false, params: {viewMode: 'creation'}}
         ];
 
         $rootScope.getRequestPath = function (service, extra) {
@@ -134,7 +161,29 @@
                 case "sample-info":
                     return myAppConfig.EMS_SERVER + "get_biocondition";
                 case "sample-create":
-                    return myAppConfig.EMS_SERVER + "add_sample";
+                    return myAppConfig.EMS_SERVER + "add_biocondition";
+                case "sample-update":
+                    return myAppConfig.EMS_SERVER + "update_biocondition";
+                case "sample-delete":
+                    return myAppConfig.EMS_SERVER + "remove_biocondition";
+                case "sample-lock":
+                    return myAppConfig.EMS_SERVER + "lock_biocondition";
+                case "sample-unlock":
+                    return myAppConfig.EMS_SERVER + "unlock_biocondition";
+                case "analysis-list":
+                    return myAppConfig.EMS_SERVER + "get_all_analysis";
+                case "analysis-info":
+                    return myAppConfig.EMS_SERVER + "get_analysis";
+//                case "sample-create":
+//                    return myAppConfig.EMS_SERVER + "add_biocondition";
+//                case "sample-update":
+//                    return myAppConfig.EMS_SERVER + "update_biocondition";
+//                case "sample-delete":
+//                    return myAppConfig.EMS_SERVER + "remove_biocondition";
+//                case "sample-lock":
+//                    return myAppConfig.EMS_SERVER + "lock_biocondition";
+//                case "sample-unlock":
+//                    return myAppConfig.EMS_SERVER + "unlock_biocondition";
                 default:
                     return "";
             }
@@ -258,8 +307,12 @@
 
 
         this.setPage = function (page) {
-            $state.transitionTo(page);
-            $scope.currentPage = page;
+            if (page.params && page.params.experiment_id !== undefined) {
+                page.params.experiment_id = Cookies.get("currentExperimentID");
+            }
+
+            $state.go(page.name, page.params);
+            $scope.currentPage = page.name;
         };
 
         this.getPageTitle = function (page) {

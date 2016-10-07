@@ -18,60 +18,60 @@
  *     and others.
  *
  * THIS FILE CONTAINS THE FOLLOWING MODULE DECLARATION
- * - samples.services.sample-list
+ * - protocols.services.protocol-list
  *
  */
 (function () {
-    var app = angular.module('samples.services.sample-list', []);
+    var app = angular.module('protocols.services.protocol-list', []);
 
-    app.factory("SampleList", ['$rootScope', function ($rootScope) {
-            var bioconditions = [];
+    app.factory("ProtocolList", ['$rootScope', function ($rootScope) {
+            var protocols = [];
             var tags = [];
             var filters = [];
             var tagColors = ['yellow', 'green', 'red', 'blue', 'purple', 'pink', 'yellow2', 'green2', 'red2', 'blue2', 'purple2', 'pink2']
             var old = new Date(0);
             //http://stackoverflow.com/questions/18247130/how-to-store-the-data-to-local-storage
             return {
-                getSamples: function () {
-                    return bioconditions;
+                getProtocols: function () {
+                    return protocols;
                 },
-                setSamples: function (_bioconditions) {
-                    bioconditions = this.adaptInformation(_bioconditions);
+                setProtocols: function (_protocols) {
+                    protocols = this.adaptInformation(_protocols);
                     old = new Date();
                     return this;
                 },
-                getBiocondition: function (biocondition_id) {
-                    for (var i in bioconditions) {
-                        if (bioconditions[i].biocondition_id === biocondition_id) {
-                            return bioconditions[i];
+                getProtocol: function (protocol_id) {
+                    for (var i in protocols) {
+                        if (protocols[i].protocol_id === protocol_id) {
+                            return protocols[i];
                         }
                     }
                     return null;
                 },
-                addBiocondition: function (biocondition) {
-                    var previous = this.getBiocondition(biocondition.biocondition_id);
+                addProtocol: function (protocol) {
+                    var previous = this.getProtocol(protocol.protocol_id);
                     if (previous === null) {
-                        bioconditions.push(biocondition);
+                        protocols.push(protocol);
                     } else {
-                        return this.updateBiocondition(biocondition);
+                        return this.updateProtocol(protocol);
                     }
                     this.updateTags();
-                    return biocondition;
+                    return protocol;
                 },
-                updateBiocondition: function (_biocondition) {
-                    var previous = this.getBiocondition(_biocondition.biocondition_id);
+                updateProtocol: function (_protocol) {
+                    var previous = this.getProtocol(_protocol.protocol_id);
                     if (previous !== null) {
-                        for (var i in _biocondition) {
-                            previous[i] = _biocondition[i];
+                        for (var i in _protocol) {
+                            previous[i] = _protocol[i];
                         }
                     }
                     this.updateTags();
                     return previous;
                 },
-                deleteBiocondition: function (biocondition_id) {
-                    for (var i in bioconditions) {
-                        if (bioconditions[i].biocondition_id === biocondition_id) {
-                            biocondition_id.splice(i, 1);
+                deleteProtocol: function (protocol_id) {
+                    for (var i in protocols) {
+                        if (protocols[i].protocol_id === protocol_id) {
+                            protocols.splice(i, 1);
                             break;
                         }
                     }
@@ -96,8 +96,8 @@
                 updateTags: function () {
                     var tagsAux = {}, _tags;
 
-                    for (var i in bioconditions) {
-                        _tags = bioconditions[i].tags;
+                    for (var i in protocols) {
+                        _tags = protocols[i].tags;
                         for (var j in _tags) {
                             tagsAux[_tags[j]] = {
                                 name: _tags[j],
@@ -115,7 +115,7 @@
                     }
 
 
-                    tags.push({name: "All", times: bioconditions.length});
+                    tags.push({name: "All", times: protocols.length});
 
                     return this;
                 },
@@ -136,53 +136,37 @@
                 getOld: function () {
                     return (new Date() - old) / 60000;
                 },
-                adaptInformation: function (_bioconditions) {
-                    for (var i in _bioconditions) {
+                adaptInformation: function (_protocols) {
+                    for (var i in _protocols) {
                         //ADAPT THE DATES
-                        var date = _bioconditions[i].submission_date;
+                        var date = _protocols[i].submission_date;
                         if (date.indexOf("/") === -1) {
                             date = date.substr(0, 4) + "/" + date.substr(4, 2) + "/" + date.substr(6, 2);
                         }
-                        _bioconditions[i].submission_date = new Date(date);
+                        _protocols[i].submission_date = new Date(date);
 
-                        date = _bioconditions[i].last_edition_date;
+                        date = _protocols[i].last_edition_date;
                         if (date.indexOf("/") === -1) {
                             date = date.substr(0, 4) + "/" + date.substr(4, 2) + "/" + date.substr(6, 2);
                         }
-                        _bioconditions[i].last_edition_date = new Date(date);
-                        
-                        _bioconditions[i].tags = _bioconditions[i].tags || [];
+                        _protocols[i].last_edition_date = new Date(date);
 
-                        //Create the table for protocols -> list(AS)
-                        this.adaptBioreplicatesInformation(_bioconditions[i].associatedBioreplicates);
+                        //ADAPT THE TAGS
+//                        _protocols[i].tags = ((_protocols[i].tags !== undefined) ? _protocols[i].tags.split(",") : ["Case-control"]);
                     }
-                    return _bioconditions;
+                    return _protocols;
                 },
-                adaptBioreplicatesInformation: function (_bioreplicates) {
-                    for (var j in _bioreplicates) {
-                        _bioreplicates[j].extractionProtocols = {};
-                        var analyticalSamples = _bioreplicates[j].associatedAnalyticalReplicates;
-                        for (var k in analyticalSamples) {
-                            var treatmentID = (analyticalSamples[k].treatment_id || "Unknown");
-                            if (!_bioreplicates[j].extractionProtocols[treatmentID]) {
-                                _bioreplicates[j].extractionProtocols[treatmentID] = [];
-                            }
-                            _bioreplicates[j].extractionProtocols[treatmentID].push(analyticalSamples[k]);
-                        }
-                    }
-                    return _bioreplicates;
-                },
-                isOwner: function (biocondition, user_id) {
-                    for (var i in biocondition.owners) {
-                        if (biocondition.owners[i].user_id === user_id) {
+                isOwner: function (protocol, user_id) {
+                    for (var i in protocol.protocol_owners) {
+                        if (protocol.protocol_owners[i].user_id === user_id) {
                             return true;
                         }
                     }
                     return false;
                 },
-                isMember: function (biocondition, user_id) {
-                    for (var i in biocondition.members) {
-                        if (biocondition.members[i].user_id === user_id) {
+                isMember: function (protocol, user_id) {
+                    for (var i in protocol.protocol_members) {
+                        if (protocol.protocol_members[i].user_id === user_id) {
                             return true;
                         }
                     }
@@ -231,39 +215,6 @@
                         }
                     }
                     return model;
-                },
-                updateModelStatus: function (model, newStatus) {
-                    if (newStatus === "undo") {
-                        if (model.status === "deleted") {
-                            delete model.status;
-                        }
-                        if (model.status === "new_deleted") {
-                            model.status = "new";
-                        }
-                        if (model.status === "edited") {
-                            delete model.status;
-                            //TODO: restore from memento.
-                        }
-                        if (model.status === "edited_deleted") {
-                            model.status = "edited";
-                        }
-                    } else {
-                        if (model.status === "new") {
-                            if (newStatus === "deleted") {
-                                model.status = "new_deleted";
-                            }
-                        } else if (model.status === "edited") {
-                            if (newStatus === "deleted") {
-                                model.status = "edited_deleted";
-                            }
-                        } else if (model.status === undefined) {
-                            if (newStatus === "deleted") {
-                                model.status = "deleted";
-                            } else if (newStatus === "edited") {
-                                model.status = "edited";
-                            }
-                        }
-                    }
                 }
             };
         }]);

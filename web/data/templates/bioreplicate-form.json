@@ -1,0 +1,20 @@
+{
+    "id": "bioreplicate-form",
+    "content": [
+        {
+            "name": "section_1",
+            "fields": [
+                {
+                    "name": "bioreplicate_id",
+                    "label": "Sample ID",
+                    "type": "display"
+                },
+                {
+                    "name": "bioreplicate_name",
+                    "label": "Sample name",
+                    "type": "text"
+                }
+            ]
+        }
+    ]
+}

@@ -8,7 +8,7 @@
                 {
                     "name": "experiment_id",
                     "label": "Experiment ID",
-                    "type": "text"
+                    "type": "display"
                 },
                 {
                     "name": "title",

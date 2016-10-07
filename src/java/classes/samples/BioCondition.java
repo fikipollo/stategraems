@@ -22,6 +22,7 @@ package classes.samples;
 import classes.Experiment;
 import classes.User;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 
 /**
  *
@@ -54,10 +55,10 @@ public class BioCondition {
     private Bioreplicate[] associatedBioreplicates;
     private Experiment[] associatedExperiments;
     private boolean hasTreatmentDocument = false;
-    
+    //OTHER
     String[] tags;
     boolean isPublic = true;
-
+    
     public BioCondition() {
     }
 
@@ -68,9 +69,10 @@ public class BioCondition {
      * @param jsonString the JSON object
      * @return the new Object.
      */
-    public static BioCondition fromJSON(String jsonString) {
+    public static BioCondition fromJSON(JsonElement jsonString) {
         Gson gson = new Gson();
         BioCondition biocondition = gson.fromJson(jsonString, BioCondition.class);
+        biocondition.adaptDates();
 
         return biocondition;
     }
@@ -234,6 +236,17 @@ public class BioCondition {
         this.last_edition_date = last_edition_date;
     }
 
+    public void adaptDates() {
+        if (this.submission_date.contains("-")) {
+            String[] aux = this.submission_date.split("T");
+            this.submission_date = aux[0].replaceAll("-", "");
+        }
+        if (this.last_edition_date.contains("-")) {
+            String[] aux = this.last_edition_date.split("T");
+            this.last_edition_date = aux[0].replaceAll("-", "");
+        }
+    }
+    
     public User[] getOwners() {
         return owners;
     }

@@ -1,0 +1,46 @@
+<div class="section_box row" ng-controller="BioreplicateDetailController as controller" ng-class="(model.status)?model.status.replace('_', ' '):''">
+    <a class="clickable text-danger" style="float: right;margin: 10px;" ng-click="controller.removeBioreplicateHandler();" ng-show="controller.removableModel()" >
+        <i class="fa fa-trash-o"></i> Delete this sample
+    </a>
+    <a class="clickable text-info" style="float: right; margin: 10px;" ng-click="controller.unremoveBioreplicateHandler();" ng-show="controller.unremovableModel()">
+        <i class="fa fa-undo"></i> Restore this sample
+    </a>
+    <h2 class="section_title">Sample details</h2>
+    <div class="row" ng-repeat="section in template.content">
+        <h3 ng-if="section.title" class="section_subtitle">{{section.title}}</h3>
+        <form-field ng-repeat="field in section.fields"></form-field>
+        <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+    </div>
+    <h2 class="section_title">Aliquots</h2>
+    <div class="well" style=" margin: 15px; ">
+        <p><i class="fa fa-info-circle"></i> <b>{{model.associatedAnalyticalReplicates.length}}</b> aliquots were extracted from this sample using <b>{{getTotalExtractionProcotols()}}</b> different extraction protocols.</p>
+    </div>
+    <div ng-if="viewMode !== 'view' && (model.status === undefined || model.status.indexOf('deleted') === - 1)" class="navbar-form">
+        <div style="margin: auto;display: block;max-width: 625px;text-align: center;margin-top: 34px;">
+            <a class="btn btn-md btn-primary" type="button" ng-click="controller.addNewAnalyticalReplicateButtonHandler()">
+                <i class="fa fa-plus-circle"></i> Add new aliquot
+            </a>
+        </div>
+    </div>
+    <div style="margin: 30px;" ng-repeat="(protocol_id, analyticalReplicates) in model.extractionProtocols"  >
+        <h3 class="section_subtitle">Aliquots for protocol {{getProtocolName(protocol_id)}}</h3>
+        <table class="table" style="width:100%" >
+            <tr><th>Aliquot ID</th><th>Aliquot name</th><th ng-if="viewMode !== 'view'" style="width:85px;"></th></tr>
+            <tr ng-repeat="model in analyticalReplicates" ng-controller="AnalyticalReplicateDetailController as controller" ng-class="(model.status)?model.status.replace('_', ' '):''">
+                <td><input style=" width: 100%; height: 30px; " type="text" ng-model="model.analytical_rep_id" ng-readonly="viewMode === 'view'" disabled></td>
+                <td><input style=" width: 100%; height: 30px; " type="text" ng-model="model.analytical_rep_name" ng-readonly="viewMode === 'view'" ></td>
+                <td ng-if="viewMode !== 'view'" >
+                    <a class="clickable text-danger" ng-show="controller.removableModel()" ng-click="controller.removeAnalyticalReplicateHandler();"><i class="fa fa-trash-o" ></i> Remove</a>
+                    <a class="clickable text-info" ng-show="controller.unremovableModel()" ng-click="controller.unremoveAnalyticalReplicateHandler();"><i class="fa fa-undo"></i> Restore</a>
+                </td>
+            </tr>
+        </table>
+        <div ng-if="viewMode !== 'view' && (model.status === undefined || model.status.indexOf('deleted') === - 1)" class="navbar-form">
+            <div style="margin: auto;display: block;max-width: 625px;text-align: center;margin-top: 34px;">
+                <a class="btn btn-sm btn-primary" type="button" ng-click="controller.addNewAnalyticalReplicateButtonHandler(protocol_id)">
+                    <i class="fa fa-plus-circle"></i> Add new aliquot for this protocol
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
