@@ -31,9 +31,12 @@ import java.util.ArrayList;
 import classes.analysis.Analysis;
 import classes.analysis.NonProcessedData;
 import classes.analysis.ProcessedData;
+import classes.analysis.Step;
 import classes.analysis.processed_data.Region_step;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import common.BlockedElementsManager;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -157,9 +160,9 @@ public class Analysis_servlets extends Servlet {
 
                 String experiment_id = null;
                 if (requestData.has("experiment_id")) {
-                    loadRecursive = requestData.get("loadRecursive").getAsBoolean();
+                    experiment_id = requestData.get("experiment_id").getAsString();
                 } else {
-                    loadRecursive = requestData.get("currentExperimentID").getAsBoolean();
+                    experiment_id = requestData.get("currentExperimentID").getAsString();
                 }
 
                 Object[] params = {loadRecursive, experiment_id};
@@ -749,15 +752,23 @@ public class Analysis_servlets extends Servlet {
      */
     private void lock_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         boolean alreadyLocked = false;
+        String locker_id = "";
+        ArrayList<String> notLockedSteps = new ArrayList<String>();
+
         try {
+            JsonParser parser = new JsonParser();
+            JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+            String loggedUser = requestData.get("loggedUser").getAsString();
+            String sessionToken = requestData.get("sessionToken").getAsString();
+
             /**
              * *******************************************************
              * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
              * --> throws exception if not valid session, GO TO STEP ELSE --> GO
              * TO STEP 2 *******************************************************
              */
-            String loggedUser = request.getParameter("loggedUser");
-            if (!checkAccessPermissions(loggedUser, request.getParameter("sessionToken"))) {
+            if (!checkAccessPermissions(loggedUser, sessionToken)) {
                 throw new AccessControlException("Your session is invalid. User or session token not allowed.");
             }
 
@@ -767,8 +778,47 @@ public class Analysis_servlets extends Servlet {
              * exception, GO TO STEP ELSE --> GO TO STEP 3
              * *******************************************************
              */
-            String analysisID = request.getParameter("analysis_id");
-            alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().lockObject(analysisID, loggedUser);
+            String analysis_id = requestData.get("analysis_id").getAsString();
+            alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().lockObject(analysis_id, loggedUser);
+
+            /**
+             * *******************************************************
+             * STEP 3 TRY TO LOCK THE STEPS. exception, GO TO STEP ELSE --> GO
+             * TO STEP 3 *******************************************************
+             */
+            if (!alreadyLocked) {
+                DAO dao_instance = DAOProvider.getDAOByName("Analysis");
+                boolean loadRecursive = true;
+                Object[] params = {loadRecursive};
+                Analysis analysis = (Analysis) dao_instance.findByID(analysis_id, params);
+                dao_instance.closeConnection();
+                String step_id;
+                for (Step step : analysis.getNonProcessedData()) {
+                    step_id = step.getStepID();
+                    if (!BlockedElementsManager.getBlockedElementsManager().lockObject(step_id, loggedUser)) {
+                        notLockedSteps.add(step_id);
+                    }
+                }
+                for (Step step : analysis.getProcessedData()) {
+                    step_id = step.getStepID();
+                    if (!BlockedElementsManager.getBlockedElementsManager().lockObject(step_id, loggedUser)) {
+                        notLockedSteps.add(step_id);
+                    }
+                }
+
+                //UNLOCK STEPS AND ANALYSIS
+                if (notLockedSteps.size() > 0) {
+                    BlockedElementsManager.getBlockedElementsManager().unlockObject(analysis_id, loggedUser);
+                    for (Step step : analysis.getNonProcessedData()) {
+                        BlockedElementsManager.getBlockedElementsManager().unlockObject(step.getStepID(), loggedUser);
+                    }
+                    for (Step step : analysis.getProcessedData()) {
+                        BlockedElementsManager.getBlockedElementsManager().unlockObject(step.getStepID(), loggedUser);
+                    }
+                }
+            } else {
+                locker_id = BlockedElementsManager.getBlockedElementsManager().getLockerID(analysis_id);
+            }
         } catch (Exception e) {
             ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "lock_analysis_handler", e.getMessage());
         } finally {
@@ -783,18 +833,30 @@ public class Analysis_servlets extends Servlet {
             } else {
                 /**
                  * *******************************************************
-                 * STEP 3A WRITE RESPONSE ERROR.
+                 * STEP 3A WRITE RESPONSE .
                  * *******************************************************
                  */
+                JsonObject obj = new JsonObject();
                 if (alreadyLocked) {
-                    response.getWriter().print("{success: " + false + ", reason: '" + BlockedElementsManager.getErrorMessage() + "'}");
+                    obj.add("success", new JsonPrimitive(false));
+                    obj.add("reason", new JsonPrimitive(BlockedElementsManager.getErrorMessage()));
+                    obj.add("user_id", new JsonPrimitive(locker_id));
+                } else if (notLockedSteps.size() > 0) {
+                    JsonArray _notLockedSteps = new JsonArray();
+                    obj.add("success", new JsonPrimitive(false));
+                    obj.add("reason", new JsonPrimitive("Some of the steps are locked by other users"));
+                    for (String step_id : notLockedSteps) {
+                        _notLockedSteps.add(new JsonPrimitive(step_id));
+                    }
+                    obj.add("notLockedSteps", _notLockedSteps);
+
                 } else {
-                    response.getWriter().print("{success: " + true + " }");
+                    obj.add("success", new JsonPrimitive(true));
                 }
+                response.getWriter().print(obj.toString());
             }
         }
     }
-
     /*
      * name: unblock_analysis_handler
      * description :
@@ -803,16 +865,25 @@ public class Analysis_servlets extends Servlet {
      * @throws ServletException
      * @throws IOException
      */
+
     private void unlock_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         boolean alreadyUnlocked = false;
+        ArrayList<String> notUnlockedSteps = new ArrayList<String>();
+
         try {
+            JsonParser parser = new JsonParser();
+            JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+            String loggedUser = requestData.get("loggedUser").getAsString();
+            String sessionToken = requestData.get("sessionToken").getAsString();
+
             /**
              * *******************************************************
              * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
              * --> throws exception if not valid session, GO TO STEP ELSE --> GO
              * TO STEP 2 *******************************************************
              */
-            if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+            if (!checkAccessPermissions(loggedUser, sessionToken)) {
                 throw new AccessControlException("Your session is invalid. User or session token not allowed.");
             }
 
@@ -822,8 +893,27 @@ public class Analysis_servlets extends Servlet {
              * throws exception, GO TO STEP ELSE --> GO TO STEP 3
              * *******************************************************
              */
-            String analysis_id = request.getParameter("analysis_id");
-            alreadyUnlocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(analysis_id);
+            String analysis_id = requestData.get("analysis_id").getAsString();
+            alreadyUnlocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(analysis_id, loggedUser);
+
+            /**
+             * *******************************************************
+             * STEP 3 TRY TO UNLOCK THE STEPS. exception, GO TO STEP ELSE --> GO
+             * TO STEP 3 *******************************************************
+             */
+            DAO dao_instance = DAOProvider.getDAOByName("Analysis");
+            boolean loadRecursive = true;
+            Object[] params = {loadRecursive};
+            Analysis analysis = (Analysis) dao_instance.findByID(analysis_id, params);
+            dao_instance.closeConnection();
+            String step_id;
+            for (Step step : analysis.getNonProcessedData()) {
+                step_id = step.getStepID();
+                if (!BlockedElementsManager.getBlockedElementsManager().unlockObject(step_id, loggedUser)) {
+                    notUnlockedSteps.add(step_id);
+                }
+            }
+
         } catch (Exception e) {
             ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "unlock_analysis_handler", e.getMessage());
         } finally {
@@ -838,14 +928,25 @@ public class Analysis_servlets extends Servlet {
             } else {
                 /**
                  * *******************************************************
-                 * STEP 3A WRITE RESPONSE ERROR.
+                 * STEP 3A WRITE RESPONSE .
                  * *******************************************************
                  */
+                JsonObject obj = new JsonObject();
                 if (alreadyUnlocked) {
-                    response.getWriter().print("{success: " + false + ", reason: '" + BlockedElementsManager.getErrorMessage() + "'}");
+                    obj.add("success", new JsonPrimitive(false));
+                    obj.add("reason", new JsonPrimitive(BlockedElementsManager.getErrorMessage()));
                 } else {
-                    response.getWriter().print("{success: " + true + " }");
+                    obj.add("success", new JsonPrimitive(true));
+
+                    if (notUnlockedSteps.size() > 0) {
+                        JsonArray _notUnlockedSteps = new JsonArray();
+                        for (String step_id : notUnlockedSteps) {
+                            _notUnlockedSteps.add(new JsonPrimitive(step_id));
+                        }
+                        obj.add("notUnlockedSteps", _notUnlockedSteps);
+                    }
                 }
+                response.getWriter().print(obj.toString());
             }
         }
     }

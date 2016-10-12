@@ -278,14 +278,12 @@ h3.section_subtitle {
     margin: 10px 0px;
 }
 
-
 .section_box {
     background-color: #fff;
     margin-bottom: 20px;
     border: 1px solid #eaeaea;
     border-top: 4px #FFB0B0 solid !important;
 }
-
 
 .section_box:nth-child(2n){border-top: 4px #F1D460 solid !important;}
 
@@ -324,7 +322,6 @@ h3.section_subtitle {
 
 .bootstrap-tagsinput{margin-left: -15px;}
 
-
 input:read-only, input:disabled {background: none;}
 input:read-only {border: none !important;}
 textarea:read-only {border-color: #e4e4e4;}
@@ -334,6 +331,18 @@ select:disabled {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+}
+.nav-tabs>li>a {
+    border: 1px solid rgb(230, 230, 230);
+}
+
+.regionSelectedItem, .stepSelectedItem, .fileLocationItem, .softwareConfigurationItem {
+    font-size: 12px;
+    padding: 10px;
+    background-color: rgb(255, 255, 255);
+    border: 1px solid rgb(192, 192, 192) !important;
+    border-left: 8px solid rgb(139, 204, 216) !important;
+    overflow: hidden;
 }
 
 /******************************************************************************************/

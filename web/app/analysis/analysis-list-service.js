@@ -49,6 +49,19 @@
                     }
                     return null;
                 },
+                findStep: function (step_id) {
+                    var analysis = this.findAnalysis(step_id.split(".")[0].replace("ST", "AN"));
+
+                    if (analysis) {
+                        var steps = analysis.non_processed_data.concat(analysis.processed_data); // Merges both arrays
+                        for (var i in steps) {
+                            if (steps[i].step_id === step_id) {
+                                return steps[i];
+                            }
+                        }
+                    }
+                    return null;
+                },
                 addAnalysis: function (analysis) {
                     var previous = this.findAnalysis(analysis.analysis_id);
                     if (previous === null) {
@@ -168,7 +181,9 @@
                         //ADAPT THE TAGS
                         _analysis[i].tags = (_analysis[i].tags || []);
                         _analysis[i].tags.push(_analysis[i].analysis_type);
-                        //TODO: ADAPT STEPS INFO
+                        //ADAPT STEPS INFO
+                        this.adaptStepInformation(_analysis[i].non_processed_data);
+                        this.adaptStepInformation(_analysis[i].processed_data);
                     }
                     return _analysis;
                 },
@@ -187,14 +202,27 @@
                         }
                         steps[i].last_edition_date = new Date(date);
 
-                        //ADAPT THE TAGS
-//                        _analysis[i].tags = ((_analysis[i].tags !== undefined) ? _analysis[i].tags.split(",") : ["Case-control"]);
+                        steps[i].files_location = steps[i].files_location.split("$$");
                     }
                     return steps;
                 },
                 isOwner: function (analysis, user_id) {
-                    for (var i in analysis.analysis_owners) {
-                        if (analysis.analysis_owners[i].user_id === user_id) {
+                    if (!analysis.non_processed_data && !analysis.processed_data) {
+                        return false;
+                    }
+                    var steps = analysis.non_processed_data.concat(analysis.processed_data); // Merges both arrays
+                    for (var i in steps) {
+                        for (var j in steps[i].step_owners) {
+                            if (steps[i].step_owners[j].user_id === user_id) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                },
+                isStepOwner: function (step, user_id) {
+                    for (var i in step.step_owners) {
+                        if (step.step_owners[i].user_id === user_id) {
                             return true;
                         }
                     }

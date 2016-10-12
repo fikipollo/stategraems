@@ -8,6 +8,7 @@
         'experiments.controllers',
         'samples.controllers',
         'analysis.controllers',
+        'files.controllers',
         'templates.services.template-list'
     ]);
 
@@ -180,8 +181,8 @@
 //                    return myAppConfig.EMS_SERVER + "update_biocondition";
 //                case "sample-delete":
 //                    return myAppConfig.EMS_SERVER + "remove_biocondition";
-//                case "sample-lock":
-//                    return myAppConfig.EMS_SERVER + "lock_biocondition";
+                case "analysis-lock":
+                    return myAppConfig.EMS_SERVER + "lock_analysis";
 //                case "sample-unlock":
 //                    return myAppConfig.EMS_SERVER + "unlock_biocondition";
                 default:
@@ -257,6 +258,14 @@
                 //$dialogs.showInfoDialog("This is a dialog!", {title: "Hello world!"});
             }
         };
+        $rootScope.getParentController = function (controllerName) {
+            if (this.controller.name === controllerName) {
+                return this.controller;
+            } else if (this.$parent && this.$parent.getParentController) {
+                return this.$parent.getParentController(controllerName);
+            }
+            return  null;
+        };
         $rootScope.getCredentialsParams = function (request_params) {
             var credentials = {};
             if (request_params != null) {
@@ -269,19 +278,24 @@
             credentials['currentExperimentID'] = Cookies.get('currentExperimentID');
             return credentials;
         };
-        $rootScope.getFormTemplate = function (childScope, template_id) {
-            if (template_id) {
-                childScope.template = TemplateList.getTemplate(template_id);
+        $rootScope.getFormTemplate = function (template_name, propertyName) {
+            if (template_name) {
+                var scope = this;
+                propertyName = propertyName || "template";
+                var template_id = template_name.split("/");
+                template_id = template_id[template_id.length -1];
+                
+                scope[propertyName] = TemplateList.getTemplate(template_id);
 
-                if (childScope.template === null) {
-                    $http({method: 'GET', url: 'data/templates/' + template_id + '.json'}).then(
+                if (this[propertyName] === null) {
+                    $http({method: 'GET', url: 'data/templates/' + template_name + '.json'}).then(
                             function successCallback(response) {
                                 TemplateList.addTemplate(response.data);
-                                childScope.template = TemplateList.getTemplate(template_id);
+                                scope[propertyName] = TemplateList.getTemplate(template_id);
                             },
                             function errorCallback(response) {
                                 debugger;
-                                var message = "Failed while retrieving the template for type " + template_id;
+                                var message = "Failed while retrieving the template for type " + template_name;
                                 $dialogs.showErrorDialog(message, {
                                     logMessage: message + " at MainController:getFormTemplate."
                                 });

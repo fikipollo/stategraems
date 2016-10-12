@@ -222,20 +222,7 @@ public class Experiment_JDBCDAO extends DAO {
             experiment.setTags(rs.getString("tags"));
         }
 
-        if (experiment != null && loadRecursive) {
-            String[] analysisTypes = {"ChIP-seq", "DNAse-seq", "Methyl-seq", "mRNA-seq", "smallRNA-seq", "Metabolomics", "Proteomics"};
-            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                    + "SELECT t1.analysis_id FROM analysis AS t1, experiments_contains_analysis AS t2 "
-                    + "WHERE t2.experiment_id = ? AND t2.analysis_id = t1.analysis_id AND t1.analysis_type = ?");
-            for (String analysisType : analysisTypes) {
-                ps.setString(1, experiment_id);
-                ps.setString(2, analysisType);
-                rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
-                if (rs.first()) {
-                    experiment.setContainsAnalysis(analysisType);
-                }
-            }
-
+        if (experiment != null) {
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT user_id, role FROM experiment_owners WHERE experiment_id = ?");
             ps.setString(1, experiment_id);
             rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
@@ -253,6 +240,21 @@ public class Experiment_JDBCDAO extends DAO {
             }
             experiment.setExperimentOwners(owners.toArray(new User[owners.size()]));
             experiment.setExperimentMembers(members.toArray(new User[members.size()]));
+        }
+
+        if (experiment != null && loadRecursive) {
+            String[] analysisTypes = {"ChIP-seq", "DNAse-seq", "Methyl-seq", "mRNA-seq", "smallRNA-seq", "Metabolomics", "Proteomics"};
+            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                    + "SELECT t1.analysis_id FROM analysis AS t1, experiments_contains_analysis AS t2 "
+                    + "WHERE t2.experiment_id = ? AND t2.analysis_id = t1.analysis_id AND t1.analysis_type = ?");
+            for (String analysisType : analysisTypes) {
+                ps.setString(1, experiment_id);
+                ps.setString(2, analysisType);
+                rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
+                if (rs.first()) {
+                    experiment.setContainsAnalysis(analysisType);
+                }
+            }
         }
 
         return experiment;

@@ -1010,7 +1010,7 @@ public class Samples_servlets extends Servlet {
              * *******************************************************
              */
             String biocondition_id = requestData.get("biocondition_id").getAsString();
-            alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(biocondition_id);
+            alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(biocondition_id, loggedUser);
         } catch (Exception e) {
             ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "unlock_biocondition_handler", e.getMessage());
         } finally {
@@ -1048,14 +1048,14 @@ public class Samples_servlets extends Servlet {
     private void remove_biocondition_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             String biocondition_id = "";
-
+            String loggedUser = "";
             boolean ROLLBACK_NEEDED = false;
             DAO dao_instance = null;
             try {
                 JsonParser parser = new JsonParser();
                 JsonObject requestData = (JsonObject) parser.parse(request.getReader());
 
-                String loggedUser = requestData.get("loggedUser").getAsString();
+                loggedUser = requestData.get("loggedUser").getAsString();
                 String loggedUserID = requestData.get("loggedUserID").getAsString();
                 String sessionToken = requestData.get("sessionToken").getAsString();
 
@@ -1084,7 +1084,7 @@ public class Samples_servlets extends Servlet {
                         throw new Exception("Sorry but this biological condition is being edited by other user. Please try later.");
                     }
                 }
-                
+
                 dao_instance = DAOProvider.getDAOByName("Biocondition");
                 dao_instance.disableAutocommit();
                 ROLLBACK_NEEDED = true;
@@ -1140,7 +1140,7 @@ public class Samples_servlets extends Servlet {
                     response.getWriter().print(obj.toString());
                 }
 
-                BlockedElementsManager.getBlockedElementsManager().unlockObject(biocondition_id);
+                BlockedElementsManager.getBlockedElementsManager().unlockObject(biocondition_id, loggedUser);
 
                 /**
                  * *******************************************************

@@ -1,6 +1,6 @@
 /*
- * (C) Copyright 2016 SLU Global Bioinformatics Centre, SLU
- * (http://sgbc.slu.se) and the B3Africa Project (http://www.b3africa.org/).
+ * (C) Copyright 2014 The Genomics of Gene Expression Lab, CIPF 
+ * (http://bioinfo.cipf.es/aconesawp) and others.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -13,13 +13,12 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     Rafael Hernandez de Diego <rafahdediego@gmail.com>
- *     Tomas Klingström
- *     Erik Bongcam-Rudloff
+ *     Rafael Hernandez de Diego, rhernandez@cipf.es
+ *     Ana Conesa Cegarra, aconesa@cipf.es
  *     and others.
  *
  * THIS FILE CONTAINS THE FOLLOWING MODULE DECLARATION
- * - workflow-list
+ * - user-list
  *
  */
 (function () {

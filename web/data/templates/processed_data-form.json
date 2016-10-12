@@ -1,18 +1,28 @@
 {
-    "id": "processeddata-form",
+    "id": "processed_data-form",
     "content": [
         {
             "name": "section_1",
             "fields": [
                 {
-                    "name": "step_id",
-                    "label": "Step ID",
-                    "type": "display"
-                },
-                {
                     "name": "step_name",
                     "label": "Step name",
                     "type": "text"
+                },
+                {
+                    "name": "processed_data_type",
+                    "label": "processed_data_type",
+                    "type": "text"
+                },
+                {
+                    "name": "files_location",
+                    "label": "Output files",
+                    "type": "output_files_selector"
+                },
+                {
+                    "name": "step_id",
+                    "label": "Step ID",
+                    "type": "display"
                 },
                 {
                     "name": "submission_date",
@@ -23,16 +33,11 @@
                     "name": "last_edition_date",
                     "label": "Last edition",
                     "type": "date"
-                }, 
+                },
                 {
                     "name": "step_owners",
                     "label": "Owners",
                     "type": "user_selector"
-                }, 
-                {
-                    "name": "processed_data_type",
-                    "label": "processed_data_type",
-                    "type": "text"
                 }
             ]
         }

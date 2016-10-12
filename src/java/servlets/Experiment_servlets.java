@@ -581,7 +581,7 @@ public class Experiment_servlets extends Servlet {
              * *******************************************************
              */
             String experiment_id = requestData.get("experiment_id").getAsString();
-            alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(experiment_id);
+            alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(experiment_id, loggedUser);
         } catch (Exception e) {
             ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "unlock_analysis_handler", e.getMessage());
         } finally {
@@ -623,12 +623,12 @@ public class Experiment_servlets extends Servlet {
             boolean ROLLBACK_NEEDED = false;
             DAO dao_instance = null;
             String experiment_id = null;
-            
+            String loggedUser = "";
             try {
                 JsonParser parser = new JsonParser();
                 JsonObject requestData = (JsonObject) parser.parse(request.getReader());
 
-                String loggedUser = requestData.get("loggedUser").getAsString();
+                loggedUser = requestData.get("loggedUser").getAsString();
                 String loggedUserID = requestData.get("loggedUserID").getAsString();
                 String sessionToken = requestData.get("sessionToken").getAsString();
 
@@ -727,7 +727,7 @@ public class Experiment_servlets extends Servlet {
                     response.getWriter().print(obj.toString());
                 }
 
-                BlockedElementsManager.getBlockedElementsManager().unlockObject(experiment_id);
+                BlockedElementsManager.getBlockedElementsManager().unlockObject(experiment_id, loggedUser);
 
                 /**
                  * *******************************************************

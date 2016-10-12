@@ -363,15 +363,15 @@ public class Step_JDBCDAO extends DAO {
                         ps.execute();
                     } catch (SQLException e) {
                         //Unlock analysis
-                        BlockedElementsManager.getBlockedElementsManager().unlockObject(other_analysis);
+                        BlockedElementsManager.getBlockedElementsManager().unlockObject(other_analysis, null);
                         throw e;
                     }
                     //All entries in in the database that use this step will automatically update the step_id because of the 
                     //foreign key.
                     //Unlock analysis
-                    BlockedElementsManager.getBlockedElementsManager().unlockObject(other_analysis);
+                    BlockedElementsManager.getBlockedElementsManager().unlockObject(other_analysis, null);
                     //Unlock the new id
-                    BlockedElementsManager.getBlockedElementsManager().unlockObject(step_id);
+                    BlockedElementsManager.getBlockedElementsManager().unlockObject(step_id, null);
                     break;
                 } else {
                     continue;

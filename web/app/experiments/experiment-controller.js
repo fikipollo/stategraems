@@ -179,7 +179,7 @@
                         if (response.data.valid_experiment) {
                             console.info((new Date()).toLocaleString() + "CHANGED TO EXPERIMENT " + experiment_id + " SUCCESSFULLY");
                             Cookies.set('currentExperimentID', experiment_id, null, location.pathname);
-                            $dialogs.showSuccessDialog("Now you are working with Experiment.");
+                            $dialogs.showSuccessDialog("Now you are working with experiment \"" + ExperimentList.getExperiment(experiment_id).title + "\"");
                         } else {
                             showErrorMessage("You are not member of the selected experiment. Please, contact administrator or experiment owners to become a member.");
                         }
@@ -797,7 +797,7 @@
         $scope.loadingComplete = false;
         $scope.model = {};
         $scope.setViewMode($stateParams.viewMode || 'view');
-        $scope.getFormTemplate($scope, 'experiment-form');
+        $scope.getFormTemplate('experiment-form');
 
         if ($stateParams.experiment_id !== null) {
             this.retrieveExperimentDetails($stateParams.experiment_id);

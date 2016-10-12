@@ -48,7 +48,7 @@
     /***************************************************************************/
     /*CONTROLLERS **************************************************************/
     /***************************************************************************/
-    app.controller('AnalysisListController', function ($rootScope, $scope, $http, $dialogs, INFO_EVENTS, AnalysisList) {
+    app.controller('AnalysisListController', function ($state, $rootScope, $scope, $http, $dialogs, INFO_EVENTS, AnalysisList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -60,6 +60,11 @@
          */
         this.retrieveAnalysisData = function (group, force) {
             $scope.isLoading = true;
+            if (!Cookies.get("currentExperimentID")) {
+                $dialogs.showInfoDialog("Please, choose first an experiment at the \"Browse experiments\" section.");
+                $state.go('experiments');
+                return;
+            }
 
             if (AnalysisList.getOld() > 1 || force) { //Max age for data 5min.
                 $http($rootScope.getHttpRequestConfig("POST", "analysis-list", {
@@ -232,6 +237,7 @@
         //--------------------------------------------------------------------
         // INITIALIZATION
         //--------------------------------------------------------------------
+        this.name = "AnalysisListController";
         var me = this;
 
         //This controller uses the AnalysisList, which defines a Singleton instance of
@@ -292,6 +298,8 @@
                         function successCallback(response) {
                             $scope.model = AnalysisList.addAnalysis(response.data);
                             AnalysisList.adaptInformation([$scope.model])[0];
+                            $scope.diagram = me.generateWorkflowDiagram($scope.model);
+//                            me.updateWorkflowDiagram();
                             $scope.setLoading(false);
                         },
                         function errorCallback(response) {
@@ -306,6 +314,51 @@
                 );
             }
             $scope.setLoading(false);
+        };
+
+        /**
+         * This function creates a network from a given list of steps of a workflow.
+         *
+         * @param workflow_steps a list of workflow steps
+         * @return a network representation of the workflow (Object) with a list
+         *         of nodes and a list of edges.
+         */
+        this.generateWorkflowDiagram = function (analysis) {
+            var step = null, edge_id = "", edges = {}, diagram = {"nodes": [], "edges": []};
+
+            try {
+                var steps = analysis.non_processed_data.concat(analysis.processed_data); // Merges both arrays
+
+                for (var i in steps) {
+                    step = steps[i];
+
+                    diagram.nodes.push({
+                        id: step.step_id,
+                        label: (step.step_number + 1) + ". " + step.step_name,
+                        x: step.x || 0,
+                        y: step.y || 0,
+                        step_type: step.type,
+                        step_subtype: step.raw_data_type || step.intermediate_data_type
+                    });
+
+                    for (var j in step.used_data) {
+                        edge_id = step.step_id + "" + step.used_data[j];
+                        if (!edges[edge_id] && step.used_data[j] !== undefined && step.step_id !== undefined) {
+                            edges[edge_id] = true;
+                            diagram.edges.push({
+                                id: edge_id,
+                                source: step.used_data[j],
+                                target: step.step_id,
+                                type: 'arrow'
+                            });
+                        }
+                    }
+                }
+            } catch (e) {
+                debugger;
+            }
+
+            return diagram;
         };
 
         /******************************************************************************      
@@ -599,6 +652,69 @@
             }
         };
 
+        this.showStepDetails = function (stepModel) {
+            $scope.displayedSteps = $scope.displayedSteps || [];
+            for (var i = 0; i < $scope.displayedSteps.length; i++) {
+                if ($scope.displayedSteps[i].step_id === stepModel.step_id) {
+                    $scope.activeTab = (i + 2);
+                    return;
+                }
+            }
+
+            $scope.displayedSteps.push(stepModel);
+            $timeout(function () {
+                $scope.activeTab = ($scope.displayedSteps.length + 1);
+            }, 300);
+            return;
+        };
+
+        this.closeStepDetails = function (stepModel) {
+            $scope.displayedSteps = $scope.displayedSteps || [];
+            for (var i = 0; i < $scope.displayedSteps.length; i++) {
+                if ($scope.displayedSteps[i].step_id === stepModel.step_id) {
+                    $scope.displayedSteps.splice(i, 1);
+                    if ($scope.activeTab === (i + 2)) {
+                        $scope.activeTab = 1;
+                    }
+                    return;
+                }
+            }
+            return;
+        };
+
+        $scope.setViewMode = function (mode, restore) {
+            if (mode === 'view') {
+                $scope.panel_title = "Analysis details.";
+                $scope.clearCountdownDialogs();
+                if (restore === true) {
+                    AnalysisList.restoreFromMemento($scope.model, $scope.memento);
+                    $scope.memento = null;
+                }
+            } else if (mode === 'creation') {
+                $scope.panel_title = "Analysis creation.";
+                $scope.addNewTask("create_new_analysis", null);
+            } else if (mode === 'edition') {
+                $scope.panel_title = "Analysis edition.";
+                this.addNewTask("clear_locked_status", null);
+            }
+            $scope.viewMode = mode;//'view', 'creation', 'edition'
+        };
+
+        $scope.initializeCountdownDialogs = function () {
+            //TODO
+            console.error("initializeCountdownDialogs NOT IMPLEMENTED");
+        };
+
+        $scope.clearCountdownDialogs = function () {
+            //TODO
+            console.error("cleanCountdownDialogs NOT IMPLEMENTED");
+        };
+
+        $scope.setLoading = function (loading) {
+            //TODO
+            console.error("setLoading NOT IMPLEMENTED");
+        };
+
         //--------------------------------------------------------------------
         // EVENT HANDLERS
         //--------------------------------------------------------------------
@@ -728,47 +844,15 @@
         //--------------------------------------------------------------------
         // INITIALIZATION
         //--------------------------------------------------------------------
+        this.name = "AnalysisDetailController";
         var me = this;
-
-        $scope.setViewMode = function (mode, restore) {
-            if (mode === 'view') {
-                $scope.panel_title = "Analysis details.";
-                $scope.clearCountdownDialogs();
-                if (restore === true) {
-                    AnalysisList.restoreFromMemento($scope.model, $scope.memento);
-                    $scope.memento = null;
-                }
-            } else if (mode === 'creation') {
-                $scope.panel_title = "Analysis creation.";
-                $scope.addNewTask("create_new_analysis", null);
-            } else if (mode === 'edition') {
-                $scope.panel_title = "Analysis edition.";
-                this.addNewTask("clear_locked_status", null);
-            }
-            $scope.viewMode = mode;//'view', 'creation', 'edition'
-        };
-
-        $scope.initializeCountdownDialogs = function () {
-            //TODO
-            console.error("initializeCountdownDialogs NOT IMPLEMENTED");
-        };
-
-        $scope.clearCountdownDialogs = function () {
-            //TODO
-            console.error("cleanCountdownDialogs NOT IMPLEMENTED");
-        };
-
-        $scope.setLoading = function (loading) {
-            //TODO
-            console.error("setLoading NOT IMPLEMENTED");
-        };
 
         //The corresponding view will be watching to this variable
         //and update its content after the http response
         $scope.loadingComplete = false;
         $scope.model = {};
         $scope.setViewMode($stateParams.viewMode || 'view');
-        $scope.getFormTemplate($scope, 'analysis-form');
+        $scope.getFormTemplate('analysis-form');
 
         if ($stateParams.analysis_id !== null) {
             this.retrieveAnalysisDetails($stateParams.analysis_id);
@@ -784,7 +868,7 @@
     });
 
 
-    app.controller('StepDetailController', function ($state, $rootScope, $scope, $http, AnalysisList, SampleList, TemplateList) {
+    app.controller('StepDetailController', function ($state, $rootScope, $scope, $http, $uibModal, AnalysisList, SampleList, TemplateList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -802,6 +886,41 @@
         //--------------------------------------------------------------------
         // EVENT HANDLERS
         //--------------------------------------------------------------------
+        this.showStepDetailsHandler = function () {
+            var controller = $scope.getParentController("AnalysisDetailController");
+            if (controller !== null) {
+                controller.showStepDetails($scope.model);
+            }
+        };
+
+        this.changeInputFilesHandler = function () {
+            $scope.isDialog = true;
+
+            $scope.browseDialog = $uibModal.open({
+                templateUrl: 'app/analysis/analysis-step-selector.tpl.html',
+                controller: 'StepDetailController',
+                controllerAs: 'controller',
+                scope: $scope
+            });
+
+            return this;
+        };
+
+        this.addSelectedInputFile = function (step_id) {
+            var pos = $scope.model.used_data.indexOf(step_id);
+            if (pos === -1) {
+                $scope.model.used_data.push(step_id);
+            }
+            return this;
+        };
+
+        this.removeSelectedInputFile = function (step_id) {
+            var pos = $scope.model.used_data.indexOf(step_id);
+            if (pos !== -1) {
+                $scope.model.used_data.splice(pos, 1);
+            }
+            return this;
+        };
         this.removeStepHandler = function () {
             //TODO: CHECK IF CONTAINS NOT REMOVABLE AS
             AnalysisList.updateModelStatus($scope.model, "deleted");
@@ -825,16 +944,24 @@
         //--------------------------------------------------------------------
         // INITIALIZATION
         //--------------------------------------------------------------------
+        this.name = "StepDetailController";
         var me = this;
+        var current_user_id = '' + Cookies.get('loggedUserID');
+        if (!AnalysisList.isStepOwner($scope.model, current_user_id) && current_user_id !== "admin") {
+            $scope.viewMode = 'view';
+        }
 
-        //The corresponding view will be watching to this variable
-        //and update its content after the http response
-        if ($scope.model && $scope.model.type === "rawdata") {
-            $scope.getFormTemplate($scope, 'rawdata-form');
-        }else if ($scope.model && $scope.model.type === "intermediate_data") {
-            $scope.getFormTemplate($scope, 'intermediatedata-form');
-        } else if ($scope.model && $scope.model.type === "processed_data") {
-            $scope.getFormTemplate($scope, 'processeddata-form');
+        $scope.getFormTemplate($scope.model.type + "-form");
+        if ($scope.summary !== true) {
+            var secondTemplate = "";
+            if ($scope.model && $scope.model.type === "rawdata") {
+                secondTemplate = $scope.model.type + "/" + $scope.model.raw_data_type + "-form";
+            } else if ($scope.model && $scope.model.type === "intermediate_data") {
+                secondTemplate = $scope.model.type + "/" + $scope.model.intermediate_data_type + "-form";
+            } else if ($scope.model && $scope.model.type === "processed_data") {
+                secondTemplate = $scope.model.type + "/" + $scope.model.processed_data_type + "-form";
+            }
+            $scope.getFormTemplate(secondTemplate, "subtemplate");
         }
 
         if ($scope.model && !$scope.model.step_id) {

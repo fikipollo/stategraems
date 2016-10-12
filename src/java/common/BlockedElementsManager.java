@@ -95,7 +95,7 @@ public class BlockedElementsManager {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         //REMOVE THE ELEMENT FROM THE QUEUE
-                        unlockObject(nextTask.getElementID());
+                        unlockObject(nextTask.getElementID(), null);
                     }
                 });
                 INSTANCE.timer.start();
@@ -115,7 +115,7 @@ public class BlockedElementsManager {
         int pos = INSTANCE.lockedObjects.indexOf(newPair);
         if (pos != -1) {
             if (INSTANCE.lockedObjects.get(pos).getUserID().equalsIgnoreCase(userID)) {
-                unlockObject(element_id);
+                unlockObject(element_id, userID);
                 return lockObject(element_id, userID);
             }
             return false;
@@ -136,9 +136,11 @@ public class BlockedElementsManager {
      * @param element_id
      * @return
      */
-    public synchronized boolean unlockObject(String element_id) {
+    public synchronized boolean unlockObject(String element_id, String userID) {
         synchronized (BlockedElementsManager.class) {
-            LockedElement newPair = new LockedElement(element_id, "");
+            userID = (userID==null)?"":userID;
+            
+            LockedElement newPair = new LockedElement(element_id, userID);
             int pos = INSTANCE.lockedObjects.indexOf(newPair);
             if (pos == -1) {
                 return false;

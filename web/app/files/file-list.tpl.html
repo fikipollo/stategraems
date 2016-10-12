@@ -1,0 +1,71 @@
+<div ng-controller="FileListController as controller">
+    <nav  ng-class="(isDialog === true)?'modal-body':''" class="navbar navbar-default navbar-top title-bar">
+        <h1 class="form_title">File browser</h1>
+    </nav>
+    <div ng-class="(isDialog === true)?'modal-body':''">
+        <div class="navbar-form navbar-default top-toolbar" role="search">
+            <h2 class="form_subtitle">Search and filter</h2>
+            <div class="row">
+                <div class="col-sm-8">
+                    <div class="input-group" style="width: 100%;margin-bottom: 4px;">
+                        <input type="text" class="form-control" placeholder="Search for..." ng-model="searchFor" ng-enter="controller.applySearchHandler()">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button" ng-click="controller.applySearchHandler()">
+                                <span class="glyphicon glyphicon-search"></span>
+                            </button>
+                        </span>
+                    </div><!-- /input-group -->
+                    <div class="currentSearchTagContainer">
+                        <i class="tag" ng-repeat="item in filters">
+                            <span class="tag-name ">
+                                <i class="fa fa-times" ng-click="controller.removeFilterHandler(item);"></i>{{item}}
+                            </span>
+                        </i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="navbar-form">
+            <div style="margin: auto;display: block;max-width: 625px;">
+                <i ng-show="isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
+                    <i class="fa fa-spinner fa-pulse fa-fw"></i> Loading files...
+                </i>
+                <i ng-show="!isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
+                    Found {{filteredFiles}} files
+                    <a ng-click="controller.retrieveFilesData(true);" style="margin-left:10px; font-size: 10px;"><i class="fa fa-refresh"></i>Refresh list</a>
+                </i>
+            </div>
+        </div>
+        <div style="margin: 20px;">
+            <table class="table" >
+                <thead>
+                    <tr>
+                        <th ng-if="models !== undefined;"></th>
+                        <th>File name</th>
+                        <th>Email</th>
+                        <th ng-if="models !== undefined;"></th>
+                        <th ng-if="isAdmin;">Logged in</th>
+                    </tr>
+
+                </thead>
+                <tbody>
+                    <tr ng-repeat="file in files">
+                        <td ng-if="models !== undefined;" style=" width: 30px; text-align: center; ">
+                            <i ng-if="isSelectedFile(file);" class="fa fa-check-circle text-success"></i>
+                        </td>
+                        <td style="text-align: left; ">{{file.file_id}}</td>
+                        <td>{{file.email}}</td>
+                        <td ng-if="models !== undefined;" style=" width: 30px; text-align: center; ">
+                            <a ng-if="isSelectedFile(file);"  style="cursor:pointer;" ng-click="controller.removeSelectedFile(file);"><i class="fa fa-trash text-danger"></i></a>
+                            <a ng-if="!isSelectedFile(file);"  style="cursor:pointer;" ng-click="controller.addSelectedFile(file);"><i class="fa fa-plus-circle text-primary"></i></a>
+                        </td>
+                        <td ng-if="isAdmin;">{{file.email}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div  ng-if="isDialog === true"  class="modal-footer">
+        <button class="btn btn-primary" type="button" ng-click="controller.closeBrowseDialogHandler();">Close</button>
+    </div>
+</div>

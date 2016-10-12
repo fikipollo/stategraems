@@ -1,19 +1,37 @@
-<div class="section_box row" ng-controller="StepDetailController as controller" ng-class="(model.status)?model.status.replace('_', ' '):''">
-    <a class="clickable text-danger" style="float: right;margin: 10px;" ng-click="controller.removeStepHandler();" ng-show="controller.removableModel()" >
-        <i class="fa fa-trash-o"></i> Delete this step
-    </a>
-    <a class="clickable text-info" style="float: right; margin: 10px;" ng-click="controller.unremoveStepHandler();" ng-show="controller.unremovableModel()">
-        <i class="fa fa-undo"></i> Restore this step
-    </a>
-    <h2 class="section_title">Step details</h2>
-    <div class="row" ng-repeat="section in template.content">
-        <h3 ng-if="section.title" class="section_subtitle">{{section.title}}</h3>
-        <form-field ng-repeat="field in section.fields"></form-field>
-        <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+<div ng-controller="StepDetailController as controller" ng-class="(model.status)?model.status.replace('_', ' '):''">
+    <div ng-if="summary === true" class="section_box" >
+        <a class="btn btn-info" style="float: right;margin: 10px;" ng-click="controller.showStepDetailsHandler();">
+            <i class="fa fa-search-plus"></i> More details for this step
+        </a>
+        <a class="clickable text-danger" style="float: right;margin: 10px;" ng-click="controller.removeStepHandler();" ng-show="controller.removableModel()" >
+            <i class="fa fa-trash-o"></i> Delete this step
+        </a>
+        <a class="clickable text-info" style="float: right; margin: 10px;" ng-click="controller.unremoveStepHandler();" ng-show="controller.unremovableModel()">
+            <i class="fa fa-undo"></i> Restore this step
+        </a>
+        <div ng-repeat="section in template.content">
+            <h2 class="section_title">{{model.step_name}}</h2>    
+            <h3 ng-if="section.title" class="section_subtitle">{{section.title}}</h3>
+            <form-field ng-repeat="field in section.fields"></form-field>
+            <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+        </div>
     </div>
-    <div class="row" ng-repeat="section in subtemplate.content">
-        <h3 ng-if="section.title" class="section_subtitle">{{section.title}}</h3>
-        <form-field ng-repeat="field in section.fields"></form-field>
-        <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+
+    <div ng-if="summary !== true" >
+        <h2 class="form_subtitle">Processed data details</h2>
+        <div class="section_box" ng-repeat="section in template.content">
+            <h3 ng-if="section.title" class="section_subtitle">{{section.title}}</h3>
+            <form-field ng-repeat="field in section.fields"></form-field>
+            <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+        </div>
+        <div class="section_box" ng-repeat="section in subtemplate.content">
+            <h3 ng-if="section.title" class="section_subtitle">{{section.title}}</h3>
+            <form-field ng-repeat="field in section.fields"></form-field>
+            <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+        </div>
+        <div class="section_box">
+            <h3 class="section_subtitle">Quality control</h3>
+        </div>
     </div>
 </div>
+

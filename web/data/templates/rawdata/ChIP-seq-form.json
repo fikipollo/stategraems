@@ -1,0 +1,173 @@
+{
+    "id": "ChIP-seq-form",
+    "content": [
+        {
+            "name": "section_1",
+            "title": "Equipment details",
+            "fields": [
+                {
+                    "name": "extractionMethod.platform_family",
+                    "label": "Platform Family",
+                    "type": "select",
+                    "source": "data/platform_families.json"
+                },
+                {
+                    "name": "extractionMethod.platform_model",
+                    "label": "Platform Model",
+                    "type": "select",
+                    "source": "data/platform_families.json"
+                },
+                {
+                    "name": "extractionMethod.base_calls",
+                    "label": "Base calls",
+                    "type": "select",
+                    "options": [{
+                            "label": "Base space",
+                            "value": "Base space"
+                        }, {
+                            "label": "Color space",
+                            "value": "Color space"
+                        }]
+                },
+                {
+                    "name": "extractionMethod.avg_sequencing_depth",
+                    "label": "Avg. sequencing depth (Million of Spots)",
+                    "type": "number"
+                },
+                {
+                    "name": "extractionMethod.slide_id",
+                    "label": "Slide ID",
+                    "type": "text"
+                },
+                {
+                    "name": "extractionMethod.lane_number",
+                    "label": "Lane number",
+                    "type": "text"
+                }
+            ]
+        },
+        {
+            "name": "section_2",
+            "title": "Antibody details",
+            "fields": [
+                {
+                    "name": "extractionMethod.antibody_manufacturer",
+                    "label": "Antibody manufacturer",
+                    "type": "select",
+                    "source": "data/chipseq_antibodies.json"
+                },
+                {
+                    "name": "extractionMethod.antibody_target_type",
+                    "label": "Antibody target type",
+                    "type": "select",
+                    "source": "data/chipseq_antibodies.json"
+                },
+                {
+                    "name": "extractionMethod.antibody_target",
+                    "label": "Antibody target",
+                    "type": "select",
+                    "source": "data/antibody_target.json"
+                }
+            ]
+        },
+        {
+            "name": "section_3",
+            "title": "Library details",
+            "fields": [
+                {
+                    "name": "extractionMethod.avg_sequence_length",
+                    "label": "Avg. sequence length (bp)",
+                    "type": "number"
+                },
+                {
+                    "name": "extractionMethod.pooling_strategy",
+                    "label": "Pooling stategy",
+                    "type": "select",
+                    "options": [{
+                            "label": "None",
+                            "value": "None"
+                        }, {
+                            "label": "Multiplexed library",
+                            "value": "Multiplexed library"
+                        }, {
+                            "label": "Other",
+                            "value": "Other"
+                        }
+                    ]
+                },
+                {
+                    "name": "extractionMethod.pooling_strategy_description",
+                    "label": "Pooling strategy description",
+                    "type": "textarea",
+                    "dependency": "pooling_strategy !== 'None'"
+                },
+                {
+                    "name": "extractionMethod.library_construction_protocol",
+                    "label": "Library construction protocol",
+                    "type": "textarea"
+                },
+                {
+                    "name": "extractionMethod.layout",
+                    "label": "Library layout",
+                    "type": "select",
+                    "options": [{
+                            "label": "Single-end",
+                            "value": "Single-end"
+                        }, {
+                            "label": "Paired-end",
+                            "value": "Paired-end"
+                        }
+                    ]
+                }, {
+                    "name": "extractionMethod.orientation",
+                    "label": "Paired-end orientation",
+                    "type": "select",
+                    "options": [{
+                            "label": "forward-forward",
+                            "value": "forward-forward"
+                        }, {
+                            "label": "forward-forward",
+                            "value": "forward-reverse"
+                        }
+                    ],
+                    "dependency": "layout === 'Paired-end'"
+                },
+                {
+                    "name": "extractionMethod.nominal_length",
+                    "label": "Nominal length (bp)",
+                    "type": "number",
+                    "dependency": "layout === 'Paired-end'"
+                },
+                {
+                    "name": "extractionMethod.nominal_length_stdev",
+                    "label": "Nominal length Std dev (bp)",
+                    "type": "number",
+                    "dependency": "layout === 'Paired-end'"
+                },
+                {
+                    "name": "extractionMethod.rna_type",
+                    "label": "RNA type",
+                    "type": "text"
+                },
+                {
+                    "name": "extractionMethod.strand_specificity",
+                    "label": "Strand specifity",
+                    "type": "select",
+                    "options": [{
+                            "label": "stranded",
+                            "value": "stranded"
+                        }, {
+                            "label": "unstranded",
+                            "value": "unstranded"
+                        }
+                    ]
+                },
+                {
+                    "name": "extractionMethod.selection",
+                    "label": "Selection method",
+                    "type": "textarea"
+                }
+            ]
+        }
+    ]
+}

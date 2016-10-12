@@ -791,7 +791,7 @@
         $scope.loadingComplete = false;
         $scope.model = {};
         $scope.setViewMode($stateParams.viewMode || 'view');
-        $scope.getFormTemplate($scope, 'protocol-form');
+        $scope.getFormTemplate('protocol-form');
 
         if ($stateParams.protocol_id !== null) {
             this.retrieveProtocolDetails($stateParams.protocol_id);
