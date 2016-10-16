@@ -61,44 +61,46 @@
         };
     });
 
-
     app.directive("inputFilesSelectorField", function ($compile, AnalysisList) {
         return {
             restrict: 'E',
             replace: true,
-            link: function (scope, element, attrs) {
-                var template =
-                        '<div ng-controller="StepDetailController as controller">' +
-                        '   <div style="min-width:200px; min-height: 30px;">';
+            link: function ($scope, element, attrs) {
+                $scope.$watch('model.used_data', function (newValues, oldValues, scope) {
 
-                for (var i in scope.model.used_data) {
-                    template +=
-                            '       <div class="fileLocationItem">' +
-                            '         <i class="fa fa-trash text-danger clickable" ng-show="viewMode !== \'view\'" ng-click="controller.removeSelectedInputFile(\'' + scope.model.used_data[i] + '\')";></i> {{file}}' +
-                            '         <b>Output files for step ' + scope.model.used_data[i] + '</b>' +
-                            '         <ul>';
+                    var template =
+                            '<div ng-controller="StepDetailController as controller">' +
+                            '   <div style="min-width:200px; min-height: 30px;">';
 
-                    var step = AnalysisList.findStep(scope.model.used_data[i]);
-                    if (step) {
-                        for (var j in step.files_location) {
-                            template += '         <li>' + step.files_location[j] + '</li>';
+                    for (var i in $scope.model.used_data) {
+                        template +=
+                                '       <div class="fileLocationItem">' +
+                                '         <i class="fa fa-trash text-danger clickable" ng-show="viewMode !== \'view\'" ng-click="controller.removeSelectedInputFile(\'' + $scope.model.used_data[i] + '\')";></i> {{file}}' +
+                                '         <b>Output files for step ' + $scope.model.used_data[i] + '</b>' +
+                                '         <ul>';
+
+                        var step = AnalysisList.findStep($scope.model.used_data[i]);
+                        if (step) {
+                            for (var j in step.files_location) {
+                                template += '         <li>' + step.files_location[j] + '</li>';
+                            }
                         }
+
+                        template +=
+                                '         </ul>' +
+                                '       </div>';
                     }
-
                     template +=
-                            '         </ul>' +
-                            '       </div>';
-                }
-
-                template +=
-                        '   </div>' +
-                        '   <a class="btn btn-default" ng-show="viewMode !== \'view\'" ng-click="controller.changeInputFilesHandler();">' +
-                        '      <i class="fa fa-plus" aria-hidden="true"></i> Choose input files' +
-                        '   </a>' +
-                        '</div>';
-                $compile($(template).appendTo(element))(scope)[0];
+                            '   </div>' +
+                            '   <a class="btn btn-default" ng-show="viewMode !== \'view\'" ng-click="controller.changeInputFilesHandler();">' +
+                            '      <i class="fa fa-plus" aria-hidden="true"></i> Choose input files' +
+                            '   </a>' +
+                            '</div>';
+                    element.html(template);
+                    $compile(element.contents())($scope);
+                }, true);
             }
-        };
+        }
     });
 
 })();

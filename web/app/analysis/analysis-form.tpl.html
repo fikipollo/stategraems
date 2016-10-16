@@ -4,7 +4,7 @@
             <h1 class="form_title">{{panel_title}}</h1>
         </nav>
         <uib-tabset active="activeTab">
-            <uib-tab index="0">
+            <uib-tab index="0" select="refreshDiagram()">
                 <uib-tab-heading>
                     <i class="fa fa-sitemap"></i> Analysis details
                 </uib-tab-heading>
@@ -22,7 +22,7 @@
                 </div>
                 <div class="panel panel-container">
                     <h4>Workflow overview</h4>
-                    <analysis-diagram style="height:400px;"></analysis-diagram>
+                    <analysis-diagram container-id="mainDiagramContainer" style="height:400px;"></analysis-diagram>
                 </div>
                 <nav class="navbar navbar-default"  ng-show="viewMode === 'edition'" style="text-align: center;" >
                     <a class="btn btn-danger btn-lg" ng-click="controller.deleteAnalysisHandler(model);">

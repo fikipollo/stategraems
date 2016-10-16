@@ -715,6 +715,70 @@
             console.error("setLoading NOT IMPLEMENTED");
         };
 
+        $scope.refreshDiagram = function () {
+            if (me.sigma !== undefined) {
+                setTimeout(function () {
+
+                    var nodeSize = 16;
+                    var edgeSize = 4;
+                    if ($scope.diagram.nodes.length > 15) {
+                        nodeSize = 7;
+                        edgeSize = 2;
+                    } else if ($scope.diagram.nodes.length > 10) {
+                        nodeSize = 10;
+                        edgeSize = 3;
+                    }
+
+                    // Create a custom color palette:
+                    var myPalette = {
+                        nodeColorScheme: {
+                            rawdata: "#ede43d",
+                            intermediate_data: "#1fa7cb",
+                            processed_data: "#c075e5"
+                        },
+                        iconScheme: {
+                            rawdata: {font: 'FontAwesome', content: "\uF129", scale: 0.7, color: '#ffffff'},
+                            intermediate_data: {font: 'FontAwesome', content: "\uF129", scale: 0.7, color: '#ffffff'},
+                            processed_data: {font: 'FontAwesome', content: "\uF129", scale: 0.7, color: '#ffffff'}
+                        }
+                    };
+
+                    var myStyles = {
+                        nodes: {
+                            size: {by: 'size', bins: 7, min: nodeSize, max: nodeSize},
+                            icon: {by: 'step_type', scheme: 'iconScheme'},
+                            color: {by: 'step_type', scheme: 'nodeColorScheme'}
+                        },
+                        edges: {
+                            size: {by: 'size', min: edgeSize, max: edgeSize}
+                        }
+                    };
+
+                    // Instanciate the design:
+                    var design = sigma.plugins.design(me.sigma, {
+                        styles: myStyles,
+                        palette: myPalette
+                    });
+
+                    design.apply();
+
+                    me.sigma.refresh();
+
+                    // Configure the DAG layout:
+                    sigma.layouts.dagre.configure(me.sigma, {
+                        directed: true, // take edge direction into account
+                        rankdir: 'LR', // Direction for rank nodes. Can be TB, BT, LR, or RL,
+                        easing: 'quadraticInOut', // animation transition function
+                        duration: 800, // animation duration
+                    });
+
+                    // Start the DAG layout:
+                    sigma.layouts.dagre.start(me.sigma);
+
+                }, 500);
+            }
+        };
+
         //--------------------------------------------------------------------
         // EVENT HANDLERS
         //--------------------------------------------------------------------
@@ -851,6 +915,7 @@
         //and update its content after the http response
         $scope.loadingComplete = false;
         $scope.model = {};
+
         $scope.setViewMode($stateParams.viewMode || 'view');
         $scope.getFormTemplate('analysis-form');
 
@@ -864,7 +929,6 @@
             $scope.model.analysis_members = [];
             $scope.model.tags = [];
         }
-
     });
 
 
@@ -906,18 +970,52 @@
             return this;
         };
 
-        this.addSelectedInputFile = function (step_id) {
-            var pos = $scope.model.used_data.indexOf(step_id);
+        this.addSelectedInputFile = function (added_step_id) {
+            var pos = $scope.model.used_data.indexOf(added_step_id);
             if (pos === -1) {
-                $scope.model.used_data.push(step_id);
+                $scope.model.used_data.push(added_step_id);
+
+                for (var i in $scope.diagram.nodes) {
+                    if ($scope.diagram.nodes[i].id === added_step_id) {
+                        $scope.diagram.nodes[i].selected = "true";
+                        break;
+                    }
+                }
+
+                var edge_id = $scope.model.step_id + "" + added_step_id;
+                $scope.diagram.edges.push({
+                    id: edge_id,
+                    source: added_step_id,
+                    target: $scope.model.step_id,
+                    type: 'arrow'
+                });
+                $scope.diagram.hasChanged = !$scope.diagram.hasChanged;
+                $scope.$digest();
             }
             return this;
         };
 
-        this.removeSelectedInputFile = function (step_id) {
-            var pos = $scope.model.used_data.indexOf(step_id);
+        this.removeSelectedInputFile = function (removed_step_id) {
+            var pos = $scope.model.used_data.indexOf(removed_step_id);
             if (pos !== -1) {
                 $scope.model.used_data.splice(pos, 1);
+
+                for (var i in $scope.diagram.nodes) {
+                    if ($scope.diagram.nodes[i].id === removed_step_id) {
+                        $scope.diagram.nodes[i].selected = "false";
+                        break;
+                    }
+                }
+
+                var edge_id = $scope.model.step_id + "" + removed_step_id;
+                for (var i in $scope.diagram.edges) {
+                    if ($scope.diagram.edges[i].id === edge_id) {
+                        $scope.diagram.edges.splice(i, 1);
+                        break;
+                    }
+                }
+                $scope.diagram.hasChanged = !$scope.diagram.hasChanged;
+                $scope.$digest();
             }
             return this;
         };
