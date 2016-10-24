@@ -33,12 +33,12 @@ SERVER_URL_REMOVE_USER = "/remove_user";
 SERVER_URL_VALIDATE_SESSION= "/validate_session";
 
 //ANALYSIS URLS
-SERVER_URL_GET_ALL_ANALYSIS = "/get_all_analysis";
-SERVER_URL_GET_ANALYSIS = "/get_analysis";
+// SERVER_URL_GET_ALL_ANALYSIS = "/get_all_analysis";
+// SERVER_URL_GET_ANALYSIS = "/get_analysis";
 SERVER_URL_GET_ALL_REGION_STEPS = "/get_all_region_steps";
 SERVER_URL_GET_IMG_PREV = "/get_analysis_img_prev";
 SERVER_URL_GET_IMG = "/get_analysis_img";
-SERVER_URL_ADD_ANALYSIS = "/add_analysis";
+// SERVER_URL_ADD_ANALYSIS = "/add_analysis";
 SERVER_URL_UPDATE_ANALYSIS = "/update_analysis";
 SERVER_URL_REMOVE_ANALYSIS = "/remove_analysis";
 SERVER_URL_SAVE_ANALYSIS_IMAGE = "/save_analysis_image";

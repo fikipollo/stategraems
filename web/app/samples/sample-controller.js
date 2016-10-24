@@ -36,7 +36,7 @@
     /***************************************************************************/
     /*CONTROLLERS **************************************************************/
     /***************************************************************************/
-    app.controller('SampleListController', function ($rootScope, $scope, $http, $dialogs, INFO_EVENTS, SampleList) {
+    app.controller('SampleListController', function ($rootScope, $scope, $http, $dialogs, APP_EVENTS, SampleList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -209,7 +209,7 @@
         }
     });
 
-    app.controller('BioconditionDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $dialogs, INFO_EVENTS, SampleList, TemplateList) {
+    app.controller('BioconditionDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $dialogs, APP_EVENTS, SampleList, TemplateList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -287,7 +287,7 @@
 
                         SampleList.addBiocondition($scope.model);
 //                        //Notify all the other controllers that a new sample exists
-//                        $rootScope.$broadcast(INFO_EVENTS.sampleCreated);
+//                        $rootScope.$broadcast(APP_EVENTS.sampleCreated);
                         $scope.setLoading(false);
 
                         callback_caller[callback_function](true);
@@ -583,7 +583,7 @@
                                     function successCallback(response) {
                                         $dialogs.showSuccessDialog("All the samples were successfully deleted.");
                                         //Notify all the other controllers that user has signed in
-                                        $rootScope.$broadcast(INFO_EVENTS.sampleDeleted);
+                                        $rootScope.$broadcast(APP_EVENTS.sampleDeleted);
                                         me.send_unlock_sample();
                                         $state.go('samples');
                                     },

@@ -62,12 +62,12 @@
                     }
                     return null;
                 },
-                addAnalysis: function (analysis) {
-                    var previous = this.findAnalysis(analysis.analysis_id);
+                addAnalysis: function (_analysis) {
+                    var previous = this.findAnalysis(_analysis.analysis_id);
                     if (previous === null) {
-                        analysis.push(analysis);
+                        analysis.push(_analysis);
                     } else {
-                        return this.updateAnalysis(analysis);
+                        return this.updateAnalysis(_analysis);
                     }
                     this.updateTags();
                     this.updateAnalysisTypes();
@@ -181,6 +181,7 @@
                         //ADAPT THE TAGS
                         _analysis[i].tags = (_analysis[i].tags || []);
                         _analysis[i].tags.push(_analysis[i].analysis_type);
+                        _analysis[i].tags = arrayUnique(_analysis[i].tags);
                         //ADAPT STEPS INFO
                         this.adaptStepInformation(_analysis[i].non_processed_data);
                         this.adaptStepInformation(_analysis[i].processed_data);
@@ -279,6 +280,39 @@
                         }
                     }
                     return model;
+                },
+                updateModelStatus: function (model, newStatus) {
+                    if (newStatus === "undo") {
+                        if (model.status === "deleted") {
+                            delete model.status;
+                        }
+                        if (model.status === "new_deleted") {
+                            model.status = "new";
+                        }
+                        if (model.status === "edited") {
+                            delete model.status;
+                            //TODO: restore from memento.
+                        }
+                        if (model.status === "edited_deleted") {
+                            model.status = "edited";
+                        }
+                    } else {
+                        if (model.status === "new") {
+                            if (newStatus === "deleted") {
+                                model.status = "new_deleted";
+                            }
+                        } else if (model.status === "edited") {
+                            if (newStatus === "deleted") {
+                                model.status = "edited_deleted";
+                            }
+                        } else if (model.status === undefined) {
+                            if (newStatus === "deleted") {
+                                model.status = "deleted";
+                            } else if (newStatus === "edited") {
+                                model.status = "edited";
+                            }
+                        }
+                    }
                 }
             };
         }]);

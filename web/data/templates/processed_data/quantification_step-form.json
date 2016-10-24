@@ -3,37 +3,11 @@
     "content": [
         {
             "name": "section_1",
-            "title": "Software details",
+            "title": "Quantification details",
             "fields": [
                 {
-                    "name": "software",
-                    "label": "Software",
-                    "type": "select",
-                    "source": "data/software.json"
-                },
-                {
-                    "name": "software_version",
-                    "label": "Software version",
-                    "type": "text"
-                },
-                {
-                    "name": "used_data",
-                    "label": "Input files",
-                    "type": "input_files_selector"
-                },
-                {
                     "name": "reference_region",
-                    "label": "Reference region Files",
-                    "type": "textarea"
-                },
-                {
-                    "name": "software_configuration",
-                    "label": "Software configuration",
-                    "type": "textarea"
-                },
-                {
-                    "name": "results",
-                    "label": "Observations/Results",
+                    "label": "Reference regions",
                     "type": "textarea"
                 }
             ]

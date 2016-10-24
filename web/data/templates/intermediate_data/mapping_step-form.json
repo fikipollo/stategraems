@@ -1,3 +1,27 @@
 {
-    "name": "rhernandez"
+    "id": "mapping_step-form",
+    "content": [
+        {
+            "name": "section_1",
+            "title": "Mapping details",
+            "fields": [
+                {
+                    "name": "genome_specie",
+                    "label": "Reference genome specie",
+                    "type": "select",
+                    "source": "data/organisms.json"
+                },
+                {
+                    "name": "genome_version",
+                    "label": "Genome version",
+                    "type": "text"
+                },
+                {
+                    "name": "genome_source",
+                    "label": "Genome source",
+                    "type": "text"
+                }
+            ]
+        }
+    ]
 }

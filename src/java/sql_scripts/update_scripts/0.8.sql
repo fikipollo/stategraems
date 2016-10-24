@@ -26,5 +26,7 @@ ALTER TABLE analysis CHANGE analysisType analysis_type varchar(200);
 ALTER TABLE analysis CHANGE analysisName analysis_name varchar(200);
 ALTER TABLE analysis ADD COLUMN tags TEXT;
 
+UPDATE appVersion SET version='0.8';
+
 COMMIT;
 

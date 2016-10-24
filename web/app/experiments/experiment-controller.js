@@ -48,7 +48,7 @@
     /***************************************************************************/
     /*CONTROLLERS **************************************************************/
     /***************************************************************************/
-    app.controller('ExperimentListController', function ($rootScope, $scope, $http, $dialogs, INFO_EVENTS, ExperimentList) {
+    app.controller('ExperimentListController', function ($rootScope, $scope, $http, $dialogs, APP_EVENTS, ExperimentList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -153,7 +153,7 @@
         //--------------------------------------------------------------------
         // EVENT HANDLERS
         //--------------------------------------------------------------------
-        $scope.$on(INFO_EVENTS.experimentDeleted, function (event, args) {
+        $scope.$on(APP_EVENTS.experimentDeleted, function (event, args) {
             debugger;
             this.retrieveExperimentsData('', true);
         });
@@ -258,7 +258,7 @@
         }
     });
 
-    app.controller('ExperimentDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $dialogs, INFO_EVENTS, ExperimentList, TemplateList) {
+    app.controller('ExperimentDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $dialogs, APP_EVENTS, ExperimentList, TemplateList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -344,7 +344,7 @@
                         $scope.model.experiment_id = response.data.newID;
                         ExperimentList.addExperiment($scope.model);
 //                        //Notify all the other controllers that a new experiment exists
-//                        $rootScope.$broadcast(INFO_EVENTS.experimentCreated);
+//                        $rootScope.$broadcast(APP_EVENTS.experimentCreated);
                         $scope.setLoading(false);
 
                         callback_caller[callback_function](true);
@@ -626,7 +626,7 @@
                                     function successCallback(response) {
                                         $dialogs.showSuccessDialog("The experiment was successfully deleted.");
                                         //Notify all the other controllers that user has signed in
-                                        $rootScope.$broadcast(INFO_EVENTS.experimentDeleted);
+                                        $rootScope.$broadcast(APP_EVENTS.experimentDeleted);
                                         me.send_unlock_experiment();
                                         $state.go('experiments');
                                     },

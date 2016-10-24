@@ -420,6 +420,22 @@ select:disabled {
 /* STYLES FOR HOME AND LOGIN FORM                                                         */
 /******************************************************************************************/
 
+.homeMainButton{
+    width: 200px;
+    display: inline-block;
+    height: 200px;
+    margin: 15px;
+    text-align: center;
+    font-size: 25px;
+    font-weight: lighter;
+    font-family: 'Open Sans';
+}
+
+.homeMainButton > img{
+    display: block;
+    margin: 7px auto;
+}
+
 /*------------------------------------------------------*/
 /*STYLES FOR sessionToolbar                             */
 /*------------------------------------------------------*/

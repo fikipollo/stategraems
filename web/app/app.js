@@ -17,19 +17,17 @@
         EMS_SERVER: "/"
     });
     //Define the events that are fired when an user login, log out etc.
-    app.constant('AUTH_EVENTS', {
+    app.constant('APP_EVENTS', {
         loginSuccess: 'auth-login-success',
         loginFailed: 'auth-login-failed',
         logoutSuccess: 'auth-logout-success',
         sessionTimeout: 'auth-session-timeout',
-        notAuthenticated: 'auth-not-authenticated',
-        notAuthorized: 'auth-not-authorized'
-    });
-    app.constant('INFO_EVENTS', {
         experimentDeleted: 'experiment-deleted',
         sampleCreated: 'sample-created',
         analysisCreated: 'analysis-created',
-        userCreated: 'user-created'
+        analysisDeleted: 'analysis-deleted',
+        stepChanged: "step-changed",
+        userCreated: 'user-created',
     });
 
     //DEFINE THE ENTRIES FOR THE WEB APP
@@ -175,8 +173,8 @@
                     return myAppConfig.EMS_SERVER + "get_all_analysis";
                 case "analysis-info":
                     return myAppConfig.EMS_SERVER + "get_analysis";
-//                case "sample-create":
-//                    return myAppConfig.EMS_SERVER + "add_biocondition";
+                case "analysis-create":
+                    return myAppConfig.EMS_SERVER + "add_analysis";
 //                case "sample-update":
 //                    return myAppConfig.EMS_SERVER + "update_biocondition";
 //                case "sample-delete":
@@ -185,6 +183,10 @@
                     return myAppConfig.EMS_SERVER + "lock_analysis";
 //                case "sample-unlock":
 //                    return myAppConfig.EMS_SERVER + "unlock_biocondition";
+                case "analysis-step-subtypes":
+                    return myAppConfig.EMS_SERVER + "get_step_subtypes";
+                case "file-list":
+                    return myAppConfig.EMS_SERVER + "get_experiment_directory_content";
                 default:
                     return "";
             }
@@ -283,8 +285,8 @@
                 var scope = this;
                 propertyName = propertyName || "template";
                 var template_id = template_name.split("/");
-                template_id = template_id[template_id.length -1];
-                
+                template_id = template_id[template_id.length - 1];
+
                 scope[propertyName] = TemplateList.getTemplate(template_id);
 
                 if (this[propertyName] === null) {
@@ -325,8 +327,10 @@
                 page.params.experiment_id = Cookies.get("currentExperimentID");
             }
 
-            $state.go(page.name, page.params);
-            $scope.currentPage = page.name;
+            if (page.name) {
+                $state.go(page.name, page.params);
+                $scope.currentPage = page.name;
+            }
         };
 
         this.getPageTitle = function (page) {

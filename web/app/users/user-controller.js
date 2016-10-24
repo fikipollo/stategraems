@@ -30,7 +30,7 @@
         'ui.bootstrap'
     ]);
 
-    app.controller('UserSessionController', function ($state, $rootScope, $scope, $http, $dialogs, AUTH_EVENTS) {
+    app.controller('UserSessionController', function ($state, $rootScope, $scope, $http, $dialogs, APP_EVENTS) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -54,12 +54,12 @@
         //--------------------------------------------------------------------
         // EVENT HANDLERS
         //--------------------------------------------------------------------
-        $scope.$on(AUTH_EVENTS.loginSuccess, function (event, args) {
+        $scope.$on(APP_EVENTS.loginSuccess, function (event, args) {
             debugger
             $scope.userInfo.email = Cookies.get("loggedUser");
         });
 
-        $scope.$on(AUTH_EVENTS.logoutSuccess, function (event, args) {
+        $scope.$on(APP_EVENTS.logoutSuccess, function (event, args) {
             delete $scope.userInfo.email;
             delete $scope.userInfo.user_id;
         });
@@ -100,7 +100,7 @@
                             delete $scope.signForm;
 
                             //Notify all the other controllers that user has signed in
-                            $rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
+                            $rootScope.$broadcast(APP_EVENTS.loginSuccess);
 
                             $state.go('home');
                         },
@@ -182,7 +182,7 @@
             delete $scope.userInfo.user_id;
 
             $state.go('signin');
-            $rootScope.$broadcast(AUTH_EVENTS.logoutSuccess); //Notify all the other controllers that user has signed in
+            $rootScope.$broadcast(APP_EVENTS.logoutSuccess); //Notify all the other controllers that user has signed in
         };
 
         //--------------------------------------------------------------------

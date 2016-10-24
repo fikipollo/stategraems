@@ -51,7 +51,8 @@
                 })).then(
                         function successCallback(response) {
                             $scope.isLoading = false;
-                            $scope.files = FileList.setFiles(response.data).getFiles();
+                            $scope.filesTree = FileList.setFilesTree(response.data).getFilesTree();
+                            $scope.files = FileList.getFiles();
                             $scope.filteredFiles = $scope.files.length;
                         },
                         function errorCallback(response) {
@@ -123,6 +124,7 @@
 
             $scope.browseDialog = $uibModal.open({
                 templateUrl: 'app/files/file-list.tpl.html',
+                size: 'lg',
                 controller: 'FileListController',
                 controllerAs: 'controller',
                 scope: $scope
@@ -130,7 +132,6 @@
 
             return this;
         };
-
 
         this.closeBrowseDialogHandler = function () {
             $scope.browseDialog.dismiss("cancel");
@@ -170,6 +171,17 @@
             }
             return this;
         };
+
+        this.addManualLocationsHandler = function (manual_entries) {
+            if ($scope.models !== null && manual_entries !== "") {
+                var entries = manual_entries.split("\n");
+                for (var i in entries) {
+                    $scope.models.push(entries[i]);
+                }
+            }
+            return this;
+        };
+
         /**
          * This function applies the filters when the file clicks on "Search"
          */
@@ -194,12 +206,14 @@
         //This controller uses the FileList, which defines a Singleton instance of
         //a list of files + list of tags + list of filters. Hence, the application will not
         //request the data everytime that the file list panel is displayed (data persistance).
-        $scope.files = FileList.getFiles();
-        $scope.filters = FileList.getFilters();
-        $scope.filteredFiles = $scope.files.length;
+        if ($scope.isDialog === true) {
+            $scope.files = FileList.getFiles();
+            $scope.filters = FileList.getFilters();
+            $scope.filteredFiles = $scope.files.length;
 
-        if ($scope.files.length === 0) {
-            this.retrieveFilesData();
+            if ($scope.files.length === 0) {
+                this.retrieveFilesData();
+            }
         }
     });
 })();

@@ -48,7 +48,7 @@
     /***************************************************************************/
     /*CONTROLLERS **************************************************************/
     /***************************************************************************/
-    app.controller('AnalysisListController', function ($state, $rootScope, $scope, $http, $dialogs, INFO_EVENTS, AnalysisList) {
+    app.controller('AnalysisListController', function ($state, $rootScope, $scope, $http, $dialogs, APP_EVENTS, AnalysisList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -159,46 +159,8 @@
         //--------------------------------------------------------------------
         // EVENT HANDLERS
         //--------------------------------------------------------------------
-        $scope.$on(INFO_EVENTS.analysisDeleted, function (event, args) {
-            debugger;
-            this.retrieveAnalysisData('', true);
-        });
-
         this.showAnalysisChooserChangeHandler = function () {
             this.retrieveAnalysisData($scope.show);
-        };
-
-
-        /**BC****************************************************************************      
-         * This function try to change the current selected analysis to a given one (if
-         * user is member or owner).
-         *
-         * @param analysis_id the Analysis id
-         * @return      
-         **EC****************************************************************************/
-        this.changeCurrentAnalysisHandler = function (analysis_id) {
-            $http($rootScope.getHttpRequestConfig("POST", "analysis-selection", {
-                headers: {'Content-Type': 'application/json; charset=utf-8'},
-                data: $rootScope.getCredentialsParams({'analysis_id': analysis_id}),
-            })).then(
-                    function successCallback(response) {
-                        if (response.data.valid_analysis) {
-                            console.info((new Date()).toLocaleString() + "CHANGED TO EXPERIMENT " + analysis_id + " SUCCESSFULLY");
-                            Cookies.set('currentAnalysisID', analysis_id, null, location.pathname);
-                            $dialogs.showSuccessDialog("Now you are working with Analysis.");
-                        } else {
-                            showErrorMessage("You are not member of the selected analysis. Please, contact administrator or analysis owners to become a member.");
-                        }
-                    },
-                    function errorCallback(response) {
-                        var message = "Failed while changing the current analysis.";
-                        $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at AnalysisListController:changeCurrentAnalysisHandler."
-                        });
-                        console.error(response.data);
-                        debugger
-                    }
-            );
         };
 
         /**
@@ -266,7 +228,7 @@
         }
     });
 
-    app.controller('AnalysisDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $dialogs, INFO_EVENTS, AnalysisList, TemplateList) {
+    app.controller('AnalysisDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $uibModal, $dialogs, APP_EVENTS, AnalysisList, TemplateList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -298,7 +260,7 @@
                         function successCallback(response) {
                             $scope.model = AnalysisList.addAnalysis(response.data);
                             AnalysisList.adaptInformation([$scope.model])[0];
-                            $scope.diagram = me.generateWorkflowDiagram($scope.model);
+                            $scope.diagram = me.generateWorkflowDiagram($scope.model, $scope.diagram);
 //                            me.updateWorkflowDiagram();
                             $scope.setLoading(false);
                         },
@@ -323,8 +285,15 @@
          * @return a network representation of the workflow (Object) with a list
          *         of nodes and a list of edges.
          */
-        this.generateWorkflowDiagram = function (analysis) {
-            var step = null, edge_id = "", edges = {}, diagram = {"nodes": [], "edges": []};
+        this.generateWorkflowDiagram = function (analysis, diagram) {
+            var step = null, edge_id = "", edges = {};
+
+            if (!diagram) {
+                diagram = {"nodes": [], "edges": []};
+            }
+
+            diagram.nodes.length = 0;
+            diagram.edges.length = 0;
 
             try {
                 var steps = analysis.non_processed_data.concat(analysis.processed_data); // Merges both arrays
@@ -399,7 +368,7 @@
                         $scope.model.analysis_id = response.data.newID;
                         AnalysisList.addAnalysis($scope.model);
 //                        //Notify all the other controllers that a new analysis exists
-//                        $rootScope.$broadcast(INFO_EVENTS.analysisCreated);
+//                        $rootScope.$broadcast(APP_EVENTS.analysisCreated);
                         $scope.setLoading(false);
 
                         callback_caller[callback_function](true);
@@ -514,7 +483,6 @@
             );
             return this;
         };
-
 
         /******************************************************************************      
          * This function lock a analysis for editing.  
@@ -715,10 +683,10 @@
             console.error("setLoading NOT IMPLEMENTED");
         };
 
-        $scope.refreshDiagram = function () {
-            if (me.sigma !== undefined) {
+        $scope.refreshDiagram = function (force) {
+            if (!$scope.refreshing && me.sigma !== undefined) {
+                $scope.refreshing = true;
                 setTimeout(function () {
-
                     var nodeSize = 16;
                     var edgeSize = 4;
                     if ($scope.diagram.nodes.length > 15) {
@@ -775,6 +743,8 @@
                     // Start the DAG layout:
                     sigma.layouts.dagre.start(me.sigma);
 
+                    delete $scope.refreshing;
+
                 }, 500);
             }
         };
@@ -782,6 +752,89 @@
         //--------------------------------------------------------------------
         // EVENT HANDLERS
         //--------------------------------------------------------------------
+        $scope.$on(APP_EVENTS.stepChanged, function (event, args) {
+            debugger
+            $scope.diagram = me.generateWorkflowDiagram($scope.model, $scope.diagram);
+        });
+
+        this.addNewStepButtonHandler = function () {
+            //SHOW DIALOG TO CHOOSE THE STEP TYPE (RAW/INTERMEDIATE/PROCESSED) AND THE SUBTYPE
+            //  IF NEW SUBTYPE --> SHOW MESSAGE "Not found, Please choose a valid template for this type?"
+            //    Chooser with available subtypes
+            //    Checkbox "Save the new template in the system?"
+            // CREATE --> set the type, subtype and the subtype_template
+            //            add the new step to the analysis by given type.
+            $scope.typesInfo = {
+            };
+
+            $scope.createStepDialog = $uibModal.open({
+                templateUrl: 'app/analysis/new-step-dialog.tpl.html',
+                size: 'md',
+                controller: 'AnalysisDetailController',
+                controllerAs: 'controller',
+                scope: $scope
+            });
+
+            $scope.createStepDialog.result.then(
+                    function (result) { //Close
+                    },
+                    function (reason) { //Dismissed
+                        //TODO: SET TEMPORAL IDS;
+                        var step = {
+                            step_name: "Unnamed step",
+                            step_id: "[Autogenerated after saving]",
+                            submission_date: new Date(),
+                            last_edition_date: new Date(),
+                            step_owners: [{user_id: Cookies.get("loggedUserID")}],
+                            files_location: [],
+                            status: "new"
+                        };
+
+                        if ($scope.typesInfo.step_type === "Raw data") {
+                            step.type = "rawdata";
+                            step.raw_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
+                            $scope.model.non_processed_data.push(step);
+                        } else if ($scope.typesInfo.step_type === "Intermediate data") {
+                            step.type = "intermediate_data";
+                            step.intermediate_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
+                            step.used_data = [];
+                            $scope.model.non_processed_data.push(step);
+                        } else if ($scope.step_type === "Processed data") {
+                            step.type = "processed_data";
+                            step.processed_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
+                            step.used_data = [];
+                            $scope.model.processed_data.push(step);
+                        }
+                        delete $scope.typesInfo;
+                        $rootScope.$broadcast(APP_EVENTS.stepChanged);
+                    });
+
+            return this;
+        };
+
+        this.addNewStepAcceptButtonHandler = function () {
+            $scope.createStepDialog.dismiss("cancel");
+            delete $scope.createStepDialog;
+        };
+
+        this.updateStepSubtypes = function () {
+            $http($rootScope.getHttpRequestConfig("GET", "analysis-step-subtypes", {
+                params: {'step_type': $scope.typesInfo.step_type}
+            })).then(
+                    function successCallback(response) {
+                        $scope.typesInfo.step_subtypes = response.data.subtypes;
+                    },
+                    function errorCallback(response) {
+                        var message = "Failed while retrieving the step subtypes.";
+                        $dialogs.showErrorDialog(message, {
+                            logMessage: message + " at AnalysisDetailController:updateStepSubtypes."
+                        });
+                        console.error(response.data);
+                        debugger
+                    }
+            );
+        };
+
         this.deleteAnalysisHandler = function () {
             var me = this;
             var current_user_id = '' + Cookies.get('loggedUserID');
@@ -808,7 +861,7 @@
                                     function successCallback(response) {
                                         $dialogs.showSuccessDialog("The analysis was successfully deleted.");
                                         //Notify all the other controllers that user has signed in
-                                        $rootScope.$broadcast(INFO_EVENTS.analysisDeleted);
+                                        $rootScope.$broadcast(APP_EVENTS.analysisDeleted);
                                         me.send_unlock_analysis();
                                         $state.go('analysis');
                                     },
@@ -825,20 +878,6 @@
                     }
                 });
             }
-        };
-
-
-        /**
-         * This function handles the event accept_button_pressed fires in other Controller (eg. ApplicationController)
-         * when a button Accept is pressed.
-         *  
-         * @returns this
-         */
-        this.acceptButtonHandler = function () {
-            $scope.setLoading(true);
-            $scope.setTaskQueue(this.clean_task_queue($scope.getTaskQueue()));
-            this.execute_tasks(true);
-            return this;
         };
 
         /**
@@ -868,6 +907,19 @@
             console.info((new Date()).toLocaleString() + "SENDING EDIT REQUEST FOR Analysis " + $scope.model.analysis_id + " TO SERVER");
             this.send_lock_analysis('edition');
 
+            return this;
+        };
+
+        /**
+         * This function handles the event accept_button_pressed fires in other Controller (eg. ApplicationController)
+         * when a button Accept is pressed.
+         *  
+         * @returns this
+         */
+        this.acceptButtonHandler = function () {
+            $scope.setLoading(true);
+            $scope.setTaskQueue(this.clean_task_queue($scope.getTaskQueue()));
+            this.execute_tasks(true);
             return this;
         };
 
@@ -928,11 +980,12 @@
             $scope.model.analysis_owners = [{user_id: Cookies.get("loggedUserID")}];
             $scope.model.analysis_members = [];
             $scope.model.tags = [];
+            $scope.model.non_processed_data = [];
+            $scope.model.processed_data = [];
         }
     });
 
-
-    app.controller('StepDetailController', function ($state, $rootScope, $scope, $http, $uibModal, AnalysisList, SampleList, TemplateList) {
+    app.controller('StepDetailController', function ($state, $rootScope, $scope, $http, $uibModal, APP_EVENTS, AnalysisList, SampleList, TemplateList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -958,10 +1011,12 @@
         };
 
         this.changeInputFilesHandler = function () {
+            //TODO: REMOVE THE DIALOG AFTER CHOOSING (NOT DIMISS)
             $scope.isDialog = true;
 
             $scope.browseDialog = $uibModal.open({
                 templateUrl: 'app/analysis/analysis-step-selector.tpl.html',
+                size: 'lg',
                 controller: 'StepDetailController',
                 controllerAs: 'controller',
                 scope: $scope
@@ -1029,14 +1084,20 @@
         };
 
         $scope.$watch('model', function (newValues, oldValues, scope) {
-            var hasChanged = (oldValues.bioreplicate_name !== newValues.bioreplicate_name) || (oldValues.batch_id !== newValues.batch_id);
+            //TODO: CAMBIAR ESTO, TIENEN QUE COMPROBARSE TODOS LOS CAMPOS (ARRAYS, ETC)
+            //hacer funcion recursiva
+            var hasChanged = false;
+            for (var i in newValues) {
+                if (i !== "status" && newValues[i] !== oldValues[i]) {
+                    hasChanged = true;
+                    break;
+                }
+            }
             if (hasChanged) {
-                SampleList.updateModelStatus($scope.model, "edited");
+                AnalysisList.updateModelStatus($scope.model, "edited");
+                $rootScope.$broadcast(APP_EVENTS.stepChanged);
                 return;
             }
-            //TODO: CHANGES IN BATCH
-            //TODO: EXTRA FIELDS
-
         }, true);
 
         //--------------------------------------------------------------------

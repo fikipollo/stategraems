@@ -22,6 +22,7 @@ package servlets;
 import bdManager.DAO.DAO;
 import bdManager.DAO.DAOProvider;
 import bdManager.DAO.analysis.Step_JDBCDAO;
+import classes.Experiment;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -377,15 +378,20 @@ public class Analysis_servlets extends Servlet {
             DAO daoInstance = null;
             Analysis analysis = null;
             try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
 
                 /**
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
                  * ERROR --> throws exception if not valid session, GO TO STEP
-                 * 5b ELSE --> GO TO STEP 2
+                 * 6b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
@@ -396,8 +402,7 @@ public class Analysis_servlets extends Servlet {
                  * *******************************************************
                  */
                 daoInstance = DAOProvider.getDAOByName("Analysis");
-                String newID = daoInstance.getNextObjectID(null);
-                lockedID = newID;
+                lockedID = daoInstance.getNextObjectID(null);
 
                 /**
                  * *******************************************************
@@ -407,11 +412,12 @@ public class Analysis_servlets extends Servlet {
                  * *******************************************************
                  */
                 //Get parameters
-                String analysisJSONdata = request.getParameter("analysis_json_data");
-                String experimentID = request.getParameter("currentExperimentID");
+                analysis = Analysis.fromJSON(requestData.get("analysis_json_data"));
+
+                String experimentID = requestData.get("currentExperimentID").getAsString();
+
                 //Parse the data
-                analysis = Analysis.fromJSON(analysisJSONdata);
-                analysis.updateAnalysisID(newID);
+                analysis.updateAnalysisID(lockedID);
                 analysis.setAssociated_experiment(experimentID);
 
                 /**
@@ -448,11 +454,9 @@ public class Analysis_servlets extends Servlet {
                         daoInstance.doRollback();
                     }
                 } else {
-                    String analysisJSON = "analysisList : [";
-                    analysisJSON += analysis.toJSON() + ", ";
-                    analysisJSON += "]";
-
-                    response.getWriter().print("{success: " + true + ", " + analysisJSON + " }");
+                    JsonObject obj = new JsonObject();
+                    obj.add("newID", new JsonPrimitive(lockedID));
+                    response.getWriter().print(obj.toString());
                 }
 
                 /**
@@ -857,6 +861,7 @@ public class Analysis_servlets extends Servlet {
             }
         }
     }
+
     /*
      * name: unblock_analysis_handler
      * description :
@@ -865,7 +870,6 @@ public class Analysis_servlets extends Servlet {
      * @throws ServletException
      * @throws IOException
      */
-
     private void unlock_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         boolean alreadyUnlocked = false;
         ArrayList<String> notUnlockedSteps = new ArrayList<String>();
@@ -1109,6 +1113,8 @@ public class Analysis_servlets extends Servlet {
             getAnalysisPreviewImageHandler(request, response);
         } else if (request.getServletPath().equals("/get_analysis_img")) {
             getAnalysisImageHandler(request, response);
+        } else if (request.getServletPath().equals("/get_step_subtypes")) {
+            get_step_subtypes_handler(request, response);
         } else {
             ServerErrorManager.addErrorMessage(3, Analysis_servlets.class.getName(), "doGet", "What are you doing here?.");
             response.setStatus(400);
@@ -1184,4 +1190,68 @@ public class Analysis_servlets extends Servlet {
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
     }
+
+    /**
+     *
+     * @param request
+     * @param response
+     * @throws IOException
+     */
+    private void get_step_subtypes_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        ArrayList<String> subtypes = new ArrayList<String>();
+        try {
+            String step_type = request.getParameter("step_type");
+
+            if ("Raw data".equals(step_type)) {
+                step_type = "rawdata";
+            } else if ("Intermediate data".equals(step_type)) {
+                step_type = "intermediate_data";
+            } else if ("Processed data".equals(step_type)) {
+                step_type = "processed_data";
+            } else {
+                throw new IOException("Unvalid data type");
+            }
+
+            String path = Analysis_servlets.class.getResource("/../../data/templates/" + step_type).getPath();
+            File folder = new File(path);
+
+            String filename;
+            for (File fileEntry : folder.listFiles()) {
+                if (!fileEntry.isDirectory()) {
+                    filename = fileEntry.getName();
+                    filename = filename.replaceAll("_", " ");
+                    filename = filename.replace("-form.json", "");
+//                    filename = filename.substring(0, 1).toUpperCase() + filename.substring(1);
+                    subtypes.add(filename);
+                }
+            }
+
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_step_subtypes_handler", e.getMessage());
+        } finally {
+            /**
+             * *******************************************************
+             * STEP 3b CATCH ERROR. GO TO STEP 4
+             * *******************************************************
+             */
+            if (ServerErrorManager.errorStatus()) {
+                response.setStatus(400);
+                response.getWriter().print(ServerErrorManager.getErrorResponse());
+            } else {
+                /**
+                 * *******************************************************
+                 * STEP 3A WRITE SUCCESS RESPONSE. GO TO STEP 4
+                 * *******************************************************
+                 */
+                JsonObject obj = new JsonObject();
+                JsonArray _subtypes = new JsonArray();
+                for (String subtype : subtypes) {
+                    _subtypes.add(new JsonPrimitive(subtype));
+                }
+                obj.add("subtypes", _subtypes);
+                response.getWriter().print(obj.toString());
+            }
+        }
+    }
+
 }

@@ -48,7 +48,7 @@
     /***************************************************************************/
     /*CONTROLLERS **************************************************************/
     /***************************************************************************/
-    app.controller('ProtocolListController', function ($rootScope, $scope, $http, $dialogs, INFO_EVENTS, ProtocolList) {
+    app.controller('ProtocolListController', function ($rootScope, $scope, $http, $dialogs, APP_EVENTS, ProtocolList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -153,7 +153,7 @@
         //--------------------------------------------------------------------
         // EVENT HANDLERS
         //--------------------------------------------------------------------
-        $scope.$on(INFO_EVENTS.protocolDeleted, function (event, args) {
+        $scope.$on(APP_EVENTS.protocolDeleted, function (event, args) {
             debugger;
             this.retrieveProtocolsData('', true);
         });
@@ -258,7 +258,7 @@
         }
     });
 
-    app.controller('ProtocolDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $dialogs, INFO_EVENTS, ProtocolList, TemplateList) {
+    app.controller('ProtocolDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $dialogs, APP_EVENTS, ProtocolList, TemplateList) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -334,7 +334,7 @@
                         $scope.model.protocol_id = response.data.newID;
                         ProtocolList.addProtocol($scope.model);
 //                        //Notify all the other controllers that a new protocol exists
-//                        $rootScope.$broadcast(INFO_EVENTS.protocolCreated);
+//                        $rootScope.$broadcast(APP_EVENTS.protocolCreated);
                         $scope.setLoading(false);
 
                         callback_caller[callback_function](true);
@@ -620,7 +620,7 @@
                                     function successCallback(response) {
                                         $dialogs.showSuccessDialog("The protocol was successfully deleted.");
                                         //Notify all the other controllers that user has signed in
-                                        $rootScope.$broadcast(INFO_EVENTS.protocolDeleted);
+                                        $rootScope.$broadcast(APP_EVENTS.protocolDeleted);
                                         me.send_unlock_protocol();
                                         $state.go('protocols');
                                     },

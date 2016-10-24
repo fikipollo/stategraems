@@ -19,29 +19,38 @@
  *
  * THIS FILE CONTAINS THE FOLLOWING MODULE DECLARATION
  * - file-list
+ * - outputFilesSelectorField
+ * - inputFilesSelectorField
  *
  */
 (function () {
     var app = angular.module('files.directives.file-list', [
         'ui.bootstrap',
-        'analysis.services.analysis-list'
+        'analysis.services.analysis-list',
+        'files.services.file-list'
     ]);
 
-    app.service('FileSelectionModal', function ($uibModal, $rootScope, FileList) {
-        function loadAllFiles() {
-            //TODO
-            return null;
+    app.directive("filesTree", function ($compile, FileList) {
+        return {
+            restrict: 'E',
+            replace: true,
+            link: function ($scope, element, attrs) {
+                $scope.$watch('filesTree', function (newValues, oldValues) {
+
+                    var template = 
+                            '<div ng-controller="FileListController as controller">' +
+                            '   <div id="files-tree-container" ng-show="(!filters || filters.length < 1)" style="min-width:200px; min-height: 330px;"></div>' +
+                            '   <div ng-show="(filters && filters.length > 0)" style="min-width:200px; min-height: 330px;"></div>' +
+                            '</div>';
+
+                    element.html(template);
+                    $compile(element.contents())($scope);
+                    
+                    $('#files-tree-container').treeview({data: [$scope.filesTree]});
+                }, true);
+            }
         }
-
-        return function () {
-            var instance = $uibModal.open({
-                templateUrl: 'app/files/file-list.tpl.html'
-            });
-
-            return instance.result.then(loadAllFiles);
-        };
     });
-
 
     app.directive("outputFilesSelectorField", function () {
         return {
@@ -50,12 +59,10 @@
             template:
                     '<div ng-controller="FileListController as controller">' +
                     '   <div style="min-width:200px; min-height: 30px;">' +
-                    '       <div ng-repeat="file in models" class="fileLocationItem">' +
-                    '         <i class="fa fa-trash text-danger clickable" ng-show="viewMode !== \'view\'" ng-click="controller.removeSelectedOutputFile(file)";></i> {{file}}' +
-                    '       </div>' +
+                    '       <div ng-repeat="file in models" class="fileLocationItem"> {{file}}</div>' +
                     '   </div>' +
-                    '   <a class="btn btn-default" ng-show="viewMode !== \'view\'" ng-click="controller.changeOutputFilesHandler();" style="margin-top:20px;">' +
-                    '      <i class="fa fa-plus" aria-hidden="true"></i> Add output files' +
+                    '   <a class="btn btn-default" ng-show="viewMode !== \'view\'" ng-click="controller.changeSelectedFilesButtonHandler();" style="margin-top:20px;">' +
+                    '      <i class="fa fa-plus" aria-hidden="true"></i> Change output files' +
                     '   </a>' +
                     '</div>'
         };
@@ -74,8 +81,7 @@
 
                     for (var i in $scope.model.used_data) {
                         template +=
-                                '       <div class="fileLocationItem">' +
-                                '         <i class="fa fa-trash text-danger clickable" ng-show="viewMode !== \'view\'" ng-click="controller.removeSelectedInputFile(\'' + $scope.model.used_data[i] + '\')";></i> {{file}}' +
+                                '       <div class="fileLocationItem">{{file}}' +
                                 '         <b>Output files for step ' + $scope.model.used_data[i] + '</b>' +
                                 '         <ul>';
 
@@ -100,7 +106,7 @@
                     $compile(element.contents())($scope);
                 }, true);
             }
-        }
+        };
     });
 
 })();

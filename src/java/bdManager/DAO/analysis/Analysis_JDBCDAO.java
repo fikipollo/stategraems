@@ -59,7 +59,7 @@ public class Analysis_JDBCDAO extends DAO {
         ps.setString(1, analysis.getAnalysisID());
         ps.setString(2, analysis.getAnalysisType());
         ps.setString(3, analysis.getStatus());
-        ps.setString(4, analysis.getStatus());
+        ps.setString(4, analysis.getAnalysisName());
         ps.setString(5, String.join(", ", analysis.getTags()));
         ps.execute();
 

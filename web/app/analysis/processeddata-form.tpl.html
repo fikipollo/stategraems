@@ -9,11 +9,11 @@
         <a class="clickable text-info" style="float: right; margin: 10px;" ng-click="controller.unremoveStepHandler();" ng-show="controller.unremovableModel()">
             <i class="fa fa-undo"></i> Restore this step
         </a>
-        <div ng-repeat="section in template.content">
+        <div>
             <h2 class="section_title">{{model.step_name}}</h2>    
-            <h3 ng-if="section.title" class="section_subtitle">{{section.title}}</h3>
-            <form-field ng-repeat="field in section.fields"></form-field>
-            <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+            <h3 ng-if="template.content[0].title" class="section_subtitle">{{template.content[0].title}}</h3>
+            <form-field ng-repeat="field in template.content[0].fields"></form-field>
+            <form-field ng-repeat="field in (model.extra[template.content[0].name]|| [])"></form-field>
         </div>
     </div>
 

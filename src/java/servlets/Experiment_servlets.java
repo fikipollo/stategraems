@@ -882,6 +882,12 @@ public class Experiment_servlets extends Servlet {
             DAO dao_instance = null;
             String directoryContent = "";
             try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String loggedUserID = requestData.get("loggedUserID").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
 
                 /**
                  * *******************************************************
@@ -890,7 +896,7 @@ public class Experiment_servlets extends Servlet {
                  * 5b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
@@ -900,7 +906,12 @@ public class Experiment_servlets extends Servlet {
                  * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
                  * *******************************************************
                  */
-                String experiment_id = request.getParameter("currentExperimentID");
+                String experiment_id;
+                if (requestData.has("experiment_id")) {
+                    experiment_id = requestData.get("experiment_id").getAsString();
+                } else {
+                    experiment_id = requestData.get("currentExperimentID").getAsString();
+                }
 
                 /**
                  * *******************************************************
@@ -910,6 +921,11 @@ public class Experiment_servlets extends Servlet {
                  */
                 dao_instance = DAOProvider.getDAOByName("Experiment");
                 Experiment experiment = (Experiment) dao_instance.findByID(experiment_id, null);
+
+                if (!experiment.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
+                    throw new AccessControlException("Cannot get files for selected Experiment. Current useris not a valid member for this Experiment.");
+                }
+
                 directoryContent = experiment.getExperimentDataDirectoryContent(DATA_LOCATION);
 
             } catch (Exception e) {
@@ -929,7 +945,7 @@ public class Experiment_servlets extends Servlet {
                      * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
                      * *******************************************************
                      */
-                    response.getWriter().print("{success: " + true + ", directoryContent : " + directoryContent + " }");
+                    response.getWriter().print(directoryContent);
                 }
                 /**
                  * *******************************************************

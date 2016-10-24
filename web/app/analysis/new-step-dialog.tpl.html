@@ -1,0 +1,25 @@
+<div>
+    <nav class="modal-header navbar navbar-default navbar-top title-bar">
+        <h1 class="form_title">Choose the type for the new step</h1>
+    </nav>
+    <div class="modal-body">
+        <div style="margin: 20px;">
+            <div class="form-group">
+                <label for="step_type">Step type:</label>
+                <select class="form-control" id="step_type" ng-model="typesInfo.step_type" ng-change="controller.updateStepSubtypes();">
+                    <option>Raw data</option>
+                    <option>Intermediate data</option>
+                    <option>Processed data</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="step_subtype">Step subtype:</label>
+                <select class="form-control" id="step_subtype" ng-model="typesInfo.step_subtype">
+                    <option ng-repeat="step_subtype in typesInfo.step_subtypes">{{step_subtype}}</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-success" type="button" ng-disabled="!typesInfo.step_type || !typesInfo.step_subtype" ng-click="controller.addNewStepAcceptButtonHandler();">Add the new step</button>
+        </div>
+    </div>

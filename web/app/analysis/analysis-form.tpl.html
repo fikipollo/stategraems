@@ -35,16 +35,19 @@
                     <i class="fa fa-sort-numeric-asc"></i> Workflow steps
                 </uib-tab-heading>
                 <h2 class="form_subtitle">Steps in the workflow</h2>
+                <h4 ng-if="(!model.non_processed_data || model.non_processed_data.length === 0) && (!model.processed_data || model.processed_data.length === 0)"style=" text-align: center; margin-top: 30px; ">
+                    This analysis is yet empty, add new steps in the workflow to continue the annotation.
+                </h4>
                 <div ng-if="viewMode !== 'view'" class="navbar-form">
                     <div style="margin: auto;display: block;max-width: 625px;text-align: center;margin-top: 34px;">
-                        <a class="btn btn-lg btn-primary" type="button" ng-click="controller.addNewBioreplicateButtonHandler()">
+                        <a class="btn btn-lg btn-primary" type="button" ng-click="controller.addNewStepButtonHandler()">
                             <i class="fa fa-plus-circle"></i> Add new step
                         </a>
                     </div>
                 </div>
-                <raw-data-form ng-repeat="model in model.non_processed_data| filter:{ type : 'rawdata' } | orderBy:'step_number'" ng-init="summary = true"></raw-data-form>
-                <intermediate-data-form ng-repeat="model in model.non_processed_data| filter:{ type : 'intermediate_data'} | orderBy:'step_number'" ng-init="summary = true"></intermediate-data-form>
-                <processed-data-form ng-repeat="model in model.processed_data| orderBy:'step_number'" ng-init="summary = true"></processed-data-form>
+                <raw-data-form ng-repeat="model in model.non_processed_data | filter:{ type : 'rawdata' } | orderBy:'step_number'" ng-init="summary = true"></raw-data-form>
+                <intermediate-data-form ng-repeat="model in model.non_processed_data | filter:{ type : 'intermediate_data'} | orderBy:'step_number'" ng-init="summary = true"></intermediate-data-form>
+                <processed-data-form ng-repeat="model in model.processed_data | orderBy:'step_number'" ng-init="summary = true"></processed-data-form>
             </uib-tab>
             <uib-tab ng-repeat="model in displayedSteps">
                 <uib-tab-heading>

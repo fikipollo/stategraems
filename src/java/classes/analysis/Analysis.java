@@ -37,7 +37,7 @@ public class Analysis {
     private String analysis_id;
     private String analysis_name;
     private String analysis_type;
-    private String status;
+    private String status = "open";
     private String associated_experiment; //ONLY LOCAL INSTANCES, NOT IN DATABASE
     private NonProcessedData[] non_processed_data;
     private ProcessedData[] processed_data;
@@ -53,7 +53,7 @@ public class Analysis {
      * @param jsonString the JSON object
      * @return the new Object.
      */
-    public static Analysis fromJSON(String jsonString) {
+    public static Analysis fromJSON(JsonElement jsonString) {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(NonProcessedData.class, getNonProcessedDataDeserializerInstance());
         gsonBuilder.registerTypeAdapter(ProcessedData.class, getProcessedDataDeserializerInstance());

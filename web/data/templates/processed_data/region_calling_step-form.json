@@ -1,3 +1,16 @@
 {
-    "name": "rhernandez"
+    "id": "region_calling_step-form",
+    "content": [
+        {
+            "name": "section_1",
+            "title": "Calling details",
+            "fields": [
+                {
+                    "name": "reference_region",
+                    "label": "Reference regions",
+                    "type": "textarea"
+                }
+            ]
+        }
+    ]
 }

@@ -41,6 +41,7 @@
         <url-pattern>/save_analysis_image</url-pattern>
         <url-pattern>/lock_analysis</url-pattern>
         <url-pattern>/unlock_analysis</url-pattern>
+        <url-pattern>/get_step_subtypes</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Batch_servlets</servlet-name>

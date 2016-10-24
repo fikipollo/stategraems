@@ -73,7 +73,7 @@
                         var diagram = $scope.diagram;
 
                         if (diagram === undefined) {
-                            return;
+                            diagram ={nodes:[], edges:[]};
                         }
                         $scope.controller.sigma = new sigma({
                             graph: diagram,

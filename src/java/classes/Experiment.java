@@ -342,6 +342,8 @@ public class Experiment {
             if (line.charAt(line.length() - 1) == '/') {
                 line = line.substring(0, line.length() - 1);
             }
+            
+            
 
             Directory directory = new Directory(line);
 
@@ -443,11 +445,10 @@ class Directory {
     public String toJSONString(int level) {
         String childrenCode = "";
         if (this.children != null) {
-            for (Directory child : children) {
-                childrenCode += child.toJSONString(level + 1);
+            for (int i = 0;  i < children.size(); i++) {
+                childrenCode += children.get(i).toJSONString(level + 1) + ((i + 1) < children.size() ? ",":"" );
             }
         }
-        String tabs = "";
-        return tabs + "{" + "text : '" + name + "', path : '" + path + "', " + (childrenCode.equals("") ? "leaf: true, checked: false" : "children :[" + childrenCode + "]") + "},";
+        return "{\"text\" : \"" + name + "\"" + (childrenCode.equals("") ? "" : ", \"nodes\" :[" + childrenCode + "]") + "}";
     }
 }
