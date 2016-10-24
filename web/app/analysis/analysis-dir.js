@@ -65,16 +65,21 @@
                 restrict: 'E',
                 replace: true,
                 link: function ($scope, element, attrs) {
+                    /**********************************************************************************************
+                     * This function...
+                     *
+                     * @return {AnalysisDetailController} the controller
+                     ***********************************************************************************************/
                     var createDiagram = function () {
+                        debugger;
+                        //1. CREATE THE CONTAINER FOR THE DIAGRAM
                         var template = '<div class="sigmaContainer" id="' + attrs["container-id"] + '"style="' + (attrs['style'] || "") + '"></div>';
                         $compile($(template).appendTo(element))($scope)[0];
 
-                        //CREATE THE SIGMA NETWORK
-                        var diagram = $scope.diagram;
+                        //2. CREATE THE NETWORK DIAGRAM
+                        var diagram = $scope.diagram || {nodes: [], edges: []};
 
-                        if (diagram === undefined) {
-                            diagram ={nodes:[], edges:[]};
-                        }
+                        //3. INITIALIZE THE SIGMA DIAGRMA
                         $scope.controller.sigma = new sigma({
                             graph: diagram,
                             renderer: {container: document.getElementById(attrs["container-id"]), type: 'canvas'},
@@ -87,6 +92,44 @@
                             }
                         });
 
+                        if (attrs.selectable !== undefined) {
+                            $scope.controller.sigma.selectable = true;
+
+                            $scope.controller.sigma.bind('clickNode', function (event) {
+                                var node = event.data.node;
+                                if (node.id === $scope.model.step_id) {
+                                    return;
+                                }
+                                if (node.selected === "false") {
+                                    $scope.controller.addSelectedInputFile(node.id, true);
+                                    node.selected = "true";
+                                } else {
+                                    $scope.controller.removeSelectedInputFile(node.id, true);
+                                    node.selected = "false";
+                                }
+                            });
+                        }
+
+                        applyStyles();
+                    };
+
+                    /**********************************************************************************************
+                     * This function...
+                     *
+                     * @return {AnalysisDetailController} the controller
+                     ***********************************************************************************************/
+                    var updateDiagram = function () {
+                        debugger;
+                        var diagram = $scope.diagram || {nodes: [], edges: []};
+
+                        $scope.controller.sigma.graph.clear();
+                        $scope.controller.sigma.graph.read(diagram);
+
+                        applyStyles();
+                    };
+
+                    var applyStyles = function () {
+                        var diagram = $scope.diagram || {nodes: [], edges: []};
 
                         var nodeSize = 16;
                         var edgeSize = 4;
@@ -97,15 +140,13 @@
                             nodeSize = 10;
                             edgeSize = 3;
                         }
-
-                        var myPalette = {}, myStyles = {};
-                        if (attrs.selectable !== undefined) {
+                        var myPalette, myStyles;
+                        if ($scope.controller.sigma.selectable === true) {
                             for (var i in diagram.nodes) {
                                 diagram.nodes[i]["selected"] = ($scope.model.used_data.indexOf(diagram.nodes[i].id) !== -1) ? "true" : "false";
                             }
-
                             // Create a custom color palette:
-                            var myPalette = {
+                            myPalette = {
                                 nodeColorScheme: {
                                     true: "#fc7d71",
                                     false: "#d8d8d8"
@@ -116,7 +157,7 @@
                                 }
                             };
 
-                            var myStyles = {
+                            myStyles = {
                                 nodes: {
                                     size: {by: 'size', bins: 7, min: nodeSize, max: nodeSize},
                                     icon: {by: 'selected', scheme: 'iconScheme'},
@@ -126,24 +167,9 @@
                                     size: {by: 'size', min: edgeSize, max: edgeSize}
                                 }
                             };
-
-                            $scope.controller.sigma.bind('clickNode', function (event) {
-                                var node = event.data.node;
-                                if (node.id === $scope.model.step_id) {
-                                    return;
-                                }
-                                if (node.selected === "false") {
-                                    $scope.controller.addSelectedInputFile(node.id);
-                                    node.selected = "true";
-                                } else {
-                                    $scope.controller.removeSelectedInputFile(node.id);
-                                    node.selected = "false";
-                                }
-                            });
-
                         } else {
                             // Create a custom color palette:
-                            var myPalette = {
+                            myPalette = {
                                 nodeColorScheme: {
                                     rawdata: "#ede43d",
                                     intermediate_data: "#1fa7cb",
@@ -156,7 +182,7 @@
                                 }
                             };
 
-                            var myStyles = {
+                            myStyles = {
                                 nodes: {
                                     size: {by: 'size', bins: 7, min: nodeSize, max: nodeSize},
                                     icon: {by: 'step_type', scheme: 'iconScheme'},
@@ -170,12 +196,17 @@
 
 
                         // Instanciate the design:
-                        var design = sigma.plugins.design($scope.controller.sigma, {
-                            styles: myStyles,
-                            palette: myPalette
-                        });
-
-                        design.apply();
+                        if (!$scope.controller.sigma.design) {
+                            $scope.controller.sigma.design = sigma.plugins.design($scope.controller.sigma, {
+                                styles: myStyles,
+                                palette: myPalette
+                            });
+                        } else {
+                            $scope.controller.sigma.design.setPalette(myPalette);
+                            $scope.controller.sigma.design.setStyles(myStyles);
+                        }
+                        
+                        $scope.controller.sigma.design.apply();
 
                         // Configure the DAG layout:
                         sigma.layouts.dagre.configure($scope.controller.sigma, {
@@ -184,44 +215,10 @@
                             easing: 'quadraticInOut', // animation transition function
                             duration: 800, // animation duration
                         });
-
                         // Start the DAG layout:
                         sigma.layouts.dagre.start($scope.controller.sigma);
-                    };
-
-
-                    var updateDiagram = function () {
-                        var diagram = $scope.diagram;
-                        $scope.controller.sigma.graph.clear();
-                        $scope.controller.sigma.graph.read(diagram);
-
-                        var myPalette = {
-                            nodeColorScheme: {
-                                true: "#fc7d71",
-                                false: "#d8d8d8"
-                            },
-                            iconScheme: {
-                                true: {font: 'FontAwesome', content: "\uF126", scale: 0.7, color: '#ffffff'},
-                                false: {font: 'FontAwesome', content: "\uF129", scale: 0.7, color: '#ffffff'}
-                            }
-                        };
-                        // Instanciate the design:
-                        var design = sigma.plugins.design($scope.controller.sigma, {
-                            palette: myPalette
-                        });
-                        design.apply();
 
                         $scope.controller.sigma.refresh();
-
-                        // Configure the DAG layout:
-                        sigma.layouts.dagre.configure($scope.controller.sigma, {
-                            directed: true, // take edge direction into account
-                            rankdir: 'LR', // Direction for rank nodes. Can be TB, BT, LR, or RL,
-                            easing: 'quadraticInOut', // animation transition function
-                            duration: 800, // animation duration
-                        });
-                        // Start the DAG layout:
-                        sigma.layouts.dagre.start($scope.controller.sigma);
                     };
 
                     $scope.$watch('diagram', function (newValues, oldValues, scope) {

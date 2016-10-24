@@ -33,19 +33,34 @@
         'ui.bootstrap'
     ]);
 
-    /***************************************************************************/
-    /*CONTROLLERS **************************************************************/
-    /***************************************************************************/
+    /******************************************************************************      
+     *       _____ ____  _   _ _______ _____   ____  _      _      ______ _____   _____ 
+     *      / ____/ __ \| \ | |__   __|  __ \ / __ \| |    | |    |  ____|  __ \ / ____|
+     *     | |   | |  | |  \| |  | |  | |__) | |  | | |    | |    | |__  | |__) | (___  
+     *     | |   | |  | | . ` |  | |  |  _  /| |  | | |    | |    |  __| |  _  / \___ \ 
+     *     | |___| |__| | |\  |  | |  | | \ \| |__| | |____| |____| |____| | \ \ ____) |
+     *      \_____\____/|_| \_|  |_|  |_|  \_\\____/|______|______|______|_|  \_\_____/ 
+     *                                                                                  
+     *                                                                                  
+     ******************************************************************************/
     app.controller('SampleListController', function ($rootScope, $scope, $http, $dialogs, APP_EVENTS, SampleList) {
-        //--------------------------------------------------------------------
-        // CONTROLLER FUNCTIONS
-        //--------------------------------------------------------------------
-        /**
+        /******************************************************************************      
+         *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
+         *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
+         *     | (_| (_) | .` | | | |   / (_) | |__| |__| _||   / 
+         *      \___\___/|_|\_| |_|_|_|_\\___/|____|____|___|_|_\ 
+         *        | __| | | | \| |/ __|_   _|_ _/ _ \| \| / __|   
+         *        | _|| |_| | .` | (__  | |  | | (_) | .` \__ \   
+         *        |_|  \___/|_|\_|\___| |_| |___\___/|_|\_|___/   
+         *                                                        
+         ******************************************************************************/
+
+        /******************************************************************************      
          * This function retrieves all the samples registered in the system
          * @param {type} group, limit the search to "user's" samples (not used)
          * @param {type} force
          * @returns this
-         */
+         ******************************************************************************/
         this.retrieveSamplesData = function (group, force) {
             $scope.isLoading = true;
 
@@ -92,14 +107,14 @@
             return this;
         };
 
-        /**
+        /******************************************************************************      
          * This function defines the behaviour for the "filterSamples" function.
          * Given a item (sample) and a set of filters, the function evaluates if
          * the current item contains the set of filters within the different attributes
          * of the model.
          *
          * @returns {Boolean} true if the model passes all the filters.
-         */
+         ******************************************************************************/
         $scope.filterSamples = function () {
             $scope.filteredSamples = 0;
             $scope.user_id = $scope.user_id || Cookies.get("loggedUserID");
@@ -136,24 +151,38 @@
             return (SampleList.isOwner(sample, $scope.user_id) || SampleList.isMember(sample, $scope.user_id));
         }
 
+        /******************************************************************************      
+         *            _____   _____ _  _ _____         
+         *           | __\ \ / / __| \| |_   _|        
+         *           | _| \ V /| _|| .` | | |          
+         *      _  _ |___| \_/_|___|_|\_| |_| ___  ___ 
+         *     | || | /_\ | \| |   \| |  | __| _ \/ __|
+         *     | __ |/ _ \| .` | |) | |__| _||   /\__ \
+         *     |_||_/_/ \_\_|\_|___/|____|___|_|_\|___/
+         *                                             
+         ******************************************************************************/
 
-
-        //--------------------------------------------------------------------
-        // EVENT HANDLERS
-        //--------------------------------------------------------------------
-
-
+        /******************************************************************************
+         * This function...
+         *
+         ******************************************************************************/
         this.showSampleChooserChangeHandler = function () {
             this.retrieveSamplesData($scope.show);
         }
-        /**
+
+        /******************************************************************************
          * This function applies the filters when the user clicks on "Search"
-         */
+         *
+         ******************************************************************************/
         this.applySearchHandler = function () {
             var filters = arrayUnique($scope.filters.concat($scope.searchFor.split(" ")));
             $scope.filters = SampleList.setFilters(filters).getFilters();
         };
 
+        /******************************************************************************
+         * This function...
+         *
+         ******************************************************************************/
         this.filterByTag = function (tag) {
             if (tag !== "All") {
                 var filters = arrayUnique($scope.filters.concat(tag));
@@ -161,13 +190,18 @@
             }
         }
 
-        /**
+        /******************************************************************************
          * This function remove a given filter when the user clicks at the "x" button
-         */
+         *
+         ******************************************************************************/
         this.removeFilterHandler = function (filter) {
             $scope.filters = SampleList.removeFilter(filter).getFilters();
         };
 
+        /******************************************************************************
+         * This function...
+         *
+         ******************************************************************************/
         this.showMoreSamplesHandler = function () {
             if (window.innerWidth > 1500) {
                 $scope.visibleSamples += 10;
@@ -179,9 +213,13 @@
             $scope.visibleSamples = Math.min($scope.filteredSamples, $scope.visibleSamples);
         }
 
-        //--------------------------------------------------------------------
-        // INITIALIZATION
-        //--------------------------------------------------------------------
+        /******************************************************************************
+         *      ___ _  _ ___ _____ ___   _   _    ___ ____  _ _____ ___ ___  _  _ 
+         *     |_ _| \| |_ _|_   _|_ _| /_\ | |  |_ _|_  / /_\_   _|_ _/ _ \| \| |
+         *      | || .` || |  | |  | | / _ \| |__ | | / / / _ \| |  | | (_) | .` |
+         *     |___|_|\_|___| |_| |___/_/ \_\____|___/___/_/ \_\_| |___\___/|_|\_|
+         *     
+         ******************************************************************************/
         var me = this;
 
         //This controller uses the SampleList, which defines a Singleton instance of
@@ -210,14 +248,22 @@
     });
 
     app.controller('BioconditionDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $dialogs, APP_EVENTS, SampleList, TemplateList) {
-        //--------------------------------------------------------------------
-        // CONTROLLER FUNCTIONS
-        //--------------------------------------------------------------------
+        /******************************************************************************      
+         *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
+         *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
+         *     | (_| (_) | .` | | | |   / (_) | |__| |__| _||   / 
+         *      \___\___/|_|\_| |_|_|_|_\\___/|____|____|___|_|_\ 
+         *        | __| | | | \| |/ __|_   _|_ _/ _ \| \| / __|   
+         *        | _|| |_| | .` | (__  | |  | | (_) | .` \__ \   
+         *        |_|  \___/|_|\_|\___| |_| |___\___/|_|\_|___/   
+         *                                                        
+         ******************************************************************************/
 
-        /**
+        /******************************************************************************
          * This function gets the details for a given Sample
+         * 
          * @param biocondition_id the id for the Sample to be retieved
-         */
+         ******************************************************************************/
         this.retrieveSampleDetails = function (biocondition_id, force) {
             $scope.setLoading(true);
 
@@ -286,8 +332,9 @@
                         $scope.model.biocondition_id = response.data.newID;
 
                         SampleList.addBiocondition($scope.model);
-//                        //Notify all the other controllers that a new sample exists
-//                        $rootScope.$broadcast(APP_EVENTS.sampleCreated);
+
+                        //Notify all the other controllers that a new sample exists
+                        //$rootScope.$broadcast(APP_EVENTS.sampleCreated);
                         $scope.setLoading(false);
 
                         callback_caller[callback_function](true);
@@ -405,7 +452,6 @@
             return this;
         };
 
-
         /******************************************************************************      
          * This function lock a sample for editing.  
          * @return this;  
@@ -440,11 +486,12 @@
             return this;
         };
 
-        /**
+
+        /******************************************************************************      
          * 
          * @param {type} tasks_queue
          * @returns {Array}
-         */
+         ******************************************************************************/
         this.clean_task_queue = function (tasks_queue) {
             console.info((new Date()).toLocaleString() + "CLEANING TASK QUEUE");
             try {
@@ -481,7 +528,7 @@
             }
         };
 
-        /**********************************************************************************************
+        /******************************************************************************
          * This function handles the tasks execution for a given sampleView and should be only called after 
          * sample creation/edition.
          *
@@ -499,7 +546,7 @@
          
          * @param  status true if some error occurs during execution
          * @return      
-         ***********************************************************************************************/
+         ******************************************************************************/
         this.execute_tasks = function (status) {
             var error_message = "";
             //GET THE NEXT TASK IN THE QUEUE

@@ -19,12 +19,19 @@ ALTER TABLE experiments DROP COLUMN is_time_course_type;
 UPDATE biocondition SET biocondition_id=REPLACE(biocondition_id, 'BC', 'BC00');
 ALTER TABLE biocondition ADD COLUMN tags TEXT;
 ALTER TABLE biocondition ADD COLUMN public BOOLEAN DEFAULT TRUE;
+ALTER TABLE biocondition MODIFY COLUMN external_links TEXT;
 
 ALTER TABLE analyticalReplicate MODIFY COLUMN treatment_id VARCHAR(50);
 
 ALTER TABLE analysis CHANGE analysisType analysis_type varchar(200);
 ALTER TABLE analysis CHANGE analysisName analysis_name varchar(200);
 ALTER TABLE analysis ADD COLUMN tags TEXT;
+
+ALTER TABLE rawdata MODIFY COLUMN analyticalReplicate_id VARCHAR(50);
+
+ALTER TABLE sequencing_rawdata MODIFY COLUMN platform_family VARCHAR(200);
+ALTER TABLE sequencing_rawdata MODIFY COLUMN platform_model VARCHAR(200);
+
 
 UPDATE appVersion SET version='0.8';
 

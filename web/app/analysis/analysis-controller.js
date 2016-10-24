@@ -45,13 +45,29 @@
         };
     });
 
-    /***************************************************************************/
-    /*CONTROLLERS **************************************************************/
-    /***************************************************************************/
+
+    /******************************************************************************      
+     *       _____ ____  _   _ _______ _____   ____  _      _      ______ _____   _____ 
+     *      / ____/ __ \| \ | |__   __|  __ \ / __ \| |    | |    |  ____|  __ \ / ____|
+     *     | |   | |  | |  \| |  | |  | |__) | |  | | |    | |    | |__  | |__) | (___  
+     *     | |   | |  | | . ` |  | |  |  _  /| |  | | |    | |    |  __| |  _  / \___ \ 
+     *     | |___| |__| | |\  |  | |  | | \ \| |__| | |____| |____| |____| | \ \ ____) |
+     *      \_____\____/|_| \_|  |_|  |_|  \_\\____/|______|______|______|_|  \_\_____/ 
+     *                                                                                  
+     *                                                                                  
+     ******************************************************************************/
     app.controller('AnalysisListController', function ($state, $rootScope, $scope, $http, $dialogs, APP_EVENTS, AnalysisList) {
-        //--------------------------------------------------------------------
-        // CONTROLLER FUNCTIONS
-        //--------------------------------------------------------------------
+        /******************************************************************************      
+         *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
+         *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
+         *     | (_| (_) | .` | | | |   / (_) | |__| |__| _||   / 
+         *      \___\___/|_|\_| |_|_|_|_\\___/|____|____|___|_|_\ 
+         *        | __| | | | \| |/ __|_   _|_ _/ _ \| \| / __|   
+         *        | _|| |_| | .` | (__  | |  | | (_) | .` \__ \   
+         *        |_|  \___/|_|\_|\___| |_| |___\___/|_|\_|___/   
+         *                                                        
+         ******************************************************************************/
+
         /**
          * This function retrieves all the analysis registered in the system
          * @param {type} group, limit the search to "user's" analysis (not used)
@@ -154,11 +170,17 @@
             return (AnalysisList.isOwner(analysis, $scope.user_id) || AnalysisList.isMember(analysis, $scope.user_id));
         }
 
+        /******************************************************************************      
+         *            _____   _____ _  _ _____         
+         *           | __\ \ / / __| \| |_   _|        
+         *           | _| \ V /| _|| .` | | |          
+         *      _  _ |___| \_/_|___|_|\_| |_| ___  ___ 
+         *     | || | /_\ | \| |   \| |  | __| _ \/ __|
+         *     | __ |/ _ \| .` | |) | |__| _||   /\__ \
+         *     |_||_/_/ \_\_|\_|___/|____|___|_|_\|___/
+         *                                             
+         ******************************************************************************/
 
-
-        //--------------------------------------------------------------------
-        // EVENT HANDLERS
-        //--------------------------------------------------------------------
         this.showAnalysisChooserChangeHandler = function () {
             this.retrieveAnalysisData($scope.show);
         };
@@ -229,29 +251,36 @@
     });
 
     app.controller('AnalysisDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $uibModal, $dialogs, APP_EVENTS, AnalysisList, TemplateList) {
-        //--------------------------------------------------------------------
-        // CONTROLLER FUNCTIONS
-        //--------------------------------------------------------------------
+        /******************************************************************************      
+         *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
+         *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
+         *     | (_| (_) | .` | | | |   / (_) | |__| |__| _||   / 
+         *      \___\___/|_|\_| |_|_|_|_\\___/|____|____|___|_|_\ 
+         *        | __| | | | \| |/ __|_   _|_ _/ _ \| \| / __|   
+         *        | _|| |_| | .` | (__  | |  | | (_) | .` \__ \   
+         *        |_|  \___/|_|\_|\___| |_| |___\___/|_|\_|___/   
+         *                                                        
+         ******************************************************************************/
 
-        /**
+        /******************************************************************************      
          * This function gets the details for a given Analysis
+         * 
          * @param analysis_id the id for the Analysis to be retieved
-         */
+         ******************************************************************************/
         this.retrieveAnalysisDetails = function (analysis_id, force) {
             $scope.setLoading(true);
 
             $scope.model = AnalysisList.findAnalysis(analysis_id);
-
-            //TODO: EXTRA FIELDS
-//            $scope.model.extra = {
-//                section_1: [
-//                    {
-//                        "name": "title",
-//                        "label": "Extra 2",
-//                        "type": "text"
-//                    }
-//                ]
-//            };
+            /*TODO: EXTRA FIELDS
+             $scope.model.extra = {
+             section_1: [
+             {
+             "name": "title",
+             "label": "Extra 2",
+             "type": "text"
+             }
+             ]
+             };*/
             if ($scope.model === null || force === true || ($scope.model.non_processed_data === undefined && $scope.model.processed_data === undefined)) {
                 $http($rootScope.getHttpRequestConfig("POST", "analysis-info", {
                     headers: {'Content-Type': 'application/json'},
@@ -274,60 +303,10 @@
                             $scope.setLoading(false);
                         }
                 );
+            } else {
+                $scope.diagram = me.generateWorkflowDiagram($scope.model, $scope.diagram);
+                $scope.setLoading(false);
             }
-            $scope.setLoading(false);
-        };
-
-        /**
-         * This function creates a network from a given list of steps of a workflow.
-         *
-         * @param workflow_steps a list of workflow steps
-         * @return a network representation of the workflow (Object) with a list
-         *         of nodes and a list of edges.
-         */
-        this.generateWorkflowDiagram = function (analysis, diagram) {
-            var step = null, edge_id = "", edges = {};
-
-            if (!diagram) {
-                diagram = {"nodes": [], "edges": []};
-            }
-
-            diagram.nodes.length = 0;
-            diagram.edges.length = 0;
-
-            try {
-                var steps = analysis.non_processed_data.concat(analysis.processed_data); // Merges both arrays
-
-                for (var i in steps) {
-                    step = steps[i];
-
-                    diagram.nodes.push({
-                        id: step.step_id,
-                        label: (step.step_number + 1) + ". " + step.step_name,
-                        x: step.x || 0,
-                        y: step.y || 0,
-                        step_type: step.type,
-                        step_subtype: step.raw_data_type || step.intermediate_data_type
-                    });
-
-                    for (var j in step.used_data) {
-                        edge_id = step.step_id + "" + step.used_data[j];
-                        if (!edges[edge_id] && step.used_data[j] !== undefined && step.step_id !== undefined) {
-                            edges[edge_id] = true;
-                            diagram.edges.push({
-                                id: edge_id,
-                                source: step.used_data[j],
-                                target: step.step_id,
-                                type: 'arrow'
-                            });
-                        }
-                    }
-                }
-            } catch (e) {
-                debugger;
-            }
-
-            return diagram;
         };
 
         /******************************************************************************      
@@ -387,6 +366,7 @@
                     }
             );
         };
+
         /******************************************************************************      
          * This function send the BioReplicatess information of the given biorepicate_model 
          * to the SERVER in order to save a NEW BIOREPLICATE in the database associated to the 
@@ -518,11 +498,11 @@
             return this;
         };
 
-        /**
+        /******************************************************************************
          * 
          * @param {type} tasks_queue
          * @returns {Array}
-         */
+         ******************************************************************************/
         this.clean_task_queue = function (tasks_queue) {
             console.info((new Date()).toLocaleString() + "CLEANING TASK QUEUE");
             try {
@@ -538,18 +518,19 @@
                     //After that only "create_new_analysis" and others tasks like "send_treatment_document" should be in the queue
                     var tasks_queue_temp = [tasks_queue[0]];
                     return tasks_queue_temp;
+                } else {
+                    var tasks_queue_temp = [];
+                    tasks_queue_temp.push({command: "update_analysis", object: null});
+                    tasks_queue_temp.push({command: "clear_locked_status", object: null});
+                    return tasks_queue_temp;
                 }
-                var tasks_queue_temp = [];
-                tasks_queue_temp.push({command: "update_analysis", object: null});
-                tasks_queue_temp.push({command: "clear_locked_status", object: null});
-                return tasks_queue_temp;
             } catch (error) {
                 $dialogs.showErrorDialog('ERROR CLEANING TASK QUEUE: ' + error, {soft: false});
                 return tasks_queue;
             }
         };
 
-        /**********************************************************************************************
+        /******************************************************************************
          * This function handles the tasks execution for a given analysisView and should be only called after 
          * analysis creation/edition.
          *
@@ -567,7 +548,7 @@
          
          * @param  status true if some error occurs during execution
          * @return      
-         ***********************************************************************************************/
+         ******************************************************************************/
         this.execute_tasks = function (status) {
             var error_message = "";
             //GET THE NEXT TASK IN THE QUEUE
@@ -620,6 +601,67 @@
             }
         };
 
+        /******************************************************************************
+         * This function creates a network from a given list of steps of a workflow.
+         *
+         * @param workflow_steps a list of workflow steps
+         * @return a network representation of the workflow (Object) with a list
+         *         of nodes and a list of edges.
+         ******************************************************************************/
+        this.generateWorkflowDiagram = function (analysis, diagram) {
+            var step = null, edge_id = "", edges = {};
+
+            diagram = diagram || $scope.diagram;
+            analysis = analysis || $scope.analysis;
+
+            if (!diagram) {
+                diagram = {"nodes": [], "edges": []};
+            }
+
+            diagram.nodes.length = 0;
+            diagram.edges.length = 0;
+
+            try {
+                var steps = analysis.non_processed_data.concat(analysis.processed_data); // Merges both arrays
+
+                for (var i in steps) {
+                    step = steps[i];
+
+                    diagram.nodes.push({
+                        id: step.step_id,
+                        label: (step.step_number + 1) + ". " + step.step_name,
+                        x: step.x || 0,
+                        y: step.y || 0,
+                        step_type: step.type,
+                        step_subtype: step.raw_data_type || step.intermediate_data_type
+                    });
+
+                    for (var j in step.used_data) {
+                        edge_id = step.step_id + "" + step.used_data[j];
+                        if (!edges[edge_id] && step.used_data[j] !== undefined && step.step_id !== undefined) {
+                            edges[edge_id] = true;
+                            diagram.edges.push({
+                                id: edge_id,
+                                source: step.used_data[j],
+                                target: step.step_id,
+                                type: 'arrow'
+                            });
+                        }
+                    }
+                }
+            } catch (e) {
+                debugger;
+            }
+
+            return diagram;
+        };
+
+        /******************************************************************************
+         * This function opens a new tab with the details for the selected step
+         *
+         * @param {Step} stepModel the step to be displayed
+         * @return {AnalysisDetailController} the controller
+         ******************************************************************************/
         this.showStepDetails = function (stepModel) {
             $scope.displayedSteps = $scope.displayedSteps || [];
             for (var i = 0; i < $scope.displayedSteps.length; i++) {
@@ -633,9 +675,15 @@
             $timeout(function () {
                 $scope.activeTab = ($scope.displayedSteps.length + 1);
             }, 300);
-            return;
+            return this;
         };
 
+        /******************************************************************************
+         * This function closes a tab with the details for the selected step
+         *
+         * @param {Step} stepModel the step to be hidden
+         * @return {AnalysisDetailController} the controller
+         ******************************************************************************/
         this.closeStepDetails = function (stepModel) {
             $scope.displayedSteps = $scope.displayedSteps || [];
             for (var i = 0; i < $scope.displayedSteps.length; i++) {
@@ -647,9 +695,16 @@
                     return;
                 }
             }
-            return;
+            return this;
         };
 
+        /******************************************************************************
+         * This function changes the view mode
+         *
+         * @param {String} the new mode for the view
+         * @param {Boolean} determines if the model should be restored from a saved memento
+         * @return {String} the new mode
+         ******************************************************************************/
         $scope.setViewMode = function (mode, restore) {
             if (mode === 'view') {
                 $scope.panel_title = "Analysis details.";
@@ -666,97 +721,67 @@
                 this.addNewTask("clear_locked_status", null);
             }
             $scope.viewMode = mode;//'view', 'creation', 'edition'
+
+            return $scope.viewMode;
         };
 
+        /******************************************************************************
+         * This function...
+         *
+         * @return {AnalysisDetailController} the controller
+         ******************************************************************************/
         $scope.initializeCountdownDialogs = function () {
             //TODO
             console.error("initializeCountdownDialogs NOT IMPLEMENTED");
         };
 
+        /******************************************************************************
+         * This function...
+         *
+         * @return {AnalysisDetailController} the controller
+         ******************************************************************************/
         $scope.clearCountdownDialogs = function () {
             //TODO
             console.error("cleanCountdownDialogs NOT IMPLEMENTED");
         };
 
+        /******************************************************************************
+         * This function...
+         *
+         * @return {AnalysisDetailController} the controller
+         ******************************************************************************/
         $scope.setLoading = function (loading) {
             //TODO
             console.error("setLoading NOT IMPLEMENTED");
         };
 
-        $scope.refreshDiagram = function (force) {
-            if (!$scope.refreshing && me.sigma !== undefined) {
-                $scope.refreshing = true;
-                setTimeout(function () {
-                    var nodeSize = 16;
-                    var edgeSize = 4;
-                    if ($scope.diagram.nodes.length > 15) {
-                        nodeSize = 7;
-                        edgeSize = 2;
-                    } else if ($scope.diagram.nodes.length > 10) {
-                        nodeSize = 10;
-                        edgeSize = 3;
-                    }
 
-                    // Create a custom color palette:
-                    var myPalette = {
-                        nodeColorScheme: {
-                            rawdata: "#ede43d",
-                            intermediate_data: "#1fa7cb",
-                            processed_data: "#c075e5"
-                        },
-                        iconScheme: {
-                            rawdata: {font: 'FontAwesome', content: "\uF129", scale: 0.7, color: '#ffffff'},
-                            intermediate_data: {font: 'FontAwesome', content: "\uF129", scale: 0.7, color: '#ffffff'},
-                            processed_data: {font: 'FontAwesome', content: "\uF129", scale: 0.7, color: '#ffffff'}
-                        }
-                    };
+        /******************************************************************************      
+         *            _____   _____ _  _ _____         
+         *           | __\ \ / / __| \| |_   _|        
+         *           | _| \ V /| _|| .` | | |          
+         *      _  _ |___| \_/_|___|_|\_| |_| ___  ___ 
+         *     | || | /_\ | \| |   \| |  | __| _ \/ __|
+         *     | __ |/ _ \| .` | |) | |__| _||   /\__ \
+         *     |_||_/_/ \_\_|\_|___/|____|___|_|_\|___/
+         *                                             
+         ******************************************************************************/
 
-                    var myStyles = {
-                        nodes: {
-                            size: {by: 'size', bins: 7, min: nodeSize, max: nodeSize},
-                            icon: {by: 'step_type', scheme: 'iconScheme'},
-                            color: {by: 'step_type', scheme: 'nodeColorScheme'}
-                        },
-                        edges: {
-                            size: {by: 'size', min: edgeSize, max: edgeSize}
-                        }
-                    };
-
-                    // Instanciate the design:
-                    var design = sigma.plugins.design(me.sigma, {
-                        styles: myStyles,
-                        palette: myPalette
-                    });
-
-                    design.apply();
-
-                    me.sigma.refresh();
-
-                    // Configure the DAG layout:
-                    sigma.layouts.dagre.configure(me.sigma, {
-                        directed: true, // take edge direction into account
-                        rankdir: 'LR', // Direction for rank nodes. Can be TB, BT, LR, or RL,
-                        easing: 'quadraticInOut', // animation transition function
-                        duration: 800, // animation duration
-                    });
-
-                    // Start the DAG layout:
-                    sigma.layouts.dagre.start(me.sigma);
-
-                    delete $scope.refreshing;
-
-                }, 500);
-            }
-        };
-
-        //--------------------------------------------------------------------
-        // EVENT HANDLERS
-        //--------------------------------------------------------------------
-        $scope.$on(APP_EVENTS.stepChanged, function (event, args) {
-            debugger
+        /******************************************************************************
+         * This function handles the event fired when an step has changed.
+         *
+         * @return {AnalysisDetailController} the controller
+         ******************************************************************************/
+        $scope.$on(APP_EVENTS.stepChanged, function () {
             $scope.diagram = me.generateWorkflowDiagram($scope.model, $scope.diagram);
         });
 
+
+        /******************************************************************************
+         * This function handles the event fires when the "Add new step" button is pressed.
+         * 
+         * @return {AnalysisDetailController} the controller
+         ******************************************************************************/
         this.addNewStepButtonHandler = function () {
             //SHOW DIALOG TO CHOOSE THE STEP TYPE (RAW/INTERMEDIATE/PROCESSED) AND THE SUBTYPE
             //  IF NEW SUBTYPE --> SHOW MESSAGE "Not found, Please choose a valid template for this type?"
@@ -764,8 +789,7 @@
             //    Checkbox "Save the new template in the system?"
             // CREATE --> set the type, subtype and the subtype_template
             //            add the new step to the analysis by given type.
-            $scope.typesInfo = {
-            };
+            $scope.typesInfo = {};
 
             $scope.createStepDialog = $uibModal.open({
                 templateUrl: 'app/analysis/new-step-dialog.tpl.html',
@@ -776,13 +800,11 @@
             });
 
             $scope.createStepDialog.result.then(
-                    function (result) { //Close
-                    },
-                    function (reason) { //Dismissed
+                    function (reason) { //Closed
                         //TODO: SET TEMPORAL IDS;
                         var step = {
                             step_name: "Unnamed step",
-                            step_id: "[Autogenerated after saving]",
+                            step_id: $scope.model.analysis_id + "." + $scope.model.nextStepID,
                             submission_date: new Date(),
                             last_edition_date: new Date(),
                             step_owners: [{user_id: Cookies.get("loggedUserID")}],
@@ -793,30 +815,45 @@
                         if ($scope.typesInfo.step_type === "Raw data") {
                             step.type = "rawdata";
                             step.raw_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
+                            step.extractionMethod = {extraction_method_type: $scope.typesInfo.step_subtype.replace(/ /g, "_")};
                             $scope.model.non_processed_data.push(step);
+                            $scope.model.nextStepID++;
                         } else if ($scope.typesInfo.step_type === "Intermediate data") {
                             step.type = "intermediate_data";
                             step.intermediate_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
                             step.used_data = [];
                             $scope.model.non_processed_data.push(step);
+                            $scope.model.nextStepID++;
                         } else if ($scope.step_type === "Processed data") {
                             step.type = "processed_data";
                             step.processed_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
                             step.used_data = [];
                             $scope.model.processed_data.push(step);
+                            $scope.model.nextStepID++;
                         }
                         delete $scope.typesInfo;
                         $rootScope.$broadcast(APP_EVENTS.stepChanged);
+                    },
+                    function (result) { //Dismissed
                     });
 
             return this;
         };
 
+        /******************************************************************************
+         * This function...
+         *
+         * @return {AnalysisDetailController} the controller
+         ******************************************************************************/
         this.addNewStepAcceptButtonHandler = function () {
-            $scope.createStepDialog.dismiss("cancel");
+            $scope.createStepDialog.close("cancel");
             delete $scope.createStepDialog;
         };
 
+        /******************************************************************************
+         * This function handles the event fires when the new step type chooser changed.
+         *
+         ******************************************************************************/
         this.updateStepSubtypes = function () {
             $http($rootScope.getHttpRequestConfig("GET", "analysis-step-subtypes", {
                 params: {'step_type': $scope.typesInfo.step_type}
@@ -835,6 +872,11 @@
             );
         };
 
+        /******************************************************************************
+         * This function...
+         *
+         * @return {AnalysisDetailController} the controller
+         ******************************************************************************/
         this.deleteAnalysisHandler = function () {
             var me = this;
             var current_user_id = '' + Cookies.get('loggedUserID');
@@ -880,7 +922,7 @@
             }
         };
 
-        /**
+        /******************************************************************************
          * This function send a Edition request to the server in order to block the Analysis
          * avoiding that other users edit it before the user saves the changes.
          * Each user has 30 minutes max. to edit a Analysis, after that the user will be 
@@ -892,7 +934,7 @@
          * will be asked 1 minute before the liberation takes place.
          * 
          * @returns this;
-         */
+         ******************************************************************************/
         this.editButtonHandler = function () {
             //1. CHECK IF THE USER HAS EDITING PRIVILEGES OVER THE Analysis (ONLY OWNERS)
             //TODO: THIS CODE COULD BE BETTER IN THE SERVER (JAVASCRIPT IS VULNERABLE)
@@ -957,9 +999,13 @@
             }
         }
 
-        //--------------------------------------------------------------------
-        // INITIALIZATION
-        //--------------------------------------------------------------------
+        /******************************************************************************
+         *      ___ _  _ ___ _____ ___   _   _    ___ ____  _ _____ ___ ___  _  _ 
+         *     |_ _| \| |_ _|_   _|_ _| /_\ | |  |_ _|_  / /_\_   _|_ _/ _ \| \| |
+         *      | || .` || |  | |  | | / _ \| |__ | | / / / _ \| |  | | (_) | .` |
+         *     |___|_|\_|___| |_| |___/_/ \_\____|___/___/_/ \_\_| |___\___/|_|\_|
+         *     
+         ******************************************************************************/
         this.name = "AnalysisDetailController";
         var me = this;
 
@@ -974,7 +1020,7 @@
         if ($stateParams.analysis_id !== null) {
             this.retrieveAnalysisDetails($stateParams.analysis_id);
         } else {
-            $scope.model.analysis_id = "[Autogenerated after saving]";
+            $scope.model.analysis_id = "ANxxxx";
             $scope.model.submission_date = new Date();
             $scope.model.last_edition_date = new Date();
             $scope.model.analysis_owners = [{user_id: Cookies.get("loggedUserID")}];
@@ -982,27 +1028,54 @@
             $scope.model.tags = [];
             $scope.model.non_processed_data = [];
             $scope.model.processed_data = [];
+            $scope.model.nextStepID = 1;
         }
     });
 
     app.controller('StepDetailController', function ($state, $rootScope, $scope, $http, $uibModal, APP_EVENTS, AnalysisList, SampleList, TemplateList) {
-        //--------------------------------------------------------------------
-        // CONTROLLER FUNCTIONS
-        //--------------------------------------------------------------------
+        /******************************************************************************      
+         *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
+         *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
+         *     | (_| (_) | .` | | | |   / (_) | |__| |__| _||   / 
+         *      \___\___/|_|\_| |_|_|_|_\\___/|____|____|___|_|_\ 
+         *        | __| | | | \| |/ __|_   _|_ _/ _ \| \| / __|   
+         *        | _|| |_| | .` | (__  | |  | | (_) | .` \__ \   
+         *        |_|  \___/|_|\_|\___| |_| |___\___/|_|\_|___/   
+         *                                                        
+         ******************************************************************************/
 
+        /******************************************************************************
+         * This function...
+         *
+         ******************************************************************************/
         this.removableModel = function () {
             return $scope.viewMode !== 'view' && ($scope.model.status === undefined || $scope.model.status.indexOf('deleted') === -1);
         };
 
+        /******************************************************************************
+         * This function...
+         *
+         ******************************************************************************/
         this.unremovableModel = function () {
             return $scope.viewMode !== 'view' && //if mode is edition or creation
                     ($scope.model.status !== undefined && $scope.model.status.indexOf('deleted') !== -1); //if this IU is deleted
         };
 
+        /******************************************************************************      
+         *            _____   _____ _  _ _____         
+         *           | __\ \ / / __| \| |_   _|        
+         *           | _| \ V /| _|| .` | | |          
+         *      _  _ |___| \_/_|___|_|\_| |_| ___  ___ 
+         *     | || | /_\ | \| |   \| |  | __| _ \/ __|
+         *     | __ |/ _ \| .` | |) | |__| _||   /\__ \
+         *     |_||_/_/ \_\_|\_|___/|____|___|_|_\|___/
+         *                                             
+         ******************************************************************************/
 
-        //--------------------------------------------------------------------
-        // EVENT HANDLERS
-        //--------------------------------------------------------------------
+        /******************************************************************************
+         * This function...
+         *
+         ******************************************************************************/
         this.showStepDetailsHandler = function () {
             var controller = $scope.getParentController("AnalysisDetailController");
             if (controller !== null) {
@@ -1010,6 +1083,10 @@
             }
         };
 
+        /******************************************************************************
+         * This function...
+         *
+         ******************************************************************************/
         this.changeInputFilesHandler = function () {
             //TODO: REMOVE THE DIALOG AFTER CHOOSING (NOT DIMISS)
             $scope.isDialog = true;
@@ -1025,74 +1102,63 @@
             return this;
         };
 
-        this.addSelectedInputFile = function (added_step_id) {
+        /******************************************************************************
+         * This function...
+         *
+         ******************************************************************************/
+        this.addSelectedInputFile = function (added_step_id, doDigest) {
             var pos = $scope.model.used_data.indexOf(added_step_id);
             if (pos === -1) {
                 $scope.model.used_data.push(added_step_id);
-
-                for (var i in $scope.diagram.nodes) {
-                    if ($scope.diagram.nodes[i].id === added_step_id) {
-                        $scope.diagram.nodes[i].selected = "true";
-                        break;
-                    }
+                if (doDigest === true) {
+                    $scope.$digest();
                 }
-
-                var edge_id = $scope.model.step_id + "" + added_step_id;
-                $scope.diagram.edges.push({
-                    id: edge_id,
-                    source: added_step_id,
-                    target: $scope.model.step_id,
-                    type: 'arrow'
-                });
-                $scope.diagram.hasChanged = !$scope.diagram.hasChanged;
-                $scope.$digest();
             }
             return this;
         };
 
-        this.removeSelectedInputFile = function (removed_step_id) {
+        /**
+         * This function handles the event fired when an input file for a step is
+         * removed from the list.
+         * 
+         * @param {String} removed_step_id
+         * @returns {StepDetailController} the controller,
+         */
+        this.removeSelectedInputFile = function (removed_step_id, doDigest) {
             var pos = $scope.model.used_data.indexOf(removed_step_id);
             if (pos !== -1) {
                 $scope.model.used_data.splice(pos, 1);
-
-                for (var i in $scope.diagram.nodes) {
-                    if ($scope.diagram.nodes[i].id === removed_step_id) {
-                        $scope.diagram.nodes[i].selected = "false";
-                        break;
-                    }
+                if (doDigest === true) {
+                    $scope.$digest();
                 }
-
-                var edge_id = $scope.model.step_id + "" + removed_step_id;
-                for (var i in $scope.diagram.edges) {
-                    if ($scope.diagram.edges[i].id === edge_id) {
-                        $scope.diagram.edges.splice(i, 1);
-                        break;
-                    }
-                }
-                $scope.diagram.hasChanged = !$scope.diagram.hasChanged;
-                $scope.$digest();
             }
             return this;
         };
+
+        /**
+         * This function handles the event fired when an step is removed.
+         */
         this.removeStepHandler = function () {
             //TODO: CHECK IF CONTAINS NOT REMOVABLE AS
             AnalysisList.updateModelStatus($scope.model, "deleted");
         };
 
+        /**
+         * This function handles the event fired when an action (e.g. remove an step)
+         * is undone.
+         */
         this.unremoveStepHandler = function () {
             AnalysisList.updateModelStatus($scope.model, "undo");
         };
 
+        /**
+         * This event watch to the corresponding step model waiting for changes.
+         * When detected, first we check if there is a real change in the data. 
+         * If so, then we update the status for the model and notify other controllers
+         * that the step has changed (for example to redraw the diagram).
+         */
         $scope.$watch('model', function (newValues, oldValues, scope) {
-            //TODO: CAMBIAR ESTO, TIENEN QUE COMPROBARSE TODOS LOS CAMPOS (ARRAYS, ETC)
-            //hacer funcion recursiva
-            var hasChanged = false;
-            for (var i in newValues) {
-                if (i !== "status" && newValues[i] !== oldValues[i]) {
-                    hasChanged = true;
-                    break;
-                }
-            }
+            var hasChanged = AnalysisList.hasChangedStep(newValues, oldValues);
             if (hasChanged) {
                 AnalysisList.updateModelStatus($scope.model, "edited");
                 $rootScope.$broadcast(APP_EVENTS.stepChanged);

@@ -51,8 +51,21 @@ public abstract class NonProcessedData extends Step implements Comparable<NonPro
             non_process_data = IntermediateData.fromJSON(jsonString);
         }
 
+        non_process_data.adaptDates();
+
         return non_process_data;
     }
+    
+//        public static NonProcessedData fromJSON(JsonObject jsonString) {
+//        NonProcessedData non_process_data = null;
+//        if ("rawdata".equalsIgnoreCase(jsonString.get("type").getAsString())) {
+//            non_process_data = RAWdata.fromJSON(jsonString);
+//        } else if ("intermediate_data".equalsIgnoreCase(jsonString.get("type").getAsString())) {
+//            non_process_data = IntermediateData.fromJSON(jsonString);
+//        }
+//
+//        return non_process_data;
+//    }
 
     @Override
     public int compareTo(NonProcessedData anotherInstance) {

@@ -44,7 +44,7 @@ public abstract class ProcessedData extends Step {
         this.type = "processed_data";
     }
 
-    public ProcessedData(String step_id, String processed_data_type, String software, String software_version, String software_configuration, String results, String files_location, String submission_date, String last_edition_date) {
+    public ProcessedData(String step_id, String processed_data_type, String software, String software_version, String software_configuration, String results, String[] files_location, String submission_date, String last_edition_date) {
         this.step_id = step_id;
         this.type = "processed_data";
         this.processed_data_type = processed_data_type;
@@ -79,9 +79,30 @@ public abstract class ProcessedData extends Step {
         } else if (jsonString.contains("\"processed_data_type\":\"proteomics_msquantification_step\"")) {
             processed_data = Proteomics_msquantification_step.fromJSON(jsonString);
         }
+        
+        processed_data.adaptDates();
 
         return processed_data;
     }
+//
+//        public static ProcessedData fromJSON(JsonObject jsonString) {
+//        ProcessedData processed_data = null;
+//        if ("data_matrix".equalsIgnoreCase(jsonString.get("processed_data_type").getAsString())) {
+//            processed_data = Data_matrix_step.fromJSON(jsonString);
+//        } else if ("region_(.*)".matches(jsonString.get("processed_data_type").getAsString())) {
+//            processed_data = Region_step.fromJSON(jsonString);
+//        } else if ("calling_step".equalsIgnoreCase(jsonString.get("processed_data_type").getAsString())) {
+//            processed_data = Calling_step.fromJSON(jsonString);
+//        } else if ("quantification_step".equalsIgnoreCase(jsonString.get("processed_data_type").getAsString())) {
+//            processed_data = Quantification_step.fromJSON(jsonString);
+//        } else if ("merging_step".equalsIgnoreCase(jsonString.get("processed_data_type").getAsString())) {
+//            processed_data = Merging_step.fromJSON(jsonString);
+//        } else if ("proteomics_msquantification_step".equalsIgnoreCase(jsonString.get("processed_data_type").getAsString())) {
+//            processed_data = Proteomics_msquantification_step.fromJSON(jsonString);
+//        }
+//
+//        return processed_data;
+//    }
 
     //**********************************************************************
     //* GETTERS AND SETTERS ************************************************
@@ -134,7 +155,7 @@ public abstract class ProcessedData extends Step {
         this.results = results;
     }
 
-    public void setFiles_location(String files_location) {
+    public void setFiles_location(String[] files_location) {
         this.files_location = files_location;
     }
 

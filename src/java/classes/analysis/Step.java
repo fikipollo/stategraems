@@ -33,7 +33,7 @@ public abstract class Step  {
     protected String type;
     protected String submission_date;
     protected String last_edition_date;
-    protected String files_location;
+    protected String[] files_location;
     User[] step_owners;
     protected QualityReport associatedQualityReport;
 
@@ -125,12 +125,23 @@ public abstract class Step  {
     public void setLastEditionDate(String last_edition_date) {
         this.last_edition_date = last_edition_date;
     }
+    
+    public void adaptDates() {
+        if (this.submission_date.contains("-")) {
+            String[] aux = this.submission_date.split("T");
+            this.submission_date = aux[0].replaceAll("-", "");
+        }
+        if (this.last_edition_date.contains("-")) {
+            String[] aux = this.last_edition_date.split("T");
+            this.last_edition_date = aux[0].replaceAll("-", "");
+        }
+    }
 
-    public String getFilesLocation() {
+    public String[] getFilesLocation() {
         return files_location;
     }
 
-    public void setFilesLocation(String files_location) {
+    public void setFilesLocation(String[] files_location) {
         this.files_location = files_location;
     }
 

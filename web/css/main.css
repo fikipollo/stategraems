@@ -585,6 +585,27 @@ i.tag.pink2 {background-color: #db6070; color: #fff;}
     width: 100%;
     border-radius: 0px;
 }
+
+.step-form.edited {border-left: 4px #ff9800 solid !important;}
+.step-form.new {border-left: 4px #62c2e4 solid !important;}
+.step-form.deleted {
+    border-left: 4px #bdbdbd solid !important;
+    text-decoration: line-through !important;
+    background-color: #fbfbfb;
+}
+.step-form tr.deleted{
+    background-color: #fbfbfb;
+}
+.step-form.deleted input, .step-form tr.deleted input {
+    text-decoration: line-through;
+    background: #fbfbfb;
+    border-color: #bdbdbd;
+    font-style: italic;
+}
+.step-form tr.edited td input {
+    border: 1px solid #ffd882;
+}
+
 /*------------------------------------------------------*/
 /*STYLES FOR WORKFLOW RUN FORM                          */
 /*------------------------------------------------------*/

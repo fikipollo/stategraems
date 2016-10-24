@@ -313,8 +313,7 @@ public class Analysis_XLS_parser {
         //Spectrum and peak list generation and annotation (resulting data
         i += 2;
         String fileLocations = sheet.getRow(i).getCell(1).getStringCellValue();
-        fileLocations = fileLocations.replaceAll("\n", "\\$\\$");
-        rawDataInstance.setFilesLocation(fileLocations);
+        rawDataInstance.setFilesLocation(fileLocations.split("\n"));
         i++;
         massSpectrometry.setIntensityValues(sheet.getRow(i).getCell(1).getStringCellValue());
         i++;

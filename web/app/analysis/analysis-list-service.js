@@ -182,9 +182,21 @@
                         _analysis[i].tags = (_analysis[i].tags || []);
                         _analysis[i].tags.push(_analysis[i].analysis_type);
                         _analysis[i].tags = arrayUnique(_analysis[i].tags);
+                        //GET NEXT STEP ID
+                        var maxStep = 0;
+                        for (var j in _analysis[i].non_processed_data) {
+                            maxStep = Math.max(maxStep, Number.parseInt(_analysis[i].non_processed_data[j].step_id.split(".")[1]));
+                        }
+                        for (var j in _analysis[i].processed_data) {
+                            maxStep = Math.max(maxStep, Number.parseInt(_analysis[i].processed_data[j].step_id.split(".")[1]));
+                        }
+
+                        _analysis[i].nextStepID = maxStep + 1;
+
                         //ADAPT STEPS INFO
                         this.adaptStepInformation(_analysis[i].non_processed_data);
                         this.adaptStepInformation(_analysis[i].processed_data);
+
                     }
                     return _analysis;
                 },
@@ -202,8 +214,6 @@
                             date = date.substr(0, 4) + "/" + date.substr(4, 2) + "/" + date.substr(6, 2);
                         }
                         steps[i].last_edition_date = new Date(date);
-
-                        steps[i].files_location = steps[i].files_location.split("$$");
                     }
                     return steps;
                 },
@@ -280,6 +290,56 @@
                         }
                     }
                     return model;
+                },
+                hasChangedStep: function (newValues, oldValues) {
+                    if ((newValues === undefined || oldValues === undefined) && newValues !== oldValues) {
+                        debugger;
+                        return true;
+                    }
+
+                    //Get names for all properties (unique)
+                    var keys = arrayUnique(Object.keys(newValues).concat(Object.keys(oldValues)));
+
+                    var key;
+                    for (var i in keys) {
+                        key = keys[i];
+                        //1. If there are new properties or removed ones
+                        if (newValues[key] === undefined || oldValues[key] === undefined) {
+                            debugger;
+                            return true;
+                            //2. Else if prop is an array, check content
+                        } else if (newValues[key] instanceof Array) {
+                            //1. Check if lenghts are different
+                            if (newValues[key].length !== oldValues[key].length) {
+                                debugger;
+                                return true;
+                            }
+                            //2. Check if arrays are similar
+                            for (var j in newValues[key]) {
+                                if (oldValues[key].indexOf(newValues[key][j]) === -1) {
+                                    debugger;
+                                    return true;
+                                }
+                            }
+                            for (var j in oldValues[key]) {
+                                if (newValues[key].indexOf(oldValues[key][j]) === -1) {
+                                    debugger;
+                                    return true;
+                                }
+                            }
+                            //3. Else if prop is an object, call this function recursively
+                        } else if (newValues[key] instanceof Object) {
+                            var hasChanged = this.hasChangedStep(newValues[key], oldValues[key]);
+                            if (hasChanged) {
+                                debugger;
+                                return true;
+                            }
+                        } else if (key !== "status" && newValues[key] !== oldValues[key]) {
+                            debugger;
+                            return true;
+                        }
+                    }
+                    return false;
                 },
                 updateModelStatus: function (model, newStatus) {
                     if (newStatus === "undo") {

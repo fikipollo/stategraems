@@ -62,7 +62,7 @@ public class Step_JDBCDAO extends DAO {
         ps.setString(4, step.getType());
         ps.setString(5, step.getSubmissionDate().replaceAll("/", ""));
         ps.setString(6, step.getLastEditionDate().replaceAll("/", ""));
-        ps.setString(7, step.getFilesLocation());
+        ps.setString(7, String.join("$$", step.getFilesLocation()));
         ps.execute();
 
         //ADD THE ASSOCIATION analysis <--> non_processed_data
@@ -130,7 +130,7 @@ public class Step_JDBCDAO extends DAO {
         ps.setString(1, stepModel.getStepName());
         ps.setInt(2, stepModel.getStepNumber());
         ps.setString(3, stepModel.getLastEditionDate().replaceAll("/", ""));
-        ps.setString(4, stepModel.getFilesLocation());
+        ps.setString(4, String.join("$$", stepModel.getFilesLocation()));
         ps.setString(5, stepModel.getStepID());
         ps.execute();
 
@@ -297,7 +297,7 @@ public class Step_JDBCDAO extends DAO {
             non_processed_data_instance.setType(rs.getString("type"));
             non_processed_data_instance.setSubmissionDate(rs.getString("submission_date"));
             non_processed_data_instance.setLastEditionDate(rs.getString("last_edition_date"));
-            non_processed_data_instance.setFilesLocation(rs.getString("files_location"));
+            non_processed_data_instance.setFilesLocation(rs.getString("files_location").split("$$"));
 
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                     + "SELECT user_id FROM step_owners "
