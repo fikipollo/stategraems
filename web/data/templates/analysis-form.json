@@ -12,13 +12,15 @@
                 {
                     "name": "analysis_name",
                     "label": "Analysis name",
-                    "type": "text"
+                    "type": "text",
+                    "required" : true
                 },
                 {
                     "name": "analysis_type",
                     "label": "Analysis type",
                     "type": "select",
-                    "source": "data/analysis_types.json"
+                    "source": "data/analysis_types.json",
+                    "required" : true
                 },
                 {
                     "name": "tags",

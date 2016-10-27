@@ -30,8 +30,6 @@
             </div>
         </div>
     </div>
-
-
     <div class="navbar-form">
         <div style="margin: auto;display: block;max-width: 650px;">
             <ul class="nav navbar-nav">
@@ -69,7 +67,7 @@
         </div>
     </div>
     <div class="row analysis-card-container" id="analysisContainer">
-        <analysis-card  ng-repeat="analysis in analysis| filter:filterAnalysis() | orderBy : sortBy | limitTo : visibleAnalysis"></analysis-card>
+        <analysis-card  ng-repeat="analysis in analysis | filter:filterAnalysis() | orderBy : sortBy | limitTo : visibleAnalysis"></analysis-card>
         <div class="row" style="text-align: center;">
             <button class="btn btn-lg btn-success" type="button" ng-click="controller.showMoreAnalysisHandler()" ng-show="(filteredAnalysis - visibleAnalysis) > 0">
                 Show more analysis ({{filteredAnalysis - visibleAnalysis}} left)

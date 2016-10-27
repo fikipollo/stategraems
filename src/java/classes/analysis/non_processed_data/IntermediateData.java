@@ -63,13 +63,13 @@ public abstract class IntermediateData extends NonProcessedData {
      */
     public static IntermediateData fromJSON(String jsonString) {
         IntermediateData intermediate_data = null;
-        if (jsonString.contains("\"intermediate_data_type\":\"preprocessing_step\"")) {
+        if (jsonString.contains("\"intermediate_data_type\":\"Preprocessing\"")) {
             intermediate_data = Preprocessing_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"intermediate_data_type\":\"mapping_step\"")) {
+        } else if (jsonString.contains("\"intermediate_data_type\":\"Mapping\"")) {
             intermediate_data = Mapping_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"intermediate_data_type\":\"union_step\"")) {
+        } else if (jsonString.contains("\"intermediate_data_type\":\"Union\"")) {
             intermediate_data = Union_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"intermediate_data_type\":\"smoothing_step\"")) {
+        } else if (jsonString.contains("\"intermediate_data_type\":\"Smoothing\"")) {
             intermediate_data = Smoothing_step.fromJSON(jsonString);
         } else if (jsonString.contains("\"intermediate_data_type\":\"extract_relevant_features_step\"")) {
             intermediate_data = Extract_relevant_features_step.fromJSON(jsonString);

@@ -1,6 +1,6 @@
 <div class="panel panel-container">
     <h4>Workflow overview</h4>
-    <analysis-diagram container-id="selectorDiagramContainer" style="height:250px;" selectable></analysis-diagram>
+    <analysis-diagram container-id="selectorDiagramContainer" style="height:450px;" selectable></analysis-diagram>
 </div>
 <div style="margin: 20px;">
     <table class="table" >
@@ -14,7 +14,7 @@
             <tr ng-repeat="input in model.used_data">
                 <td style="text-align: left; ">Output files for step {{input}}</td>
                 <td style=" width: 30px; text-align: center; ">
-                    <a class="clickable" ng-click="controller.removeSelectedInputFile(input);"><i class="fa fa-trash text-danger"></i></a>
+                    <a class="clickable" ng-click="controller.removeSelectedInputFileHandler(input);"><i class="fa fa-trash text-danger"></i></a>
                 </td>
             </tr>
         </tbody>

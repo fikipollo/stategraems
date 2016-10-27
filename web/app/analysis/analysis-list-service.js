@@ -182,21 +182,20 @@
                         _analysis[i].tags = (_analysis[i].tags || []);
                         _analysis[i].tags.push(_analysis[i].analysis_type);
                         _analysis[i].tags = arrayUnique(_analysis[i].tags);
-                        //GET NEXT STEP ID
-                        var maxStep = 0;
-                        for (var j in _analysis[i].non_processed_data) {
-                            maxStep = Math.max(maxStep, Number.parseInt(_analysis[i].non_processed_data[j].step_id.split(".")[1]));
-                        }
-                        for (var j in _analysis[i].processed_data) {
-                            maxStep = Math.max(maxStep, Number.parseInt(_analysis[i].processed_data[j].step_id.split(".")[1]));
-                        }
 
+                        //GET NEXT STEP ID 
+                        var maxStep = 0;
+                        var steps = (_analysis[i].processed_data || []).concat(_analysis[i].non_processed_data || []); // Merges both arrays
+                        for (var j in steps) {
+                            maxStep = Math.max(maxStep, Number.parseInt(steps[j].step_id.split(".")[1]));
+                        }
                         _analysis[i].nextStepID = maxStep + 1;
 
                         //ADAPT STEPS INFO
                         this.adaptStepInformation(_analysis[i].non_processed_data);
                         this.adaptStepInformation(_analysis[i].processed_data);
 
+                        this.updateStepIndexes(_analysis[i]);
                     }
                     return _analysis;
                 },
@@ -214,8 +213,65 @@
                             date = date.substr(0, 4) + "/" + date.substr(4, 2) + "/" + date.substr(6, 2);
                         }
                         steps[i].last_edition_date = new Date(date);
+
+                        if (steps[i].type === "intermediate_data") {
+                            steps[i].intermediate_data_type = steps[i].intermediate_data_type[0].toUpperCase() + steps[i].intermediate_data_type.substr(1);
+                            steps[i].intermediate_data_type = steps[i].intermediate_data_type.replace("_step", "");
+                        } else if (steps[i].type === "processed_data") {
+                            steps[i].processed_data_type = steps[i].processed_data_type[0].toUpperCase() + steps[i].processed_data_type.substr(1);
+                            steps[i].processed_data_type = steps[i].processed_data_type.replace("_step", "");
+                        }
                     }
                     return steps;
+                },
+                updateStepIndexes: function (analysis) {
+                    var all_steps = {}, already_set = {}, step;
+
+                    var updateRec = function (step, level) {
+                        var maxLevel = level;
+                        if (!already_set[step.step_id]) {
+                            //INITILIZE THE LEVEL
+                            step.step_number = level;
+                            already_set[step.step_id] = step;
+                            //INITILIZE THE LEVEL FOR ALL CHILD
+                            for (var i in step.used_data) {
+                                maxLevel = Math.max(maxLevel, updateRec(all_steps[step.used_data[i]], level + 1));
+                            }
+                        } else {
+                            if (step.step_number < level) {
+                                //UPDATE THE LEVEL 
+                                step.step_number = level;
+                                //UPDATE THE LEVEL FOR ALL CHILD
+                                for (var i in step.used_data) {
+                                    maxLevel = Math.max(maxLevel, updateRec(all_steps[step.used_data[i]], level + 1));
+                                }
+                            } else {
+                                maxLevel = step.step_number;
+                            }
+                        }
+                        return maxLevel;
+                    };
+
+
+                    var steps = (analysis.processed_data || []).concat(analysis.non_processed_data || []); // Merges both arrays
+                    for (var i in steps) {
+                        all_steps[steps[i].step_id] = steps[i];
+                    }
+                    var maxLevel = -1;
+                    for (var i in steps) {
+                        maxLevel = Math.max(maxLevel, updateRec(steps[i], 0));
+                    }
+                    //UPDATE THE NUMBERS
+                    var nextNumber = 1;
+                    for (var level = maxLevel; level >= 0; level--) {
+                        for (var i = steps.length - 1; i >= 0; i--) {
+                            if (steps[i].step_number === level) {
+                                steps[i].step_number = nextNumber;
+                                steps.splice(i, 1);
+                                nextNumber++;
+                            }
+                        }
+                    }
                 },
                 isOwner: function (analysis, user_id) {
                     if (!analysis.non_processed_data && !analysis.processed_data) {
@@ -297,49 +353,48 @@
                         return true;
                     }
 
-                    //Get names for all properties (unique)
-                    var keys = arrayUnique(Object.keys(newValues).concat(Object.keys(oldValues)));
-
-                    var key;
-                    for (var i in keys) {
-                        key = keys[i];
-                        //1. If there are new properties or removed ones
-                        if (newValues[key] === undefined || oldValues[key] === undefined) {
+                    //CHECK IF ARRAY
+                    if (newValues instanceof Array) {
+                        //1. Check if same type and same number of elements
+                        if (!oldValues instanceof Array || newValues.length !== oldValues.length) {
                             debugger;
                             return true;
-                            //2. Else if prop is an array, check content
-                        } else if (newValues[key] instanceof Array) {
-                            //1. Check if lenghts are different
-                            if (newValues[key].length !== oldValues[key].length) {
-                                debugger;
-                                return true;
-                            }
-                            //2. Check if arrays are similar
-                            for (var j in newValues[key]) {
-                                if (oldValues[key].indexOf(newValues[key][j]) === -1) {
-                                    debugger;
-                                    return true;
-                                }
-                            }
-                            for (var j in oldValues[key]) {
-                                if (newValues[key].indexOf(oldValues[key][j]) === -1) {
-                                    debugger;
-                                    return true;
-                                }
-                            }
-                            //3. Else if prop is an object, call this function recursively
-                        } else if (newValues[key] instanceof Object) {
-                            var hasChanged = this.hasChangedStep(newValues[key], oldValues[key]);
+                        }
+                        //2. Check if arrays are similar (including order)
+                        for (var i in newValues) {
+                            var hasChanged = this.hasChangedStep(newValues[i], oldValues[i]);
                             if (hasChanged) {
                                 debugger;
                                 return true;
                             }
-                        } else if (key !== "status" && newValues[key] !== oldValues[key]) {
+                        }
+                    } else if (newValues instanceof Object) {
+                        //1. Check if same type and same number of properties
+                        if (!oldValues instanceof Object) {
                             debugger;
                             return true;
                         }
+                        var newKeys = Object.keys(newValues).filter(function (key) {
+                            return (key !== "status" && key !== "step_number" && key[0] !== "$")
+                        });
+                        var oldKeys = Object.keys(newValues).filter(function (key) {
+                            return (key !== "status" && key !== "step_number" && key[0] !== "$")
+                        });
+                        if (newKeys.length !== oldKeys.length) {
+                            debugger;
+                            return true;
+                        }
+                        //2. Check same properties and values
+                        for (var i in newKeys) {
+                            var hasChanged = this.hasChangedStep(newValues[newKeys[i]], oldValues[newKeys[i]]);
+                            if (hasChanged) {
+                                debugger;
+                                return true;
+                            }
+                        }
+                    } else {
+                        return newValues !== oldValues;
                     }
-                    return false;
                 },
                 updateModelStatus: function (model, newStatus) {
                     if (newStatus === "undo") {

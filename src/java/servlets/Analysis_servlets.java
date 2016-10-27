@@ -33,6 +33,7 @@ import classes.analysis.Analysis;
 import classes.analysis.NonProcessedData;
 import classes.analysis.ProcessedData;
 import classes.analysis.Step;
+import classes.analysis.non_processed_data.IntermediateData;
 import classes.analysis.processed_data.Region_step;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -47,6 +48,7 @@ import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.security.AccessControlException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.zip.GZIPOutputStream;
 import javax.imageio.ImageIO;
@@ -413,6 +415,22 @@ public class Analysis_servlets extends Servlet {
                  */
                 //Get parameters
                 analysis = Analysis.fromJSON(requestData.get("analysis_json_data"));
+                
+                ArrayList<Step> steps = new ArrayList<Step>();
+                for (Step step : analysis.getNonProcessedData()) {
+                    if (! "new_deleted".equals(step.getStatus())) {
+                        steps.add(step);
+                    } 
+                }
+                analysis.setNonProcessedData(steps.toArray(new NonProcessedData[]{}));
+
+                steps = new ArrayList<Step>();
+                for (Step step : analysis.getProcessedData()) {
+                    if (! "new_deleted".equals(step.getStatus())) {
+                        steps.add(step);
+                    } 
+                }
+                analysis.setProcessedData(steps.toArray(new ProcessedData[]{}));
 
                 String experimentID = requestData.get("currentExperimentID").getAsString();
 
@@ -490,7 +508,7 @@ public class Analysis_servlets extends Servlet {
      */
     private void update_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            ArrayList<String> lockedIDs = new ArrayList<String>();
+            ArrayList<String> BLOCKED_IDs = new ArrayList<String>();
             boolean ROLLBACK_NEEDED = false;
             DAO daoInstance1 = null;
             DAO daoInstance2 = null;
@@ -501,70 +519,109 @@ public class Analysis_servlets extends Servlet {
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
                  * ERROR --> throws exception if not valid session, GO TO STEP
-                 * ELSE --> GO TO STEP 2
+                 * 6b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String loggedUserID = requestData.get("loggedUserID").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
+
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
 
                 /**
                  * *******************************************************
-                 * STEP 2 READ ALL PARAMETERS --> ARRAYS WITH ALL TASKS. ELSE
-                 * --> GO TO STEP 3
-                 * *******************************************************
+                 * STEP 3 Get the Object by parsing the JSON data. IF ERROR -->
+                 * throws JsonParseException, GO TO STEP 6b ELSE --> GO TO STEP
+                 * 4 *******************************************************
                  */
-                String[] toBeCreatedNPD_jsondata_list = request.getParameterValues("to_be_created_NPD");
-                String[] toBeImportedNPD_jsondata_list = request.getParameterValues("to_be_imported_NPD");
-                String[] toBeCreatedPD_jsondata_list = request.getParameterValues("to_be_created_PD");
-                String[] toBeEditedNPD_jsondata_list = request.getParameterValues("to_be_edited_NPD");
-                String[] toBeEditedPD_jsondata_list = request.getParameterValues("to_be_edited_PD");
-                String[] toBeDeletedNPD_jsondata_list = request.getParameterValues("to_be_deleted_NPD");
-                String[] toBeDisassociatedNPD_jsondata_list = request.getParameterValues("to_be_disassociated_NPD");
-                String[] toBeDeletedPD_jsondata_list = request.getParameterValues("to_be_deleted_PD");
-                String analysisID = request.getParameter("analysis_id");
+                Analysis analysis = Analysis.fromJSON(requestData.get("analysis_json_data"));
 
-                /**
-                 * *******************************************************
-                 * STEP 3 Get all the NON PROCESSED DATA Objects by parsing the
-                 * JSON data. IF ERROR --> throws JsonParseException, GO TO STEP
-                 * ? throws SQL Exception, GO TO STEP ? ELSE --> GO TO STEP 4
-                 * *******************************************************
-                 */
-                ArrayList<NonProcessedData> toBeCreatedNPD_instances = new ArrayList<NonProcessedData>();
-                if (toBeCreatedNPD_jsondata_list != null) {
-                    for (String toBeCreatedNPD_jsondata : toBeCreatedNPD_jsondata_list) {
-                        toBeCreatedNPD_instances.add(NonProcessedData.fromJSON(toBeCreatedNPD_jsondata));
-                    }
-                }
-                //ORDER THE TO BE CREATED NON PROCESSED DATA BY STEP_NUMBER (to avoid dependecies troubles)
-                Collections.sort(toBeCreatedNPD_instances);
+                daoInstance1 = DAOProvider.getDAOByName("Analysis");
 
-                ArrayList<NonProcessedData> toBeEditedNPD_instances = new ArrayList<NonProcessedData>();
-                if (toBeEditedNPD_jsondata_list != null) {
-                    for (String toBeEditedNPD_jsondata : toBeEditedNPD_jsondata_list) {
-                        toBeEditedNPD_instances.add(NonProcessedData.fromJSON(toBeEditedNPD_jsondata));
-                    }
+                //CHECK IF CURRENT USER IS A VALID OWNER (AVOID HACKING)
+                boolean loadRecursive = true;
+                Analysis analysisAux = (Analysis) daoInstance1.findByID(analysis.getAnalysisID(), new Object[]{loadRecursive});
+                if (!analysisAux.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
+                    throw new AccessControlException("Cannot update selected Analysis. Current user has not privileges over this element.");
                 }
 
                 /**
                  * *******************************************************
-                 * STEP 4 Get all the PROCESSED DATA Objects by parsing the JSON
-                 * data. IF ERROR --> throws JsonParseException, GO TO STEP ?
-                 * throws SQL Exception, GO TO STEP ? ELSE --> GO TO STEP 5
+                 * STEP 4 READ ALL STEPS AND CREATE THE LIST OF TASKS.
                  * *******************************************************
                  */
-                ArrayList<ProcessedData> toBecreatedPD_instances = new ArrayList<ProcessedData>();
-                if (toBeCreatedPD_jsondata_list != null) {
-                    for (String toBeCreatedPD_jsondata : toBeCreatedPD_jsondata_list) {
-                        toBecreatedPD_instances.add(ProcessedData.fromJSON(toBeCreatedPD_jsondata));
+                ArrayList<Step> to_be_created_steps = new ArrayList<Step>();
+                ArrayList<Step> to_be_updated_steps = new ArrayList<Step>();
+                ArrayList<String> to_be_deleted_steps = new ArrayList<String>();
+
+                for (Step step : analysis.getNonProcessedData()) {
+                    if ("new_deleted".equals(step.getStatus())) {
+                        continue; //ignore
+                    } else if ("deleted".equals(step.getStatus()) || "edited_deleted".equals(step.getStatus())) {
+                        to_be_deleted_steps.add(step.getStepID()); //DELETES THE STEP
+                    } else if ("new".equals(step.getStatus())) {
+                        to_be_created_steps.add(step); //CREATES THE STEP
+                    } else {
+                        if ("edited".equals(step.getStatus())) {
+                            to_be_updated_steps.add(step);
+                        }
                     }
                 }
 
-                ArrayList<ProcessedData> toBeEditedPD_instances = new ArrayList<ProcessedData>();
-                if (toBeEditedPD_jsondata_list != null) {
-                    for (String toBeEditedPD_jsondata : toBeEditedPD_jsondata_list) {
-                        toBeEditedPD_instances.add(ProcessedData.fromJSON(toBeEditedPD_jsondata));
+                for (Step step : analysis.getProcessedData()) {
+                    if ("new_deleted".equals(step.getStatus())) {
+                        continue; //ignore
+                    } else if ("deleted".equals(step.getStatus()) || "edited_deleted".equals(step.getStatus())) {
+                        to_be_deleted_steps.add(step.getStepID()); //DELETES THE STEP
+                    } else if ("new".equals(step.getStatus())) {
+                        to_be_created_steps.add(step); //CREATES THE STEP
+                    } else {
+                        if ("edited".equals(step.getStatus())) {
+                            to_be_updated_steps.add(step);
+                        }
+                    }
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 5 GET ALL THE IDS FOR THE NEW STEPS AND UPDATE THE
+                 * INFORMATION
+                 * *******************************************************
+                 */
+                daoInstance1 = DAOProvider.getDAOByName("Analysis");
+                daoInstance2 = DAOProvider.getDAOByName("Step");
+
+                Collections.sort(to_be_created_steps);
+                for (Step step : to_be_created_steps) {
+                    String old_id = step.getStepID();
+                    String new_id = daoInstance2.getNextObjectID(new Object[]{analysis.getAnalysisID()});
+                    BLOCKED_IDs.add(new_id);
+
+                    step.setStepID(new_id);
+                    String[] usedData;
+                    for (Step stepAux : analysis.getNonProcessedData()) {
+                        if (stepAux instanceof IntermediateData) {
+                            usedData = ((IntermediateData) stepAux).getUsedData();
+                            int pos = Arrays.asList(usedData).indexOf(old_id);
+                            if (pos != -1) {
+                                usedData[pos] = new_id;
+                            }
+                        }
+
+                    }
+                    for (Step stepAux : analysis.getProcessedData()) {
+                        if (stepAux instanceof ProcessedData) {
+                            usedData = ((ProcessedData) stepAux).getUsedData();
+                            int pos = Arrays.asList(usedData).indexOf(old_id);
+                            if (pos != -1) {
+                                usedData[pos] = new_id;
+                            }
+                        }
                     }
                 }
 
@@ -584,32 +641,19 @@ public class Analysis_servlets extends Servlet {
                  * TO STEP 6
                  * *******************************************************
                  */
-                daoInstance1 = DAOProvider.getDAOByName("NonProcessedData");
-                daoInstance2 = DAOProvider.getDAOByName("ProcessedData");
-
                 daoInstance1.disableAutocommit();
                 ROLLBACK_NEEDED = true;
-                //FIRST REMOVE ASSOCIATIONS AND STEPS:
-                ((Step_JDBCDAO) daoInstance1).removeStepAssociation(toBeDisassociatedNPD_jsondata_list, analysisID);
-                daoInstance1.remove(toBeDeletedNPD_jsondata_list);
-//                ((Step_JDBCDAO) daoInstance2).removeStepAssociation(toBeDisassociatedPD_jsondata_list, analysisID);
-                daoInstance2.remove(toBeDeletedPD_jsondata_list);
+                daoInstance1.update(analysis);
 
-                //ADD ASSOCIATIONS BECAUSE:
-                // - EDITED LATER STEPS COULD USE THE IMPORTED STEPS
-                // - CREATED LATER STEPS COULD USE THE IMPORTED STEPS
-                ((Step_JDBCDAO) daoInstance1).insertNewStepAssociation(toBeImportedNPD_jsondata_list, analysisID);
-//                ((Step_JDBCDAO) daoInstance2).insertNewStepAssociation(toBeImportedPD_jsondata_list, analysisID);
-                //THEN ADD NEW STEPS IN ORDER OF STEP NUMBER BECAUSE:
-                // - EDITED LATER STEPS COULD USE THE NEW STEPS
-                // - CREATED LATER STEPS COULD USE THE IMPORTED STEPS (STEP NUMBER ORDER SOLVE THIS PROBLEM)
-                ((Step_JDBCDAO) daoInstance1).insert(toBeCreatedNPD_instances.toArray(new NonProcessedData[]{}));
-                ((Step_JDBCDAO) daoInstance1).insert(toBecreatedPD_instances.toArray(new ProcessedData[]{}));
-                //THEN EDIT STEPS BECAUSE:
-                // - REMOVED LATER STEPS COULD BE USED BEFORE EDITION BY THE EDITED STEPS (SO THE RELATIONSHIPS MUST BE REMOVED PREVIOUSLY)
-                // - DEASSOCIATED LATER STEPS COULD BE USED BEFORE EDITION BY THE EDITED STEPS (SO THE RELATIONSHIPS MUST BE REMOVED PREVIOUSLY)
-                ((Step_JDBCDAO) daoInstance1).update(toBeEditedNPD_instances.toArray(new NonProcessedData[]{}));
-                ((Step_JDBCDAO) daoInstance1).update(toBeEditedPD_instances.toArray(new ProcessedData[]{}));
+                /**
+                 * *******************************************************
+                 * STEP 6 APPLY THE STEP TASKS IN DATABASE. IF ERROR --> throws
+                 * SQL Exception, GO TO STEP ? ELSE --> GO TO STEP 8
+                 * *******************************************************
+                 */
+                ((Step_JDBCDAO) daoInstance2).insert(to_be_created_steps.toArray(new Step[]{}));
+                ((Step_JDBCDAO) daoInstance2).remove(to_be_deleted_steps.toArray(new String[]{}));
+                ((Step_JDBCDAO) daoInstance2).update(to_be_updated_steps.toArray(new Step[]{}));
 
                 /**
                  * *******************************************************
@@ -620,7 +664,11 @@ public class Analysis_servlets extends Servlet {
                  */
                 daoInstance1.doCommit();
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "update_analysis_handler", e.getMessage());
+                if (e.getClass().getSimpleName().equals("MySQLIntegrityConstraintViolationException")) {
+                    ServerErrorManager.handleException(null, null, null, "Unable to update the Analysis information.");
+                } else {
+                    ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "update_analysis_handler", e.getMessage());
+                }
             } finally {
                 /**
                  * *******************************************************
@@ -630,16 +678,21 @@ public class Analysis_servlets extends Servlet {
                 if (ServerErrorManager.errorStatus()) {
                     response.setStatus(400);
                     response.getWriter().print(ServerErrorManager.getErrorResponse());
+                    
+                    for (String BLOCKED_ID : BLOCKED_IDs) {
+                        BlockedElementsManager.getBlockedElementsManager().unlockID(BLOCKED_ID);
+                    }
                     if (ROLLBACK_NEEDED) {
                         daoInstance1.doRollback();
                     }
                 } else {
-                    response.getWriter().print("{success: " + true + " }");
+                    JsonObject obj = new JsonObject();
+                    obj.add("success", new JsonPrimitive(true));
+                    response.getWriter().print(obj.toString());
                 }
 
-                //FOR EACH LOCKED ID, LIBERATE IT
-                for (String lockedID : lockedIDs) {
-                    BlockedElementsManager.getBlockedElementsManager().unlockID(lockedID);
+                for (String BLOCKED_ID : BLOCKED_IDs) {
+                    BlockedElementsManager.getBlockedElementsManager().unlockID(BLOCKED_ID);
                 }
 
                 /**
@@ -1201,16 +1254,6 @@ public class Analysis_servlets extends Servlet {
         ArrayList<String> subtypes = new ArrayList<String>();
         try {
             String step_type = request.getParameter("step_type");
-
-            if ("Raw data".equals(step_type)) {
-                step_type = "rawdata";
-            } else if ("Intermediate data".equals(step_type)) {
-                step_type = "intermediate_data";
-            } else if ("Processed data".equals(step_type)) {
-                step_type = "processed_data";
-            } else {
-                throw new IOException("Unvalid data type");
-            }
 
             String path = Analysis_servlets.class.getResource("/../../data/templates/" + step_type).getPath();
             File folder = new File(path);

@@ -85,7 +85,7 @@ public class Analysis {
     public String getAnalysisID() {
         return analysis_id;
     }
-    
+
     public void setAnalysisID(String analysis_id) {
         this.analysis_id = analysis_id;
     }
@@ -94,7 +94,7 @@ public class Analysis {
         Step step;
         for (int i = 0; i < this.getNonProcessedData().length; i++) {
             step = this.getNonProcessedData()[i];
-                //Update all the step_id for all the steps created in this analysis
+            //Update all the step_id for all the steps created in this analysis
             //If some step belongs to another analysis previously created, no changed will be done
             //This function should be only called during new analysis/step creation
             //because the ANALYSIS AND STEP ID MUST NOT be editables.
@@ -151,11 +151,11 @@ public class Analysis {
             this.tags = tags.split(", ");
         }
     }
-    
+
     public NonProcessedData[] getNonProcessedData() {
         //TODO: REPLACE ARRAYS BY ARRAYLIST
-        if(this.non_processed_data == null){
-            this.non_processed_data = new  NonProcessedData[]{};
+        if (this.non_processed_data == null) {
+            this.non_processed_data = new NonProcessedData[]{};
         }
         return non_processed_data;
     }
@@ -166,8 +166,8 @@ public class Analysis {
 
     public ProcessedData[] getProcessedData() {
         //TODO: REPLACE ARRAYS BY ARRAYLIST
-        if(this.processed_data == null){
-            this.processed_data = new  ProcessedData[]{};
+        if (this.processed_data == null) {
+            this.processed_data = new ProcessedData[]{};
         }
         return processed_data;
     }
@@ -185,6 +185,20 @@ public class Analysis {
 
     public void setAssociated_experiment(String associated_experiment) {
         this.associated_experiment = associated_experiment;
+    }
+
+    public boolean isOwner(String userName) {
+        for (Step step : this.getNonProcessedData()) {
+            if (step.isOwner(userName)) {
+                return true;
+            }
+        }
+        for (Step step : this.getProcessedData()) {
+            if (step.isOwner(userName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     //***********************************************************************

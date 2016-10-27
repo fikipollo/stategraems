@@ -25,7 +25,7 @@ import classes.User;
  *
  * @author Rafa Hernández de Diego
  */
-public abstract class Step  {
+public abstract class Step implements Comparable<Step> {
 
     protected String step_id;
     protected int step_number;
@@ -36,6 +36,7 @@ public abstract class Step  {
     protected String[] files_location;
     User[] step_owners;
     protected QualityReport associatedQualityReport;
+    String status = null;
 
     public Step() {
     }
@@ -125,7 +126,7 @@ public abstract class Step  {
     public void setLastEditionDate(String last_edition_date) {
         this.last_edition_date = last_edition_date;
     }
-    
+
     public void adaptDates() {
         if (this.submission_date.contains("-")) {
             String[] aux = this.submission_date.split("T");
@@ -164,6 +165,7 @@ public abstract class Step  {
             this.step_owners[this.step_owners.length - 1] = owner;
         }
     }
+
     public boolean isOwner(String userName) {
         for (User user : this.getStepOwners()) {
             if (user.getUserID().equals(userName)) {
@@ -181,11 +183,24 @@ public abstract class Step  {
         this.associatedQualityReport = quality_report;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     //***********************************************************************
     //* OTHER FUNCTIONS *****************************************************
     //***********************************************************************
     @Override
     public String toString() {
         return this.toJSON();
+    }
+
+    @Override
+    public int compareTo(Step anotherInstance) {
+        return this.step_number - anotherInstance.step_number;
     }
 }

@@ -27,436 +27,436 @@
  *   - NuclearMagneticResonanceView  (EXTENDS ExtractionMethodView)
  *   - 
  */
-Ext.define('SL.view.AnalysisViews.RAWDataViews.ExtractionMethodView', {
-    extend: 'Ext.container.Container',
-    mixins: {
-        //Extends the Observer class
-        Observer: 'SL.view.senchaExtensions.Observer',
-    },
-    updateObserver: function () {
-        this.loadModel(this.getModel());
-    },
-    listeners: {
-        boxready: function () {
-            showHelpTips(this);
-        },
-        beforedestroy: function (item) {
-            item.getModel().deleteObserver(item);
-        },
-        afterlayout: function () {
-            //TODO: REMOVE THIS CODE
-            if (debugging === true)
-                console.info("ExtractionMethodView : Layout");
-        }
-    },
-    getModel: function () {
-        return this.model;
-    },
-    loadModel: function (model) {
-        this.suspendLayout = true;
-        this.model = model;
+//Ext.define('SL.view.AnalysisViews.RAWDataViews.ExtractionMethodView', {
+//    extend: 'Ext.container.Container',
+//    mixins: {
+//        //Extends the Observer class
+//        Observer: 'SL.view.senchaExtensions.Observer',
+//    },
+//    updateObserver: function () {
+//        this.loadModel(this.getModel());
+//    },
+//    listeners: {
+//        boxready: function () {
+//            showHelpTips(this);
+//        },
+//        beforedestroy: function (item) {
+//            item.getModel().deleteObserver(item);
+//        },
+//        afterlayout: function () {
+//            //TODO: REMOVE THIS CODE
+//            if (debugging === true)
+//                console.info("ExtractionMethodView : Layout");
+//        }
+//    },
+//    getModel: function () {
+//        return this.model;
+//    },
+//    loadModel: function (model) {
+//        this.suspendLayout = true;
+//        this.model = model;
+//
+//        var fields = this.query('field');
+//        var fieldName;
+//        var fieldValue;
+//        for (var i in fields) {
+//            fieldName = fields[i].getName();
+//            if (fieldName != null) {
+//                fieldValue = model.get(fieldName);
+//                if (fieldValue != null) {
+//                    fields[i].setRawValue(fieldValue);
+//                }
+//            }
+//        }
+//        this.suspendLayout = false;
+//    }
+//});
 
-        var fields = this.query('field');
-        var fieldName;
-        var fieldValue;
-        for (var i in fields) {
-            fieldName = fields[i].getName();
-            if (fieldName != null) {
-                fieldValue = model.get(fieldName);
-                if (fieldValue != null) {
-                    fields[i].setRawValue(fieldValue);
-                }
-            }
-        }
-        this.suspendLayout = false;
-    }
-});
+//Ext.define('SL.view.AnalysisViews.RAWDataViews.SequencingRAWdataView', {
+//    extend: 'Ext.container.Container',
+//    alias: 'widget.SequencingRAWdataView',
+//    itemId: 'sequencingFields',
+//    /**BC**********************************************************************************************
+//     * 
+//     * Some event declaration
+//     * 
+//     **EC***********************************************************************************************/
+//    layoutComboboxChangeHandler: function (field, newValue, oldValue, eOpts) {
+//        //  GET THE SELECTED EXPERIMENT TYPE
+//        var layoutType = newValue;
+//        var paired_end_description_fields = field.up('RAWDataView').queryById("paired_end_description_fields");
+//        paired_end_description_fields.setVisible(layoutType === "Paired-end");
+//        paired_end_description_fields.setDisabled(layoutType !== "Paired-end");
+//        paired_end_description_fields.defaults.submitValue = (layoutType === "Paired-end");
+//    },
+//    platformComboboxChangeHandler: function (field, newValue, oldValue, eOpts) {
+//        field.up('RAWDataView').queryById('platform_model_combo').getStore().clearFilter(true);
+//        field.up('RAWDataView').queryById('platform_model_combo').getStore().filter("family", newValue);
+//    },
+//    poolingComboboxChangeHandler: function (field, newValue, oldValue, eOpts) {
+//        if (newValue !== "None") {
+//            field.up('RAWDataView').queryById("poolingStrategyDescriptionField").setVisible(true);
+//            field.up('RAWDataView').queryById("poolingStrategyDescriptionField").submitValue = true;
+//        }
+//    },
+//    /**BC**********************************************************************************************
+//     * 
+//     * Component declaration
+//     * 
+//     **EC***********************************************************************************************/
+//    initComponent: function () {
+//        var me = this;
+//        Ext.applyIf(me, {
+//            layout: {type: 'vbox', align: 'stretch'},
+//            items: [
+//                {xtype: 'label', html: '<h1 class="form_subtitle">Sequencing details</h1>'},
+//                {xtype: 'container', cls: 'fieldBox', layout: {align: 'stretch', type: 'vbox'},
+//                    items: [
+//                        {xtype: 'label', html: '<h2>Equipment details</h2>'},
+//                        {xtype: 'combobox', fieldLabel: 'Platform Family', name: 'platform_family',
+//                            maxWidth: 500, maxLength: 200, enforceMaxLength: true,
+////                            allowBlank: false,
+//                            blankText: 'Please type a Platform family or select an existing from the list.',
+//                            emptyText: 'Select or type a family...',
+//                            displayField: 'name',
+//                            store: Ext.create('Ext.data.ArrayStore',
+//                                    {fields: ['name'], autoLoad: true,
+//                                        proxy: {
+//                                            type: 'ajax',
+//                                            url: 'data/platform_families.json',
+//                                            reader: {type: 'json', root: 'platform_families', successProperty: 'success'}
+//                                        }
+//                                    }),
+//                            valueField: 'name',
+//                            listeners: {change: {fn: me.platformComboboxChangeHandler, scope: me}}
+//                        },
+//                        {xtype: 'combobox', itemId: 'platform_model_combo', fieldLabel: 'Platform Model', name: 'platform_model',
+//                            maxWidth: 500, maxLength: 200, enforceMaxLength: true,
+////                            allowBlank: false,
+//                            blankText: 'Please type a Platform model or select an existing from the list.',
+//                            emptyText: 'Select or type a model...',
+//                            displayField: 'model',
+//                            store: Ext.create('Ext.data.ArrayStore', {
+//                                fields: ['family', 'model'],
+//                                autoLoad: true,
+//                                proxy: {
+//                                    type: 'ajax',
+//                                    url: 'data/platform_families.json',
+//                                    reader: {type: 'json', root: 'platform_models', successProperty: 'success'}
+//                                }
+//                            }),
+//                            valueField: 'model'
+//                        },
+//                        {xtype: 'combobox', fieldLabel: 'Base calls', name: 'base_calls',
+//                            maxWidth: 350, maxLength: 200, enforceMaxLength: true,
+////                            allowBlank: false,
+//                            store: ['Base space', 'Color space']
+//                        },
+//                        {xtype: 'numberfield',
+//                            renderer: Ext.util.Format.numberRenderer('0,000'),
+//                            maxWidth: 350,
+//                            fieldLabel: 'Sequencing depth (Million of Spots)',
+//                            name: 'avg_sequencing_depth',
+////                            allowBlank: false,
+//                            hideTrigger: true,
+//                            allowDecimals: true,
+//                            minValue: 0,
+//                            validator: function (value) {
+//                                return (value <= 0) ? "Sequencing depth must be greater than 0." : true;
+//                            }
+//                        },
+//                        {xtype: 'textfield', fieldLabel: 'Slide ID', name: 'slide_id', maxLength: 200, enforceMaxLength: true},
+//                        {xtype: 'textfield', fieldLabel: 'Lane number', name: 'lane_number', maxLength: 200, enforceMaxLength: true}
+//                    ]
+//                },
+//                {xtype: 'container', cls: 'fieldBox', layout: {align: 'stretch', type: 'vbox'},
+//                    items: [
+//                        {xtype: 'label', html: '<h2>Library details</h2>'},
+//                        {
+//                            xtype: 'numberfield',
+//                            maxWidth: 350,
+//                            fieldLabel: 'Avg sequence length (bp)',
+//                            name: 'avg_sequence_length',
+////                            allowBlank: false,
+//                            hideTrigger: true,
+//                            allowDecimals: false,
+//                            minValue: 0,
+//                            step: 10,
+//                            validator: function (value) {
+//                                return (value <= 0) ? "Avg. Sequence length must be greater than 0." : true;
+//                            }
+//                        }, {
+//                            xtype: 'combobox',
+//                            maxWidth: 550,
+//                            fieldLabel: 'Pooling stategy',
+//                            name: 'pooling_strategy',
+////                            allowBlank: false,
+//                            maxLength: 200, enforceMaxLength: true,
+//                            emptyText: "Select or type a Pooling Strategy",
+//                            displayField: 'value',
+//                            store: ['None', 'Multiplexed library', 'Other'],
+//                            valueField: 'value',
+//                            listeners: {change: {fn: me.poolingComboboxChangeHandler, scope: me}}
+//                        }, {
+//                            xtype: 'textareafield',
+//                            minHeight: 120,
+//                            itemId: 'poolingStrategyDescriptionField',
+//                            emptyText: "Not specified",
+//                            fieldLabel: 'Pooling strategy description',
+//                            name: 'pooling_strategy_description'
+//                        }, {
+//                            xtype: 'textareafield',
+//                            name: 'library_construction_protocol',
+//                            minHeight: 200,
+//                            fieldLabel: 'Library construction protocol',
+//                            emptyText: "Not specified",
+//                        },
+//                        {xtype: 'combobox', name: 'layout', fieldLabel: 'Layout',
+//                            valueField: 'value', displayField: 'value',
+//                            store: ['Single-end', 'Paired-end'],
+//                            maxWidth: 350, maxLength: 200, enforceMaxLength: true,
+//                            listeners: {change: {fn: me.layoutComboboxChangeHandler, scope: me}}
+//                        },
+//                        {xtype: 'fieldset', itemId: 'paired_end_description_fields',
+//                            border: false, hidden: true, padding: 0,
+//                            defaults: {labelWidth: 220, labelAlign: 'right', submitValue: false},
+//                            layout: {align: 'stretch', type: 'vbox'},
+//                            items: [
+//                                {xtype: 'combobox', fieldLabel: 'Orientation', name: 'orientation',
+//                                    maxWidth: 350, maxLength: 200, enforceMaxLength: true,
+//                                    store: ['forward-forward', 'forward-reverse']
+//                                },
+//                                {xtype: 'numberfield', fieldLabel: 'Nominal length (bp)', name: 'nominal_length',
+//                                    maxWidth: 350, hideTrigger: true, minValue: 0
+//                                },
+//                                {xtype: 'numberfield', fieldLabel: 'Nominal length Std dev (bp)', name: 'nominal_length_stdev',
+//                                    maxWidth: 350, hideTrigger: true, minValue: 0
+//                                }
+//                            ]
+//                        }
+//                    ]}
+//            ]
+//        });
+//        me.callParent(arguments);
+//    }
+//});
+//
+//Ext.define('SL.view.AnalysisViews.RAWDataViews.ChIPseqView', {
+//    extend: 'SL.view.AnalysisViews.RAWDataViews.ExtractionMethodView',
+//    alias: 'widget.ChIPseqView',
+//    itemId: 'specificDetailsPanel',
+//    /**BC**********************************************************************************************
+//     * 
+//     * Component declaration
+//     * 
+//     **EC***********************************************************************************************/
+//    initComponent: function () {
+//        var me = this;
+//        Ext.applyIf(me, {
+//            layout: {type: 'vbox', align: 'stretch'},
+//            items: [
+//                {xtype: 'SequencingRAWdataView'},
+//                {xtype: 'container', cls: 'fieldBox',
+//                    layout: {align: 'stretch', type: 'vbox'},
+//                    items: [{xtype: 'label', html: '<h2>ChIP-seq library details</h2>'},
+//                        {xtype: 'checkboxfield', fieldLabel: 'Is Control sample?', name: 'is_control_sample'},
+//                        {xtype: 'combobox', maxWidth: 500,
+//                            fieldLabel: 'Antibody manufacturer', name: 'antibody_manufacturer',
+////                            allowBlank: false,
+//                            blankText: 'Please type a Platform family or select an existing from the list.',
+//                            emptyText: 'Select or type a family...',
+//                            displayField: 'antibody_manufacturer',
+//                            valueField: 'antibody_manufacturer',
+//                            maxLength: 200, enforceMaxLength: true,
+//                            store: Ext.create('Ext.data.ArrayStore',
+//                                    {
+//                                        fields: ['antibody_manufacturer'],
+//                                        autoLoad: true,
+//                                        proxy: {
+//                                            type: 'ajax',
+//                                            url: 'data/chipseq_antibodies.json',
+//                                            reader: {type: 'json', root: 'antibody_manufacturer', successProperty: 'success'}
+//                                        }
+//                                    }),
+//                        },
+//                        {xtype: 'combobox', maxWidth: 500,
+//                            fieldLabel: 'Antibody target type', name: 'antibody_target_type',
+////                            allowBlank: false,
+//                            blankText: 'Please type a Platform family or select an existing from the list.',
+//                            emptyText: 'Select or type a family...',
+//                            displayField: 'antibody_target_type',
+//                            valueField: 'antibody_target_type',
+//                            maxLength: 200, enforceMaxLength: true,
+//                            store: Ext.create('Ext.data.ArrayStore',
+//                                    {
+//                                        fields: ['antibody_target_type'],
+//                                        autoLoad: true,
+//                                        proxy: {
+//                                            type: 'ajax',
+//                                            url: 'data/chipseq_antibodies.json',
+//                                            reader: {type: 'json', root: 'antibody_target_type', successProperty: 'success'}
+//                                        }
+//                                    }),
+//                        },
+//                        {xtype: 'combobox', maxWidth: 500, fieldLabel: 'Antibody target',
+//                            name: 'antibody_target',
+////                            allowBlank: false,
+//                            blankText: 'Please type a Platform family or select an existing from the list.',
+//                            emptyText: 'Select or type a family...',
+//                            displayField: 'antibody_target',
+//                            valueField: 'antibody_target',
+//                            maxLength: 200, enforceMaxLength: true,
+//                            store: Ext.create('Ext.data.ArrayStore',
+//                                    {
+//                                        fields: ['antibody_target'],
+//                                        autoLoad: true,
+//                                        proxy: {
+//                                            type: 'ajax',
+//                                            url: 'data/chipseq_antibodies.json',
+//                                            reader: {type: 'json', root: 'antibody_target', successProperty: 'success'}
+//                                        }
+//                                    }),
+//                        }
+//                    ]}
+//            ]
+//        });
+//        me.callParent(arguments);
+//    }
+//});
 
-Ext.define('SL.view.AnalysisViews.RAWDataViews.SequencingRAWdataView', {
-    extend: 'Ext.container.Container',
-    alias: 'widget.SequencingRAWdataView',
-    itemId: 'sequencingFields',
-    /**BC**********************************************************************************************
-     * 
-     * Some event declaration
-     * 
-     **EC***********************************************************************************************/
-    layoutComboboxChangeHandler: function (field, newValue, oldValue, eOpts) {
-        //  GET THE SELECTED EXPERIMENT TYPE
-        var layoutType = newValue;
-        var paired_end_description_fields = field.up('RAWDataView').queryById("paired_end_description_fields");
-        paired_end_description_fields.setVisible(layoutType === "Paired-end");
-        paired_end_description_fields.setDisabled(layoutType !== "Paired-end");
-        paired_end_description_fields.defaults.submitValue = (layoutType === "Paired-end");
-    },
-    platformComboboxChangeHandler: function (field, newValue, oldValue, eOpts) {
-        field.up('RAWDataView').queryById('platform_model_combo').getStore().clearFilter(true);
-        field.up('RAWDataView').queryById('platform_model_combo').getStore().filter("family", newValue);
-    },
-    poolingComboboxChangeHandler: function (field, newValue, oldValue, eOpts) {
-        if (newValue !== "None") {
-            field.up('RAWDataView').queryById("poolingStrategyDescriptionField").setVisible(true);
-            field.up('RAWDataView').queryById("poolingStrategyDescriptionField").submitValue = true;
-        }
-    },
-    /**BC**********************************************************************************************
-     * 
-     * Component declaration
-     * 
-     **EC***********************************************************************************************/
-    initComponent: function () {
-        var me = this;
-        Ext.applyIf(me, {
-            layout: {type: 'vbox', align: 'stretch'},
-            items: [
-                {xtype: 'label', html: '<h1 class="form_subtitle">Sequencing details</h1>'},
-                {xtype: 'container', cls: 'fieldBox', layout: {align: 'stretch', type: 'vbox'},
-                    items: [
-                        {xtype: 'label', html: '<h2>Equipment details</h2>'},
-                        {xtype: 'combobox', fieldLabel: 'Platform Family', name: 'platform_family',
-                            maxWidth: 500, maxLength: 200, enforceMaxLength: true,
-//                            allowBlank: false,
-                            blankText: 'Please type a Platform family or select an existing from the list.',
-                            emptyText: 'Select or type a family...',
-                            displayField: 'name',
-                            store: Ext.create('Ext.data.ArrayStore',
-                                    {fields: ['name'], autoLoad: true,
-                                        proxy: {
-                                            type: 'ajax',
-                                            url: 'data/platform_families.json',
-                                            reader: {type: 'json', root: 'platform_families', successProperty: 'success'}
-                                        }
-                                    }),
-                            valueField: 'name',
-                            listeners: {change: {fn: me.platformComboboxChangeHandler, scope: me}}
-                        },
-                        {xtype: 'combobox', itemId: 'platform_model_combo', fieldLabel: 'Platform Model', name: 'platform_model',
-                            maxWidth: 500, maxLength: 200, enforceMaxLength: true,
-//                            allowBlank: false,
-                            blankText: 'Please type a Platform model or select an existing from the list.',
-                            emptyText: 'Select or type a model...',
-                            displayField: 'model',
-                            store: Ext.create('Ext.data.ArrayStore', {
-                                fields: ['family', 'model'],
-                                autoLoad: true,
-                                proxy: {
-                                    type: 'ajax',
-                                    url: 'data/platform_families.json',
-                                    reader: {type: 'json', root: 'platform_models', successProperty: 'success'}
-                                }
-                            }),
-                            valueField: 'model'
-                        },
-                        {xtype: 'combobox', fieldLabel: 'Base calls', name: 'base_calls',
-                            maxWidth: 350, maxLength: 200, enforceMaxLength: true,
-//                            allowBlank: false,
-                            store: ['Base space', 'Color space']
-                        },
-                        {xtype: 'numberfield',
-                            renderer: Ext.util.Format.numberRenderer('0,000'),
-                            maxWidth: 350,
-                            fieldLabel: 'Sequencing depth (Million of Spots)',
-                            name: 'avg_sequencing_depth',
-//                            allowBlank: false,
-                            hideTrigger: true,
-                            allowDecimals: true,
-                            minValue: 0,
-                            validator: function (value) {
-                                return (value <= 0) ? "Sequencing depth must be greater than 0." : true;
-                            }
-                        },
-                        {xtype: 'textfield', fieldLabel: 'Slide ID', name: 'slide_id', maxLength: 200, enforceMaxLength: true},
-                        {xtype: 'textfield', fieldLabel: 'Lane number', name: 'lane_number', maxLength: 200, enforceMaxLength: true}
-                    ]
-                },
-                {xtype: 'container', cls: 'fieldBox', layout: {align: 'stretch', type: 'vbox'},
-                    items: [
-                        {xtype: 'label', html: '<h2>Library details</h2>'},
-                        {
-                            xtype: 'numberfield',
-                            maxWidth: 350,
-                            fieldLabel: 'Avg sequence length (bp)',
-                            name: 'avg_sequence_length',
-//                            allowBlank: false,
-                            hideTrigger: true,
-                            allowDecimals: false,
-                            minValue: 0,
-                            step: 10,
-                            validator: function (value) {
-                                return (value <= 0) ? "Avg. Sequence length must be greater than 0." : true;
-                            }
-                        }, {
-                            xtype: 'combobox',
-                            maxWidth: 550,
-                            fieldLabel: 'Pooling stategy',
-                            name: 'pooling_strategy',
-//                            allowBlank: false,
-                            maxLength: 200, enforceMaxLength: true,
-                            emptyText: "Select or type a Pooling Strategy",
-                            displayField: 'value',
-                            store: ['None', 'Multiplexed library', 'Other'],
-                            valueField: 'value',
-                            listeners: {change: {fn: me.poolingComboboxChangeHandler, scope: me}}
-                        }, {
-                            xtype: 'textareafield',
-                            minHeight: 120,
-                            itemId: 'poolingStrategyDescriptionField',
-                            emptyText: "Not specified",
-                            fieldLabel: 'Pooling strategy description',
-                            name: 'pooling_strategy_description'
-                        }, {
-                            xtype: 'textareafield',
-                            name: 'library_construction_protocol',
-                            minHeight: 200,
-                            fieldLabel: 'Library construction protocol',
-                            emptyText: "Not specified",
-                        },
-                        {xtype: 'combobox', name: 'layout', fieldLabel: 'Layout',
-                            valueField: 'value', displayField: 'value',
-                            store: ['Single-end', 'Paired-end'],
-                            maxWidth: 350, maxLength: 200, enforceMaxLength: true,
-                            listeners: {change: {fn: me.layoutComboboxChangeHandler, scope: me}}
-                        },
-                        {xtype: 'fieldset', itemId: 'paired_end_description_fields',
-                            border: false, hidden: true, padding: 0,
-                            defaults: {labelWidth: 220, labelAlign: 'right', submitValue: false},
-                            layout: {align: 'stretch', type: 'vbox'},
-                            items: [
-                                {xtype: 'combobox', fieldLabel: 'Orientation', name: 'orientation',
-                                    maxWidth: 350, maxLength: 200, enforceMaxLength: true,
-                                    store: ['forward-forward', 'forward-reverse']
-                                },
-                                {xtype: 'numberfield', fieldLabel: 'Nominal length (bp)', name: 'nominal_length',
-                                    maxWidth: 350, hideTrigger: true, minValue: 0
-                                },
-                                {xtype: 'numberfield', fieldLabel: 'Nominal length Std dev (bp)', name: 'nominal_length_stdev',
-                                    maxWidth: 350, hideTrigger: true, minValue: 0
-                                }
-                            ]
-                        }
-                    ]}
-            ]
-        });
-        me.callParent(arguments);
-    }
-});
+//Ext.define('SL.view.AnalysisViews.RAWDataViews.DNaseseqView', {
+//    extend: 'SL.view.AnalysisViews.RAWDataViews.ExtractionMethodView',
+//    alias: 'widget.DNaseseqView',
+//    itemId: 'specificDetailsPanel',
+//    /**BC**********************************************************************************************
+//     * 
+//     * Component declaration
+//     * 
+//     **EC***********************************************************************************************/
+//    initComponent: function () {
+//        var me = this;
+//        Ext.applyIf(me, {
+//            layout: {type: 'vbox', align: 'stretch'},
+//            items: [
+//                {xtype: 'SequencingRAWdataView'},
+//                {
+//                    xtype: 'container', cls: 'fieldBox',
+//                    layout: {align: 'stretch', type: 'vbox'},
+//                    items: [
+//                        {xtype: 'label', html: '<h2>DNase-seq library details</h2>'},
+//                        {xtype: 'checkboxfield', fieldLabel: 'Is for footprinting?', name: 'is_for_footprinting'},
+//                        {xtype: 'textfield', fieldLabel: 'Restriction enzyme', name: 'restriction_enzyme', maxLength: 200, enforceMaxLength: true}
+//                    ]}
+//            ]
+//        });
+//        me.callParent(arguments);
+//    },
+//});
 
-Ext.define('SL.view.AnalysisViews.RAWDataViews.ChIPseqView', {
-    extend: 'SL.view.AnalysisViews.RAWDataViews.ExtractionMethodView',
-    alias: 'widget.ChIPseqView',
-    itemId: 'specificDetailsPanel',
-    /**BC**********************************************************************************************
-     * 
-     * Component declaration
-     * 
-     **EC***********************************************************************************************/
-    initComponent: function () {
-        var me = this;
-        Ext.applyIf(me, {
-            layout: {type: 'vbox', align: 'stretch'},
-            items: [
-                {xtype: 'SequencingRAWdataView'},
-                {xtype: 'container', cls: 'fieldBox',
-                    layout: {align: 'stretch', type: 'vbox'},
-                    items: [{xtype: 'label', html: '<h2>ChIP-seq library details</h2>'},
-                        {xtype: 'checkboxfield', fieldLabel: 'Is Control sample?', name: 'is_control_sample'},
-                        {xtype: 'combobox', maxWidth: 500,
-                            fieldLabel: 'Antibody manufacturer', name: 'antibody_manufacturer',
-//                            allowBlank: false,
-                            blankText: 'Please type a Platform family or select an existing from the list.',
-                            emptyText: 'Select or type a family...',
-                            displayField: 'antibody_manufacturer',
-                            valueField: 'antibody_manufacturer',
-                            maxLength: 200, enforceMaxLength: true,
-                            store: Ext.create('Ext.data.ArrayStore',
-                                    {
-                                        fields: ['antibody_manufacturer'],
-                                        autoLoad: true,
-                                        proxy: {
-                                            type: 'ajax',
-                                            url: 'data/chipseq_antibodies.json',
-                                            reader: {type: 'json', root: 'antibody_manufacturer', successProperty: 'success'}
-                                        }
-                                    }),
-                        },
-                        {xtype: 'combobox', maxWidth: 500,
-                            fieldLabel: 'Antibody target type', name: 'antibody_target_type',
-//                            allowBlank: false,
-                            blankText: 'Please type a Platform family or select an existing from the list.',
-                            emptyText: 'Select or type a family...',
-                            displayField: 'antibody_target_type',
-                            valueField: 'antibody_target_type',
-                            maxLength: 200, enforceMaxLength: true,
-                            store: Ext.create('Ext.data.ArrayStore',
-                                    {
-                                        fields: ['antibody_target_type'],
-                                        autoLoad: true,
-                                        proxy: {
-                                            type: 'ajax',
-                                            url: 'data/chipseq_antibodies.json',
-                                            reader: {type: 'json', root: 'antibody_target_type', successProperty: 'success'}
-                                        }
-                                    }),
-                        },
-                        {xtype: 'combobox', maxWidth: 500, fieldLabel: 'Antibody target',
-                            name: 'antibody_target',
-//                            allowBlank: false,
-                            blankText: 'Please type a Platform family or select an existing from the list.',
-                            emptyText: 'Select or type a family...',
-                            displayField: 'antibody_target',
-                            valueField: 'antibody_target',
-                            maxLength: 200, enforceMaxLength: true,
-                            store: Ext.create('Ext.data.ArrayStore',
-                                    {
-                                        fields: ['antibody_target'],
-                                        autoLoad: true,
-                                        proxy: {
-                                            type: 'ajax',
-                                            url: 'data/chipseq_antibodies.json',
-                                            reader: {type: 'json', root: 'antibody_target', successProperty: 'success'}
-                                        }
-                                    }),
-                        }
-                    ]}
-            ]
-        });
-        me.callParent(arguments);
-    }
-});
-
-Ext.define('SL.view.AnalysisViews.RAWDataViews.DNaseseqView', {
-    extend: 'SL.view.AnalysisViews.RAWDataViews.ExtractionMethodView',
-    alias: 'widget.DNaseseqView',
-    itemId: 'specificDetailsPanel',
-    /**BC**********************************************************************************************
-     * 
-     * Component declaration
-     * 
-     **EC***********************************************************************************************/
-    initComponent: function () {
-        var me = this;
-        Ext.applyIf(me, {
-            layout: {type: 'vbox', align: 'stretch'},
-            items: [
-                {xtype: 'SequencingRAWdataView'},
-                {
-                    xtype: 'container', cls: 'fieldBox',
-                    layout: {align: 'stretch', type: 'vbox'},
-                    items: [
-                        {xtype: 'label', html: '<h2>DNase-seq library details</h2>'},
-                        {xtype: 'checkboxfield', fieldLabel: 'Is for footprinting?', name: 'is_for_footprinting'},
-                        {xtype: 'textfield', fieldLabel: 'Restriction enzyme', name: 'restriction_enzyme', maxLength: 200, enforceMaxLength: true}
-                    ]}
-            ]
-        });
-        me.callParent(arguments);
-    },
-});
-
-Ext.define('SL.view.AnalysisViews.RAWDataViews.MethylseqView', {
-    extend: 'SL.view.AnalysisViews.RAWDataViews.ExtractionMethodView',
-    alias: 'widget.MethylseqView',
-    itemId: 'specificDetailsPanel',
-    autoScroll: true,
-    /**BC**********************************************************************************************
-     * 
-     * Component declaration
-     * 
-     **EC***********************************************************************************************/
-    initComponent: function () {
-        var me = this;
-
-        Ext.applyIf(me, {
-            layout: {type: 'vbox', align: 'stretch'},
-            items: [
-                {xtype: 'SequencingRAWdataView'},
-                {
-                    xtype: 'container', cls: 'fieldBox',
-                    layout: {align: 'stretch', type: 'vbox'},
-                    items: [{xtype: 'label', html: '<h2>Methyl-seq library details</h2>'},
-                        {xtype: 'textfield', fieldLabel: 'Protocol', name: 'protocol', maxLength: 200, enforceMaxLength: true},
-                        {xtype: 'combobox', fieldLabel: 'Strand specificity', name: 'strand_specificity', maxWidth: 350, store: ['stranded', 'unstranded'], maxLength: 200, enforceMaxLength: true},
-                        {xtype: 'textfield', fieldLabel: 'Selection', name: 'selection', maxLength: 200, enforceMaxLength: true}
-                    ]}
-            ]
-        });
-        me.callParent(arguments);
-    }
-});
-
-Ext.define('SL.view.AnalysisViews.RAWDataViews.mRNAseqView', {
-    extend: 'SL.view.AnalysisViews.RAWDataViews.ExtractionMethodView',
-    alias: 'widget.mRNAseqView',
-    itemId: 'specificDetailsPanel',
-    autoScroll: true,
-    /**BC**********************************************************************************************
-     * 
-     * Component declaration
-     * 
-     **EC***********************************************************************************************/
-    initComponent: function () {
-        var me = this;
-        Ext.applyIf(me, {
-            layout: {type: 'vbox', align: 'stretch'},
-            items: [
-                {xtype: 'SequencingRAWdataView'},
-                {
-                    xtype: 'container', cls: 'fieldBox',
-                    layout: {align: 'stretch', type: 'vbox'},
-                    items: [{xtype: 'label', html: '<h2>mRNA-seq library details</h2>'},
-//                {xtype: 'textfield', fieldLabel: 'Extracted Molecule', name: 'extracted_molecule',maxLength: 200, enforceMaxLength: true,},
-                        {xtype: 'textfield', fieldLabel: 'RNA type', name: 'rna_type', maxLength: 200, enforceMaxLength: true},
-                        {
-                            xtype: 'combobox',
-                            fieldLabel: 'Strand specifity',
-                            name: 'strand_specificity',
-                            maxWidth: 350, maxLength: 200, enforceMaxLength: true,
-//                            allowBlank: false,
-                            emptyText: 'Please select a value',
-                            store: ['stranded', 'unstranded']
-                        },
-                        {xtype: 'textfield', fieldLabel: 'Selection', name: 'selection', maxLength: 200, enforceMaxLength: true}
-                    ]}]
-        });
-
-        me.callParent(arguments);
-    }
-});
-
-Ext.define('SL.view.AnalysisViews.RAWDataViews.smallRNAseqView', {
-    extend: 'SL.view.AnalysisViews.RAWDataViews.ExtractionMethodView',
-    alias: 'widget.smallRNAseqView',
-    itemId: 'specificDetailsPanel',
-    autoScroll: true,
-    /**BC**********************************************************************************************
-     * 
-     * Component declaration
-     * 
-     **EC***********************************************************************************************/
-    initComponent: function () {
-        var me = this;
-
-        Ext.applyIf(me, {
-            layout: {type: 'vbox', align: 'stretch'},
-            items: [
-                {xtype: 'SequencingRAWdataView'},
-                {
-                    xtype: 'container', cls: 'fieldBox',
-                    layout: {align: 'stretch', type: 'vbox'},
-                    items: [{xtype: 'label', html: '<h2>small RNA-seq library details</h2>'},
-                        {xtype: 'textfield', fieldLabel: 'RNA type', name: 'rna_type', maxLength: 200, enforceMaxLength: true},
-                        {xtype: 'combobox', name: 'strand_specificity',
-                            maxLength: 200, enforceMaxLength: true, fieldLabel: 'Strand specifity', maxWidth: 350,
-//                            allowBlank: false,
-                            emptyText: 'Please select a value',
-                            store: ['stranded', 'unstranded']
-                        },
-                        {xtype: 'textfield', fieldLabel: 'Selection', name: 'selection', maxLength: 200, enforceMaxLength: true}
-                    ]}]
-        });
-        me.callParent(arguments);
-    }
-});
+//Ext.define('SL.view.AnalysisViews.RAWDataViews.MethylseqView', {
+//    extend: 'SL.view.AnalysisViews.RAWDataViews.ExtractionMethodView',
+//    alias: 'widget.MethylseqView',
+//    itemId: 'specificDetailsPanel',
+//    autoScroll: true,
+//    /**BC**********************************************************************************************
+//     * 
+//     * Component declaration
+//     * 
+//     **EC***********************************************************************************************/
+//    initComponent: function () {
+//        var me = this;
+//
+//        Ext.applyIf(me, {
+//            layout: {type: 'vbox', align: 'stretch'},
+//            items: [
+//                {xtype: 'SequencingRAWdataView'},
+//                {
+//                    xtype: 'container', cls: 'fieldBox',
+//                    layout: {align: 'stretch', type: 'vbox'},
+//                    items: [{xtype: 'label', html: '<h2>Methyl-seq library details</h2>'},
+//                        {xtype: 'textfield', fieldLabel: 'Protocol', name: 'protocol', maxLength: 200, enforceMaxLength: true},
+//                        {xtype: 'combobox', fieldLabel: 'Strand specificity', name: 'strand_specificity', maxWidth: 350, store: ['stranded', 'unstranded'], maxLength: 200, enforceMaxLength: true},
+//                        {xtype: 'textfield', fieldLabel: 'Selection', name: 'selection', maxLength: 200, enforceMaxLength: true}
+//                    ]}
+//            ]
+//        });
+//        me.callParent(arguments);
+//    }
+//});
+//
+//Ext.define('SL.view.AnalysisViews.RAWDataViews.mRNAseqView', {
+//    extend: 'SL.view.AnalysisViews.RAWDataViews.ExtractionMethodView',
+//    alias: 'widget.mRNAseqView',
+//    itemId: 'specificDetailsPanel',
+//    autoScroll: true,
+//    /**BC**********************************************************************************************
+//     * 
+//     * Component declaration
+//     * 
+//     **EC***********************************************************************************************/
+//    initComponent: function () {
+//        var me = this;
+//        Ext.applyIf(me, {
+//            layout: {type: 'vbox', align: 'stretch'},
+//            items: [
+//                {xtype: 'SequencingRAWdataView'},
+//                {
+//                    xtype: 'container', cls: 'fieldBox',
+//                    layout: {align: 'stretch', type: 'vbox'},
+//                    items: [{xtype: 'label', html: '<h2>mRNA-seq library details</h2>'},
+////                {xtype: 'textfield', fieldLabel: 'Extracted Molecule', name: 'extracted_molecule',maxLength: 200, enforceMaxLength: true,},
+//                        {xtype: 'textfield', fieldLabel: 'RNA type', name: 'rna_type', maxLength: 200, enforceMaxLength: true},
+//                        {
+//                            xtype: 'combobox',
+//                            fieldLabel: 'Strand specifity',
+//                            name: 'strand_specificity',
+//                            maxWidth: 350, maxLength: 200, enforceMaxLength: true,
+////                            allowBlank: false,
+//                            emptyText: 'Please select a value',
+//                            store: ['stranded', 'unstranded']
+//                        },
+//                        {xtype: 'textfield', fieldLabel: 'Selection', name: 'selection', maxLength: 200, enforceMaxLength: true}
+//                    ]}]
+//        });
+//
+//        me.callParent(arguments);
+//    }
+//});
+//
+//Ext.define('SL.view.AnalysisViews.RAWDataViews.smallRNAseqView', {
+//    extend: 'SL.view.AnalysisViews.RAWDataViews.ExtractionMethodView',
+//    alias: 'widget.smallRNAseqView',
+//    itemId: 'specificDetailsPanel',
+//    autoScroll: true,
+//    /**BC**********************************************************************************************
+//     * 
+//     * Component declaration
+//     * 
+//     **EC***********************************************************************************************/
+//    initComponent: function () {
+//        var me = this;
+//
+//        Ext.applyIf(me, {
+//            layout: {type: 'vbox', align: 'stretch'},
+//            items: [
+//                {xtype: 'SequencingRAWdataView'},
+//                {
+//                    xtype: 'container', cls: 'fieldBox',
+//                    layout: {align: 'stretch', type: 'vbox'},
+//                    items: [{xtype: 'label', html: '<h2>small RNA-seq library details</h2>'},
+//                        {xtype: 'textfield', fieldLabel: 'RNA type', name: 'rna_type', maxLength: 200, enforceMaxLength: true},
+//                        {xtype: 'combobox', name: 'strand_specificity',
+//                            maxLength: 200, enforceMaxLength: true, fieldLabel: 'Strand specifity', maxWidth: 350,
+////                            allowBlank: false,
+//                            emptyText: 'Please select a value',
+//                            store: ['stranded', 'unstranded']
+//                        },
+//                        {xtype: 'textfield', fieldLabel: 'Selection', name: 'selection', maxLength: 200, enforceMaxLength: true}
+//                    ]}]
+//        });
+//        me.callParent(arguments);
+//    }
+//});
 
 Ext.define('SL.view.AnalysisViews.RAWDataViews.MassSpectrometryView', {
     extend: 'SL.view.AnalysisViews.RAWDataViews.ExtractionMethodView',

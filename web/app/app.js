@@ -22,8 +22,10 @@
         loginFailed: 'auth-login-failed',
         logoutSuccess: 'auth-logout-success',
         sessionTimeout: 'auth-session-timeout',
+        experimentCreated: 'experiment-created',
         experimentDeleted: 'experiment-deleted',
         sampleCreated: 'sample-created',
+        sampleDeleted: 'sample-deleted',
         analysisCreated: 'analysis-created',
         analysisDeleted: 'analysis-deleted',
         stepChanged: "step-changed",
@@ -53,6 +55,9 @@
                 name: 'experiments',
                 url: '/experiments',
                 templateUrl: "app/experiments/experiment-list.tpl.html",
+                params: {
+                    force: false
+                },
                 data: {requireLogin: true}
             },
             experimentDetail = {
@@ -69,6 +74,9 @@
                 name: 'samples',
                 url: '/samples',
                 templateUrl: "app/samples/sample-list.tpl.html",
+                params: {
+                    force: false
+                },
                 data: {requireLogin: true}
             },
             sampleDetail = {
@@ -85,6 +93,9 @@
                 name: 'analysis',
                 url: '/analysis',
                 templateUrl: "app/analysis/analysis-list.tpl.html",
+                params: {
+                    force: false
+                },
                 data: {requireLogin: true}
             },
             analysisDetail = {
@@ -114,10 +125,10 @@
 
         this.pages = [
             {name: 'home', title: 'Home', icon: 'home', isParent: true},
-            {name: '', title: 'Experiments', icon: 'book', isParent: true},
-            {name: 'experiments', title: 'Browse experiments', icon: 'angle-right', isParent: false},
-            {name: 'experimentDetail', title: 'Show current experiment', icon: 'angle-right', isParent: false, params: {viewMode: 'view', experiment_id: "promise"}},
-            {name: 'experimentDetail', title: 'Annotate new Experiment', icon: 'angle-right', isParent: false, params: {viewMode: 'creation'}},
+            {name: '', title: 'Studies', icon: 'book', isParent: true},
+            {name: 'experiments', title: 'Browse studies', icon: 'angle-right', isParent: false},
+            {name: 'experimentDetail', title: 'Show current study', icon: 'angle-right', isParent: false, params: {viewMode: 'view', experiment_id: "promise"}},
+            {name: 'experimentDetail', title: 'Annotate new study', icon: 'angle-right', isParent: false, params: {viewMode: 'creation'}},
             {name: '', title: 'Samples', icon: 'flask', isParent: true},
             {name: 'samples', title: 'Browse samples', icon: 'angle-right', isParent: false},
             {name: 'sampleDetail', title: 'Annotate new samples', icon: 'angle-right', isParent: false, params: {viewMode: 'creation'}},
@@ -175,14 +186,14 @@
                     return myAppConfig.EMS_SERVER + "get_analysis";
                 case "analysis-create":
                     return myAppConfig.EMS_SERVER + "add_analysis";
-//                case "sample-update":
-//                    return myAppConfig.EMS_SERVER + "update_biocondition";
-//                case "sample-delete":
+                case "analysis-update":
+                    return myAppConfig.EMS_SERVER + "update_analysis";
+//                case "analysis-delete":
 //                    return myAppConfig.EMS_SERVER + "remove_biocondition";
                 case "analysis-lock":
                     return myAppConfig.EMS_SERVER + "lock_analysis";
-//                case "sample-unlock":
-//                    return myAppConfig.EMS_SERVER + "unlock_biocondition";
+                case "analysis-unlock":
+                    return myAppConfig.EMS_SERVER + "unlock_analysis";
                 case "analysis-step-subtypes":
                     return myAppConfig.EMS_SERVER + "get_step_subtypes";
                 case "file-list":

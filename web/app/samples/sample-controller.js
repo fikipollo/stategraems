@@ -43,7 +43,7 @@
      *                                                                                  
      *                                                                                  
      ******************************************************************************/
-    app.controller('SampleListController', function ($rootScope, $scope, $http, $dialogs, APP_EVENTS, SampleList) {
+    app.controller('SampleListController', function ($rootScope, $scope, $http, $stateParams, $dialogs, APP_EVENTS, SampleList) {
         /******************************************************************************      
          *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
          *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
@@ -144,12 +144,12 @@
                 return tag.color;
             }
             return "";
-        }
+        };
 
         $scope.isMember = function (sample) {
             $scope.user_id = $scope.user_id || Cookies.get("loggedUserID");
             return (SampleList.isOwner(sample, $scope.user_id) || SampleList.isMember(sample, $scope.user_id));
-        }
+        };
 
         /******************************************************************************      
          *            _____   _____ _  _ _____         
@@ -161,6 +161,15 @@
          *     |_||_/_/ \_\_|\_|___/|____|___|_|_\|___/
          *                                             
          ******************************************************************************/
+
+        /******************************************************************************      
+         * This function handles the event fires when an experiment is deleted.
+         *
+         ******************************************************************************/
+        $scope.$on(APP_EVENTS.sampleDeleted, function () {
+            debugger;
+            this.retrieveSamplesData('', true);
+        });
 
         /******************************************************************************
          * This function...
@@ -242,8 +251,8 @@
         $scope.visibleSamples = Math.min($scope.filteredSamples, $scope.visibleSamples);
 
 
-        if ($scope.samples.length === 0) {
-            this.retrieveSamplesData("my_samples");
+        if ($scope.samples.length === 0 || $stateParams.force) {
+            this.retrieveSamplesData("my_samples", true);
         }
     });
 
@@ -599,56 +608,49 @@
             }
         };
 
-        //--------------------------------------------------------------------
-        // EVENT HANDLERS
-        //--------------------------------------------------------------------
+        /******************************************************************************      
+         *            _____   _____ _  _ _____         
+         *           | __\ \ / / __| \| |_   _|        
+         *           | _| \ V /| _|| .` | | |          
+         *      _  _ |___| \_/_|___|_|\_| |_| ___  ___ 
+         *     | || | /_\ | \| |   \| |  | __| _ \/ __|
+         *     | __ |/ _ \| .` | |) | |__| _||   /\__ \
+         *     |_||_/_/ \_\_|\_|___/|____|___|_|_\|___/
+         *                                             
+         ******************************************************************************/
 
+        /******************************************************************************
+         * This function handles the event fires when the user deletes a biocondition
+         *
+         ******************************************************************************/
         this.deleteBiologicalConditionHandler = function () {
             debugger;
             var me = this;
             var current_user_id = '' + Cookies.get('loggedUserID');
 
             if (SampleList.isOwner($scope.model, current_user_id) || current_user_id === "admin") {
-                //ONLY OWNERS CAN REMOVE THE EXPERIMENT, OTHERWISE THE USER WILL BE REMOVED FROM MEMBERS LIST
-                var message = "";
-                if ($scope.model.owners.length > 1 && current_user_id !== "admin") {
-                    //Remove the user from the owners list
-                    message = 'Delete these samples from your collection?<br>You will be removed from the owners list but the samples will not deleted before all the other owners remove the samples.';
-                } else {
-                    //No more owners --> remove the entire experiment
-                    message = 'Delete these samples from the system?<br>This action will remove all the data for the samples, including biological condition details and aliquots.<br>This action cannot be undone.';
-                }
-
-                $dialogs.showConfirmationDialog(message, {
-                    title: "Please confirm this action.",
-                    callback: function (result) {
-                        if (result === 'ok') {
-                            $http($rootScope.getHttpRequestConfig("POST", "sample-delete", {
-                                headers: {'Content-Type': 'application/json; charset=utf-8'},
-                                data: $rootScope.getCredentialsParams({'biocondition_id': $scope.model.biocondition_id, loggedUserID: current_user_id}),
-                            })).then(
-                                    function successCallback(response) {
-                                        $dialogs.showSuccessDialog("All the samples were successfully deleted.");
-                                        //Notify all the other controllers that user has signed in
-                                        $rootScope.$broadcast(APP_EVENTS.sampleDeleted);
-                                        me.send_unlock_sample();
-                                        $state.go('samples');
-                                    },
-                                    function errorCallback(response) {
-                                        var message = "Failed while deleting the samples.";
-                                        $dialogs.showErrorDialog(message, {
-                                            logMessage: message + " at SampleDetailController:deleteBiologicalConditionHandler."
-                                        });
-                                        console.error(response.data);
-                                        debugger
-                                    }
-                            );
+                $http($rootScope.getHttpRequestConfig("POST", "sample-delete", {
+                    headers: {'Content-Type': 'application/json; charset=utf-8'},
+                    data: $rootScope.getCredentialsParams({'biocondition_id': $scope.model.biocondition_id, loggedUserID: current_user_id}),
+                })).then(
+                        function successCallback(response) {
+                            //Notify all the other controllers that samples has been deleted
+                            $rootScope.$broadcast(APP_EVENTS.sampleDeleted);
+                            me.send_unlock_sample();
+                            $dialogs.showSuccessDialog("All the samples were successfully deleted.");
+                            $state.go('samples', {force: true});
+                        },
+                        function errorCallback(response) {
+                            var message = "Failed while deleting the samples.";
+                            $dialogs.showErrorDialog(message, {
+                                logMessage: message + " at SampleDetailController:deleteBiologicalConditionHandler."
+                            });
+                            console.error(response.data);
+                            debugger
                         }
-                    }
-                });
+                );
             }
         };
-
 
         /**
          * This function handles the event when the "Add new sample" is pressed
@@ -668,6 +670,11 @@
          * @returns this
          */
         this.acceptButtonHandler = function () {
+            if (!$scope.bioconditionForm.$valid) {
+                $dialogs.showErrorDialog("Invalid form, please check the form and fill the empty fields.")
+                return false;
+            }
+
             $scope.setLoading(true);
             $scope.setTaskQueue(this.clean_task_queue($scope.getTaskQueue()));
             this.execute_tasks(true);

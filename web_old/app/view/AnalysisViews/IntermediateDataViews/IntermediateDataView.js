@@ -506,37 +506,37 @@ Ext.define('SL.view.AnalysisViews.IntermediateDataViews.ExtractRelevantFeaturesV
         me.callParent(arguments);
     }
 });
-
-Ext.define('SL.view.AnalysisViews.IntermediateDataViews.MappingStepView', {
-    extend: 'SL.view.AnalysisViews.IntermediateDataViews.SpecificDetailsPanel',
-    alias: 'widget.MappingStepView',
-    initComponent: function () {
-        var me = this;
-        Ext.applyIf(me, {
-            cls: 'fieldBox',
-            layout: {type: 'vbox', align: 'stretch'},
-            items: [
-                {xtype: 'label', html: '<h2>Mapping details</h2>'},
-                {xtype: 'AnalysisStepSelectorField', fieldLabel: "Mapped Files", name: "used_data"},
-                {xtype: 'container', itemId: 'specificFields', layout: {type: 'vbox', align: 'stretch'},
-                    items: [{
-                            xtype: 'combobox', flex: 1, maxLength: 200, enforceMaxLength: true,
-                            fieldLabel: 'Genome specie', name: 'genome_specie', emptyText: 'Select or type an organism...',
-                            displayField: 'organism', valueField: 'organism',
-                            queryMode: 'local', typeAhead: true, allowBlank: false,
-                            store: Ext.create('Ext.data.ArrayStore', {fields: ['organism'], autoLoad: true,
-                                proxy: {type: 'ajax', url: 'data/organisms.json', reader: {type: 'json', root: 'organisms', successProperty: 'success'}}
-                            }),
-                        },
-                        {xtype: 'textfield', flex: 1, fieldLabel: 'Genome version', name: 'genome_version', maxLength: 200, enforceMaxLength: true, },
-                        {xtype: 'textfield', flex: 1, fieldLabel: 'Genome source', name: 'genome_source', maxLength: 200, enforceMaxLength: true, }
-                    ]
-                }
-            ]
-        });
-        me.callParent(arguments);
-    }
-});
+//
+//Ext.define('SL.view.AnalysisViews.IntermediateDataViews.MappingStepView', {
+//    extend: 'SL.view.AnalysisViews.IntermediateDataViews.SpecificDetailsPanel',
+//    alias: 'widget.MappingStepView',
+//    initComponent: function () {
+//        var me = this;
+//        Ext.applyIf(me, {
+//            cls: 'fieldBox',
+//            layout: {type: 'vbox', align: 'stretch'},
+//            items: [
+//                {xtype: 'label', html: '<h2>Mapping details</h2>'},
+//                {xtype: 'AnalysisStepSelectorField', fieldLabel: "Mapped Files", name: "used_data"},
+//                {xtype: 'container', itemId: 'specificFields', layout: {type: 'vbox', align: 'stretch'},
+//                    items: [{
+//                            xtype: 'combobox', flex: 1, maxLength: 200, enforceMaxLength: true,
+//                            fieldLabel: 'Genome specie', name: 'genome_specie', emptyText: 'Select or type an organism...',
+//                            displayField: 'organism', valueField: 'organism',
+//                            queryMode: 'local', typeAhead: true, allowBlank: false,
+//                            store: Ext.create('Ext.data.ArrayStore', {fields: ['organism'], autoLoad: true,
+//                                proxy: {type: 'ajax', url: 'data/organisms.json', reader: {type: 'json', root: 'organisms', successProperty: 'success'}}
+//                            }),
+//                        },
+//                        {xtype: 'textfield', flex: 1, fieldLabel: 'Genome version', name: 'genome_version', maxLength: 200, enforceMaxLength: true, },
+//                        {xtype: 'textfield', flex: 1, fieldLabel: 'Genome source', name: 'genome_source', maxLength: 200, enforceMaxLength: true, }
+//                    ]
+//                }
+//            ]
+//        });
+//        me.callParent(arguments);
+//    }
+//});
 
 Ext.define('SL.view.AnalysisViews.IntermediateDataViews.MaxQuantStepView', {
     extend: 'SL.view.AnalysisViews.IntermediateDataViews.SpecificDetailsPanel',
@@ -556,54 +556,54 @@ Ext.define('SL.view.AnalysisViews.IntermediateDataViews.MaxQuantStepView', {
         me.callParent(arguments);
     }
 });
-
-Ext.define('SL.view.AnalysisViews.IntermediateDataViews.PreprocessingStepView', {
-    extend: 'SL.view.AnalysisViews.IntermediateDataViews.SpecificDetailsPanel',
-    alias: 'widget.PreprocessingStepView',
-    initComponent: function () {
-        var me = this;
-        Ext.applyIf(me, {
-            cls: 'fieldBox', layout: {type: 'vbox', align: 'stretch'},
-            items: [
-                {xtype: 'label', html: '<h2>Preprocessing details</h2>'},
-                {xtype: 'container', itemId: 'specificFields', layout: {type: 'vbox', align: 'stretch'},
-                    items: [{
-                            xtype: 'combobox', maxWidth: 750,
-                            maxLength: 200, enforceMaxLength: true,
-                            fieldLabel: 'Preprocessing type',
-                            name: 'preprocessing_type',
-                            emptyText: 'Select or type the preprocessing action',
-                            store: ['Trimming', 'Filtering', 'Normalization', 'Sorting', 'File format conversion', 'Other']
-                        }]
-                },
-                {xtype: 'AnalysisStepSelectorField', fieldLabel: "Preprocessed Files", name: "used_data"},
-            ]
-        });
-        me.callParent(arguments);
-    }
-});
-
-Ext.define('SL.view.AnalysisViews.IntermediateDataViews.SmoothingStepView', {
-    extend: 'SL.view.AnalysisViews.IntermediateDataViews.SpecificDetailsPanel',
-    alias: 'widget.SmoothingStepView',
-    initComponent: function () {
-        var me = this;
-        Ext.applyIf(me, {
-            cls: 'fieldBox',
-            layout: {type: 'vbox', align: 'stretch'}, layout: {type: 'vbox', align: 'stretch'},
-            items: [
-                {xtype: 'label', html: '<h2>Smoothing details</h2>'},
-                {xtype: 'AnalysisStepSelectorField', fieldLabel: "Smoothed peak Files", name: "used_data"},
-                {xtype: 'container', itemId: 'specificFields',
-                    items: [{xtype: 'numberfield', flex: 1, fieldLabel: 'Sliding window length', name: 'sliding_window_length', maxWidth: 350},
-                        {xtype: 'numberfield', flex: 1, fieldLabel: 'Step length', name: 'steps_length', maxWidth: 350}
-                    ]
-                }
-            ]
-        });
-        me.callParent(arguments);
-    }
-});
+//
+//Ext.define('SL.view.AnalysisViews.IntermediateDataViews.PreprocessingStepView', {
+//    extend: 'SL.view.AnalysisViews.IntermediateDataViews.SpecificDetailsPanel',
+//    alias: 'widget.PreprocessingStepView',
+//    initComponent: function () {
+//        var me = this;
+//        Ext.applyIf(me, {
+//            cls: 'fieldBox', layout: {type: 'vbox', align: 'stretch'},
+//            items: [
+//                {xtype: 'label', html: '<h2>Preprocessing details</h2>'},
+//                {xtype: 'container', itemId: 'specificFields', layout: {type: 'vbox', align: 'stretch'},
+//                    items: [{
+//                            xtype: 'combobox', maxWidth: 750,
+//                            maxLength: 200, enforceMaxLength: true,
+//                            fieldLabel: 'Preprocessing type',
+//                            name: 'preprocessing_type',
+//                            emptyText: 'Select or type the preprocessing action',
+//                            store: ['Trimming', 'Filtering', 'Normalization', 'Sorting', 'File format conversion', 'Other']
+//                        }]
+//                },
+//                {xtype: 'AnalysisStepSelectorField', fieldLabel: "Preprocessed Files", name: "used_data"},
+//            ]
+//        });
+//        me.callParent(arguments);
+//    }
+//});
+//
+//Ext.define('SL.view.AnalysisViews.IntermediateDataViews.SmoothingStepView', {
+//    extend: 'SL.view.AnalysisViews.IntermediateDataViews.SpecificDetailsPanel',
+//    alias: 'widget.SmoothingStepView',
+//    initComponent: function () {
+//        var me = this;
+//        Ext.applyIf(me, {
+//            cls: 'fieldBox',
+//            layout: {type: 'vbox', align: 'stretch'}, layout: {type: 'vbox', align: 'stretch'},
+//            items: [
+//                {xtype: 'label', html: '<h2>Smoothing details</h2>'},
+//                {xtype: 'AnalysisStepSelectorField', fieldLabel: "Smoothed peak Files", name: "used_data"},
+//                {xtype: 'container', itemId: 'specificFields',
+//                    items: [{xtype: 'numberfield', flex: 1, fieldLabel: 'Sliding window length', name: 'sliding_window_length', maxWidth: 350},
+//                        {xtype: 'numberfield', flex: 1, fieldLabel: 'Step length', name: 'steps_length', maxWidth: 350}
+//                    ]
+//                }
+//            ]
+//        });
+//        me.callParent(arguments);
+//    }
+//});
 
 Ext.define('SL.view.AnalysisViews.IntermediateDataViews.UnionStepView', {
     extend: 'SL.view.AnalysisViews.IntermediateDataViews.SpecificDetailsPanel',

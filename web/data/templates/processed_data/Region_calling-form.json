@@ -1,0 +1,16 @@
+{
+    "id": "Region_calling-form",
+    "content": [
+        {
+            "name": "section_1",
+            "title": "Calling details",
+            "fields": [
+                {
+                    "name": "reference_region",
+                    "label": "Reference regions files",
+                    "type": "textarea"
+                }
+            ]
+        }
+    ]
+}

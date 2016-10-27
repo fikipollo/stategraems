@@ -7,9 +7,9 @@
             <div class="form-group">
                 <label for="step_type">Step type:</label>
                 <select class="form-control" id="step_type" ng-model="typesInfo.step_type" ng-change="controller.updateStepSubtypes();">
-                    <option>Raw data</option>
-                    <option>Intermediate data</option>
-                    <option>Processed data</option>
+                    <option value="rawdata">Biological experiment</option>
+                    <option value="intermediate_data">Intermediate data</option>
+                    <option value="processed_data">Processed data</option>
                 </select>
             </div>
             <div class="form-group">
@@ -23,3 +23,5 @@
             <button class="btn btn-success" type="button" ng-disabled="!typesInfo.step_type || !typesInfo.step_subtype" ng-click="controller.addNewStepAcceptButtonHandler();">Add the new step</button>
         </div>
     </div>
+</div>
+

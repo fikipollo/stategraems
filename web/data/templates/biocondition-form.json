@@ -13,12 +13,14 @@
                 {
                     "name": "name",
                     "label": "Name",
-                    "type": "text"
+                    "type": "text",
+                    "required" : true
                 },
                 {
                     "name": "title",
                     "label": "Title",
-                    "type": "text"
+                    "type": "text",
+                    "required" : true
                 },
                 {
                     "name": "tags",
@@ -35,7 +37,8 @@
                     "name": "organism",
                     "label": "Organism",
                     "type": "select",
-                    "source": "data/organisms.json"
+                    "source": "data/organisms.json",
+                    "required" : true
                 }, {
                     "name": "tissue_type",
                     "label": "Tissue/Organ",

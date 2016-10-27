@@ -8,7 +8,8 @@
                 {
                     "name": "step_name",
                     "label": "Step name",
-                    "type": "text"
+                    "type": "text",
+                    "required" : true
                 },
                 {
                     "name": "processed_data_type",
@@ -38,7 +39,8 @@
                 {
                     "name": "step_owners",
                     "label": "Owners",
-                    "type": "user_selector"
+                    "type": "user_selector",
+                    "required" : true
                 }
             ]
         },

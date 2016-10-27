@@ -72,7 +72,7 @@ public abstract class ExtractionMethod {
         return extraction_method_type;
     }
 
-    public void setExtraction_method_type(String extraction_method_type) {
+    public void setExtractionMethodType(String extraction_method_type) {
         this.extraction_method_type = extraction_method_type;
     }
 

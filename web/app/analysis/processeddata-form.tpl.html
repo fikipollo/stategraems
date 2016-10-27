@@ -1,16 +1,15 @@
-<div ng-controller="StepDetailController as controller" class="step-form processeddata-step" ng-class="(model.status)?model.status.replace('_', ' '):''">
-    <div ng-if="summary === true" class="section_box" >
-        <a class="btn btn-info" style="float: right;margin: 10px;" ng-click="controller.showStepDetailsHandler();">
-            <i class="fa fa-search-plus"></i> More details for this step
-        </a>
-        <a class="clickable text-danger" style="float: right;margin: 10px;" ng-click="controller.removeStepHandler();" ng-show="controller.removableModel()" >
-            <i class="fa fa-trash-o"></i> Delete this step
-        </a>
-        <a class="clickable text-info" style="float: right; margin: 10px;" ng-click="controller.unremoveStepHandler();" ng-show="controller.unremovableModel()">
-            <i class="fa fa-undo"></i> Restore this step
-        </a>
+<div ng-controller="StepDetailController as controller" class="step-form processeddata-step" ng-class="model.status?model.status.replace('_', ' '):''">
+    <div ng-if="summary === true" class="section_box summary" >
         <div>
-            <h2 class="section_title">{{model.step_name}}</h2>    
+            <h4 class="section_title">
+                <span class="label label-warning" ng-if="model.status === 'edited'">Edited</span>
+                <span class="label label-primary" ng-if="model.status === 'new'">New</span>
+                <span class="label label-danger" ng-if="model.status && model.status.indexOf('deleted') !== -1">Deleted</span>
+                {{model.step_name}}
+                <a class="btn btn-default" style="float: right;margin-top: -6px;" ng-click="controller.showStepDetailsHandler();"><i class="fa fa-search-plus"></i> View details</a>
+                <a class="clickable text-danger" style="float: right; margin: 2px 20px;font-size: 14px;" ng-click="controller.removeStepHandler();" ng-show="controller.removableModel()"><i class="fa fa-trash-o"></i> Delete this step</a>            
+                <a class="clickable text-info" style="float: right; margin: 2px 20px;font-size: 14px;" ng-click="controller.unremoveStepHandler();" ng-show="controller.unremovableModel()"><i class="fa fa-undo"></i> Restore this step</a>
+            </h4>
             <h3 ng-if="template.content[0].title" class="section_subtitle">{{template.content[0].title}}</h3>
             <form-field ng-repeat="field in template.content[0].fields"></form-field>
             <form-field ng-repeat="field in (model.extra[template.content[0].name]|| [])"></form-field>
@@ -19,6 +18,12 @@
 
     <div ng-if="summary !== true" >
         <h2 class="form_subtitle">Processed data details</h2>
+        <div ng-show="controller.unremovableModel()" class="well well-sm restoreMessage">
+            <h4 class="text-danger">This step has been deleted</h4>
+            <a class="clickable text-info" style="margin: 10px;" ng-click="controller.unremoveStepHandler();" >
+                <i class="fa fa-undo"></i> Restore this step
+            </a>
+        </div>
         <div class="section_box" ng-repeat="section in template.content">
             <h3 ng-if="section.title" class="section_subtitle">{{section.title}}</h3>
             <form-field ng-repeat="field in section.fields"></form-field>

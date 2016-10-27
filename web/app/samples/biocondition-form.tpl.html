@@ -1,5 +1,5 @@
 <div ng-controller="BioconditionDetailController as controller" >
-    <form class="form-horizontal">
+    <form name="bioconditionForm" class="form-horizontal">
         <nav class="navbar navbar-default navbar-top title-bar">
             <h1 class="form_title">{{panel_title}}</h1>
         </nav>
@@ -15,16 +15,19 @@
 
                 <div ng-if="template !== undefined">
                     <div class="section_box row" ng-repeat="section in template.content">
-                        <h2 class="section_title">{{section.title}}</h2>
+                        <h2 class="section_subtitle">{{section.title}}</h2>
                         <form-field ng-repeat="field in section.fields"></form-field>
                         <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
                     </div>
                 </div>
-                <nav class="navbar navbar-default"  ng-show="viewMode === 'edition'" style="text-align: center;" >
-                    <a class="btn btn-danger btn-lg" ng-click="controller.deleteBiologicalConditionHandler(model);">
-                        <i class="fa fa-times"></i> Delete all the samples
-                    </a>
-                </nav>
+                <uib-accordion close-others="oneAtATime" ng-show="viewMode === 'edition'">
+                    <div uib-accordion-group class="panel-danger" heading="Delete all the samples">
+                        <p ng-if="model.owners.length > 1"><b>Delete these samples from your collection?</b><br>You will be removed from the owners list but the samples will not deleted before all the other owners remove the samples.</p>
+                        <p ng-if="model.owners.length < 2"><b>Delete these samples from the system?</b><br>This action will remove all the data for the samples, including biological condition details and aliquots.<br>This action cannot be undone.</p>
+                        <p>Please, to delete all the samples, click the button below</p>
+                        <button class="btn btn-danger" ng-click="controller.deleteBiologicalConditionHandler(model);">Delete</button>
+                    </div>
+                </uib-accordion>
             </uib-tab>
             <uib-tab index="1">
                 <uib-tab-heading>

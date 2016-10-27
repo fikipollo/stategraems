@@ -12,7 +12,8 @@
                 {
                     "name": "bioreplicate_name",
                     "label": "Sample name",
-                    "type": "text"
+                    "type": "text",
+                    "required" : true
                 }
             ]
         }

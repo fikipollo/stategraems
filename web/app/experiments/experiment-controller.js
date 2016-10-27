@@ -45,19 +45,36 @@
         };
     });
 
-    /***************************************************************************/
-    /*CONTROLLERS **************************************************************/
-    /***************************************************************************/
-    app.controller('ExperimentListController', function ($rootScope, $scope, $http, $dialogs, APP_EVENTS, ExperimentList) {
-        //--------------------------------------------------------------------
-        // CONTROLLER FUNCTIONS
-        //--------------------------------------------------------------------
-        /**
+
+    /******************************************************************************      
+     *       _____ ____  _   _ _______ _____   ____  _      _      ______ _____   _____ 
+     *      / ____/ __ \| \ | |__   __|  __ \ / __ \| |    | |    |  ____|  __ \ / ____|
+     *     | |   | |  | |  \| |  | |  | |__) | |  | | |    | |    | |__  | |__) | (___  
+     *     | |   | |  | | . ` |  | |  |  _  /| |  | | |    | |    |  __| |  _  / \___ \ 
+     *     | |___| |__| | |\  |  | |  | | \ \| |__| | |____| |____| |____| | \ \ ____) |
+     *      \_____\____/|_| \_|  |_|  |_|  \_\\____/|______|______|______|_|  \_\_____/ 
+     *                                                                                  
+     *                                                                                  
+     ******************************************************************************/
+
+    app.controller('ExperimentListController', function ($rootScope, $scope, $http, $stateParams, $dialogs, APP_EVENTS, ExperimentList) {
+        /******************************************************************************      
+         *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
+         *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
+         *     | (_| (_) | .` | | | |   / (_) | |__| |__| _||   / 
+         *      \___\___/|_|\_| |_|_|_|_\\___/|____|____|___|_|_\ 
+         *        | __| | | | \| |/ __|_   _|_ _/ _ \| \| / __|   
+         *        | _|| |_| | .` | (__  | |  | | (_) | .` \__ \   
+         *        |_|  \___/|_|\_|\___| |_| |___\___/|_|\_|___/   
+         *                                                        
+         ******************************************************************************/
+
+        /******************************************************************************
          * This function retrieves all the experiments registered in the system
          * @param {type} group, limit the search to "user's" experiments (not used)
          * @param {type} force
          * @returns this
-         */
+         ******************************************************************************/
         this.retrieveExperimentsData = function (group, force) {
             $scope.isLoading = true;
 
@@ -82,6 +99,10 @@
                             }
 
                             $scope.visibleExperiments = Math.min($scope.filteredExperiments, $scope.visibleExperiments);
+
+                            if (Cookies.get('currentExperimentID')) {
+                                $scope.currentExperiment = ExperimentList.getExperiment(Cookies.get('currentExperimentID'));
+                            }
                         },
                         function errorCallback(response) {
                             $scope.isLoading = false;
@@ -99,23 +120,65 @@
                 $scope.tags = ExperimentList.getTags();
                 $scope.filteredExperiments = $scope.experiments.length;
                 $scope.isLoading = false;
+
+                if (Cookies.get('currentExperimentID')) {
+                    $scope.currentExperiment = ExperimentList.getExperiment(Cookies.get('currentExperimentID'));
+                }
             }
 
             return this;
         };
 
-        /**
+
+        /******************************************************************************
+         * This function try to change the current selected experiment to a given one (if
+         * user is member or owner).
+         *
+         * @param experiment_id the Experiment id
+         * @return      
+         ******************************************************************************/
+        this.changeCurrentExperiment = function (experiment_id) {
+            $http($rootScope.getHttpRequestConfig("POST", "experiment-selection", {
+                headers: {'Content-Type': 'application/json; charset=utf-8'},
+                data: $rootScope.getCredentialsParams({'experiment_id': experiment_id}),
+            })).then(
+                    function successCallback(response) {
+                        if (response.data.valid_experiment) {
+                            console.info((new Date()).toLocaleString() + "CHANGED TO EXPERIMENT " + experiment_id + " SUCCESSFULLY");
+                            Cookies.set('currentExperimentID', experiment_id, null, location.pathname);
+
+                            $scope.currentExperiment = ExperimentList.getExperiment(Cookies.get('currentExperimentID'));
+                            $dialogs.showSuccessDialog("Now you are working with experiment \"" + ExperimentList.getExperiment(experiment_id).title + "\"");
+                        } else {
+                            showErrorMessage("You are not member of the selected experiment. Please, contact administrator or experiment owners to become a member.");
+                        }
+                    },
+                    function errorCallback(response) {
+                        var message = "Failed while changing the current experiment.";
+                        $dialogs.showErrorDialog(message, {
+                            logMessage: message + " at ExperimentListController:changeCurrentExperiment."
+                        });
+                        console.error(response.data);
+                        debugger
+                    }
+            );
+        };
+
+        /******************************************************************************
          * This function defines the behaviour for the "filterExperiments" function.
          * Given a item (experiment) and a set of filters, the function evaluates if
          * the current item contains the set of filters within the different attributes
          * of the model.
          *
          * @returns {Boolean} true if the model passes all the filters.
-         */
+         ******************************************************************************/
         $scope.filterExperiments = function () {
             $scope.filteredExperiments = 0;
             $scope.user_id = $scope.user_id || Cookies.get("loggedUserID");
             return function (item) {
+                if (item === $scope.currentExperiment) {
+                    return false;
+                }
                 if ($scope.show === "my_experiments") {
                     if (!ExperimentList.isOwner(item, $scope.user_id) && !ExperimentList.isMember(item, $scope.user_id)) {
                         return false;
@@ -135,74 +198,34 @@
             };
         };
 
+        /******************************************************************************      
+         * This function returns a color for the given tag
+         * 
+         * @return {String} color code
+         ******************************************************************************/
         $scope.getTagColor = function (_tag) {
             var tag = ExperimentList.getTag(_tag);
             if (tag !== null) {
                 return tag.color;
             }
             return "";
-        }
+        };
 
+        /******************************************************************************      
+         * This function checks if the current user is a valid owner or member for the 
+         * experiment
+         * 
+         * @returns {Boolean} true is the current user is a valid member
+         ******************************************************************************/
         $scope.isMember = function (experiment) {
             $scope.user_id = $scope.user_id || Cookies.get("loggedUserID");
             return (ExperimentList.isOwner(experiment, $scope.user_id) || ExperimentList.isMember(experiment, $scope.user_id));
-        }
-
-
-
-        //--------------------------------------------------------------------
-        // EVENT HANDLERS
-        //--------------------------------------------------------------------
-        $scope.$on(APP_EVENTS.experimentDeleted, function (event, args) {
-            debugger;
-            this.retrieveExperimentsData('', true);
-        });
-
-        this.showExperimentChooserChangeHandler = function () {
-            this.retrieveExperimentsData($scope.show);
         };
 
-
-        /**BC****************************************************************************      
-         * This function try to change the current selected experiment to a given one (if
-         * user is member or owner).
+        /******************************************************************************      
+         * This function 
          *
-         * @param experiment_id the Experiment id
-         * @return      
-         **EC****************************************************************************/
-        this.changeCurrentExperimentHandler = function (experiment_id) {
-            $http($rootScope.getHttpRequestConfig("POST", "experiment-selection", {
-                headers: {'Content-Type': 'application/json; charset=utf-8'},
-                data: $rootScope.getCredentialsParams({'experiment_id': experiment_id}),
-            })).then(
-                    function successCallback(response) {
-                        if (response.data.valid_experiment) {
-                            console.info((new Date()).toLocaleString() + "CHANGED TO EXPERIMENT " + experiment_id + " SUCCESSFULLY");
-                            Cookies.set('currentExperimentID', experiment_id, null, location.pathname);
-                            $dialogs.showSuccessDialog("Now you are working with experiment \"" + ExperimentList.getExperiment(experiment_id).title + "\"");
-                        } else {
-                            showErrorMessage("You are not member of the selected experiment. Please, contact administrator or experiment owners to become a member.");
-                        }
-                    },
-                    function errorCallback(response) {
-                        var message = "Failed while changing the current experiment.";
-                        $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at ExperimentListController:changeCurrentExperimentHandler."
-                        });
-                        console.error(response.data);
-                        debugger
-                    }
-            );
-        };
-
-        /**
-         * This function applies the filters when the user clicks on "Search"
-         */
-        this.applySearchHandler = function () {
-            var filters = arrayUnique($scope.filters.concat($scope.searchFor.split(" ")));
-            $scope.filters = ExperimentList.setFilters(filters).getFilters();
-        };
-
+         ******************************************************************************/
         this.filterByTag = function (tag) {
             if (tag !== "All") {
                 var filters = arrayUnique($scope.filters.concat(tag));
@@ -210,13 +233,57 @@
             }
         };
 
-        /**
+        /******************************************************************************      
+         *            _____   _____ _  _ _____         
+         *           | __\ \ / / __| \| |_   _|        
+         *           | _| \ V /| _|| .` | | |          
+         *      _  _ |___| \_/_|___|_|\_| |_| ___  ___ 
+         *     | || | /_\ | \| |   \| |  | __| _ \/ __|
+         *     | __ |/ _ \| .` | |) | |__| _||   /\__ \
+         *     |_||_/_/ \_\_|\_|___/|____|___|_|_\|___/
+         *                                             
+         ******************************************************************************/
+
+        /******************************************************************************      
+         * This function handles the event fires when an experiment is deleted.
+         *
+         ******************************************************************************/
+        $scope.$on(APP_EVENTS.experimentDeleted, function () {
+            debugger;
+            this.retrieveAnalysisData('', true);
+        });
+
+        /******************************************************************************      
+         * This function handles the event fires when the filter chooser changes.
+         *
+         ******************************************************************************/
+        this.showExperimentChooserChangeHandler = function () {
+            this.retrieveExperimentsData($scope.show);
+        };
+
+        /******************************************************************************      
+         * This function applies the filters when the user clicks on "Search"
+         *
+         ******************************************************************************/
+        this.applySearchHandler = function () {
+            var filters = arrayUnique($scope.filters.concat($scope.searchFor.split(" ")));
+            $scope.filters = ExperimentList.setFilters(filters).getFilters();
+        };
+
+        /******************************************************************************      
          * This function remove a given filter when the user clicks at the "x" button
-         */
+         * 
+         * @param {String} filter the filter to be removed 
+         ******************************************************************************/
         this.removeFilterHandler = function (filter) {
             $scope.filters = ExperimentList.removeFilter(filter).getFilters();
         };
 
+        /******************************************************************************      
+         * This function handles the event fires when the user clicks on the button 
+         * "Show more" experiments in the list
+         *
+         ******************************************************************************/
         this.showMoreExperimentsHandler = function () {
             if (window.innerWidth > 1500) {
                 $scope.visibleExperiments += 10;
@@ -228,9 +295,14 @@
             $scope.visibleExperiments = Math.min($scope.filteredExperiments, $scope.visibleExperiments);
         }
 
-        //--------------------------------------------------------------------
-        // INITIALIZATION
-        //--------------------------------------------------------------------
+        /******************************************************************************
+         *      ___ _  _ ___ _____ ___   _   _    ___ ____  _ _____ ___ ___  _  _ 
+         *     |_ _| \| |_ _|_   _|_ _| /_\ | |  |_ _|_  / /_\_   _|_ _/ _ \| \| |
+         *      | || .` || |  | |  | | / _ \| |__ | | / / / _ \| |  | | (_) | .` |
+         *     |___|_|\_|___| |_| |___/_/ \_\____|___/___/_/ \_\_| |___\___/|_|\_|
+         *     
+         ******************************************************************************/
+        this.name = "ExperimentListController";
         var me = this;
 
         //This controller uses the ExperimentList, which defines a Singleton instance of
@@ -252,36 +324,43 @@
 
         $scope.visibleExperiments = Math.min($scope.filteredExperiments, $scope.visibleExperiments);
 
-
-        if ($scope.experiments.length === 0) {
-            this.retrieveExperimentsData("my_experiments");
+        if (Cookies.get('currentExperimentID')) {
+            $scope.currentExperiment = ExperimentList.getExperiment(Cookies.get('currentExperimentID'));
         }
+
+        if ($scope.experiments.length === 0 || $stateParams.force) {
+            this.retrieveExperimentsData("my_experiments", true);
+        }
+
     });
 
     app.controller('ExperimentDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $dialogs, APP_EVENTS, ExperimentList, TemplateList) {
-        //--------------------------------------------------------------------
-        // CONTROLLER FUNCTIONS
-        //--------------------------------------------------------------------
+        /******************************************************************************      
+         *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
+         *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
+         *     | (_| (_) | .` | | | |   / (_) | |__| |__| _||   / 
+         *      \___\___/|_|\_| |_|_|_|_\\___/|____|____|___|_|_\ 
+         *        | __| | | | \| |/ __|_   _|_ _/ _ \| \| / __|   
+         *        | _|| |_| | .` | (__  | |  | | (_) | .` \__ \   
+         *        |_|  \___/|_|\_|\___| |_| |___\___/|_|\_|___/   
+         *                                                        
+         ******************************************************************************/
 
-        /**
+        /******************************************************************************
          * This function gets the details for a given Experiment
-         * @param experiment_id the id for the Experiment to be retieved
-         */
+         * 
+         * @param {String} experiment_id the id for the Experiment to be retieved
+         * @param {Boolean} force true to force the request
+         ******************************************************************************/
         this.retrieveExperimentDetails = function (experiment_id, force) {
             $scope.setLoading(true);
 
             $scope.model = ExperimentList.getExperiment(experiment_id);
 
             //TODO: EXTRA FIELDS
-//            $scope.model.extra = {
-//                section_1: [
-//                    {
-//                        "name": "title",
-//                        "label": "Extra 2",
-//                        "type": "text"
-//                    }
-//                ]
-//            };
+            // $scope.model.extra = {
+            //   section_1: [ { "name": "title", "label": "Extra 2", "type": "text" } ]
+            // };
             if ($scope.model === null || force === true) {
                 $http($rootScope.getHttpRequestConfig("POST", "experiment-info", {
                     headers: {'Content-Type': 'application/json'},
@@ -363,6 +442,7 @@
                     }
             );
         };
+
         /******************************************************************************      
          * This function send the BioReplicatess information of the given biorepicate_model 
          * to the SERVER in order to save a NEW BIOREPLICATE in the database associated to the 
@@ -460,7 +540,6 @@
             return this;
         };
 
-
         /******************************************************************************      
          * This function lock a experiment for editing.  
          * @return this;  
@@ -495,11 +574,12 @@
             return this;
         };
 
-        /**
+        /******************************************************************************
+         * This function cleans the queue of tasks and prepare it for executing.
          * 
-         * @param {type} tasks_queue
-         * @returns {Array}
-         */
+         * @param {Array} tasks_queue the list of tasks to be executed
+         * @returns {Array} the new task
+         ******************************************************************************/
         this.clean_task_queue = function (tasks_queue) {
             console.info((new Date()).toLocaleString() + "CLEANING TASK QUEUE");
             try {
@@ -543,7 +623,6 @@
          *	4. 	If no more task and the status is "successfull" (~TRUE), then the panel is closed and a SUCCESS message showed.
          
          * @param  status true if some error occurs during execution
-         * @return      
          ***********************************************************************************************/
         this.execute_tasks = function (status) {
             var error_message = "";
@@ -597,168 +676,13 @@
             }
         };
 
-        //--------------------------------------------------------------------
-        // EVENT HANDLERS
-        //--------------------------------------------------------------------
-        this.deleteExperimentHandler = function () {
-            var me = this;
-            var current_user_id = '' + Cookies.get('loggedUserID');
-
-            if (ExperimentList.isOwner($scope.model, current_user_id) || current_user_id === "admin") {
-                //ONLY OWNERS CAN REMOVE THE EXPERIMENT, OTHERWISE THE USER WILL BE REMOVED FROM MEMBERS LIST
-                var message = "";
-                if ($scope.model.experiment_owners.length > 1 && current_user_id !== "admin") {
-                    //Remove the user from the owners list
-                    message = 'Delete this experiment from your collection?<br>You will be removed from the owners list but the experiment will not deleted before all the administrators remove the experiment.';
-                } else {
-                    //No more owners --> remove the entire experiment
-                    message = 'Delete this experiment from the system?<br>This action will remove all the data for the experiment from database, including all associated analysis.<br>This action cannot be undone.';
-                }
-
-                $dialogs.showConfirmationDialog(message, {
-                    title: "Please confirm this action.",
-                    callback: function (result) {
-                        if (result === 'ok') {
-                            $http($rootScope.getHttpRequestConfig("POST", "experiment-delete", {
-                                headers: {'Content-Type': 'application/json; charset=utf-8'},
-                                data: $rootScope.getCredentialsParams({'experiment_id': $scope.model.experiment_id, loggedUserID: current_user_id}),
-                            })).then(
-                                    function successCallback(response) {
-                                        $dialogs.showSuccessDialog("The experiment was successfully deleted.");
-                                        //Notify all the other controllers that user has signed in
-                                        $rootScope.$broadcast(APP_EVENTS.experimentDeleted);
-                                        me.send_unlock_experiment();
-                                        $state.go('experiments');
-                                    },
-                                    function errorCallback(response) {
-                                        var message = "Failed while deleting the experiment.";
-                                        $dialogs.showErrorDialog(message, {
-                                            logMessage: message + " at ExperimentDetailController:deleteExperimentHandler."
-                                        });
-                                        console.error(response.data);
-                                        debugger
-                                    }
-                            );
-                        }
-                    }
-                });
-            }
-        };
-
-
-        /**BC****************************************************************************      
-         * This function try to change the current selected experiment to a given one (if
-         * user is member or owner).
+        /******************************************************************************
+         * This function changes the view mode
          *
-         * @param experiment_id the Experiment id
-         * @return      
-         **EC****************************************************************************/
-        this.changeCurrentExperimentHandler = function (experiment_id) {
-            $http($rootScope.getHttpRequestConfig("POST", "experiment-selection", {
-                headers: {'Content-Type': 'application/json; charset=utf-8'},
-                data: $rootScope.getCredentialsParams({'experiment_id': experiment_id}),
-            })).then(
-                    function successCallback(response) {
-                        if (response.data.valid_experiment) {
-                            console.info((new Date()).toLocaleString() + "CHANGED TO EXPERIMENT " + experiment_id + " SUCCESSFULLY");
-                            Cookies.set('currentExperimentID', experiment_id, null, location.pathname);
-                            $dialogs.showSuccessDialog("Now you are working with Experiment.");
-                        } else {
-                            showErrorMessage("You are not member of the selected experiment. Please, contact administrator or experiment owners to become a member.");
-                        }
-                    },
-                    function errorCallback(response) {
-                        var message = "Failed while changing the current experiment.";
-                        $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at ExperimentDetailController:changeCurrentExperimentHandler."
-                        });
-                        console.error(response.data);
-                        debugger
-                    }
-            );
-        };
-        /**
-         * This function handles the event accept_button_pressed fires in other Controller (eg. ApplicationController)
-         * when a button Accept is pressed.
-         *  
-         * @returns this
-         */
-        this.acceptButtonHandler = function () {
-            $scope.setLoading(true);
-            $scope.setTaskQueue(this.clean_task_queue($scope.getTaskQueue()));
-            this.execute_tasks(true);
-            return this;
-        };
-
-        /**
-         * This function send a Edition request to the server in order to block the Experiment
-         * avoiding that other users edit it before the user saves the changes.
-         * Each user has 30 minutes max. to edit a Experiment, after that the user will be 
-         * ask again, if no answer is given, the Experiment is unblocked and changes will be  
-         * lost.
-         * This is neccessary because if the user leaves the application without save or close the panel,
-         * the server MUST free the blocked object in order to let other users edit it.
-         * After BLOCKET_TIME minutes, the server automatically frees the blocked object, so the user
-         * will be asked 1 minute before the liberation takes place.
-         * 
-         * @returns this;
-         */
-        this.editButtonHandler = function () {
-            //1. CHECK IF THE USER HAS EDITING PRIVILEGES OVER THE Experiment (ONLY OWNERS)
-            //TODO: THIS CODE COULD BE BETTER IN THE SERVER (JAVASCRIPT IS VULNERABLE)
-            var current_user_id = '' + Cookies.get('loggedUserID');
-            if (!ExperimentList.isOwner($scope.model, current_user_id) && current_user_id !== "admin") {
-                console.error((new Date()).toLocaleString() + " EDITION REQUEST DENIED. Error message: User " + current_user_id + " has not Edition privileges over the Experiment " + $scope.model.experiment_id);
-                $dialogs.showErrorDialog("Your user is not allowed to edit this experiment");
-                return;
-            }
-
-            //2. SEND LOCK REQUEST
-            console.info((new Date()).toLocaleString() + "SENDING EDIT REQUEST FOR Experiment " + $scope.model.experiment_id + " TO SERVER");
-            this.send_lock_experiment('edition');
-
-            return this;
-        };
-
-        /**
-         * This function handles the cancel_button_pressed thown by the Application Controller
-         * when the Cancel button located in MainView is pressed and the inner panel is an
-         * ExperimentDetailsView panel.
-         * Asks the user if close without save changes. If user selects "Yes", the panel is closed.
-         * if the panel was in a "Editing mode" (if the panel has a timer id), then sends a signal to the server in order to unblock
-         * the Experiment in the list of blocked elements.
-         * 
-         * @param {type} experimentView
-         * @param {type} force
-         * @returns {undefined}
-         */
-        this.cancelButtonHandler = function () {
-            $scope.clearTaskQueue();
-
-            if ($scope.viewMode === 'view') {
-                $state.go('experiments');
-            } else if ($scope.viewMode === 'edition') {
-                this.send_unlock_experiment();
-            } else {
-                $state.go('experiments');
-            }
-        };
-
-        this.backButtonHandler = function () {
-            $scope.invocation.current_step--;
-        };
-
-        this.nextStepButtonHandler = function () {
-            if ($scope.invocation.valid === true) {
-                $scope.invocation.current_step++;
-            }
-        }
-
-        //--------------------------------------------------------------------
-        // INITIALIZATION
-        //--------------------------------------------------------------------
-        var me = this;
-
+         * @param {String} mode the new mode for the view
+         * @param {Boolean} restore determines if the model should be restored from a saved memento
+         * @return {String} the new mode
+         ******************************************************************************/
         $scope.setViewMode = function (mode, restore) {
             if (mode === 'view') {
                 $scope.panel_title = "Experiment details.";
@@ -777,20 +701,157 @@
             $scope.viewMode = mode;//'view', 'creation', 'edition'
         };
 
+        /******************************************************************************
+         * This function initialize the timers that check the max time for editing
+         *
+         ******************************************************************************/
         $scope.initializeCountdownDialogs = function () {
             //TODO
             console.error("initializeCountdownDialogs NOT IMPLEMENTED");
         };
 
+        /******************************************************************************
+         * This function clears the timers that check the max time for editing
+         *
+         ******************************************************************************/
         $scope.clearCountdownDialogs = function () {
             //TODO
             console.error("cleanCountdownDialogs NOT IMPLEMENTED");
         };
 
+        /******************************************************************************
+         * This function changes the Loading status of the view
+         * 
+         ******************************************************************************/
         $scope.setLoading = function (loading) {
             //TODO
             console.error("setLoading NOT IMPLEMENTED");
         };
+
+        /******************************************************************************      
+         *            _____   _____ _  _ _____         
+         *           | __\ \ / / __| \| |_   _|        
+         *           | _| \ V /| _|| .` | | |          
+         *      _  _ |___| \_/_|___|_|\_| |_| ___  ___ 
+         *     | || | /_\ | \| |   \| |  | __| _ \/ __|
+         *     | __ |/ _ \| .` | |) | |__| _||   /\__ \
+         *     |_||_/_/ \_\_|\_|___/|____|___|_|_\|___/
+         *                                             
+         ******************************************************************************/
+
+        /******************************************************************************
+         * This function handles the event fires when the user deletes an experiment
+         *
+         ******************************************************************************/
+        this.deleteExperimentHandler = function () {
+            var me = this;
+            var current_user_id = '' + Cookies.get('loggedUserID');
+
+            if (ExperimentList.isOwner($scope.model, current_user_id) || current_user_id === "admin") {
+                $http($rootScope.getHttpRequestConfig("POST", "experiment-delete", {
+                    headers: {'Content-Type': 'application/json; charset=utf-8'},
+                    data: $rootScope.getCredentialsParams({'experiment_id': $scope.model.experiment_id, loggedUserID: current_user_id}),
+                })).then(
+                        function successCallback(response) {
+                            $dialogs.showSuccessDialog("The experiment was successfully deleted.");
+                            //Notify all the other controllers that user has signed in
+                            $rootScope.$broadcast(APP_EVENTS.experimentDeleted);
+                            me.send_unlock_experiment();
+                            $state.go('experiments', {force: true});
+                        },
+                        function errorCallback(response) {
+                            var message = "Failed while deleting the experiment.";
+                            $dialogs.showErrorDialog(message, {
+                                logMessage: message + " at ExperimentDetailController:deleteExperimentHandler."
+                            });
+                            console.error(response.data);
+                            debugger
+                        }
+                );
+            }
+        };
+
+        /******************************************************************************
+         * This function send a Edition request to the server in order to block the Experiment
+         * avoiding that other users edit it before the user saves the changes.
+         * Each user has 30 minutes max. to edit a Experiment, after that the user will be 
+         * ask again, if no answer is given, the Experiment is unblocked and changes will be  
+         * lost.
+         * This is neccessary because if the user leaves the application without save or close 
+         * the panel, the server MUST free the blocked object in order to let other users edit it.
+         * After BLOCKET_TIME minutes, the server automatically frees the blocked object, so the user
+         * will be asked 1 minute before the liberation takes place.
+         *  
+         * @returns {ExperimentDetailController} the controller;
+         * @chainable
+         ******************************************************************************/
+        this.editButtonHandler = function () {
+            //1. CHECK IF THE USER HAS EDITING PRIVILEGES OVER THE Experiment (ONLY OWNERS)
+            //TODO: THIS CODE COULD BE BETTER IN THE SERVER (JAVASCRIPT IS VULNERABLE)
+            var current_user_id = '' + Cookies.get('loggedUserID');
+            if (!ExperimentList.isOwner($scope.model, current_user_id) && current_user_id !== "admin") {
+                console.error((new Date()).toLocaleString() + " EDITION REQUEST DENIED. Error message: User " + current_user_id + " has not Edition privileges over the Experiment " + $scope.model.experiment_id);
+                $dialogs.showErrorDialog("Your user is not allowed to edit this experiment");
+                return;
+            }
+
+            //2. SEND LOCK REQUEST
+            console.info((new Date()).toLocaleString() + "SENDING EDIT REQUEST FOR Experiment " + $scope.model.experiment_id + " TO SERVER");
+            this.send_lock_experiment('edition');
+
+            return this;
+        };
+
+        /******************************************************************************
+         * This function handles the event accept_button_pressed fires in other Controller 
+         * (eg. ApplicationController)
+         * when a button Accept is pressed.
+         *  
+         * @returns {ExperimentDetailController} the controller;
+         * @chainable
+         ******************************************************************************/
+        this.acceptButtonHandler = function () {
+            if (!$scope.experimentForm.$valid) {
+                $dialogs.showErrorDialog("Invalid form, please check the form and fill the empty fields.")
+                return false;
+            }
+
+            $scope.setLoading(true);
+            $scope.setTaskQueue(this.clean_task_queue($scope.getTaskQueue()));
+            this.execute_tasks(true);
+            return this;
+        };
+
+        /******************************************************************************
+         * This function handles the cancel_button_pressed thown by the Application Controller
+         * when the Cancel button located in MainView is pressed and the inner panel is an
+         * ExperimentDetailsView panel.
+         * Asks the user if close without save changes. If user selects "Yes", the panel is closed.
+         * if the panel was in a "Editing mode" (if the panel has a timer id), then sends a signal to the server in order to unblock
+         * the Experiment in the list of blocked elements.
+         ******************************************************************************/
+        this.cancelButtonHandler = function () {
+            //TODO: REMOVE COUNTERS AND UNLOCK EXPERIMENT
+            $scope.clearTaskQueue();
+
+            if ($scope.viewMode === 'view') {
+                $state.go('experiments');
+            } else if ($scope.viewMode === 'edition') {
+                this.send_unlock_experiment();
+            } else {
+                $state.go('experiments');
+            }
+        };
+
+        /******************************************************************************
+         *      ___ _  _ ___ _____ ___   _   _    ___ ____  _ _____ ___ ___  _  _ 
+         *     |_ _| \| |_ _|_   _|_ _| /_\ | |  |_ _|_  / /_\_   _|_ _/ _ \| \| |
+         *      | || .` || |  | |  | | / _ \| |__ | | / / / _ \| |  | | (_) | .` |
+         *     |___|_|\_|___| |_| |___/_/ \_\____|___/___/_/ \_\_| |___\___/|_|\_|
+         *     
+         ******************************************************************************/
+        this.name = "ExperimentDetailController";
+        var me = this;
 
         //The corresponding view will be watching to this variable
         //and update its content after the http response

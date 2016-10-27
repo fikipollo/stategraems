@@ -1,5 +1,5 @@
 {
-    "id": "sRNA-seq-form",
+    "id": "Methyl-seq-form",
     "content": [
         {
             "name": "section_1",
@@ -47,8 +47,8 @@
             ]
         },
         {
-            "name": "section_2",
-            "title": "Library details",
+            "name": "section_3",
+            "title": "Methyl-seq library details",
             "fields": [
                 {
                     "name": "extractionMethod.avg_sequence_length",
@@ -121,8 +121,8 @@
                     "dependency": "layout === 'Paired-end'"
                 },
                 {
-                    "name": "extractionMethod.rna_type",
-                    "label": "RNA type",
+                    "name": "extractionMethod.protocol",
+                    "label": "Protocol",
                     "type": "text"
                 },
                 {

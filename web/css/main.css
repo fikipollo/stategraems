@@ -252,14 +252,14 @@ table.table td:nth-child(1) {text-align: left;}
 /* STYLES FOR FORMS                                                                       */
 /******************************************************************************************/
 .form_title {
-    font-size: 34px;
+    /*font-size: 34px;*/
     margin-bottom: 5px;
     font-weight: lighter;
     color: rgb(95, 95, 95);
 }
 
 .form_subtitle {
-    font-size: 23px;
+    /*font-size: 23px;*/
     margin: 10px 0px 10px 0px;
     color: rgb(0, 133, 185);
     padding: 3px;
@@ -268,14 +268,16 @@ table.table td:nth-child(1) {text-align: left;}
 }
 
 .section_title{
-    font-size: 18px;
-    margin: 10px 0px 5px 10px;
-    color: rgb(143, 143, 143);
+    font-size: 20px;
+    background: rgba(245, 245, 245, 0.94);
+    padding: 15px 10px;
+    margin: 0;
 }
 
-h3.section_subtitle {
-    font-size: 16px;
-    margin: 10px 0px;
+.section_subtitle {
+    font-size: 19px;
+    margin: 15px;
+    color: #949494;
 }
 
 .section_box {
@@ -307,6 +309,9 @@ h3.section_subtitle {
 }
 .section_box tr.edited td input {
     border: 1px solid #ffd882;
+}
+.section_box.summary  {
+    border-top: 1px solid #eaeaea !important;
 }
 
 .field-group {
@@ -345,6 +350,12 @@ select:disabled {
     overflow: hidden;
 }
 
+textarea.ng-invalid-required:read-write {
+    border: 1px solid #E88080;
+}
+textarea.ng-valid-required:read-write {
+    border: 1px solid #54BF78
+}
 /******************************************************************************************/
 /* STYLES FOR progress INDICATOR                                                          */
 /******************************************************************************************/
@@ -586,13 +597,9 @@ i.tag.pink2 {background-color: #db6070; color: #fff;}
     border-radius: 0px;
 }
 
-.step-form.edited {border-left: 4px #ff9800 solid !important;}
-.step-form.new {border-left: 4px #62c2e4 solid !important;}
-.step-form.deleted {
-    border-left: 4px #bdbdbd solid !important;
-    text-decoration: line-through !important;
-    background-color: #fbfbfb;
-}
+.step-form.edited .section_box{border-left: 4px #ff9800 solid !important;}
+.step-form.new .section_box{border-left: 4px #337ab7 solid !important;}
+.step-form.deleted .section_box {background-color: #f5f5f5; border-left: 4px #D9534F solid !important;}
 .step-form tr.deleted{
     background-color: #fbfbfb;
 }
@@ -604,6 +611,14 @@ i.tag.pink2 {background-color: #db6070; color: #fff;}
 }
 .step-form tr.edited td input {
     border: 1px solid #ffd882;
+}
+
+.step-form .restoreMessage{
+    text-decoration: none !important;
+    text-align: center;
+    border: none;
+    box-shadow: none;
+    border-bottom: 1px solid #e3e3e3;
 }
 
 /*------------------------------------------------------*/

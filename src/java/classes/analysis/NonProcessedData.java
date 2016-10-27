@@ -26,7 +26,7 @@ import classes.analysis.non_processed_data.RAWdata;
  *
  * @author Rafa Hernández de Diego
  */
-public abstract class NonProcessedData extends Step implements Comparable<NonProcessedData> {
+public abstract class NonProcessedData extends Step {
 
     public NonProcessedData() {
     }
@@ -66,9 +66,4 @@ public abstract class NonProcessedData extends Step implements Comparable<NonPro
 //
 //        return non_process_data;
 //    }
-
-    @Override
-    public int compareTo(NonProcessedData anotherInstance) {
-        return this.step_number - anotherInstance.step_number;
-    }
 }

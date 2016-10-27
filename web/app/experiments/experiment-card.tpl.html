@@ -1,4 +1,4 @@
-<div class="experiment-card  iu-card" >
+<div class="experiment-card  iu-card">
     <div class="iu-card-body">
         <h2 class="iu-card-name">{{experiment.title}}</h2>
         <div class="iu-card-description" ng-if="experiment.experiment_description !== undefined">
@@ -9,11 +9,14 @@
         </div>
     </div>
     <div class="iu-card-author">
-         <div ng-if="!isMember(experiment)"  style="text-align: center;">
-            <a class="btn btn-default" type="button" ng-click="controller.requestAccessToExperimentHandler(experiment)"><i class="fa fa-question-circle-o"></i> Request access to this experiment</a>
+         <div ng-if="!isMember(experiment) && !(currentExperiment === experiment)"  style="text-align: center;">
+            <a class="btn btn-default" type="button" ng-click="controller.requestAccessToExperimentHandler(experiment)"><i class="fa fa-question-circle-o"></i> Request access to this study</a>
         </div>
-        <div ng-if="isMember(experiment)"  style="text-align: center;">
-            <a class="btn btn-success" type="button" ng-click="controller.changeCurrentExperimentHandler(experiment.experiment_id)"><i class="fa fa-random"></i> Switch to this experiment</a>
+        <div ng-if="isMember(experiment) && !(currentExperiment === experiment)"  style="text-align: center;">
+            <a class="btn btn-success" type="button" ng-click="controller.changeCurrentExperiment(experiment.experiment_id)"><i class="fa fa-random"></i> Switch to this study</a>
+        </div>
+        <div ng-if="currentExperiment === experiment"  style="text-align: center;">
+            <span class="label label-info" style="line-height: 34px; padding: 10px;">Current experiment</span>
         </div>
         <!--Created by <span style="color:#0F8CDA;">{{experiment.experiment_owners[0].user_id + (experiment.experiment_owners.length > 1 ? " et al." : "")}}</span>-->
     </div>

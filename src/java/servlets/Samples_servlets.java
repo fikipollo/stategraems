@@ -261,7 +261,6 @@ public class Samples_servlets extends Servlet {
 
     private void update_biocondition_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-
             ArrayList<String> BLOCKED_IDs = new ArrayList<String>();
             boolean ROLLBACK_NEEDED = false;
             DAO dao_instance = null;
@@ -327,6 +326,7 @@ public class Samples_servlets extends Servlet {
                     } else if ("new".equals(bioreplicate.getStatus())) {
                         Object[] params = {biocondition.getBioConditionID()};
                         String nextID = bioreplicateDAO.getNextObjectID(params);
+                        BLOCKED_IDs.add(nextID);
                         bioreplicate.setBioreplicate_id(nextID);
                         bioreplicate.setBioConditionID(biocondition.getBioConditionID());
                         to_be_created_BR.add(bioreplicate); //CREATES THE AS
@@ -342,6 +342,7 @@ public class Samples_servlets extends Servlet {
                             } else if ("new".equals(analyticalReplicate.getStatus())) {
                                 Object[] params = {bioreplicate.getBioreplicateID()};
                                 String nextID = analyticalSampleDAO.getNextObjectID(params);
+                                BLOCKED_IDs.add(nextID);
                                 analyticalReplicate.setAnalyticalReplicateID(nextID);
                                 analyticalReplicate.setBioreplicate_id(bioreplicate.getBioreplicateID());
                                 to_be_created_AS.add(analyticalReplicate); //CREATES THE AS
@@ -407,9 +408,6 @@ public class Samples_servlets extends Servlet {
                     response.setStatus(400);
                     response.getWriter().print(ServerErrorManager.getErrorResponse());
 
-                    for (String BLOCKED_ID : BLOCKED_IDs) {
-                        BlockedElementsManager.getBlockedElementsManager().unlockID(BLOCKED_ID);
-                    }
                     if (ROLLBACK_NEEDED) {
                         dao_instance.doRollback();
                     }
@@ -417,6 +415,10 @@ public class Samples_servlets extends Servlet {
                     JsonObject obj = new JsonObject();
                     obj.add("success", new JsonPrimitive(true));
                     response.getWriter().print(obj.toString());
+                }
+
+                for (String BLOCKED_ID : BLOCKED_IDs) {
+                    BlockedElementsManager.getBlockedElementsManager().unlockID(BLOCKED_ID);
                 }
                 /**
                  * *******************************************************

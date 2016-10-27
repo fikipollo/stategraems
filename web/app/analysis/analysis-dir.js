@@ -23,6 +23,7 @@
  */
 (function () {
     var app = angular.module('analysis.directives.analysis-views', [
+        'analysis.services.analysis-list',
     ]);
 
     /***************************************************************************/
@@ -60,7 +61,7 @@
         };
     });
 
-    app.directive("analysisDiagram", ['$compile', '$dialogs', '$http', function ($compile, $dialogs, $http) {
+    app.directive("analysisDiagram", ['$compile', '$dialogs', '$http', 'AnalysisList', function ($compile, $dialogs, $http, AnalysisList) {
             return {
                 restrict: 'E',
                 replace: true,
@@ -101,10 +102,10 @@
                                     return;
                                 }
                                 if (node.selected === "false") {
-                                    $scope.controller.addSelectedInputFile(node.id, true);
+                                    $scope.controller.addSelectedInputFileHandler(node.id, true);
                                     node.selected = "true";
                                 } else {
-                                    $scope.controller.removeSelectedInputFile(node.id, true);
+                                    $scope.controller.removeSelectedInputFileHandler(node.id, true);
                                     node.selected = "false";
                                 }
                             });
@@ -119,7 +120,6 @@
                      * @return {AnalysisDetailController} the controller
                      ***********************************************************************************************/
                     var updateDiagram = function () {
-                        debugger;
                         var diagram = $scope.diagram || {nodes: [], edges: []};
 
                         $scope.controller.sigma.graph.clear();
@@ -144,16 +144,20 @@
                         if ($scope.controller.sigma.selectable === true) {
                             for (var i in diagram.nodes) {
                                 diagram.nodes[i]["selected"] = ($scope.model.used_data.indexOf(diagram.nodes[i].id) !== -1) ? "true" : "false";
+                                if (diagram.nodes[i].id === $scope.model.step_id) {
+                                    diagram.nodes[i]["selected"] = "current";
+                                }
                             }
                             // Create a custom color palette:
                             myPalette = {
                                 nodeColorScheme: {
-                                    true: "#fc7d71",
-                                    false: "#d8d8d8"
+                                    true: "#6aed80",
+                                    false: "#d8d8d8",
+                                    current: "#fc7d71"
                                 },
                                 iconScheme: {
-                                    true: {font: 'FontAwesome', content: "\uF129", scale: 0.7, color: '#ffffff'},
-                                    false: {font: 'FontAwesome', content: "\uF129", scale: 0.7, color: '#ffffff'}
+                                    true: {font: 'FontAwesome', content: "\uF00c", scale: 0.7, color: '#ffffff'},
+                                    false: {font: 'FontAwesome', content: "\uF067", scale: 0.7, color: '#ffffff'}
                                 }
                             };
 
@@ -205,7 +209,7 @@
                             $scope.controller.sigma.design.setPalette(myPalette);
                             $scope.controller.sigma.design.setStyles(myStyles);
                         }
-                        
+
                         $scope.controller.sigma.design.apply();
 
                         // Configure the DAG layout:
@@ -224,8 +228,10 @@
                     $scope.$watch('diagram', function (newValues, oldValues, scope) {
                         if ($scope.diagram !== undefined && !oldValues || $scope.diagram !== undefined && $scope.controller.sigma === undefined) {
                             createDiagram();
-                        } else if ($scope.diagram !== undefined && (newValues.edges.length !== oldValues.edges.length || newValues.nodes.length !== oldValues.nodes.length)) {
-                            updateDiagram();
+                        } else if ($scope.diagram !== undefined) {
+                            if(newValues.hasChanged && newValues.hasChanged !== oldValues.hasChanged){
+                                updateDiagram();
+                            }
                         }
                     }, true);
                 }

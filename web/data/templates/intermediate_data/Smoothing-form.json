@@ -1,0 +1,20 @@
+{
+    "id": "Smoothing-form",
+    "content": [
+        {
+            "name": "section_1",
+            "title": "Peaks smoothing details",
+            "fields": [
+                {
+                    "name": "sliding_window_length",
+                    "label": "Sliding window length (bp)",
+                    "type": "number"
+                }, {
+                    "name": "extractionMethod.steps_length",
+                    "label": "Step length (bp)",
+                    "type": "number"
+                }
+            ]
+        }
+    ]
+}

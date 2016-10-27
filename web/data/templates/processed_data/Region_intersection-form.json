@@ -1,0 +1,16 @@
+{
+    "id": "Region_intersection-form",
+    "content": [
+        {
+            "name": "section_1",
+            "title": "Region intersection details",
+            "fields": [
+                {
+                    "name": "motivation",
+                    "label": "Motivation",
+                    "type": "textarea"
+                }
+            ]
+        }
+    ]
+}

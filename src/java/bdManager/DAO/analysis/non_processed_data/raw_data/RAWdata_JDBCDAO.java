@@ -131,6 +131,7 @@ public class RAWdata_JDBCDAO extends Step_JDBCDAO {
 
             //GET THE ASSOCIATED EXTRACTION METHOD
             ExtractionMethod extractionMethod = (ExtractionMethod) DAOProvider.getDAOByName(rawdata.getRAWdataType().replace("-", "")).findByID(rawdata.getRAWdataID(), null);
+            extractionMethod.setExtractionMethodType(rawdata.getRAWdataType());
             rawdata.setExtractionMethod(extractionMethod);
 
             rawdata_list.add(rawdata);

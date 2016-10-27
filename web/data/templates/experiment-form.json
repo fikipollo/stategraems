@@ -13,17 +13,20 @@
                 {
                     "name": "title",
                     "label": "Title",
-                    "type": "text"
+                    "type": "text",
+                    "required" : true
                 },
                 {
                     "name": "experimentDataDirectory",
                     "label": "Data Directory",
-                    "type": "text"
+                    "type": "text",
+                    "required" : true
                 },
                 {
                     "name": "experiment_description",
                     "label": "Description",
-                    "type": "textarea"
+                    "type": "textarea",
+                    "required" : true
                 },
                 {
                     "name": "public_references",
