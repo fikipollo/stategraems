@@ -30,6 +30,7 @@ import classes.samples.Batch;
 import classes.samples.Bioreplicate;
 import classes.samples.BioCondition;
 import classes.samples.Treatment;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -1386,6 +1387,12 @@ public class Samples_servlets extends Servlet {
 
         if (request.getServletPath().equals("/get_treatment_document")) {
             get_treatment_document_handler(request, response);
+        } else if (request.getServletPath().equals("/get_sample_service_host_list")) {
+            get_sample_service_host_list(request, response);
+        } else if (request.getServletPath().equals("/get_sample_service_list")) {
+            get_sample_service_list(request, response);
+        } else if (request.getServletPath().equals("/external-sample")) {
+            redirect_to_external_sample_service(request, response);
         } else {
             ServerErrorManager.addErrorMessage(3, Samples_servlets.class.getName(), "doGet", "What are you doing here?.");
             response.setStatus(400);
@@ -1419,6 +1426,107 @@ public class Samples_servlets extends Servlet {
             ServerErrorManager.addErrorMessage(4, Samples_servlets.class.getName(), "get_treatment_document_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
+        }
+    }
+
+    private void get_sample_service_host_list(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        ArrayList<String> hosts = new ArrayList<String>();
+        try {
+            //TODO:
+            hosts.add("eb3kit.ki.se");
+            hosts.add("eb3kit.makerere.ug");
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_sample_service_host_list", e.getMessage());
+        } finally {
+            /**
+             * *******************************************************
+             * STEP 3b CATCH ERROR. GO TO STEP 4
+             * *******************************************************
+             */
+            if (ServerErrorManager.errorStatus()) {
+                response.setStatus(400);
+                response.getWriter().print(ServerErrorManager.getErrorResponse());
+            } else {
+                /**
+                 * *******************************************************
+                 * STEP 3A WRITE SUCCESS RESPONSE. GO TO STEP 4
+                 * *******************************************************
+                 */
+                JsonObject obj = new JsonObject();
+                JsonArray _hosts = new JsonArray();
+                for (String host : hosts) {
+                    _hosts.add(new JsonPrimitive(host));
+                }
+                obj.add("hosts", _hosts);
+                response.getWriter().print(obj.toString());
+            }
+        }
+    }
+
+    private void get_sample_service_list(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        ArrayList<String> services = new ArrayList<String>();
+        try {
+            String host_name = request.getParameter("host");
+
+            if ("eb3kit.ki.se".equals(host_name)) {
+                services.add("lims1");
+                services.add("lims2");
+                services.add("lims3");
+            } else {
+                services.add("samplemanager1");
+                services.add("samplemanager2");
+                services.add("samplemanager3");
+            }
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_sample_service_list", e.getMessage());
+        } finally {
+            /**
+             * *******************************************************
+             * STEP 3b CATCH ERROR. GO TO STEP 4
+             * *******************************************************
+             */
+            if (ServerErrorManager.errorStatus()) {
+                response.setStatus(400);
+                response.getWriter().print(ServerErrorManager.getErrorResponse());
+            } else {
+                /**
+                 * *******************************************************
+                 * STEP 3A WRITE SUCCESS RESPONSE. GO TO STEP 4
+                 * *******************************************************
+                 */
+                JsonObject obj = new JsonObject();
+                JsonArray _services = new JsonArray();
+                for (String service : services) {
+                    _services.add(new JsonPrimitive(service));
+                }
+                obj.add("services", _services);
+                response.getWriter().print(obj.toString());
+            }
+        }
+    }
+
+    private void redirect_to_external_sample_service(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String sample_url = "";
+        try {
+            String sample_id = request.getParameter("sample_id");
+
+            //TODO: QUERY THE TRANSLATION SERVICE
+            sample_url = "http://galaxy.demo.bibbox.org";
+
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_sample_service_list", e.getMessage());
+        } finally {
+            /**
+             * *******************************************************
+             * STEP 3b CATCH ERROR. GO TO STEP 4
+             * *******************************************************
+             */
+            if (ServerErrorManager.errorStatus()) {
+                response.setStatus(400);
+                response.getWriter().print(ServerErrorManager.getErrorResponse());
+            } else {
+                response.sendRedirect(sample_url);
+            }
         }
     }
 }

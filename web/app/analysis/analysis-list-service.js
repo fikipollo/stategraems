@@ -181,7 +181,7 @@
                         //ADAPT THE TAGS
                         _analysis[i].tags = (_analysis[i].tags || []);
                         _analysis[i].tags.push(_analysis[i].analysis_type);
-                        _analysis[i].tags = arrayUnique(_analysis[i].tags);
+                        _analysis[i].tags = arrayUnique(_analysis[i].tags, [""]);
 
                         //GET NEXT STEP ID 
                         var maxStep = 0;

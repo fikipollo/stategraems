@@ -71,7 +71,7 @@
         </div>
     </div>
     <div class="row experiment-card-container" id="experimentContainer">
-        <experiment-card  ng-repeat="experiment in [currentExperiment]"></experiment-card>
+        <experiment-card  ng-if="currentExperiment" ng-repeat="experiment in [currentExperiment]"></experiment-card>
         <experiment-card  ng-repeat="experiment in experiments| filter:filterExperiments() | orderBy : sortBy | limitTo : visibleExperiments"></experiment-card>
         <div class="row" style="text-align: center;">
             <button class="btn btn-lg btn-success" type="button" ng-click="controller.showMoreExperimentsHandler()" ng-show="(filteredExperiments - visibleExperiments) > 0">

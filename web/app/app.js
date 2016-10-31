@@ -85,7 +85,17 @@
                 templateUrl: "app/samples/biocondition-form.tpl.html",
                 params: {
                     viewMode: 'view', //creation, edition
-                    biocondition_id: null,
+                    biocondition_id: null
+                },
+                data: {requireLogin: true}
+            },
+            externalSampleDetail = {
+                name: 'externalSampleDetail',
+                url: '/ext-sample-detail/',
+                templateUrl: "app/samples/external-sample-form.tpl.html",
+                params: {
+                    viewMode: 'view', //creation, edition
+                    biocondition_id: null
                 },
                 data: {requireLogin: true}
             },
@@ -114,6 +124,7 @@
             $stateProvider.state(experimentDetail);
             $stateProvider.state(samples);
             $stateProvider.state(sampleDetail);
+            $stateProvider.state(externalSampleDetail);
             $stateProvider.state(analysis);
             $stateProvider.state(analysisDetail);
         }]);
@@ -180,6 +191,10 @@
                     return myAppConfig.EMS_SERVER + "lock_biocondition";
                 case "sample-unlock":
                     return myAppConfig.EMS_SERVER + "unlock_biocondition";
+                case "sample-service-host-list":
+                    return myAppConfig.EMS_SERVER + "get_sample_service_host_list";
+                case "sample-service-list":
+                    return myAppConfig.EMS_SERVER + "get_sample_service_list";                
                 case "analysis-list":
                     return myAppConfig.EMS_SERVER + "get_all_analysis";
                 case "analysis-info":

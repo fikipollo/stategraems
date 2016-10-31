@@ -101,6 +101,9 @@
         <url-pattern>/unlock_biocondition</url-pattern>
         <url-pattern>/associate_biocondition_experiment</url-pattern>
         <url-pattern>/check_removable_sample</url-pattern>
+        <url-pattern>/get_sample_service_host_list</url-pattern>
+        <url-pattern>/get_sample_service_list</url-pattern>
+        <url-pattern>/external-sample</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Install_servlets</servlet-name>

@@ -58,6 +58,7 @@ public class BioCondition {
     //OTHER
     String[] tags;
     boolean isPublic = true;
+    boolean isExternal = false;
     
     public BioCondition() {
     }
@@ -337,6 +338,14 @@ public class BioCondition {
 
     public void setPublic(boolean isPublic) {
         this.isPublic = isPublic;
+    }
+    
+    public boolean isExternal() {
+        return isExternal;
+    }
+
+    public void setExternal(boolean isExternal) {
+        this.isExternal = isExternal;
     }
     
     //***********************************************************************

@@ -76,7 +76,7 @@
                             if (model.free === false) {
                                 template +=
                                         '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
-                                        '<select placeholder="Not specified" class="col-sm-9" class="form-control" ' +
+                                        '<select placeholder="Not specified" class="col-sm-9 form-control" ' +
                                         '        name="{{field.name}}"' +
                                         '        ng-disabled="viewMode === \'view\'"' +
                                         '        ng-model="model.' + model.name + '"' +

@@ -51,7 +51,7 @@ public class BioCondition_JDBCDAO extends DAO {
                 + "  biocondition_id = ?, organism = ?, title = ?, name = ?, cell_type = ?, "
                 + "  tissue_type = ?, cell_line = ?, gender = ?, genotype = ?, other_biomaterial = ?, "
                 + "  treatment = ?, dosis = ?, time = ?, other_exp_cond = ?, protocol_description = ?, "
-                + "  submission_date = ?, last_edition_date = ?, external_links = ?, tags = ?, public = ? ");
+                + "  submission_date = ?, last_edition_date = ?, external_links = ?, tags = ?, public = ?, external = ? ");
 
         ps.setString(1, biocondition.getBioConditionID());
         ps.setString(2, biocondition.getOrganism());
@@ -73,6 +73,7 @@ public class BioCondition_JDBCDAO extends DAO {
         ps.setString(18, biocondition.getExternalLinks());
         ps.setString(19, String.join(", ", biocondition.getTags()));
         ps.setBoolean(20, biocondition.isPublic());
+        ps.setBoolean(21, biocondition.isExternal());
         ps.execute();
 
         if (biocondition.getAssociatedBioreplicates() != null) {
@@ -169,7 +170,7 @@ public class BioCondition_JDBCDAO extends DAO {
                 + "UPDATE biocondition SET "
                 + "  organism = ?, title = ?, name = ?, cell_type = ?, tissue_type = ?, cell_line = ?, gender = ?, "
                 + "  genotype = ?, other_biomaterial = ?, treatment = ?, dosis = ?, time = ?, other_exp_cond = ?, "
-                + "  protocol_description = ?, last_edition_date = ?, external_links = ?, tags = ?, public = ? "
+                + "  protocol_description = ?, last_edition_date = ?, external_links = ?, tags = ?, public = ?, external = ? "
                 + "WHERE biocondition_id = ?");
 
         ps.setString(1, biocondition.getOrganism());
@@ -190,7 +191,8 @@ public class BioCondition_JDBCDAO extends DAO {
         ps.setString(16, biocondition.getExternalLinks());
         ps.setString(17, String.join(", ", biocondition.getTags()).replace(", ,", ", "));
         ps.setBoolean(18, biocondition.isPublic());
-        ps.setString(19, biocondition.getBioConditionID());
+        ps.setBoolean(19, biocondition.isExternal());
+        ps.setString(20, biocondition.getBioConditionID());
         ps.execute();
 
         //Remove all the previous entries in the experiment_owners table
@@ -259,6 +261,7 @@ public class BioCondition_JDBCDAO extends DAO {
             biocondition.setExternalLinks(rs.getString("external_links"));
             biocondition.setTags(rs.getString("tags"));
             biocondition.setPublic(rs.getBoolean("public"));
+            biocondition.setExternal(rs.getBoolean("external"));
         }
 
         if (biocondition != null) {
@@ -325,6 +328,7 @@ public class BioCondition_JDBCDAO extends DAO {
             biocondition.setExternalLinks(rs.getString("external_links"));
             biocondition.setTags(rs.getString("tags"));
             biocondition.setPublic(rs.getBoolean("public"));
+            biocondition.setExternal(rs.getBoolean("external"));
 
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT user_id FROM biocondition_owners WHERE biocondition_id = ?");
             ps.setString(1, rs.getString("biocondition_id"));

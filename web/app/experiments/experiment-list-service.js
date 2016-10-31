@@ -152,7 +152,7 @@
                         _experiments[i].last_edition_date = new Date(date);
 
                         //ADAPT THE TAGS
-//                        _experiments[i].tags = ((_experiments[i].tags !== undefined) ? _experiments[i].tags.split(",") : ["Case-control"]);
+                        _experiments[i].tags = arrayUnique(_experiments[i].tags, [""]);
                     }
                     return _experiments;
                 },

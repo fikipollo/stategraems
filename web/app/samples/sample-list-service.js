@@ -150,8 +150,12 @@
                             date = date.substr(0, 4) + "/" + date.substr(4, 2) + "/" + date.substr(6, 2);
                         }
                         _bioconditions[i].last_edition_date = new Date(date);
-                        
+
                         _bioconditions[i].tags = _bioconditions[i].tags || [];
+                        _bioconditions[i].tags.push(_bioconditions[i].organism);
+                        _bioconditions[i].tags.push(_bioconditions[i].tissue_type);
+                        _bioconditions[i].tags.push(_bioconditions[i].cell_type);
+                        _bioconditions[i].tags = arrayUnique(_bioconditions[i].tags, [""]);
 
                         //Create the table for protocols -> list(AS)
                         this.adaptBioreplicatesInformation(_bioconditions[i].associatedBioreplicates);
@@ -175,14 +179,6 @@
                 isOwner: function (biocondition, user_id) {
                     for (var i in biocondition.owners) {
                         if (biocondition.owners[i].user_id === user_id) {
-                            return true;
-                        }
-                    }
-                    return false;
-                },
-                isMember: function (biocondition, user_id) {
-                    for (var i in biocondition.members) {
-                        if (biocondition.members[i].user_id === user_id) {
                             return true;
                         }
                     }

@@ -324,7 +324,11 @@ table.table td:nth-child(1) {text-align: left;}
     text-align: right;
     margin-right: 10px;
 }
-
+.field-group .radio label {
+    max-width: none;
+    width: auto;
+    text-align: left;
+}
 .bootstrap-tagsinput{margin-left: -15px;}
 
 input:read-only, input:disabled {background: none;}
