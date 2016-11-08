@@ -27,6 +27,7 @@
         'common.dialogs',
         'bootstrap-tagsinput',
         'users.directives.user-list',
+        'samples.directives.sample-views',
         'files.directives.file-list'
     ]);
 
@@ -37,9 +38,9 @@
             return {
                 restrict: 'E',
                 replace: true,
-                link: function (scope, element) {
-                    var model = scope.field;
-                    var template = '<div class="field-group row">';
+                link: function ($scope, element) {
+                    var model = $scope.field;
+                    var template = '<div class="field-group row" ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') + ">";
                     try {
                         if (model.type === "text") {
                             template +=
@@ -47,7 +48,6 @@
                                     '<input class="col-sm-9" type="text" placeholder="Not specified" ' +
                                     '       name="{{field.name}}" ' +
                                     '       ng-model="model.' + model.name + '"' +
-                                    '       ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') +
                                     '       ' + (model.required ? "required" : "") +
                                     '       ng-readonly="viewMode === \'view\'">';
                         } else if (model.type === "number") {
@@ -59,7 +59,6 @@
                                     '       ' + (model.min ? 'min="' + model.min + '"' : '') +
                                     '       ' + (model.max ? 'max="' + model.max + '"' : '') +
                                     '       ' + (model.step ? 'step="' + model.step + '"' : '') +
-                                    '       ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') +
                                     '       ' + (model.required ? "required" : "") +
                                     '       ng-readonly="viewMode === \'view\'">';
                         } else if (model.type === "textarea") {
@@ -68,7 +67,6 @@
                                     '<textarea class="col-sm-9" rows="8" cols="50" ' +
                                     '          name="{{field.name}}" ' +
                                     '          ng-model="model.' + model.name + '"' +
-                                    '          ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') +
                                     '          ' + (model.required ? "required" : "") +
                                     '          ng-readonly="viewMode === \'view\'">' +
                                     '</textarea>';
@@ -76,12 +74,11 @@
                             if (model.free === false) {
                                 template +=
                                         '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
-                                        '<select placeholder="Not specified" class="col-sm-9 form-control" ' +
+                                        '<select class="col-sm-9" placeholder="Not specified" ' +
                                         '        name="{{field.name}}"' +
                                         '        ng-disabled="viewMode === \'view\'"' +
                                         '        ng-model="model.' + model.name + '"' +
-                                        '        ng-options="option.value as option.label for option in ' + model.name + '_options"' +
-                                        '        ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') +
+                                        '        ng-options="option.value as option.label for option in options.' + model.name.replace(/\./, "_") + '"' +
                                         '        ' + (model.required ? "required" : "") + '>' +
                                         '</select>';
                             } else {
@@ -89,8 +86,7 @@
                                         '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
                                         '<input class="col-sm-9" type="text" placeholder="Not specified" name="{{field.name}}" ' +
                                         '       ng-model="model.' + model.name + '"' +
-                                        '       uib-typeahead="option.label for option in ' + model.name + '_options | filter:$viewValue:startsWith"' +
-                                        '       ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') +
+                                        '       uib-typeahead="option.label for option in options.' + model.name.replace(/\./, "_") + ' | filter:$viewValue:startsWith"' +
                                         '       ' + (model.required ? "required" : "") +
                                         '       ng-readonly="viewMode === \'view\'">';
                             }
@@ -100,17 +96,16 @@
                                     method: 'GET',
                                     url: model.source,
                                 }).success(function (options) {
-                                    scope[model.name + "_options"] = options[model.name];
+                                    $scope.options[model.name.replace(/\./, "_")] = options[model.name];
                                 });
                             } else if (model.options) {
-                                scope[model.name + "_options"] = model.options;
+                                $scope.options[model.name.replace(/\./, "_")] = model.options;
                             }
                         } else if (model.type === "checkbox") {
                             template +=
                                     '<input type="checkbox" ' +
                                     '       name="{{field.name}}"' +
                                     '       ng-model="input.value"' +
-                                    '       ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') +
                                     '       ' + (model.required ? "required" : "") +
                                     '       ng-readonly="viewMode === \'view\'">' +
                                     '<label for="{{field.name}}"> {{field.label}}</label>';
@@ -122,7 +117,6 @@
                                     '         uib-datepicker-popup="yyyy/MM/dd" ' +
                                     '         is-open="' + model.name + '_popup.opened" close-text="Close"' +
                                     '         ng-model="model.' + model.name + '"' +
-                                    '         ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') +
                                     '         ' + (model.required ? "required" : "") +
                                     '         ng-readonly="true">' +
                                     '  <span class="input-group-btn" ng-hide="viewMode === \'view\'">' +
@@ -137,7 +131,6 @@
                                     '<bootstrap-tagsinput  class="col-sm-9" tagClass="label label-info" ' +
                                     '                      name="{{field.name}}" ' +
                                     '                      ng-model="model.' + model.name + '" ' +
-                                    '                      ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') +
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
                                     '</bootstrap-tagsinput>';
@@ -146,7 +139,6 @@
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
                                     '<input class="col-sm-9" type="text" disabled' +
                                     '       ng-model="model.' + model.name + '"' +
-                                    '       ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') +
                                     '       ng-readonly="viewMode === \'view\'">';
                         } else if (model.type === "user_selector") {
                             template +=
@@ -154,7 +146,6 @@
                                     '<user-selector-field  class="col-sm-9" ' +
                                     '                      name="{{field.name}}" ' +
                                     '                      ng-init="models=model.' + model.name + '"' +
-                                    '                      ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') +
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
                                     '</user-selector-field>';
@@ -164,7 +155,6 @@
                                     '<output-files-selector-field  class="col-sm-9" ' +
                                     '                      name="{{field.name}}" ' +
                                     '                      ng-init="models=model.' + model.name + '"' +
-                                    '                      ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') +
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
                                     '</output-files-selector-field>';
@@ -174,15 +164,20 @@
                                     '<input-files-selector-field  class="col-sm-9" ' +
                                     '                      name="{{field.name}}" ' +
                                     '                      ng-init="models=model.' + model.name + '"' +
-                                    '                      ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') +
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
                                     '</input-files-selector-field>';
+                        } else if (model.type === "sample_selector") {
+                            template +=
+                                    '<sample-selector-field name="{{field.name}}" ' +
+                                    '                      ' + (model.required ? "required" : "") +
+                                    '                      ng-readonly="viewMode === \'view\'">' +
+                                    '</sample-selector-field>';
                         } else {
                             throw 'Unknown input type ' + model.type + ' : ' + JSON.stringify(model);
                         }
 
-                        template += '</div>'
+                        template += '</div>';
                     } catch (err) {
                         debugger;
                         template = '<b color="red">Unknown input</b>';
@@ -193,7 +188,7 @@
                         });
                     }
 
-                    $compile($(template).appendTo(element))(scope);
+                    $compile($(template).appendTo(element))($scope);
                 }
             };
         }]);

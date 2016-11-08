@@ -648,7 +648,6 @@
          *         of nodes and a list of edges.
          ******************************************************************************/
         this.generateWorkflowDiagram = function (analysis, diagram) {
-            debugger;
             var step = null, edge_id = "", edges = {}, nodes = {};
 
             analysis = analysis || $scope.analysis;
@@ -878,6 +877,7 @@
                             step.type = "rawdata";
                             step.raw_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
                             step.extractionMethod = {extraction_method_type: $scope.typesInfo.step_subtype.replace(/ /g, "_")};
+                            step.analyticalReplicate_id = null;
                             $scope.model.non_processed_data.push(step);
                             $scope.model.nextStepID++;
                         } else if ($scope.typesInfo.step_type === "intermediate_data") {
@@ -897,6 +897,8 @@
                         delete $scope.isModal;
 
                         $rootScope.$broadcast(APP_EVENTS.stepChanged);
+                        
+                        me.showStepDetails(step);
                     },
                     function (result) { //Dismissed
                     });

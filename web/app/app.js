@@ -333,6 +333,7 @@
                 }
             }
         };
+        $rootScope.options = {};
         $rootScope.$on('$stateChangeStart', function (event, toState, toParams) {
             var requireLogin = toState.data.requireLogin;
 

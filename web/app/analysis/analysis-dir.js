@@ -72,7 +72,6 @@
                      * @return {AnalysisDetailController} the controller
                      ***********************************************************************************************/
                     var createDiagram = function () {
-                        debugger;
                         //1. CREATE THE CONTAINER FOR THE DIAGRAM
                         var template = '<div class="sigmaContainer" id="' + attrs["container-id"] + '"style="' + (attrs['style'] || "") + '"></div>';
                         $compile($(template).appendTo(element))($scope)[0];

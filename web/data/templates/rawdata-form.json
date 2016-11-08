@@ -43,6 +43,17 @@
                     "required" : true
                 }
             ]
+        },
+        {
+            "name": "section_2",
+            "title": "Biomaterial details",
+            "fields": [
+                {
+                    "name": "analyticalReplicate_id",
+                    "label": "Sample ID",
+                    "type": "sample_selector"
+                }
+            ]
         }
     ]
 }

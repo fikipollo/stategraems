@@ -42,7 +42,6 @@
         };
     });
 
-
     app.directive("userSelectorField", function () {
         return {
             restrict: 'E',
@@ -54,7 +53,7 @@
                     '       {{user.user_id}} <i class="fa fa-times" style="cursor:pointer;" ng-show="viewMode !== \'view\'" ng-click="controller.removeSelectedUser(user)";></i>' + 
                     '     </span>' + 
                     '   </div>'+
-                    '   <a class="btn btn-default" ng-show="viewMode !== \'view\'" ng-click="controller.changeSelectedUsersButtonHandler();">' +
+                    '   <a class="btn btn-primary" ng-show="viewMode !== \'view\'" ng-click="controller.changeSelectedUsersButtonHandler();">' +
                     '      <i class="fa fa-plus" aria-hidden="true"></i> Choose users' +
                     '   </a>' +
                     '</div>'

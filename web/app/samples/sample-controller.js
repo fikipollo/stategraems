@@ -63,13 +63,13 @@
          * @param {type} force
          * @returns this
          ******************************************************************************/
-        this.retrieveSamplesData = function (group, force) {
+        this.retrieveSamplesData = function (group, force, recursive) {
             $scope.isLoading = true;
 
             if (SampleList.getOld() > 1 || force) { //Max age for data 5min.
                 $http($rootScope.getHttpRequestConfig("POST", "sample-list", {
                     headers: {'Content-Type': 'application/json'},
-                    data: $rootScope.getCredentialsParams()
+                    data: $rootScope.getCredentialsParams({recursive: (recursive !== undefined)})
                 })).then(
                         function successCallback(response) {
                             $scope.isLoading = false;
@@ -265,13 +265,13 @@
         $scope.visibleSamples = Math.min($scope.filteredSamples, $scope.visibleSamples);
 
 
-        if ($scope.samples.length === 0 || $stateParams.force) {
-            this.retrieveSamplesData("my_samples", true);
+        if ($scope.samples.length === 0 || $stateParams.force || $scope.force) {
+            this.retrieveSamplesData("my_samples", true, $scope.recursive);
         }
     });
 
 
-    app.controller('BioconditionDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $dialogs, APP_EVENTS, SampleList, TemplateList) {
+    app.controller('BioconditionDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $uibModal, $dialogs, APP_EVENTS, SampleList, TemplateList) {
         /******************************************************************************      
          *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
          *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
@@ -301,6 +301,13 @@
                         function successCallback(response) {
                             $scope.model = SampleList.addBiocondition(response.data);
                             SampleList.adaptInformation([$scope.model])[0];
+
+                            if ($scope.bioreplicate_id) {
+                                $scope.bioreplicate = SampleList.getBioreplicate($scope.model, $scope.bioreplicate_id);
+                                if ($scope.analytical_rep_id) {
+                                    $scope.analytical_rep = SampleList.getAnalyticalReplicate($scope.bioreplicate, $scope.analytical_rep_id);
+                                }
+                            }
                             $scope.setLoading(false);
                         },
                         function errorCallback(response) {
@@ -678,6 +685,98 @@
         };
 
         /******************************************************************************
+         * This function handles the event when the "Add new sample" is pressed
+         ******************************************************************************/
+        this.showSelectedSampleDetailsButtonHandler = function () {
+            $scope.isDialog = true;
+
+            $scope.browseDialog = $uibModal.open({
+                templateUrl: 'app/samples/biocondition-form.tpl.html',
+                controller: 'BioconditionDetailController',
+                controllerAs: 'controller',
+                size: "lg",
+                scope: $scope
+            });
+
+            return this;
+        };
+
+        /******************************************************************************
+         * This function handles the event when clicking on the "Choose sample" button
+         * in a "Sample selector" field.
+         * @returns this;
+         ******************************************************************************/
+        this.changeSelectedSampleButtonHandler = function () {
+            $scope.isDialog = true;
+            $scope.force = true;
+            $scope.recursive = true;
+
+            $scope.changeSelectedSample = function (sample_id) {
+                if (sample_id.indexOf("BC") !== -1 && sample_id !== $scope.biocondition_id) {
+                    $scope.biocondition_id = sample_id;
+                    $scope.model = SampleList.getBiocondition($scope.biocondition_id);
+                    delete $scope.bioreplicate_id;
+                    delete $scope.bioreplicate;
+                    delete $scope.analytical_rep_id;
+                    delete $scope.analytical_rep;
+                } else if (sample_id.indexOf("BR") !== -1 && sample_id !== $scope.biocondition_id) {
+                    $scope.bioreplicate_id = sample_id;
+                    $scope.bioreplicate = SampleList.getBioreplicate($scope.model, $scope.bioreplicate_id);
+                    delete $scope.analytical_rep_id;
+                    delete $scope.analytical_rep;
+                } else if (sample_id.indexOf("AR") !== -1 && sample_id !== $scope.analytical_rep_id) {
+                    $scope.analytical_rep_id = sample_id;
+                    $scope.analytical_rep = SampleList.getAnalyticalReplicate($scope.bioreplicate, $scope.analytical_rep_id);
+                }
+
+                if ($scope.bioreplicate_id) {
+                    $scope.browseDialog.current = 3;
+                } else if ($scope.biocondition_id) {
+                    $scope.browseDialog.current = 2;
+                } else {
+                    $scope.browseDialog.current = 1;
+                }
+            };
+
+            $scope.closeSelectionDialog = function () {
+                debugger;
+                delete $scope.changeSelectedSample;
+                delete $scope.closeSelectionDialog;
+
+                if ($scope.other_model) {
+                    if ($scope.analytical_rep_id) {
+                        $scope.other_model.analyticalReplicate_id = $scope.analytical_rep_id;
+                    } else if ($scope.bioreplicate_id) {
+                        $scope.other_model.analyticalReplicate_id = $scope.bioreplicate_id;
+                    } else {
+                        $scope.other_model.analyticalReplicate_id = $scope.biocondition_id;
+                    }
+                }
+
+                $scope.browseDialog.dismiss("cancel");
+                delete $scope.browseDialog;
+            };
+
+            $scope.browseDialog = $uibModal.open({
+                templateUrl: 'app/samples/sample-chooser-dialog.tpl.html',
+                controller: 'SampleListController',
+                controllerAs: 'controller',
+                size: "lg",
+                scope: $scope
+            });
+
+            if ($scope.bioreplicate_id) {
+                $scope.browseDialog.current = 3;
+            } else if ($scope.biocondition_id) {
+                $scope.browseDialog.current = 2;
+            } else {
+                $scope.browseDialog.current = 1;
+            }
+
+            return this;
+        };
+
+        /******************************************************************************
          * This function handles the event accept_button_pressed fires in other Controller (eg. ApplicationController)
          * when a button Accept is pressed.
          *  
@@ -815,12 +914,28 @@
         //The corresponding view will be watching to this variable
         //and update its content after the http response
         $scope.loadingComplete = false;
-        $scope.model = {};
-        $scope.setViewMode($stateParams.viewMode || 'view');
-        $scope.getFormTemplate('biocondition-form');
 
-        if ($stateParams.biocondition_id) {
-            this.retrieveSampleDetails($stateParams.biocondition_id, true);
+        //If it is a sample-chooser field
+        if ($scope.model && !$scope.model.biocondition_id) {
+            $scope.other_model = $scope.model;
+            if ($scope.model.analyticalReplicate_id) {
+                $scope.biocondition_id = SampleList.getBioconditionID($scope.model.analyticalReplicate_id);
+                if ($scope.biocondition_id !== $scope.model.analyticalReplicate_id) { //we provided a BR or an AR
+                    $scope.bioreplicate_id = SampleList.getBioreplicateID($scope.model.analyticalReplicate_id);
+                    if ($scope.bioreplicate_id !== $scope.model.analyticalReplicate_id) { //we provided an AR
+                        $scope.analytical_rep_id = $scope.model.analyticalReplicate_id;
+                    }
+                }
+            }
+        } else {
+            $scope.setViewMode($stateParams.viewMode || 'view');
+            $scope.getFormTemplate('biocondition-form');
+        }
+
+        $scope.model = {};
+
+        if ($stateParams.biocondition_id || $scope.biocondition_id) {
+            this.retrieveSampleDetails($stateParams.biocondition_id || $scope.biocondition_id, true);
         } else {
             $scope.model.biocondition_id = "[Autogenerated after saving]";
             $scope.model.bioreplicates = [];
@@ -830,14 +945,19 @@
             $scope.model.last_edition_date = new Date();
             $scope.model.associatedBioreplicates = [];
         }
-
     });
 
-
-    app.controller('BioreplicateDetailController', function ($state, $rootScope, $scope, $http, SampleList, ProtocolList, TemplateList) {
-        //--------------------------------------------------------------------
-        // CONTROLLER FUNCTIONS
-        //--------------------------------------------------------------------
+    app.controller('BioreplicateDetailController', function ($state, $rootScope, $scope, $http, $uibModal, SampleList, ProtocolList, TemplateList) {
+        /******************************************************************************      
+         *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
+         *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
+         *     | (_| (_) | .` | | | |   / (_) | |__| |__| _||   / 
+         *      \___\___/|_|\_| |_|_|_|_\\___/|____|____|___|_|_\ 
+         *        | __| | | | \| |/ __|_   _|_ _/ _ \| \| / __|   
+         *        | _|| |_| | .` | (__  | |  | | (_) | .` \__ \   
+         *        |_|  \___/|_|\_|\___| |_| |___\___/|_|\_|___/   
+         *                                                        
+         ******************************************************************************/
 
         $scope.getProtocolName = function (protocol_id) {
             return protocol_id;
@@ -855,10 +975,28 @@
                     ($scope.model.status !== undefined && $scope.model.status.indexOf('deleted') !== -1); //if this IU is deleted
         };
 
+        /******************************************************************************      
+         *            _____   _____ _  _ _____         
+         *           | __\ \ / / __| \| |_   _|        
+         *           | _| \ V /| _|| .` | | |          
+         *      _  _ |___| \_/_|___|_|\_| |_| ___  ___ 
+         *     | || | /_\ | \| |   \| |  | __| _ \/ __|
+         *     | __ |/ _ \| .` | |) | |__| _||   /\__ \
+         *     |_||_/_/ \_\_|\_|___/|____|___|_|_\|___/
+         *                                             
+         ******************************************************************************/
 
-        //--------------------------------------------------------------------
-        // EVENT HANDLERS
-        //--------------------------------------------------------------------
+        $scope.$watch('model', function (newValues, oldValues, scope) {
+            var hasChanged = (oldValues.bioreplicate_name !== newValues.bioreplicate_name) || (oldValues.batch_id !== newValues.batch_id);
+            if (hasChanged) {
+                SampleList.updateModelStatus($scope.model, "edited");
+                return;
+            }
+            //TODO: CHANGES IN BATCH
+            //TODO: EXTRA FIELDS
+
+        }, true);
+
         /**
          * This function handles the event when the "Add new sample" is pressed
          */
@@ -886,20 +1024,13 @@
             }
         };
 
-        $scope.$watch('model', function (newValues, oldValues, scope) {
-            var hasChanged = (oldValues.bioreplicate_name !== newValues.bioreplicate_name) || (oldValues.batch_id !== newValues.batch_id);
-            if (hasChanged) {
-                SampleList.updateModelStatus($scope.model, "edited");
-                return;
-            }
-            //TODO: CHANGES IN BATCH
-            //TODO: EXTRA FIELDS
-
-        }, true);
-
-        //--------------------------------------------------------------------
-        // INITIALIZATION
-        //--------------------------------------------------------------------
+        /******************************************************************************
+         *      ___ _  _ ___ _____ ___   _   _    ___ ____  _ _____ ___ ___  _  _ 
+         *     |_ _| \| |_ _|_   _|_ _| /_\ | |  |_ _|_  / /_\_   _|_ _/ _ \| \| |
+         *      | || .` || |  | |  | | / _ \| |__ | | / / / _ \| |  | | (_) | .` |
+         *     |___|_|\_|___| |_| |___/_/ \_\____|___/___/_/ \_\_| |___\___/|_|\_|
+         *     
+         ******************************************************************************/
         var me = this;
 
         //The corresponding view will be watching to this variable

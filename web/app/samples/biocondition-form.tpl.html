@@ -13,7 +13,7 @@
                     <p>Generating the form...</p>
                 </div>
                 <div ng-if="template !== undefined">
-                    <div class="section_box row" ng-repeat="section in template.content">
+                    <div class="section_box " ng-repeat="section in template.content">
                         <h2 class="section_subtitle">{{section.title}}</h2>
                         <form-field ng-repeat="field in section.fields"></form-field>
                         <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
@@ -43,7 +43,7 @@
                 <bioreplicate-form ng-repeat="model in model.associatedBioreplicates"></bioreplicate-form>
             </uib-tab>
         </uib-tabset>
-        <nav class="navbar navbar-default navbar-fixed-bottom progressNavigator" >
+        <nav class="navbar navbar-default navbar-fixed-bottom progressNavigator" ng-hide="isDialog">
             <div class="container">
                 <a class="btn btn-danger btn-md navbar-right" ng-click="controller.cancelButtonHandler();">
                     <i class="fa fa-times"></i> <span ng-if="viewMode === 'view'">Close</span><span ng-if="viewMode !== 'view'">Cancel</span> 

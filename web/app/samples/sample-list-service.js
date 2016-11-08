@@ -48,6 +48,22 @@
                     }
                     return null;
                 },
+                getBioreplicate: function (biocondition, bioreplicate_id) {
+                    for (var i in biocondition.associatedBioreplicates) {
+                        if (biocondition.associatedBioreplicates[i].bioreplicate_id === bioreplicate_id) {
+                            return biocondition.associatedBioreplicates[i];
+                        }
+                    }
+                    return null;
+                },
+                getAnalyticalReplicate: function (bioreplicate, analytical_rep_id) {
+                    for (var i in bioreplicate.associatedAnalyticalReplicates) {
+                        if (bioreplicate.associatedAnalyticalReplicates[i].analytical_rep_id === analytical_rep_id) {
+                            return bioreplicate.associatedAnalyticalReplicates[i];
+                        }
+                    }
+                    return null;
+                },
                 addBiocondition: function (biocondition) {
                     var previous = this.getBiocondition(biocondition.biocondition_id);
                     if (previous === null) {
@@ -183,6 +199,15 @@
                         }
                     }
                     return false;
+                },
+                getBioconditionID: function (model_id) {
+                    return model_id.replace(/AR|BR/, 'BC').split('.')[0];
+                },
+                getBioreplicateID: function (model_id) {
+                    model_id = model_id.replace(/AR/, 'BR').split('.');
+                    if (model_id.length > 1) {
+                        return model_id[0] + "." + model_id[1];
+                    }
                 },
                 getMemento: function (model) {
                     var memento = {};

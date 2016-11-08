@@ -772,7 +772,7 @@ public class Samples_servlets extends Servlet {
                 dao_instance = DAOProvider.getDAOByName("BioCondition");
                 boolean loadRecursive = false;
                 if (requestData.has("recursive")) {
-                    loadRecursive = requestData.get("loggedUser").getAsBoolean();
+                    loadRecursive = requestData.get("recursive").getAsBoolean();
                 }
 
                 Object[] params = {loadRecursive};

@@ -10,6 +10,13 @@
                     "type": "display"
                 },
                 {
+                    "name": "extractionMethod.platform_family",
+                    "label": "Platform Family",
+                    "type": "select",
+                    "source": "data/platform_families.json",
+                    "required" : true
+                },
+                {
                     "name": "analysis_name",
                     "label": "Analysis name",
                     "type": "text",

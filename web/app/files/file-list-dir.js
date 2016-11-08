@@ -61,7 +61,7 @@
                     '   <div style="min-width:200px; min-height: 30px;">' +
                     '       <div ng-repeat="file in models" class="fileLocationItem"> {{file}}</div>' +
                     '   </div>' +
-                    '   <a class="btn btn-default" ng-show="viewMode !== \'view\'" ng-click="controller.changeSelectedFilesButtonHandler();" style="margin-top:20px;">' +
+                    '   <a class="btn btn-primary" ng-show="viewMode !== \'view\'" ng-click="controller.changeSelectedFilesButtonHandler();" style="margin-top:10px;">' +
                     '      <i class="fa fa-plus" aria-hidden="true"></i> Change output files' +
                     '   </a>' +
                     '</div>'
@@ -98,7 +98,7 @@
                     }
                     template +=
                             '   </div>' +
-                            '   <a class="btn btn-default" ng-show="viewMode !== \'view\'" ng-click="controller.changeInputFilesHandler();">' +
+                            '   <a class="btn btn-primary" ng-show="viewMode !== \'view\'" ng-click="controller.changeInputFilesHandler();"  style="margin-top:10px;">' +
                             '      <i class="fa fa-plus" aria-hidden="true"></i> Choose input files' +
                             '   </a>' +
                             '</div>';

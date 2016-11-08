@@ -19,6 +19,8 @@
  *
  * THIS FILE CONTAINS THE FOLLOWING MODULE DECLARATION
  * - bioconditionCard
+ * - bioreplicateForm
+ * - sampleSelectorField
  *
  */
 (function () {
@@ -43,6 +45,36 @@
         return {
             restrict: 'E',
             templateUrl: "app/samples/bioreplicate-form.tpl.html"
+        };
+    });
+
+    app.directive("sampleSelectorField", function () {
+        return {
+            restrict: 'E',
+            replace: true,
+            template:
+                    '<div ng-controller="BioconditionDetailController as controller">' +
+                    '   <div class="field-group row">' +
+                    '    <label class="col-sm-2" for="title">Biological condition title: </label>' +
+                    '    <input class="col-sm-9" type="text" disabled ng-model="model.title">' +
+                    '   </div>' +
+                    '   <div class="field-group row" ng-show="bioreplicate !== undefined">' +
+                    '    <label class="col-sm-2" for="title">Sample name: </label>' +
+                    '    <input class="col-sm-9" type="text" disabled ng-model="bioreplicate.bioreplicate_name">' +
+                    '   </div>' +
+                    '   <div class="field-group row" ng-show="analytical_rep !== undefined">' +
+                    '    <label class="col-sm-2" for="title">Aliquout name: </label>' +
+                    '    <input class="col-sm-9" type="text" disabled ng-model="analytical_rep.analytical_rep_name">' +
+                    '   </div>' +
+                    '   <div class="col-sm-11">' +
+                    '      <a style="float:right; margin-left: 15px;" class="btn btn-primary" ng-show="viewMode !== \'view\'" ng-click="controller.changeSelectedSampleButtonHandler();">' +
+                    '        <i class="fa fa-pencil-square-o" aria-hidden="true"></i> Choose sample' +
+                    '      </a>' +
+                    '      <a style="float:right" class="btn btn-default" ng-show="biocondition_id !== undefined" ng-click="controller.showSelectedSampleDetailsButtonHandler();">' +
+                    '        <i class="fa fa-search" aria-hidden="true"></i> Show sample details' +
+                    '      </a>' +
+                    '   </div>' +
+                    '</div>'
         };
     });
 })();

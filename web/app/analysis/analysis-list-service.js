@@ -220,6 +220,8 @@
                         } else if (steps[i].type === "processed_data") {
                             steps[i].processed_data_type = steps[i].processed_data_type[0].toUpperCase() + steps[i].processed_data_type.substr(1);
                             steps[i].processed_data_type = steps[i].processed_data_type.replace("_step", "");
+                        }else{
+                            steps[i].analyticalReplicate_id = steps[i].analyticalReplicate_id || null;
                         }
                     }
                     return steps;

@@ -2,7 +2,7 @@
     "id": "mRNA-seq-form",
     "content": [
         {
-            "name": "section_1",
+            "name": "section_3",
             "title": "Equipment details",
             "fields": [
                 {
@@ -21,6 +21,7 @@
                     "name": "extractionMethod.base_calls",
                     "label": "Base calls",
                     "type": "select",
+                    "free": false,
                     "options": [{
                             "label": "Base space",
                             "value": "Base space"
@@ -59,6 +60,7 @@
                     "name": "extractionMethod.pooling_strategy",
                     "label": "Pooling stategy",
                     "type": "select",
+                    "free": false,
                     "options": [{
                             "label": "None",
                             "value": "None"
@@ -75,7 +77,7 @@
                     "name": "extractionMethod.pooling_strategy_description",
                     "label": "Pooling strategy description",
                     "type": "textarea",
-                    "dependency": "pooling_strategy !== 'None'"
+                    "dependency": "extractionMethod.pooling_strategy !== 'None'"
                 },
                 {
                     "name": "extractionMethod.library_construction_protocol",
@@ -86,6 +88,7 @@
                     "name": "extractionMethod.layout",
                     "label": "Library layout",
                     "type": "select",
+                    "free": false,
                     "options": [{
                             "label": "Single-end",
                             "value": "Single-end"
@@ -98,6 +101,7 @@
                     "name": "extractionMethod.orientation",
                     "label": "Paired-end orientation",
                     "type": "select",
+                    "free": false,
                     "options": [{
                             "label": "forward-forward",
                             "value": "forward-forward"
@@ -106,19 +110,19 @@
                             "value": "forward-reverse"
                         }
                     ],
-                    "dependency": "layout === 'Paired-end'"
+                    "dependency": "extractionMethod.layout === 'Paired-end'"
                 },
                 {
                     "name": "extractionMethod.nominal_length",
                     "label": "Nominal length (bp)",
                     "type": "number",
-                    "dependency": "layout === 'Paired-end'"
+                    "dependency": "extractionMethod.layout === 'Paired-end'"
                 },
                 {
                     "name": "extractionMethod.nominal_length_stdev",
                     "label": "Nominal length Std dev (bp)",
                     "type": "number",
-                    "dependency": "layout === 'Paired-end'"
+                    "dependency": "extractionMethod.layout === 'Paired-end'"
                 },
                 {
                     "name": "extractionMethod.rna_type",
