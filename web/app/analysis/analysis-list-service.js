@@ -183,6 +183,7 @@
                         _analysis[i].tags.push(_analysis[i].analysis_type);
                         _analysis[i].tags = arrayUnique(_analysis[i].tags, [""]);
 
+                        _analysis[i].isRemoved = _analysis[i].remove_requests.indexOf(Cookies.get('loggedUserID')) !== -1;
                         //GET NEXT STEP ID 
                         var maxStep = 0;
                         var steps = (_analysis[i].processed_data || []).concat(_analysis[i].non_processed_data || []); // Merges both arrays
@@ -223,6 +224,14 @@
                         }else{
                             steps[i].analyticalReplicate_id = steps[i].analyticalReplicate_id || null;
                         }
+                        
+                        //Adjust other_fields types
+                        for(var key in steps[i].other_fields){
+                            if(!Number.isNaN(Number.parseFloat(steps[i].other_fields[key]))){
+                                steps[i].other_fields[key] = steps[i].other_fields[key] - 0;
+                            }
+                        }
+                        
                     }
                     return steps;
                 },

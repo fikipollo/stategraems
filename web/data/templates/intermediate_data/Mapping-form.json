@@ -6,18 +6,18 @@
             "title": "Mapping details",
             "fields": [
                 {
-                    "name": "genome_specie",
+                    "name": "other_fields.genome_specie",
                     "label": "Reference genome specie",
                     "type": "select",
                     "source": "data/organisms.json"
                 },
                 {
-                    "name": "genome_version",
+                    "name": "other_fields.genome_version",
                     "label": "Genome version",
                     "type": "text"
                 },
                 {
-                    "name": "genome_source",
+                    "name": "other_fields.genome_source",
                     "label": "Genome source",
                     "type": "text"
                 }

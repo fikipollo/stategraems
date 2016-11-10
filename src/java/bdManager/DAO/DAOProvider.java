@@ -19,10 +19,10 @@
  *  *************************************************************** */
 package bdManager.DAO;
 
+import bdManager.DAO.analysis.IntermediateData_JDBCDAO;
 import bdManager.DAO.analysis.Analysis_JDBCDAO;
 import bdManager.DAO.analysis.QualityReport_JDBCDAO;
 import bdManager.DAO.analysis.Step_JDBCDAO;
-import bdManager.DAO.analysis.non_processed_data.intermediate_data.*;
 import bdManager.DAO.analysis.non_processed_data.raw_data.ExtractionMethods.*;
 import bdManager.DAO.analysis.non_processed_data.raw_data.RAWdata_JDBCDAO;
 import bdManager.DAO.analysis.non_processed_data.raw_data.SeparationMethods.*;
@@ -84,19 +84,7 @@ public class DAOProvider {
             // INTERMEDIATE STEP DAOS 
             //************************
         } else if (object instanceof IntermediateData) {
-            if (object instanceof Extract_relevant_features_step) {
-                return new ExtractRelevantFeaturesStep_JDBCDAO();
-            } else if (object instanceof Mapping_step) {
-                return new MappingStep_JDBCDAO();
-//            } else if (object instanceof Maxquant_step) {
-//                return new MaxquantStep_JDBCDAO();
-            } else if (object instanceof Preprocessing_step) {
-                return new PreprocessingStep_JDBCDAO();
-            } else if (object instanceof Smoothing_step) {
-                return new SmoothingStep_JDBCDAO();
-            } else if (object instanceof Union_step) {
-                return new UnionStep_JDBCDAO();
-            }
+            return new IntermediateData_JDBCDAO();
         } else if (object instanceof ProcessedData) {
             //************************
             // PROCESSED STEP DAOS 
@@ -117,6 +105,8 @@ public class DAOProvider {
                 return new Region_intersection_step_JDBCDAO();
             } else if (object instanceof Region_consolidation_step) {
                 return new Region_consolidation_step_JDBCDAO();
+            } else {
+                return new ProcessedData_JDBCDAO();
             }
         } else if (object instanceof QualityReport) {
             return new QualityReport_JDBCDAO();
@@ -181,15 +171,15 @@ public class DAOProvider {
         } else if ("IntermediateData".equalsIgnoreCase(className)) {
             return new IntermediateData_JDBCDAO();
         } else if ("Preprocessing_step".equalsIgnoreCase(className)) {
-            return new PreprocessingStep_JDBCDAO();
+            return new IntermediateData_JDBCDAO();
         } else if ("Mapping_step".equalsIgnoreCase(className)) {
-            return new MappingStep_JDBCDAO();
+            return new IntermediateData_JDBCDAO();
         } else if ("Union_step".equalsIgnoreCase(className)) {
-            return new UnionStep_JDBCDAO();
+            return new IntermediateData_JDBCDAO();
         } else if ("Smoothing_step".equalsIgnoreCase(className)) {
-            return new SmoothingStep_JDBCDAO();
+            return new IntermediateData_JDBCDAO();
         } else if ("Extract_relevant_features".equalsIgnoreCase(className)) {
-            return new ExtractRelevantFeaturesStep_JDBCDAO();
+            return new IntermediateData_JDBCDAO();
             //PROCESSED DATA
         } else if ("ProcessedData".equalsIgnoreCase(className)) {
             return new ProcessedData_JDBCDAO();

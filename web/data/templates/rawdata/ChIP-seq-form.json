@@ -130,7 +130,7 @@
                             "label": "forward-forward",
                             "value": "forward-forward"
                         }, {
-                            "label": "forward-forward",
+                            "label": "forward-reverse",
                             "value": "forward-reverse"
                         }
                     ],
@@ -147,29 +147,6 @@
                     "label": "Nominal length Std dev (bp)",
                     "type": "number",
                     "dependency": "extractionMethod.layout === 'Paired-end'"
-                },
-                {
-                    "name": "extractionMethod.rna_type",
-                    "label": "RNA type",
-                    "type": "text"
-                },
-                {
-                    "name": "extractionMethod.strand_specificity",
-                    "label": "Strand specifity",
-                    "type": "select",
-                    "options": [{
-                            "label": "stranded",
-                            "value": "stranded"
-                        }, {
-                            "label": "unstranded",
-                            "value": "unstranded"
-                        }
-                    ]
-                },
-                {
-                    "name": "extractionMethod.selection",
-                    "label": "Selection method",
-                    "type": "textarea"
                 }
             ]
         }

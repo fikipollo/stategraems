@@ -142,10 +142,11 @@
             $scope.filteredAnalysis = 0;
             $scope.user_id = $scope.user_id || Cookies.get("loggedUserID");
             return function (item) {
-                if ($scope.show !== "All analysis types") {
-                    if (item.analysis_type !== $scope.show) {
-                        return false;
-                    }
+                if ($scope.show !== "All analysis types" && item.analysis_type !== $scope.show) {
+                    return false;
+                }
+                if (!$scope.showDeleted && item.remove_requests.indexOf($scope.user_id) !== -1) {
+                    return false;
                 }
 
                 var filterAux, item_tags;
@@ -897,7 +898,7 @@
                         delete $scope.isModal;
 
                         $rootScope.$broadcast(APP_EVENTS.stepChanged);
-                        
+
                         me.showStepDetails(step);
                     },
                     function (result) { //Dismissed
@@ -952,8 +953,11 @@
                     data: $rootScope.getCredentialsParams({'analysis_id': $scope.model.analysis_id, loggedUserID: current_user_id}),
                 })).then(
                         function successCallback(response) {
-                            $dialogs.showSuccessDialog("The analysis was successfully deleted.");
-                            //Notify all the other controllers that user has signed in
+                            if (response.data.removed) {
+                                $dialogs.showSuccessDialog("The analysis was successfully deleted.");
+                            } else {
+                                $dialogs.showSuccessDialog("The analysis is now in deletion process and it will be completely deleted as soon as the other owners confirm this action.");
+                            }
                             $rootScope.$broadcast(APP_EVENTS.analysisDeleted);
                             me.send_unlock_analysis();
                             $state.go('analysis', {force: true});

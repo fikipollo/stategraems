@@ -20,19 +20,13 @@
 package classes.analysis.non_processed_data;
 
 import classes.analysis.NonProcessedData;
-import classes.analysis.non_processed_data.intermediate_data.Extract_relevant_features_step;
-import classes.analysis.non_processed_data.intermediate_data.Mapping_step;
-import classes.analysis.non_processed_data.intermediate_data.Maxquant_step;
-import classes.analysis.non_processed_data.intermediate_data.Preprocessing_step;
-import classes.analysis.non_processed_data.intermediate_data.Smoothing_step;
-import classes.analysis.non_processed_data.intermediate_data.Union_step;
 import com.google.gson.Gson;
 
 /**
  *
  * @author Rafa Hernández de Diego
  */
-public abstract class IntermediateData extends NonProcessedData {
+public class IntermediateData extends NonProcessedData {
 //  Herited from Non_process_data     
 //    private String step_id;
 //    private String type;
@@ -62,22 +56,28 @@ public abstract class IntermediateData extends NonProcessedData {
      * @return the new Object.
      */
     public static IntermediateData fromJSON(String jsonString) {
-        IntermediateData intermediate_data = null;
-        if (jsonString.contains("\"intermediate_data_type\":\"Preprocessing\"")) {
-            intermediate_data = Preprocessing_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"intermediate_data_type\":\"Mapping\"")) {
-            intermediate_data = Mapping_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"intermediate_data_type\":\"Union\"")) {
-            intermediate_data = Union_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"intermediate_data_type\":\"Smoothing\"")) {
-            intermediate_data = Smoothing_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"intermediate_data_type\":\"extract_relevant_features_step\"")) {
-            intermediate_data = Extract_relevant_features_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"intermediate_data_type\":\"max_quant\"")) {
-            intermediate_data = Maxquant_step.fromJSON(jsonString);
-        }
+        Gson gson = new Gson();
+        IntermediateData intermediate_data = gson.fromJson(jsonString, IntermediateData.class);
 
+//        Type type = new TypeToken<Map<String, String>>(){}.getType();
+//        preprocessing_step.extra = gson.fromJson(json, type);
         return intermediate_data;
+
+//        IntermediateData intermediate_data = null;
+//        if (jsonString.contains("\"intermediate_data_type\":\"Preprocessing\"")) {
+//            intermediate_data = Preprocessing_step.fromJSON(jsonString);
+//        } else if (jsonString.contains("\"intermediate_data_type\":\"Mapping\"")) {
+//            intermediate_data = Mapping_step.fromJSON(jsonString);
+//        } else if (jsonString.contains("\"intermediate_data_type\":\"Union\"")) {
+//            intermediate_data = Union_step.fromJSON(jsonString);
+//        } else if (jsonString.contains("\"intermediate_data_type\":\"Smoothing\"")) {
+//            intermediate_data = Smoothing_step.fromJSON(jsonString);
+//        } else if (jsonString.contains("\"intermediate_data_type\":\"extract_relevant_features_step\"")) {
+//            intermediate_data = Extract_relevant_features_step.fromJSON(jsonString);
+//        } else if (jsonString.contains("\"intermediate_data_type\":\"max_quant\"")) {
+//            intermediate_data = Maxquant_step.fromJSON(jsonString);
+//        }
+//        return intermediate_data;
     }
 
     @Override
@@ -95,7 +95,7 @@ public abstract class IntermediateData extends NonProcessedData {
         return intermediate_data_type;
     }
 
-    public void setIntermediate_data_type(String intermediate_data_type) {
+    public void setIntermediateDataType(String intermediate_data_type) {
         this.intermediate_data_type = intermediate_data_type;
     }
 
@@ -164,8 +164,7 @@ public abstract class IntermediateData extends NonProcessedData {
             }
         }
     }
-    
-    
+
     @Override
     public boolean updateAnalysisID(String new_analysis_id) {
         //IF THE ANALYSIS ID IS DIFFERENT THAT THE TO-BE-CREATED ID, IT MEANS THAT 

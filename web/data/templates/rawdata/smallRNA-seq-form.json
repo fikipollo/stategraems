@@ -106,7 +106,7 @@
                             "label": "forward-forward",
                             "value": "forward-forward"
                         }, {
-                            "label": "forward-forward",
+                            "label": "forward-reverse",
                             "value": "forward-reverse"
                         }
                     ],

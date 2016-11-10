@@ -5,7 +5,7 @@
     <div class="navbar-form navbar-default top-toolbar" role="search">
         <h2 class="form_subtitle">Search and filter</h2>
         <div class="row">
-            <div class="col-sm-8">
+            <div class="col-sm-7">
                 <div class="input-group" style="width: 100%;margin-bottom: 4px;">
                     <input type="text" class="form-control" placeholder="Search for..." ng-model="searchFor" ng-enter="controller.applySearchHandler()">
                     <span class="input-group-btn">
@@ -22,7 +22,7 @@
                     </i>
                 </div>
             </div>
-            <div class="col-sm-4" style="padding-top: 8px;">
+            <div class="col-sm-5" style="padding-top: 8px;">
                 Popular tags:
                 <span ng-repeat="item in tags| orderBy:'-times' | limitTo: 4" style="font-size:10px;">
                     <i class="tag {{item.color}}">{{item.times}}</i><i> {{item.name}} </i>
@@ -31,7 +31,7 @@
         </div>
     </div>
     <div class="navbar-form">
-        <div style="margin: auto;display: block;max-width: 650px;">
+        <div style="margin: auto;display: block;max-width: 770px;">
             <ul class="nav navbar-nav">
                 <li class="dropdown">
                     <label for="sortBySelector">Show:</label>
@@ -52,6 +52,9 @@
                     </select>
                 </li>
             </ul>
+            <div class="nav navbar-nav checkbox" style="margin-left: 15px; line-height: 36px;">
+                <label><input type="checkbox" ng-model="showDeleted" ng-init="showDeleted = false">Show deleted analysis</label>
+            </div>
             <i ng-show="isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
                 <i class="fa fa-spinner fa-pulse fa-fw"></i> Loading analysis...
             </i>
@@ -67,7 +70,7 @@
         </div>
     </div>
     <div class="row analysis-card-container" id="analysisContainer">
-        <analysis-card  ng-repeat="analysis in analysis | filter:filterAnalysis() | orderBy : sortBy | limitTo : visibleAnalysis"></analysis-card>
+        <analysis-card  ng-repeat="analysis in analysis| filter:filterAnalysis() | orderBy : sortBy | limitTo : visibleAnalysis"></analysis-card>
         <div class="row" style="text-align: center;">
             <button class="btn btn-lg btn-success" type="button" ng-click="controller.showMoreAnalysisHandler()" ng-show="(filteredAnalysis - visibleAnalysis) > 0">
                 Show more analysis ({{filteredAnalysis - visibleAnalysis}} left)

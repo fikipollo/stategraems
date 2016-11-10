@@ -17,10 +17,8 @@
  *  More info http://bioinfo.cipf.es/stategraems
  *  Technical contact stategraemsdev@gmail.com
  *  *************************************************************** */
-package bdManager.DAO.analysis.non_processed_data.intermediate_data;
+package bdManager.DAO.analysis;
 
-import bdManager.DAO.DAOProvider;
-import bdManager.DAO.analysis.Step_JDBCDAO;
 import bdManager.DBConnectionManager;
 import classes.analysis.non_processed_data.IntermediateData;
 import java.sql.PreparedStatement;
@@ -128,7 +126,6 @@ public class IntermediateData_JDBCDAO extends Step_JDBCDAO {
         //TODO: If a previous step A was used by the step B when the step B was imported, the step A was imported too.
         //However if after update step A is no longer used by B, the step A will not be desassoated and from the others analysis
         //in spite of the association could not have sense.
-
         //First get all analysis that use the step
         String owner_analysis_id = "AN" + intermediate_data.getStepID().substring(2).split("\\.")[0];
 
@@ -150,24 +147,61 @@ public class IntermediateData_JDBCDAO extends Step_JDBCDAO {
     //******************************************************************************************************************************************/
     //*** GETTERS    ***************************************************************************************************************************/
     //******************************************************************************************************************************************/
-    /**
+   /**
      *
-     * @param otherParams and array with the analysis id
+     * @param otherParams
      * @return
+     * @throws SQLException
      */
     @Override
     public ArrayList<Object> findAll(Object[] otherParams) throws SQLException {
-        String[] subtypes = new String[]{
-            "Preprocessing_step", "Mapping_step", "Union_step",
-            "Smoothing_step", "Extract_relevant_features"
-        };
-
-        ArrayList<Object> intermediate_data_list = new ArrayList<Object>();
-
-        for (String subType : subtypes) {
-            intermediate_data_list.addAll(DAOProvider.getDAOByName(subType).findAll(otherParams));
+        //STEP 1. GET THE LIST OF ALL THE INTERMEDIATE STEPS ASSOCIATED TO GIVEN ANALYSIS;
+        String analysis_id = null;
+        if (otherParams != null) {
+            analysis_id = (String) otherParams[0];
         }
+        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                + "SELECT t1.*  FROM intermediate_data as t1, analysis_has_steps as t3 "
+                + "WHERE t3.analysis_id = ? "
+                + "AND t1.step_id = t3.step_id");
+        ps.setString(1, analysis_id);
+        ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
 
-        return intermediate_data_list;
+        //FOR EACH STEP
+        ArrayList<Object> steps = new ArrayList<Object>();
+        IntermediateData step = null;
+        while (rs.next()) {
+            //STEP 2. GET THE DETAILS FOR THE STEP FROM DATABASE
+            step = new IntermediateData();
+            step.setStepID(rs.getString("step_id"));
+            Object[] params = {step};
+            super.findByID(step.getStepID(), params); //FIRST CALL TO PARENT FUNCTIONS
+            
+            //STEP 3. FILL THE SPECIFIC DETAILS FOR THE INTERMEDIATE STEP
+            step.setIntermediateDataType(rs.getString("intermediate_data_type"));
+            step.setSoftware(rs.getString("software"));
+            step.setSoftwareVersion(rs.getString("software_version"));
+            step.setSoftwareConfiguration(rs.getString("software_configuration"));
+            step.setMotivation(rs.getString("motivation"));
+            step.setResults(rs.getString("results"));
+            
+            //STEP 4. GET THE INPUT FILES FOR THE STEP
+            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                    + "SELECT used_data_id FROM step_use_step WHERE step_id = ? ");
+            ps.setString(1, step.getStepID());
+            ResultSet rs1 = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);;
+            
+            ArrayList<String> used_data_id_list = new ArrayList<String>();
+            while (rs1.next()) {
+                used_data_id_list.add(rs1.getString(1));
+            }
+            step.setUsedData(used_data_id_list.toArray(new String[used_data_id_list.size()]));
+
+            //STEP 5. ADD THE NEW STEP TO THE LIST
+            steps.add(step);
+        }
+        
+        //STEP 6. RETURN THE LIST OF STEPS
+        return steps;
     }
 }

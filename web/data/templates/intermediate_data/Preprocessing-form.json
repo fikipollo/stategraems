@@ -5,29 +5,31 @@
             "name": "section_1",
             "title": "Preprocessing details",
             "fields": [
-                                {
-                    "name": "preprocessing_type",
+                {
+                    "name": "other_fields.preprocessing_type",
                     "label": "Preprocessing type",
                     "type": "select",
-                    "options": [{
-                            "label": "'File format conversion",
-                            "value": "'File format conversion"
+                    "options": [
+                        {
+                            "label": "File format conversion",
+                            "value": "File format conversion"
                         }, {
                             "label": "Filtering",
                             "value": "Filtering"
-                        },{
+                        }, {
                             "label": "Normalization",
                             "value": "Normalization"
-                        },{
+                        }, {
                             "label": "Sorting",
                             "value": "Sorting"
-                        },{
+                        }, {
                             "label": "Trimming",
                             "value": "Trimming"
-                        },{
+                        }, {
                             "label": "Other",
                             "value": "Other"
-                        }]
+                        }
+                    ]
                 }
             ]
         }

@@ -19,7 +19,9 @@
  *  *************************************************************** */
 package classes.analysis;
 
+import classes.ExtraField;
 import classes.User;
+import java.util.Map;
 
 /**
  *
@@ -34,9 +36,11 @@ public abstract class Step implements Comparable<Step> {
     protected String submission_date;
     protected String last_edition_date;
     protected String[] files_location;
-    User[] step_owners;
+    protected String status = null;
+    protected User[] step_owners;
     protected QualityReport associatedQualityReport;
-    String status = null;
+    protected Map<String, String> other_fields;
+    protected ExtraField[] extra;
 
     public Step() {
     }
@@ -191,6 +195,22 @@ public abstract class Step implements Comparable<Step> {
         this.status = status;
     }
 
+    public Map<String, String> getOtherFields() {
+        return other_fields;
+    }
+
+    public void setOtherFields(Map<String, String> other_fields) {
+        this.other_fields = other_fields;
+    }
+
+    public ExtraField[] getExtra() {
+        return extra;
+    }
+
+    public void setExtra(ExtraField[] extra) {
+        this.extra = extra;
+    }
+    
     //***********************************************************************
     //* OTHER FUNCTIONS *****************************************************
     //***********************************************************************
@@ -202,5 +222,5 @@ public abstract class Step implements Comparable<Step> {
     @Override
     public int compareTo(Step anotherInstance) {
         return this.step_number - anotherInstance.step_number;
-    }
+    }    
 }

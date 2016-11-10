@@ -25,6 +25,7 @@ import bdManager.DBConnectionManager;
 import classes.analysis.NonProcessedData;
 import classes.analysis.ProcessedData;
 import classes.analysis.Analysis;
+import classes.analysis.Step;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import common.BlockedElementsManager;
@@ -151,6 +152,7 @@ public class Analysis_JDBCDAO extends DAO {
             analysis.setAnalysisName(rs.getString("analysis_name"));
             analysis.setStatus(rs.getString("status"));
             analysis.setTags(rs.getString("tags"));
+            analysis.setRemoveRequests(rs.getString("remove_requests"));
 
             if (loadRecursive) {
                 Object[] params = {analysis.getAnalysisID(), analysis.getAnalysisType()};
@@ -211,6 +213,7 @@ public class Analysis_JDBCDAO extends DAO {
             analysis.setAnalysisName(rs.getString("analysis_name"));
             analysis.setStatus(rs.getString("status"));
             analysis.setTags(rs.getString("tags"));
+            analysis.setRemoveRequests(rs.getString("remove_requests"));
 
             if (loadRecursive) {
                 Object[] params = {analysis.getAnalysisID(), analysis.getAnalysisType()};
@@ -273,32 +276,54 @@ public class Analysis_JDBCDAO extends DAO {
     //******************************************************************************************************************************************/
     //*** REMOVE FUNCTIONS *********************************************************************************************************************/
     //******************************************************************************************************************************************/
-    @Override
-    public boolean remove(String object_id) throws SQLException {
-        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                + "SELECT step_id FROM analysis_has_steps WHERE analysis_id = ? ORDER BY step_id DESC");
-        ps.setString(1, object_id);
-        ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
-        String stepId;
-        ResultSet rs1;
-        while (rs.next()) {
-            stepId = rs.getString("step_id");
-            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                    + "DELETE FROM step WHERE step_id = ?");
-            ps.setString(1, stepId);
-            ps.execute();
+    public boolean remove(Analysis analysis) throws SQLException {
+        //STEP 1. FOR EACH STEP: CHECK IF STEP IS BEING USED BY OTHER ANALYSIS
+        // IF SO, JUST UNLINK STEP
+        // OTHERWISE, REMOVE THE STEP
+        Step_JDBCDAO daoInstance = new Step_JDBCDAO();
+        for (Step step : analysis.getNonProcessedData()) {
+            if (step.getAnalysisID().equalsIgnoreCase(analysis.getAnalysisID())) {
+                ((Step_JDBCDAO) daoInstance).remove(step.getStepID());
+            } else {
+                ((Step_JDBCDAO) daoInstance).removeStepAssociation(step.getStepID(), analysis.getAnalysisID());
+            }
         }
 
-        ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+        for (Step step : analysis.getProcessedData()) {
+            if (step.getAnalysisID().equalsIgnoreCase(analysis.getAnalysisID())) {
+                ((Step_JDBCDAO) daoInstance).remove(step.getStepID());
+            } else {
+                ((Step_JDBCDAO) daoInstance).removeStepAssociation(step.getStepID(), analysis.getAnalysisID());
+            }
+        }
+
+        //STEP 2. REMOVE THE ANALYSIS
+        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "DELETE FROM analysis WHERE analysis_id = ?");
-        ps.setString(1, object_id);
+        ps.setString(1, analysis.getAnalysisID());
         ps.execute();
 
         return true;
     }
 
     @Override
+    public boolean remove(String object_id) throws SQLException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
     public boolean remove(String[] object_id_list) throws SQLException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public boolean updateRemoveRequests(String object_id, String[] remove_requests) throws SQLException {
+        //Insert the Experiment in the experiments table
+        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                + "UPDATE analysis SET remove_requests= ? WHERE analysis_id = ?");
+
+        ps.setString(1, String.join(", ", remove_requests));
+        ps.setString(2, object_id);
+        ps.execute();
+        return true;
     }
 }

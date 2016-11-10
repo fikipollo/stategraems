@@ -16,11 +16,12 @@
             </div>
         </div>
         <uib-accordion close-others="oneAtATime" ng-show="viewMode === 'edition'">
-            <div uib-accordion-group class="panel-danger" heading="Delete this experiment">
+            <div uib-accordion-group class="panel-danger" >
+                <uib-accordion-heading><i class='fa fa-trash'></i> Delete this experiment</uib-accordion-heading>
                 <p ng-if="model.experiment_owners.length > 1"><b>Delete this experiment from your collection?</b><br>You will be removed from the owners list but the experiment will not deleted before all the administrators remove the experiment.</p>
                 <p ng-if="model.experiment_owners.length < 2"><b>Delete this experiment from the system?</b><br>This action will remove all the data for the experiment from database, including all associated analysis.<br>This action cannot be undone.</p>
                 <p>Please, to delete this experiment, click the button below</p>
-                <a class="btn btn-danger" ng-click="controller.deleteExperimentHandler(model);">Delete</a>
+                <a class="btn btn-danger" ng-click="controller.deleteExperimentHandler(model);"><i class='fa fa-trash'></i> Delete</a>
             </div>
         </uib-accordion>
         <nav class="navbar navbar-default navbar-fixed-bottom progressNavigator" >

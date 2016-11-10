@@ -20,11 +20,12 @@
                     </div>
                 </div>
                 <uib-accordion close-others="oneAtATime" ng-show="viewMode === 'edition'">
-                    <div uib-accordion-group class="panel-danger" heading="Delete all the samples">
+                    <div uib-accordion-group class="panel-danger" >
+                        <uib-accordion-heading><i class='fa fa-trash'></i> Delete this samples set</uib-accordion-heading>
                         <p ng-if="model.owners.length > 1"><b>Delete these samples from your collection?</b><br>You will be removed from the owners list but the samples will not deleted before all the other owners remove the samples.</p>
                         <p ng-if="model.owners.length < 2"><b>Delete these samples from the system?</b><br>This action will remove all the data for the samples, including biological condition details and aliquots.<br>This action cannot be undone.</p>
                         <p>Please, to delete all the samples, click the button below</p>
-                        <a class="btn btn-danger" ng-click="controller.deleteBiologicalConditionHandler(model);">Delete</a>
+                        <a class="btn btn-danger" ng-click="controller.deleteBiologicalConditionHandler(model);"><i class='fa fa-trash'></i> Delete</a>
                     </div>
                 </uib-accordion>
             </uib-tab>

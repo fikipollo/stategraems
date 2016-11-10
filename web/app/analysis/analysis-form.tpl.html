@@ -1,7 +1,10 @@
 <div ng-controller="AnalysisDetailController as controller" ng-init="activeTab = 0; show = {steps:'all'}">
     <form name="analysisForm" class="form-horizontal">
         <nav class="navbar navbar-default navbar-top title-bar">
-            <h1 class="form_title">{{panel_title}}</h1>
+            <h1 class="form_title">
+                <span ng-show="model.isRemoved === true" class="label label-danger" style="float: right;padding: 10px;">Deleted</span>
+                {{panel_title}}
+            </h1>
         </nav>
         <uib-tabset active="activeTab">
             <uib-tab index="0" select="controller.updateMainDiagramHandler();">
@@ -9,6 +12,13 @@
                     <i class="fa fa-sitemap"></i> Analysis overview
                 </uib-tab-heading>
                 <h2 class="form_subtitle">Analysis details</h2>
+                <div ng-show="model.isRemoved === true" class="well well-sm text-danger" style="margin: 23px;background: #ffeaed;">
+                    <i class="fa fa-info-circle"></i> You removed this analysis from your collection. The analysis will be completely removed as soon as the other owners confirm this action
+                </div>
+                <div ng-show="!model.isRemoved && model.remove_requests.length > 0" class="well well-sm text-danger" style="margin: 23px;background: #ffeaed;">
+                    <i class="fa fa-info-circle"></i> The following users deleted this analysis and are waiting for your confirmation: {{model.remove_requests.join(", ")}}<br>
+                    Please confirm the deletion using deletion tool (in edition mode).
+                </div>
                 <div ng-if="template === undefined">
                     <p>Generating the form...</p>
                 </div>
@@ -27,10 +37,11 @@
                     <analysis-diagram container-id="mainDiagramContainer" style="height:400px;"></analysis-diagram>
                 </div>
                 <uib-accordion close-others="oneAtATime" ng-show="viewMode === 'edition'">
-                    <div uib-accordion-group class="panel-danger" heading="Delete this analysis">
+                    <div uib-accordion-group class="panel-danger">
+                        <uib-accordion-heading><i class='fa fa-trash'></i> Delete this analysis</uib-accordion-heading>
                         <p>Delete this analysis from your collection?<br>You will be removed from the owners list but the analysis will not deleted before all the owners remove the analysis.</p>
                         <p>Please, to delete this analysis, click the button below</p>
-                        <a class="btn btn-danger" ng-click="controller.deleteAnalysisHandler(model);">Delete</a>
+                        <a class="btn btn-danger" ng-click="controller.deleteAnalysisHandler(model);"><i class='fa fa-trash'></i>  Delete</a>
                     </div>
                 </uib-accordion>
             </uib-tab>
@@ -84,7 +95,7 @@
                 <a class="btn btn-danger btn-md navbar-right" ng-click="controller.cancelButtonHandler();">
                     <i class="fa fa-times"></i> <span ng-if="viewMode === 'view'">Close</span><span ng-if="viewMode !== 'view'">Cancel</span> 
                 </a>
-                <a class="btn btn-warning btn-md navbar-right" ng-show="viewMode === 'view'" ng-click="controller.editButtonHandler();">
+                <a class="btn btn-warning btn-md navbar-right" ng-show="viewMode === 'view' && model.isRemoved !== true" ng-click="controller.editButtonHandler();">
                     <i class="fa fa-pencil-square-o"></i> Edit
                 </a>
                 <a class="btn btn-success btn-md navbar-right" ng-show="viewMode !== 'view'"  ng-click="controller.acceptButtonHandler()" >

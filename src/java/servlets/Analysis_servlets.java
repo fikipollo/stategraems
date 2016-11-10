@@ -21,8 +21,8 @@ package servlets;
 
 import bdManager.DAO.DAO;
 import bdManager.DAO.DAOProvider;
+import bdManager.DAO.analysis.Analysis_JDBCDAO;
 import bdManager.DAO.analysis.Step_JDBCDAO;
-import classes.Experiment;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -46,11 +46,11 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.security.AccessControlException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.zip.GZIPOutputStream;
+import java.util.HashSet;
+import java.util.Set;
 import javax.imageio.ImageIO;
 import org.apache.commons.codec.binary.Base64;
 
@@ -415,20 +415,20 @@ public class Analysis_servlets extends Servlet {
                  */
                 //Get parameters
                 analysis = Analysis.fromJSON(requestData.get("analysis_json_data"));
-                
+
                 ArrayList<Step> steps = new ArrayList<Step>();
                 for (Step step : analysis.getNonProcessedData()) {
-                    if (! "new_deleted".equals(step.getStatus())) {
+                    if (!"new_deleted".equals(step.getStatus())) {
                         steps.add(step);
-                    } 
+                    }
                 }
                 analysis.setNonProcessedData(steps.toArray(new NonProcessedData[]{}));
 
                 steps = new ArrayList<Step>();
                 for (Step step : analysis.getProcessedData()) {
-                    if (! "new_deleted".equals(step.getStatus())) {
+                    if (!"new_deleted".equals(step.getStatus())) {
                         steps.add(step);
-                    } 
+                    }
                 }
                 analysis.setProcessedData(steps.toArray(new ProcessedData[]{}));
 
@@ -678,7 +678,7 @@ public class Analysis_servlets extends Servlet {
                 if (ServerErrorManager.errorStatus()) {
                     response.setStatus(400);
                     response.getWriter().print(ServerErrorManager.getErrorResponse());
-                    
+
                     for (String BLOCKED_ID : BLOCKED_IDs) {
                         BlockedElementsManager.getBlockedElementsManager().unlockID(BLOCKED_ID);
                     }
@@ -963,11 +963,13 @@ public class Analysis_servlets extends Servlet {
             Object[] params = {loadRecursive};
             Analysis analysis = (Analysis) dao_instance.findByID(analysis_id, params);
             dao_instance.closeConnection();
-            String step_id;
-            for (Step step : analysis.getNonProcessedData()) {
-                step_id = step.getStepID();
-                if (!BlockedElementsManager.getBlockedElementsManager().unlockObject(step_id, loggedUser)) {
-                    notUnlockedSteps.add(step_id);
+            if (analysis != null) {
+                String step_id;
+                for (Step step : analysis.getNonProcessedData()) {
+                    step_id = step.getStepID();
+                    if (!BlockedElementsManager.getBlockedElementsManager().unlockObject(step_id, loggedUser)) {
+                        notUnlockedSteps.add(step_id);
+                    }
                 }
             }
 
@@ -1020,12 +1022,9 @@ public class Analysis_servlets extends Servlet {
         try {
             boolean ROLLBACK_NEEDED = false;
             DAO daoInstance = null;
-            Analysis analysis = null;
-            String userName = null;
-            String experimentID = null;
+            boolean removable = true;
 
             try {
-
                 /**
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
@@ -1033,10 +1032,19 @@ public class Analysis_servlets extends Servlet {
                  * ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                userName = request.getParameter("loggedUser");
-                if (!checkAccessPermissions(userName, request.getParameter("sessionToken"))) {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
+
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
+
+                String loggedUserID = requestData.get("loggedUserID").getAsString();
+                String experimentID = requestData.get("currentExperimentID").getAsString();
+                String analysisID = requestData.get("analysis_id").getAsString();
 
                 /**
                  * *******************************************************
@@ -1047,66 +1055,85 @@ public class Analysis_servlets extends Servlet {
                 boolean loadRecursive = true;
                 Object[] params = {loadRecursive};
                 daoInstance = DAOProvider.getDAOByName("Analysis");
-                String analysisID = request.getParameter("analysis_id");
-                experimentID = request.getParameter("currentExperimentID");
 
-                analysis = (Analysis) daoInstance.findByID(analysisID, params);
+                Analysis analysis = (Analysis) daoInstance.findByID(analysisID, params);
+                if (!analysis.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
+                    throw new AccessControlException("Cannot remove selected Analysis. Current user has not privileges over this element.");
+                }
 
                 /**
                  * *******************************************************
-                 * STEP 5 ADD, UPDATE AND REMOVE THE NPD instances IN DATABASE.
-                 * Must be in this order because: -- If we change the used data
-                 * for a specified step adding a to be created step, must be
-                 * inserted first. -- If we change the used data removing an
-                 * used step and then we delete this step (the used one), we
-                 * must update first (because of foreign keys) With this method,
-                 * when an step is removed, the step_id is lost. Because the
-                 * "getNextStepID" function is called before removing ADDED
-                 * steps must be ordered from less to greater step_number
-                 * <p/>
-                 * IF ERROR --> throws SQL Exception, GO TO STEP ? ELSE --> GO
-                 * TO STEP 6
+                 * STEP 3 Check if the user + the users in the remove_requests
+                 * list are the owners for all the steps. If at least one of the
+                 * steps has an user not in the list and the step is not
+                 * imported, then we add the user to the remove_requests.
+                 * Otherwise, we can remove the steps (or unlink) and the
+                 * analysis.
                  * *******************************************************
                  */
-                daoInstance = new Step_JDBCDAO();
-                daoInstance.disableAutocommit();
-                ROLLBACK_NEEDED = true;
+                Set<String> users = new HashSet<String>(Arrays.asList(analysis.getRemoveRequests()));
+                users.add(loggedUserID);
 
-                for (NonProcessedData nonProcessedData : analysis.getNonProcessedData()) {
-                    if (nonProcessedData.getAnalysisID().equalsIgnoreCase(analysisID)) {
-                        if (nonProcessedData.isOwner(userName) || userName.equalsIgnoreCase("admin")) {
-                            ((Step_JDBCDAO) daoInstance).remove(nonProcessedData.getStepID());
-                        } else {
-                            throw new AccessControlException("One or more steps cannot be removed. Current user is not owner for all the steps in the pipeline.");
+                //TODO: add admin user !loggedUserID.equalsIgnoreCase("admin")
+                for (Step step : analysis.getNonProcessedData()) {
+                    if (step.getAnalysisID().equalsIgnoreCase(analysisID)) { //If not imported step
+                        boolean isOwner = false;
+                        for (String user : users) { //Check if at least one of the users that want to remove is owner
+                            isOwner = isOwner || step.isOwner(user);
                         }
-                    } else {
-                        ((Step_JDBCDAO) daoInstance).removeStepAssociation(nonProcessedData.getStepID(), analysisID);
+                        if (!isOwner) {
+                            removable = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (removable) {
+                    for (Step step : analysis.getProcessedData()) {
+                        if (step.getAnalysisID().equalsIgnoreCase(analysisID)) { //If not imported step
+                            boolean isOwner = false;
+                            for (String user : users) { //Check if at least one of the users that want to remove is owner
+                                isOwner = isOwner || step.isOwner(user);
+                            }
+                            if (!isOwner) {
+                                removable = false;
+                                break;
+                            }
+                        }
                     }
                 }
 
                 /**
                  * *******************************************************
-                 * STEP 6 UPDATE,ADD AND REMOVE THE PD instances IN DATABASE. IF
-                 * ERROR --> throws SQL Exception, GO TO STEP ? ELSE --> GO TO
-                 * STEP 7
+                 * STEP 4 If the analysis is removable, then we proceed to
+                 * remove the analysis (includes unlinking shared steps).
+                 * Otherwise, we update the list of remove_requests
                  * *******************************************************
                  */
-                daoInstance = DAOProvider.getDAOByName("ProcessedData");
-                daoInstance.remove(analysisID);
-
                 daoInstance = DAOProvider.getDAOByName("Analysis");
-                daoInstance.remove(analysisID);
+                daoInstance.disableAutocommit();
+                ROLLBACK_NEEDED = true;
 
-                File file = new File(DATA_LOCATION + IMAGE_FILES_LOCATION.replaceAll("<experiment_id>", experimentID) + analysisID + "_prev.jpg");
-                file.delete();
-                file = new File(DATA_LOCATION + IMAGE_FILES_LOCATION.replaceAll("<experiment_id>", experimentID) + analysisID + ".png");
-                file.delete();
+                if (removable) {
+                    ((Analysis_JDBCDAO) daoInstance).remove(analysis);
+                    //DELETE THE DATA DIRECTORY
+                    File file = new File(DATA_LOCATION + IMAGE_FILES_LOCATION.replaceAll("<experiment_id>", experimentID) + analysisID + "_prev.jpg");
+                    if (file.exists()) {
+                        file.delete();
+                    }
+                    file = new File(DATA_LOCATION + IMAGE_FILES_LOCATION.replaceAll("<experiment_id>", experimentID) + analysisID + ".png");
+                    if (file.exists()) {
+                        file.delete();
+                    }
+                } else {
+                    ((Analysis_JDBCDAO) daoInstance).updateRemoveRequests(analysisID, users.toArray(new String[]{}));
+                }
 
                 /**
                  * *******************************************************
-                 * STEP 7 COMMIT CHANGES TO DATABASE. throws SQLException IF
+                 * STEP 5 COMMIT CHANGES TO DATABASE. throws SQLException IF
                  * ERROR --> throws SQL Exception, GO TO STEP ? ELSE --> GO TO
-                 * STEP 8
+                 * STEP 6
                  * *******************************************************
                  */
                 daoInstance.doCommit();
@@ -1125,7 +1152,10 @@ public class Analysis_servlets extends Servlet {
                         daoInstance.doRollback();
                     }
                 } else {
-                    response.getWriter().print("{success: " + true + " }");
+                    JsonObject obj = new JsonObject();
+                    obj.add("success", new JsonPrimitive(true));
+                    obj.add("removed", new JsonPrimitive(removable));
+                    response.getWriter().print(obj.toString());
                 }
 
                 /**

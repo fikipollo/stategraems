@@ -40,7 +40,7 @@
                 replace: true,
                 link: function ($scope, element) {
                     var model = $scope.field;
-                    var template = '<div class="field-group row" ' + (model.dependency ? 'ng-show="' + model.dependency + '"' : '') + ">";
+                    var template = '<div class="field-group row" ' + (model.dependency ? 'ng-show="model.' + model.dependency + '"' : '') + ">";
                     try {
                         if (model.type === "text") {
                             template +=

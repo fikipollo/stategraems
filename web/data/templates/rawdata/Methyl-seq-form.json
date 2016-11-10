@@ -77,7 +77,7 @@
                     "name": "extractionMethod.pooling_strategy_description",
                     "label": "Pooling strategy description",
                     "type": "textarea",
-                    "dependency": "model.extractionMethod.pooling_strategy !== 'None'"
+                    "dependency": "extractionMethod.pooling_strategy !== 'None'"
                 },
                 {
                     "name": "extractionMethod.library_construction_protocol",
@@ -106,23 +106,23 @@
                             "label": "forward-forward",
                             "value": "forward-forward"
                         }, {
-                            "label": "forward-forward",
+                            "label": "forward-reverse",
                             "value": "forward-reverse"
                         }
                     ],
-                    "dependency": "model.extractionMethod.layout === 'Paired-end'"
+                    "dependency": "extractionMethod.layout === 'Paired-end'"
                 },
                 {
                     "name": "extractionMethod.nominal_length",
                     "label": "Nominal length (bp)",
                     "type": "number",
-                    "dependency": "model.extractionMethod.layout === 'Paired-end'"
+                    "dependency": "extractionMethod.layout === 'Paired-end'"
                 },
                 {
                     "name": "extractionMethod.nominal_length_stdev",
                     "label": "Nominal length Std dev (bp)",
                     "type": "number",
-                    "dependency": "model.extractionMethod.layout === 'Paired-end'"
+                    "dependency": "extractionMethod.layout === 'Paired-end'"
                 },
                 {
                     "name": "extractionMethod.protocol",

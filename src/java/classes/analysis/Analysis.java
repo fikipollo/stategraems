@@ -41,7 +41,8 @@ public class Analysis {
     private String associated_experiment; //ONLY LOCAL INSTANCES, NOT IN DATABASE
     private NonProcessedData[] non_processed_data;
     private ProcessedData[] processed_data;
-    String[] tags;
+    private String[] tags;
+    private String[] remove_requests;
 
     public Analysis() {
     }
@@ -199,6 +200,22 @@ public class Analysis {
             }
         }
         return false;
+    }
+
+    public String[] getRemoveRequests() {
+        return this.remove_requests;
+    }
+
+    public void setRemoveRequests(String[] remove_requests) {
+        this.remove_requests = remove_requests;
+    }
+
+    public void setRemoveRequests(String remove_requests) {
+        if (remove_requests != null) {
+            this.remove_requests = remove_requests.split(", ");
+        }else{
+            this.remove_requests = new String[]{};
+        }
     }
 
     //***********************************************************************

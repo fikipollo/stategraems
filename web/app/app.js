@@ -203,8 +203,8 @@
                     return myAppConfig.EMS_SERVER + "add_analysis";
                 case "analysis-update":
                     return myAppConfig.EMS_SERVER + "update_analysis";
-//                case "analysis-delete":
-//                    return myAppConfig.EMS_SERVER + "remove_biocondition";
+                case "analysis-delete":
+                    return myAppConfig.EMS_SERVER + "remove_analysis";
                 case "analysis-lock":
                     return myAppConfig.EMS_SERVER + "lock_analysis";
                 case "analysis-unlock":
