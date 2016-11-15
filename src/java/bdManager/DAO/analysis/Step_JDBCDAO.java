@@ -287,6 +287,7 @@ public class Step_JDBCDAO extends DAO {
         ArrayList<Object> stepsList = new ArrayList<Object>();
 
         stepsList.addAll(DAOProvider.getDAOByName("RAWData").findAll(otherParams));
+        stepsList.addAll(DAOProvider.getDAOByName("ExternalData").findAll(otherParams));
         stepsList.addAll(DAOProvider.getDAOByName("IntermediateData").findAll(otherParams));
         stepsList.addAll(DAOProvider.getDAOByName("ProcessedData").findAll(otherParams));
 
@@ -323,14 +324,14 @@ public class Step_JDBCDAO extends DAO {
         //IF NO ENTRIES WERE FOUND IN THE DB, THEN WE RETURN THE FIRST ID 		
         String newID = "";
         if (previousID == null) {
-            newID = "ST" + analysis_id.substring(2) + ".001";
+            newID = "ST" + analysis_id.substring(2) + ".1";
         } else {
-            newID = previousID.substring(previousID.length() - 3);
+            newID = previousID.split("\\.")[1];
             newID = String.format("%03d", Integer.parseInt(newID) + 1);
             newID = "ST" + analysis_id.substring(2) + "." + newID;
         }
         while (!BlockedElementsManager.getBlockedElementsManager().lockID(newID)) {
-            newID = newID.substring(newID.length() - 3);
+            newID = newID.split("\\.")[1];
             newID = String.format("%03d", Integer.parseInt(newID) + 1);
             newID = "ST" + analysis_id.substring(2) + "." + newID;
         }

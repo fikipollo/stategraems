@@ -61,6 +61,13 @@
         };
     });
 
+    app.directive("externalSourceForm", function () {
+        return {
+            restrict: 'E',
+            templateUrl: "app/analysis/externalsource-form.tpl.html"
+        };
+    });
+    
     app.directive("analysisDiagram", ['$compile', '$dialogs', '$http', 'AnalysisList', function ($compile, $dialogs, $http, AnalysisList) {
             return {
                 restrict: 'E',
@@ -88,7 +95,8 @@
                                 defaultEdgeColor: '#d3d3d3',
                                 mouseEnabled: true,
                                 sideMargin: 100,
-                                labelAlignment: "bottom"
+                                labelAlignment: "bottom",
+                                autoRescale: false
                             }
                         });
 
@@ -130,15 +138,6 @@
                     var applyStyles = function () {
                         var diagram = $scope.diagram || {nodes: [], edges: []};
 
-                        var nodeSize = 16;
-                        var edgeSize = 4;
-                        if (diagram.nodes.length > 15) {
-                            nodeSize = 7;
-                            edgeSize = 2;
-                        } else if (diagram.nodes.length > 10) {
-                            nodeSize = 10;
-                            edgeSize = 3;
-                        }
                         var myPalette, myStyles;
                         if ($scope.controller.sigma.selectable === true) {
                             for (var i in diagram.nodes) {
@@ -156,43 +155,38 @@
                                 },
                                 iconScheme: {
                                     true: {font: 'FontAwesome', content: "\uF00c", scale: 0.7, color: '#ffffff'},
-                                    false: {font: 'FontAwesome', content: "\uF067", scale: 0.7, color: '#ffffff'}
+                                    false: {font: 'FontAwesome', content: "\uF067", scale: 0.7, color: '#ffffff'},
+                                    current: {font: 'FontAwesome', content: "\uF041", scale: 0.7, color: '#ffffff'}
                                 }
                             };
 
                             myStyles = {
                                 nodes: {
-                                    size: {by: 'size', bins: 7, min: nodeSize, max: nodeSize},
                                     icon: {by: 'selected', scheme: 'iconScheme'},
                                     color: {by: 'selected', scheme: 'nodeColorScheme'}
-                                },
-                                edges: {
-                                    size: {by: 'size', min: edgeSize, max: edgeSize}
                                 }
                             };
                         } else {
                             // Create a custom color palette:
                             myPalette = {
                                 nodeColorScheme: {
-                                    rawdata: "#ede43d",
+                                    rawdata: "#cbc600",
                                     intermediate_data: "#1fa7cb",
-                                    processed_data: "#c075e5"
+                                    processed_data: "#c075e5",
+                                    external_source: "#779b9a"
                                 },
                                 iconScheme: {
-                                    rawdata: {font: 'FontAwesome', content: "\uF129", scale: 0.7, color: '#ffffff'},
-                                    intermediate_data: {font: 'FontAwesome', content: "\uF129", scale: 0.7, color: '#ffffff'},
-                                    processed_data: {font: 'FontAwesome', content: "\uF129", scale: 0.7, color: '#ffffff'}
+                                    rawdata: {font: 'FontAwesome', content: "\uF15c", scale: 1, color: '#ffffff'},
+                                    intermediate_data: {content: "I", scale: 0.7, color: '#ffffff'},
+                                    processed_data: {content: "P", scale: 1, color: '#ffffff'},
+                                    external_source: {content: "R", scale: 0.7, color: '#ffffff'}
                                 }
                             };
 
                             myStyles = {
                                 nodes: {
-                                    size: {by: 'size', bins: 7, min: nodeSize, max: nodeSize},
                                     icon: {by: 'step_type', scheme: 'iconScheme'},
                                     color: {by: 'step_type', scheme: 'nodeColorScheme'}
-                                },
-                                edges: {
-                                    size: {by: 'size', min: edgeSize, max: edgeSize}
                                 }
                             };
                         }
@@ -212,23 +206,62 @@
                         $scope.controller.sigma.design.apply();
 
                         // Configure the DAG layout:
-                        sigma.layouts.dagre.configure($scope.controller.sigma, {
+                        var listener = sigma.layouts.dagre.configure($scope.controller.sigma, {
                             directed: true, // take edge direction into account
                             rankdir: 'LR', // Direction for rank nodes. Can be TB, BT, LR, or RL,
                             easing: 'quadraticInOut', // animation transition function
                             duration: 800, // animation duration
                         });
+
+                        // Bind all events:
+                        listener.bind('stop', function (event) {
+                            if ($scope.controller.sigma.graph.nodes().length) {
+                                var dom = document.getElementById(attrs["container-id"]);
+                                var w = dom.offsetWidth,
+                                        h = dom.offsetHeight;
+
+                                // The "rescale" middleware modifies the position of the nodes, but we
+                                // need here the camera to deal with this. Here is the code:
+                                var xMin = Infinity,
+                                        xMax = -Infinity,
+                                        yMin = Infinity,
+                                        yMax = -Infinity,
+                                        margin = 50,
+                                        scale;
+
+                                $scope.controller.sigma.graph.nodes().forEach(function (n) {
+                                    xMin = Math.min(n.x, xMin);
+                                    xMax = Math.max(n.x, xMax);
+                                    yMin = Math.min(n.y, yMin);
+                                    yMax = Math.max(n.y, yMax);
+                                });
+
+                                xMax += margin;
+                                xMin -= margin;
+                                yMax += margin;
+                                yMin -= margin;
+
+                                scale = Math.min(w / Math.max(xMax - xMin, 1), h / Math.max(yMax - yMin, 1));
+
+                                $scope.controller.sigma.camera.goTo({
+                                    x: (xMin + xMax) / 2,
+                                    y: (yMin + yMax) / 2,
+                                    ratio: 1 / scale
+                                });
+                            }
+                        });
+
                         // Start the DAG layout:
                         sigma.layouts.dagre.start($scope.controller.sigma);
 
-                        $scope.controller.sigma.refresh();
+                        //$scope.controller.sigma.refresh();
                     };
 
                     $scope.$watch('diagram', function (newValues, oldValues, scope) {
                         if ($scope.diagram !== undefined && !oldValues || $scope.diagram !== undefined && $scope.controller.sigma === undefined) {
                             createDiagram();
                         } else if ($scope.diagram !== undefined) {
-                            if(newValues.hasChanged && newValues.hasChanged !== oldValues.hasChanged){
+                            if (newValues.hasChanged && newValues.hasChanged !== oldValues.hasChanged) {
                                 updateDiagram();
                             }
                         }

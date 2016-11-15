@@ -95,6 +95,13 @@
                     this.updateAnalysisTypes();
                     return this;
                 },
+                clearAnalysis: function () {
+                    analysis = [];
+                    tags = [];
+                    analysisTypes = [];
+                    filters = [];
+                    return this;
+                },
                 getTags: function () {
                     return tags;
                 },
@@ -221,17 +228,17 @@
                         } else if (steps[i].type === "processed_data") {
                             steps[i].processed_data_type = steps[i].processed_data_type[0].toUpperCase() + steps[i].processed_data_type.substr(1);
                             steps[i].processed_data_type = steps[i].processed_data_type.replace("_step", "");
-                        }else{
+                        } else {
                             steps[i].analyticalReplicate_id = steps[i].analyticalReplicate_id || null;
                         }
-                        
+
                         //Adjust other_fields types
-                        for(var key in steps[i].other_fields){
-                            if(!Number.isNaN(Number.parseFloat(steps[i].other_fields[key]))){
+                        for (var key in steps[i].other_fields) {
+                            if (!Number.isNaN(Number.parseFloat(steps[i].other_fields[key]))) {
                                 steps[i].other_fields[key] = steps[i].other_fields[key] - 0;
                             }
                         }
-                        
+
                     }
                     return steps;
                 },

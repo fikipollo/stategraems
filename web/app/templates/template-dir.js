@@ -167,6 +167,15 @@
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
                                     '</input-files-selector-field>';
+                        } else if (model.type === "reference_files_selector") {
+                            template +=
+                                    '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
+                                    '<reference-files-selector-field  class="col-sm-9" ' +
+                                    '                      name="{{field.name}}" ' +
+                                    '                      ng-init="models=model.' + model.name + '"' +
+                                    '                      ' + (model.required ? "required" : "") +
+                                    '                      ng-readonly="viewMode === \'view\'">' +
+                                    '</reference-files-selector-field>';
                         } else if (model.type === "sample_selector") {
                             template +=
                                     '<sample-selector-field name="{{field.name}}" ' +

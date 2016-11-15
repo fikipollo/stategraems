@@ -842,6 +842,7 @@
             if ($scope.viewMode === 'view') {
                 $state.go('samples');
             } else if ($scope.viewMode === 'edition') {
+                this.retrieveSampleDetails($scope.model.biocondition_id, true);
                 this.send_unlock_sample();
             } else {
                 $state.go('samples');

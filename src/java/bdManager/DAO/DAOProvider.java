@@ -19,27 +19,25 @@
  *  *************************************************************** */
 package bdManager.DAO;
 
+import bdManager.DAO.analysis.ProcessedData_JDBCDAO;
 import bdManager.DAO.analysis.IntermediateData_JDBCDAO;
 import bdManager.DAO.analysis.Analysis_JDBCDAO;
+import bdManager.DAO.analysis.ExternalData_JDBCDAO;
 import bdManager.DAO.analysis.QualityReport_JDBCDAO;
 import bdManager.DAO.analysis.Step_JDBCDAO;
 import bdManager.DAO.analysis.non_processed_data.raw_data.ExtractionMethods.*;
 import bdManager.DAO.analysis.non_processed_data.raw_data.RAWdata_JDBCDAO;
 import bdManager.DAO.analysis.non_processed_data.raw_data.SeparationMethods.*;
-import bdManager.DAO.analysis.processed_data.*;
-import bdManager.DAO.analysis.processed_data.region_step.*;
 import bdManager.DAO.samples.*;
 import classes.analysis.Analysis;
 import classes.analysis.ProcessedData;
 import classes.analysis.QualityReport;
+import classes.analysis.non_processed_data.ExternalData;
 import classes.analysis.non_processed_data.IntermediateData;
 import classes.analysis.non_processed_data.RAWdata;
-import classes.analysis.non_processed_data.intermediate_data.*;
 import classes.analysis.non_processed_data.raw_data.ExtractionMethod;
 import classes.analysis.non_processed_data.raw_data.ExtractionMethods.*;
 import classes.analysis.non_processed_data.raw_data.SeparationMethods.*;
-import classes.analysis.processed_data.*;
-import classes.analysis.processed_data.region_step.*;
 
 /**
  *
@@ -83,31 +81,12 @@ public class DAOProvider {
             //************************
             // INTERMEDIATE STEP DAOS 
             //************************
+        } else if (object instanceof ExternalData) {
+            return new ExternalData_JDBCDAO();
         } else if (object instanceof IntermediateData) {
             return new IntermediateData_JDBCDAO();
         } else if (object instanceof ProcessedData) {
-            //************************
-            // PROCESSED STEP DAOS 
-            //************************
-            if (object instanceof Calling_step) {
-                return new Calling_step_JDBCDAO();
-            } else if (object instanceof Data_matrix_step) {
-                return new Data_matrix_step_JDBCDAO();
-            } else if (object instanceof Merging_step) {
-                return new Merging_step_JDBCDAO();
-            } else if (object instanceof Proteomics_msquantification_step) {
-                return new Proteomics_msquantification_step_JDBCDAO();
-            } else if (object instanceof Quantification_step) {
-                return new Quantification_step_JDBCDAO();
-            } else if (object instanceof Region_calling_step) {
-                return new Region_calling_step_JDBCDAO();
-            } else if (object instanceof Region_intersection_step) {
-                return new Region_intersection_step_JDBCDAO();
-            } else if (object instanceof Region_consolidation_step) {
-                return new Region_consolidation_step_JDBCDAO();
-            } else {
-                return new ProcessedData_JDBCDAO();
-            }
+            return new ProcessedData_JDBCDAO();
         } else if (object instanceof QualityReport) {
             return new QualityReport_JDBCDAO();
         } else {
@@ -168,44 +147,17 @@ public class DAOProvider {
         } else if ("CapillaryElectrophoresis".equalsIgnoreCase(className)) {
             return new CapillaryElectrophoresis_JDBCDAO();
             //INTERMEDIATE DATA
+        } else if ("ExternalData".equalsIgnoreCase(className)) {
+            return new ExternalData_JDBCDAO();
         } else if ("IntermediateData".equalsIgnoreCase(className)) {
-            return new IntermediateData_JDBCDAO();
-        } else if ("Preprocessing_step".equalsIgnoreCase(className)) {
-            return new IntermediateData_JDBCDAO();
-        } else if ("Mapping_step".equalsIgnoreCase(className)) {
-            return new IntermediateData_JDBCDAO();
-        } else if ("Union_step".equalsIgnoreCase(className)) {
-            return new IntermediateData_JDBCDAO();
-        } else if ("Smoothing_step".equalsIgnoreCase(className)) {
-            return new IntermediateData_JDBCDAO();
-        } else if ("Extract_relevant_features".equalsIgnoreCase(className)) {
             return new IntermediateData_JDBCDAO();
             //PROCESSED DATA
         } else if ("ProcessedData".equalsIgnoreCase(className)) {
             return new ProcessedData_JDBCDAO();
-        } else if ("Region_calling_step".equalsIgnoreCase(className)) {
-            return new Region_calling_step_JDBCDAO();
-        } else if ("Region_intersection_step".equalsIgnoreCase(className)) {
-            return new Region_intersection_step_JDBCDAO();
-        } else if ("Region_consolidation_step".equalsIgnoreCase(className)) {
-            return new Region_consolidation_step_JDBCDAO();
-        } else if ("Calling_step".equalsIgnoreCase(className)) {
-            return new Calling_step_JDBCDAO();
-        } else if ("Data_matrix_step".equalsIgnoreCase(className)) {
-            return new Data_matrix_step_JDBCDAO();
-        } else if ("Merging_step".equalsIgnoreCase(className)) {
-            return new Merging_step_JDBCDAO();
-        } else if ("Proteomics_msquantification_step".equalsIgnoreCase(className)) {
-            return new Proteomics_msquantification_step_JDBCDAO();
-        } else if ("Quantification_step".equalsIgnoreCase(className)) {
-            return new Quantification_step_JDBCDAO();
-            //OTHER
         } else if ("QualityReport".equalsIgnoreCase(className)) {
             return new QualityReport_JDBCDAO();
         } else if ("User".equalsIgnoreCase(className)) {
             return new User_JDBCDAO();
-        } else if ("Region_step".equalsIgnoreCase(className)) {
-            return new Region_stepDAO();
         } else {
             return null;
         }

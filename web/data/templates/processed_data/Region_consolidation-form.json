@@ -1,16 +1,5 @@
 {
     "id": "Region_consolidation-form",
     "content": [
-        {
-            "name": "section_1",
-            "title": "Region consolidation details",
-            "fields": [
-                {
-                    "name": "motivation",
-                    "label": "Motivation",
-                    "type": "textarea"
-                }
-            ]
-        }
     ]
 }

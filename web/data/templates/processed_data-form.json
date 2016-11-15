@@ -9,7 +9,7 @@
                     "name": "step_name",
                     "label": "Step name",
                     "type": "text",
-                    "required" : true
+                    "required": true
                 },
                 {
                     "name": "processed_data_type",
@@ -40,7 +40,7 @@
                     "name": "step_owners",
                     "label": "Owners",
                     "type": "user_selector",
-                    "required" : true
+                    "required": true
                 }
             ]
         },
@@ -63,6 +63,11 @@
                     "name": "used_data",
                     "label": "Input files",
                     "type": "input_files_selector"
+                },
+                {
+                    "name": "reference_data",
+                    "label": "Reference files",
+                    "type": "reference_files_selector"
                 },
                 {
                     "name": "software_configuration",

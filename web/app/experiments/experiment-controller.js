@@ -27,6 +27,7 @@
         'angular.backtop',
         'experiments.services.experiment-list',
         'experiments.directives.experiment-card',
+        'analysis.services.analysis-list',
         'templates.directives.template',
         'ui.bootstrap'
     ]);
@@ -57,7 +58,7 @@
      *                                                                                  
      ******************************************************************************/
 
-    app.controller('ExperimentListController', function ($rootScope, $scope, $http, $stateParams, $dialogs, APP_EVENTS, ExperimentList) {
+    app.controller('ExperimentListController', function ($rootScope, $scope, $http, $stateParams, $dialogs, APP_EVENTS, ExperimentList, AnalysisList) {
         /******************************************************************************      
          *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
          *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
@@ -146,7 +147,7 @@
                         if (response.data.valid_experiment) {
                             console.info((new Date()).toLocaleString() + "CHANGED TO EXPERIMENT " + experiment_id + " SUCCESSFULLY");
                             Cookies.set('currentExperimentID', experiment_id, null, location.pathname);
-
+                            AnalysisList.clearAnalysis();
                             $scope.currentExperiment = ExperimentList.getExperiment(Cookies.get('currentExperimentID'));
                             $dialogs.showSuccessDialog("Now you are working with experiment \"" + ExperimentList.getExperiment(experiment_id).title + "\"");
                         } else {
@@ -838,6 +839,7 @@
                 $state.go('experiments');
             } else if ($scope.viewMode === 'edition') {
                 this.send_unlock_experiment();
+                this.retrieveExperimentDetails($scope.model.experiment_id, true);
             } else {
                 $state.go('experiments');
             }

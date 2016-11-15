@@ -17,7 +17,7 @@
  *  More info http://bioinfo.cipf.es/stategraems
  *  Technical contact stategraemsdev@gmail.com
  *  *************************************************************** */
-package bdManager.DAO.analysis.processed_data;
+package bdManager.DAO.analysis;
 
 import bdManager.DAO.DAO;
 import bdManager.DAO.DAOProvider;
@@ -46,54 +46,48 @@ public class ProcessedData_JDBCDAO extends Step_JDBCDAO {
      */
     @Override
     public boolean insert(Object object) throws SQLException {
-        ProcessedData processedData = (ProcessedData) object;
+        ProcessedData step = (ProcessedData) object;
 
         //FIRST CALL TO PARENT INSERT FUNCTION
-        super.insert(processedData);
+        super.insert(step);
 
         //1.   Inserts a new entry in the ProcessedData table
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "INSERT INTO processed_data SET "
                 + "step_id = ?, processed_data_type = ?, software = ?, software_version = ?,"
-                + "software_configuration = ?, results = ?");
+                + "software_configuration = ?, motivation = ?, results = ?");
 
-        ps.setString(1, processedData.getStepID());
-        ps.setString(2, processedData.getProcessedDataType());
-        ps.setString(3, processedData.getSoftware());
-        ps.setString(4, processedData.getSoftwareVersion());
-        ps.setString(5, processedData.getSoftwareConfiguration());
-        ps.setString(6, processedData.getResults());
+        ps.setString(1, step.getStepID());
+        ps.setString(2, step.getProcessedDataType());
+        ps.setString(3, step.getSoftware());
+        ps.setString(4, step.getSoftwareVersion());
+        ps.setString(5, step.getSoftwareConfiguration());
+        ps.setString(6, step.getMotivation());
+        ps.setString(7, step.getResults());
         ps.execute();
 
-        //1.   Inserts a new entry in the calling_step table
-        if (processedData.getUsedData() != null) {
-            for (String used_data_step_id : processedData.getUsedData()) {
+        //2. Register the used data files for the step
+        if (step.getUsedData() != null) {
+            for (String used_data_step_id : step.getUsedData()) {
                 ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                        + "INSERT INTO step_use_step SET "
-                        + "step_id = ?, used_data_id = ?");
-
-                ps.setString(1, processedData.getStepID());
+                        + "INSERT INTO step_use_step SET step_id = ?, used_data_id = ?, type='input'");
+                ps.setString(1, step.getStepID());
                 ps.setString(2, used_data_step_id);
                 ps.execute();
             }
         }
 
-        return true;
-    }
-
-    /**
-     * This function manages the NonProcessedData insertion
-     * <p/>
-     * @param non_processed_data_list
-     * @return
-     * @throws SQLException
-     */
-    public boolean insert(ProcessedData[] non_processed_data_list) throws SQLException {
-        boolean status = true;
-        for (ProcessedData processedData : non_processed_data_list) {
-            status &= DAOProvider.getDAO(processedData).insert(processedData);
+        //3. Register the reference data files for the step
+        if (step.getReferenceData()!= null) {
+            for (String used_data_step_id : step.getReferenceData()) {
+                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                        + "INSERT INTO step_use_step SET step_id = ?, used_data_id = ?, type='reference'");
+                ps.setString(1, step.getStepID());
+                ps.setString(2, used_data_step_id);
+                ps.execute();
+            }
         }
-        return status;
+        return true;
     }
 
     /**
@@ -111,30 +105,43 @@ public class ProcessedData_JDBCDAO extends Step_JDBCDAO {
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "UPDATE processed_data SET "
                 + " processed_data_type = ?, software = ?, software_version = ?,"
-                + " software_configuration = ?, results = ? WHERE step_id = ?");
+                + " software_configuration = ?, motivation = ?, results = ? WHERE step_id = ?");
 
         ps.setString(1, step.getProcessedDataType());
         ps.setString(2, step.getSoftware());
         ps.setString(3, step.getSoftwareVersion());
         ps.setString(4, step.getSoftwareConfiguration());
-        ps.setString(5, step.getResults());
-        ps.setString(6, step.getStepID());
+        ps.setString(5, step.getMotivation());
+        ps.setString(6, step.getResults());
+        ps.setString(7, step.getStepID());
         ps.execute();
 
-        //1.   REMOVE THE PREVIOUS ENTRIES
+        //2.   REMOVE THE PREVIOUS ENTRIES
         ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "DELETE FROM step_use_step WHERE step_id = ?");
         ps.setString(1, step.getStepID());
         ps.execute();
 
-        //1.   Inserts a new entry step_use_step table
+        //3a.   Inserts a new entries
         for (String used_data_step_id : step.getUsedData()) {
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                    + "INSERT INTO step_use_step SET step_id = ?, used_data_id = ?");
+                    + "INSERT INTO step_use_step SET step_id = ?, used_data_id = ?, type='input'");
             ps.setString(1, step.getStepID());
             ps.setString(2, used_data_step_id);
             ps.execute();
         }
+
+        //3b. Register the reference data files for the step
+        if (step.getReferenceData() != null) {
+            for (String used_data_step_id : step.getReferenceData()) {
+                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                        + "INSERT INTO step_use_step SET step_id = ?, used_data_id = ?, type='reference'");
+                ps.setString(1, step.getStepID());
+                ps.setString(2, used_data_step_id);
+                ps.execute();
+            }
+        }
+
 
         //3.Due to the step could be used in more than 1 analysis (imported step), 
         //we have to include the new used steps in all the analysis
@@ -159,43 +166,6 @@ public class ProcessedData_JDBCDAO extends Step_JDBCDAO {
         return true;
     }
 
-    public boolean update(ProcessedData[] processed_data_list) throws SQLException {
-        boolean status = true;
-        for (ProcessedData processedData : processed_data_list) {
-            status &= DAOProvider.getDAO(processedData).update(processedData);
-        }
-        return status;
-    }
-
-//    /**
-//     *
-//     * @param non_processed_data
-//     * @return
-//     * @throws SQLException
-//     */
-////    @Override
-//    @Override
-//    public boolean remove(String object_id) throws SQLException {
-//        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-//                + "DELETE FROM processed_data "
-//                + "WHERE analysis_id = ? ");
-//
-//        ps.setString(1, object_id);
-//        boolean status = ps.execute();
-//        return true;
-//    }
-//
-//    public boolean remove(String[] processed_data_id_list) throws SQLException {
-//        if (processed_data_id_list == null) {
-//            return false;
-//        }
-//
-//        boolean status = true;
-//        for (String processed_data_id : processed_data_id_list) {
-//            status &= remove(processed_data_id);
-//        }
-//        return status;
-//    }
     //******************************************************************************************************************************************/
     //*** GETTERS                                        ***************************************************************************************/
     //******************************************************************************************************************************************/
@@ -226,8 +196,8 @@ public class ProcessedData_JDBCDAO extends Step_JDBCDAO {
         if (rs.first()) {
             processedDataInstance.setSoftware(rs.getString("processed_data_type"));
             processedDataInstance.setSoftware(rs.getString("software"));
-            processedDataInstance.setSoftware_version(rs.getString("software_version"));
-            processedDataInstance.setSoftware_configuration(rs.getString("software_configuration"));
+            processedDataInstance.setSoftwareVersion(rs.getString("software_version"));
+            processedDataInstance.setSoftwareConfiguration(rs.getString("software_configuration"));
             processedDataInstance.setResults(rs.getString("results"));
 
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
@@ -253,71 +223,71 @@ public class ProcessedData_JDBCDAO extends Step_JDBCDAO {
     //******************************************************************************************************************************************/
     /**
      *
-     * @param otherParams and array with the analysis id
-     * @return
-     */
-    @Override
-    public ArrayList<Object> findAll(Object[] otherParams) throws SQLException {
-//        String[] subtypes = new String[]{
-//             "Region_intersection_step", "Region_consolidation_step",
-//             "Data_matrix_step",  ""           
-//        };
-        String[] subtypes = new String[]{
-            "Quantification_step", "Merging_step", "Calling_step", "Region_calling_step", "Proteomics_msquantification_step", "region_intersection_step", "region_consolidation_step"
-        };
-
-        ArrayList<Object> processed_data_list = new ArrayList<Object>();
-
-        for (String subType : subtypes) {
-            processed_data_list.addAll(this.findAll(subType, otherParams));
-        }
-
-        return processed_data_list;
-    }
-
-    /**
-     *
-     * @param subType
      * @param otherParams
      * @return
      * @throws SQLException
      */
-    public ArrayList<Object> findAll(String subType, Object[] otherParams) throws SQLException {
+    @Override
+    public ArrayList<Object> findAll(Object[] otherParams) throws SQLException {
+        //STEP 1. GET THE LIST OF ALL THE PROCESSED STEPS ASSOCIATED TO GIVEN ANALYSIS;
         String analysis_id = null;
         if (otherParams != null) {
             analysis_id = (String) otherParams[0];
         }
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "SELECT t1.*  FROM processed_data as t1, analysis_has_steps as t3 "
-                + "WHERE "
-                + (analysis_id != null ? "t3.analysis_id = ? AND t1.step_id = t3.step_id AND " : "")
-                + "t1.processed_data_type = ?");
-
-        int i = 1;
-        if (analysis_id != null) {
-            ps.setString(i, analysis_id);
-            i++;
-        }
-        ps.setString(i, subType.toLowerCase());
-
+                + "WHERE t3.analysis_id = ? "
+                + "AND t1.step_id = t3.step_id");
+        ps.setString(1, analysis_id);
         ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
-        ArrayList<Object> processedDataSteps = new ArrayList<Object>();
-        DAO dao = DAOProvider.getDAOByName(subType);
-        ProcessedData processedDatainstance;
+
+        //FOR EACH STEP
+        ArrayList<Object> steps = new ArrayList<Object>();
+        ProcessedData step = null;
         while (rs.next()) {
-            processedDatainstance = (ProcessedData) dao.findByID(rs.getString("step_id"), otherParams);
-            processedDataSteps.add(processedDatainstance);
+            //STEP 2. GET THE DETAILS FOR THE STEP FROM DATABASE
+            step = new ProcessedData();
+            step.setStepID(rs.getString("step_id"));
+            Object[] params = {step};
+            super.findByID(step.getStepID(), params); //FIRST CALL TO PARENT FUNCTIONS
+            
+            //STEP 3. FILL THE SPECIFIC DETAILS FOR THE PROCESSED STEP
+            step.setProcessedDataType(rs.getString("processed_data_type"));
+            step.setSoftware(rs.getString("software"));
+            step.setSoftwareVersion(rs.getString("software_version"));
+            step.setSoftwareConfiguration(rs.getString("software_configuration"));
+            step.setMotivation(rs.getString("motivation"));
+            step.setResults(rs.getString("results"));
+            
+            //STEP 4. GET THE INPUT FILES FOR THE STEP
+            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                    + "SELECT used_data_id FROM step_use_step WHERE step_id = ? and type='input'");
+            ps.setString(1, step.getStepID());
+            ResultSet rs1 = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
+            
+            ArrayList<String> used_data = new ArrayList<String>();
+            while (rs1.next()) {
+                used_data.add(rs1.getString(1));
+            }
+            step.setUsedData(used_data.toArray(new String[used_data.size()]));
+
+            //STEP 5. GET THE REFERENCE FILES FOR THE STEP
+            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                    + "SELECT used_data_id FROM step_use_step WHERE step_id = ? and type='reference'");
+            ps.setString(1, step.getStepID());
+            rs1 = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
+             
+            used_data = new ArrayList<String>();
+            while (rs1.next()) {
+                used_data.add(rs1.getString(1));
+            }
+            step.setReferenceData(used_data.toArray(new String[used_data.size()]));
+            
+            //STEP 6. ADD THE NEW STEP TO THE LIST
+            steps.add(step);
         }
-
-        return processedDataSteps;
-    }
-
-    /**
-     *
-     * @return @throws SQLException
-     */
-    @Override
-    public String getNextObjectID(Object[] otherParams) throws SQLException {
-        throw new SQLException("Function not implemented");
+        
+        //STEP 7. RETURN THE LIST OF STEPS
+        return steps;
     }
 }

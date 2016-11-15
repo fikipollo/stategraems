@@ -19,6 +19,7 @@
  *  *************************************************************** */
 package classes.analysis;
 
+import classes.analysis.non_processed_data.ExternalData;
 import classes.analysis.non_processed_data.IntermediateData;
 import classes.analysis.non_processed_data.RAWdata;
 
@@ -44,16 +45,18 @@ public abstract class NonProcessedData extends Step {
      * @return the new Object.
      */
     public static NonProcessedData fromJSON(String jsonString) {
-        NonProcessedData non_process_data = null;
+        NonProcessedData step = null;
         if (jsonString.contains("\"type\":\"rawdata\"")) {
-            non_process_data = RAWdata.fromJSON(jsonString);
+            step = RAWdata.fromJSON(jsonString);
         } else if (jsonString.contains("\"type\":\"intermediate_data\"")) {
-            non_process_data = IntermediateData.fromJSON(jsonString);
-        }
+            step = IntermediateData.fromJSON(jsonString);
+        } else if (jsonString.contains("\"type\":\"external_source\"")) {
+            step = ExternalData.fromJSON(jsonString);
+        } 
 
-        non_process_data.adaptDates();
+        step.adaptDates();
 
-        return non_process_data;
+        return step;
     }
     
 //        public static NonProcessedData fromJSON(JsonObject jsonString) {

@@ -34,7 +34,6 @@ import classes.analysis.NonProcessedData;
 import classes.analysis.ProcessedData;
 import classes.analysis.Step;
 import classes.analysis.non_processed_data.IntermediateData;
-import classes.analysis.processed_data.Region_step;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -96,7 +95,7 @@ public class Analysis_servlets extends Servlet {
         } else if (request.getServletPath().equals("/get_analysis")) {
             get_analysis_handler(request, response);
         } else if (request.getServletPath().equals("/get_all_region_steps")) {
-            get_all_region_steps_handler(request, response);
+//            get_all_region_steps_handler(request, response);
         } else if (request.getServletPath().equals("/add_analysis")) {
             add_analysis_handler(request, response);
         } else if (request.getServletPath().equals("/save_analysis_image")) {
@@ -289,83 +288,83 @@ public class Analysis_servlets extends Servlet {
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
     }
-
-    /*
-     * name: get_all_region_steps_handler
-     * description :
-     * @param request
-     * @param response
-     * @throws ServletException
-     * @throws IOException
-     */
-    private void get_all_region_steps_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        try {
-            DAO dao_instance = null;
-            ArrayList<Object> region_step_list = null;
-            try {
-
-                /**
-                 * *******************************************************
-                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
-                 * ERROR --> throws exception if not valid session, GO TO STEP
-                 * 5b ELSE --> GO TO STEP 2
-                 * *******************************************************
-                 */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
-                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-                }
-
-                /**
-                 * *******************************************************
-                 * STEP 2 Get ALL THE REGIONS Object from DB. IF ERROR -->
-                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
-                 * *******************************************************
-                 */
-                boolean loadRecursive = false;
-                Object[] params = {loadRecursive};
-                dao_instance = DAOProvider.getDAOByName("Region_step");
-                region_step_list = dao_instance.findAll(params);
-
-            } catch (Exception e) {
-                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_region_steps_handler", e.getMessage());
-            } finally {
-                /**
-                 * *******************************************************
-                 * STEP 3b CATCH ERROR. GO TO STEP 4
-                 * *******************************************************
-                 */
-                if (ServerErrorManager.errorStatus()) {
-                    response.setStatus(400);
-                    response.getWriter().print(ServerErrorManager.getErrorResponse());
-                } else {
-                    /**
-                     * *******************************************************
-                     * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
-                     * *******************************************************
-                     */
-                    String regionStepsListJSON = "regionStepsList : [";
-                    for (Object region_step : region_step_list) {
-                        regionStepsListJSON += ((Region_step) region_step).toJSON() + ", ";
-                    }
-                    regionStepsListJSON += "]";
-                    response.getWriter().print("{success: " + true + ", " + regionStepsListJSON + " }");
-                }
-                /**
-                 * *******************************************************
-                 * STEP 4 Close connection.
-                 * ********************************************************
-                 */
-                if (dao_instance != null) {
-                    dao_instance.closeConnection();
-                }
-            }
-            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_region_steps_handler", e.getMessage());
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
-        }
-    }
+//
+//    /*
+//     * name: get_all_region_steps_handler
+//     * description :
+//     * @param request
+//     * @param response
+//     * @throws ServletException
+//     * @throws IOException
+//     */
+//    private void get_all_region_steps_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+//        try {
+//            DAO dao_instance = null;
+//            ArrayList<Object> region_step_list = null;
+//            try {
+//
+//                /**
+//                 * *******************************************************
+//                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
+//                 * ERROR --> throws exception if not valid session, GO TO STEP
+//                 * 5b ELSE --> GO TO STEP 2
+//                 * *******************************************************
+//                 */
+//                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+//                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+//                }
+//
+//                /**
+//                 * *******************************************************
+//                 * STEP 2 Get ALL THE REGIONS Object from DB. IF ERROR -->
+//                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+//                 * *******************************************************
+//                 */
+//                boolean loadRecursive = false;
+//                Object[] params = {loadRecursive};
+//                dao_instance = DAOProvider.getDAOByName("Region_step");
+//                region_step_list = dao_instance.findAll(params);
+//
+//            } catch (Exception e) {
+//                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_region_steps_handler", e.getMessage());
+//            } finally {
+//                /**
+//                 * *******************************************************
+//                 * STEP 3b CATCH ERROR. GO TO STEP 4
+//                 * *******************************************************
+//                 */
+//                if (ServerErrorManager.errorStatus()) {
+//                    response.setStatus(400);
+//                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+//                } else {
+//                    /**
+//                     * *******************************************************
+//                     * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
+//                     * *******************************************************
+//                     */
+//                    String regionStepsListJSON = "regionStepsList : [";
+//                    for (Object region_step : region_step_list) {
+//                        regionStepsListJSON += ((Region_step) region_step).toJSON() + ", ";
+//                    }
+//                    regionStepsListJSON += "]";
+//                    response.getWriter().print("{success: " + true + ", " + regionStepsListJSON + " }");
+//                }
+//                /**
+//                 * *******************************************************
+//                 * STEP 4 Close connection.
+//                 * ********************************************************
+//                 */
+//                if (dao_instance != null) {
+//                    dao_instance.closeConnection();
+//                }
+//            }
+//            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
+//        } catch (Exception e) {
+//            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_region_steps_handler", e.getMessage());
+//            response.setStatus(400);
+//            response.getWriter().print(ServerErrorManager.getErrorResponse());
+//        }
+//    }
 
     /**
      *

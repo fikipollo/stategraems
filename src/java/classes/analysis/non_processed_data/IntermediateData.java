@@ -59,25 +59,7 @@ public class IntermediateData extends NonProcessedData {
         Gson gson = new Gson();
         IntermediateData intermediate_data = gson.fromJson(jsonString, IntermediateData.class);
 
-//        Type type = new TypeToken<Map<String, String>>(){}.getType();
-//        preprocessing_step.extra = gson.fromJson(json, type);
         return intermediate_data;
-
-//        IntermediateData intermediate_data = null;
-//        if (jsonString.contains("\"intermediate_data_type\":\"Preprocessing\"")) {
-//            intermediate_data = Preprocessing_step.fromJSON(jsonString);
-//        } else if (jsonString.contains("\"intermediate_data_type\":\"Mapping\"")) {
-//            intermediate_data = Mapping_step.fromJSON(jsonString);
-//        } else if (jsonString.contains("\"intermediate_data_type\":\"Union\"")) {
-//            intermediate_data = Union_step.fromJSON(jsonString);
-//        } else if (jsonString.contains("\"intermediate_data_type\":\"Smoothing\"")) {
-//            intermediate_data = Smoothing_step.fromJSON(jsonString);
-//        } else if (jsonString.contains("\"intermediate_data_type\":\"extract_relevant_features_step\"")) {
-//            intermediate_data = Extract_relevant_features_step.fromJSON(jsonString);
-//        } else if (jsonString.contains("\"intermediate_data_type\":\"max_quant\"")) {
-//            intermediate_data = Maxquant_step.fromJSON(jsonString);
-//        }
-//        return intermediate_data;
     }
 
     @Override
@@ -146,15 +128,6 @@ public class IntermediateData extends NonProcessedData {
     public void setUsedData(String[] used_data) {
         this.used_data = used_data;
     }
-    //    public void addUsed_data(String used_data_id) {
-//        if (this.used_data == null) {
-//            this.used_data = new String[1];
-//            this.used_data[0] = used_data_id;
-//        }else{
-//            this.used_data = java.util.Arrays.copyOf(this.used_data, this.used_data.length+1);
-//            this.used_data[this.used_data.length - 1] = used_data_id;
-//        }
-//    }
 
     @Override
     public void updatePreviousStepIDs(String old_analysis_id, String new_analysis_id) {

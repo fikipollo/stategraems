@@ -19,42 +19,29 @@
  *  *************************************************************** */
 package classes.analysis;
 
-import classes.analysis.processed_data.Calling_step;
-import classes.analysis.processed_data.Data_matrix_step;
-import classes.analysis.processed_data.Merging_step;
-import classes.analysis.processed_data.Proteomics_msquantification_step;
-import classes.analysis.processed_data.Quantification_step;
-import classes.analysis.processed_data.Region_step;
+import com.google.gson.Gson;
 
 /**
  *
  * @author Rafa Hernández de Diego
  */
-public abstract class ProcessedData extends Step {
+public class ProcessedData extends Step {
 
-    protected String analysis_type;
     protected String processed_data_type;//ENUM('data_matrix','region_step','calling_step','quantification_step', 'merging_step', 'protID-Q_quantification')
     protected String software;
     protected String software_version;
     protected String software_configuration;
+    protected String motivation;
     protected String results;
     private String[] used_data;
+    private String[] reference_data;
 
     public ProcessedData() {
         this.type = "processed_data";
     }
 
-    public ProcessedData(String step_id, String processed_data_type, String software, String software_version, String software_configuration, String results, String[] files_location, String submission_date, String last_edition_date) {
-        this.step_id = step_id;
-        this.type = "processed_data";
-        this.processed_data_type = processed_data_type;
-        this.software = software;
-        this.software_version = software_version;
-        this.software_configuration = software_configuration;
-        this.results = results;
-        this.files_location = files_location;
-        this.submission_date = submission_date;
-        this.last_edition_date = last_edition_date;
+    public ProcessedData(String step_id) {
+        super(step_id, "intermediate_data");
     }
 
     /**
@@ -65,61 +52,29 @@ public abstract class ProcessedData extends Step {
      * @return the new Object.
      */
     public static ProcessedData fromJSON(String jsonString) {
-        ProcessedData processed_data = null;
-        if (jsonString.contains("\"processed_data_type\":\"data_matrix\"")) {
-            processed_data = Data_matrix_step.fromJSON(jsonString);
-        } else if (jsonString.matches(".*(\"processed_data_type\":\"region_)(.*)(step\")(.*)")) {
-            processed_data = Region_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"processed_data_type\":\"calling_step\"")) {
-            processed_data = Calling_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"processed_data_type\":\"quantification_step\"")) {
-            processed_data = Quantification_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"processed_data_type\":\"merging_step\"")) {
-            processed_data = Merging_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"processed_data_type\":\"proteomics_msquantification_step\"")) {
-            processed_data = Proteomics_msquantification_step.fromJSON(jsonString);
-        }
-        
-        processed_data.adaptDates();
+        Gson gson = new Gson();
+        ProcessedData step = gson.fromJson(jsonString, ProcessedData.class);
+        step.adaptDates();
 
-        return processed_data;
+        return step;
     }
-//
-//        public static ProcessedData fromJSON(JsonObject jsonString) {
-//        ProcessedData processed_data = null;
-//        if ("data_matrix".equalsIgnoreCase(jsonString.get("processed_data_type").getAsString())) {
-//            processed_data = Data_matrix_step.fromJSON(jsonString);
-//        } else if ("region_(.*)".matches(jsonString.get("processed_data_type").getAsString())) {
-//            processed_data = Region_step.fromJSON(jsonString);
-//        } else if ("calling_step".equalsIgnoreCase(jsonString.get("processed_data_type").getAsString())) {
-//            processed_data = Calling_step.fromJSON(jsonString);
-//        } else if ("quantification_step".equalsIgnoreCase(jsonString.get("processed_data_type").getAsString())) {
-//            processed_data = Quantification_step.fromJSON(jsonString);
-//        } else if ("merging_step".equalsIgnoreCase(jsonString.get("processed_data_type").getAsString())) {
-//            processed_data = Merging_step.fromJSON(jsonString);
-//        } else if ("proteomics_msquantification_step".equalsIgnoreCase(jsonString.get("processed_data_type").getAsString())) {
-//            processed_data = Proteomics_msquantification_step.fromJSON(jsonString);
-//        }
-//
-//        return processed_data;
-//    }
+
+    @Override
+    public String toJSON() {
+        Gson gson = new Gson();
+        String jsonString = gson.toJson(this);
+
+        return jsonString;
+    }
 
     //**********************************************************************
     //* GETTERS AND SETTERS ************************************************
     //**********************************************************************
-    public String getAnalysis_type() {
-        return analysis_type;
-    }
-
-    public void setAnalysisType(String analysis_type) {
-        this.analysis_type = analysis_type;
-    }
-
     public String getProcessedDataType() {
         return processed_data_type;
     }
 
-    public void setProcessed_data_type(String processed_data_type) {
+    public void setProcessedDataType(String processed_data_type) {
         this.processed_data_type = processed_data_type;
     }
 
@@ -135,7 +90,7 @@ public abstract class ProcessedData extends Step {
         return software_version;
     }
 
-    public void setSoftware_version(String software_version) {
+    public void setSoftwareVersion(String software_version) {
         this.software_version = software_version;
     }
 
@@ -143,8 +98,16 @@ public abstract class ProcessedData extends Step {
         return software_configuration;
     }
 
-    public void setSoftware_configuration(String software_configuration) {
+    public void setSoftwareConfiguration(String software_configuration) {
         this.software_configuration = software_configuration;
+    }
+
+    public String getMotivation() {
+        return motivation;
+    }
+
+    public void setMotivation(String motivation) {
+        this.motivation = motivation;
     }
 
     public String getResults() {
@@ -167,6 +130,14 @@ public abstract class ProcessedData extends Step {
         this.used_data = used_data;
     }
 
+    public String[] getReferenceData() {
+        return reference_data;
+    }
+
+    public void setReferenceData(String[] reference_data) {
+        this.reference_data = reference_data;
+    }
+
     @Override
     public void updatePreviousStepIDs(String old_analysis_id, String new_analysis_id) {
         if (this.used_data != null) {
@@ -174,6 +145,24 @@ public abstract class ProcessedData extends Step {
                 this.used_data[i] = this.used_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2));
             }
         }
+    }
+
+    @Override
+    public boolean updateAnalysisID(String new_analysis_id) {
+        //IF THE ANALYSIS ID IS DIFFERENT THAT THE TO-BE-CREATED ID, IT MEANS THAT 
+        //THE STEP IS AN IMPORTED STEP.
+        String analysis_id = this.getAnalysisID();
+
+        if (!"ANxxxx".equals(analysis_id)) {
+            return false;
+        }
+
+        this.setStepID(this.step_id.replaceFirst(analysis_id.substring(2), new_analysis_id.substring(2)));
+        this.updatePreviousStepIDs(analysis_id, new_analysis_id);
+        if (this.associatedQualityReport != null) {
+            this.associatedQualityReport.setStudiedStepID(this.step_id);
+        }
+        return true;
     }
 
     //***********************************************************************

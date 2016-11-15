@@ -665,7 +665,8 @@
                             x: step.x || 0,
                             y: step.y || 0,
                             step_type: step.type,
-                            step_subtype: step.raw_data_type || step.intermediate_data_type
+                            step_subtype: step.raw_data_type || step.intermediate_data_type,
+                            size: 12
                         };
                     }
                 }
@@ -680,7 +681,23 @@
                                     id: edge_id,
                                     source: step.used_data[j],
                                     target: step.step_id,
-                                    type: 'arrow'
+                                    type: 'arrow',
+                                };
+                            }
+                        }
+                    }
+                }
+                for (var i in steps) {
+                    step = steps[i];
+                    if (nodes[step.step_id]) {
+                        for (var j in step.reference_data) {
+                            if (nodes[step.reference_data[j]]) {
+                                edge_id = step.step_id + "" + step.reference_data[j];
+                                edges[edge_id] = {
+                                    id: edge_id,
+                                    source: step.reference_data[j],
+                                    target: step.step_id,
+                                    type: 'dotted',
                                 };
                             }
                         }
@@ -887,10 +904,15 @@
                             step.used_data = [];
                             $scope.model.non_processed_data.push(step);
                             $scope.model.nextStepID++;
+                        } else if ($scope.typesInfo.step_type === "external_source") {
+                            step.type = "external_source";
+                            $scope.model.non_processed_data.push(step);
+                            $scope.model.nextStepID++;
                         } else if ($scope.typesInfo.step_type === "processed_data") {
                             step.type = "processed_data";
                             step.processed_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
                             step.used_data = [];
+                            step.reference_data = [];
                             $scope.model.processed_data.push(step);
                             $scope.model.nextStepID++;
                         }
@@ -1041,6 +1063,7 @@
                 $state.go('analysis');
             } else if ($scope.viewMode === 'edition') {
                 this.send_unlock_analysis();
+                this.retrieveAnalysisDetails($scope.model.analysis_id, true);
             } else {
                 $state.go('analysis');
             }
@@ -1152,9 +1175,10 @@
          * @returns {StepDetailController} the controller
          * @chainable
          ******************************************************************************/
-        this.changeInputFilesHandler = function () {
+        this.changeInputFilesHandler = function (propertyName) {
             //TODO: REMOVE THE DIALOG AFTER CHOOSING (NOT DIMISS)
             $scope.isDialog = true;
+            $scope.propertyName = propertyName || "used_data";
 
             $scope.browseDialog = $uibModal.open({
                 templateUrl: 'app/analysis/analysis-step-selector.tpl.html',
@@ -1176,9 +1200,11 @@
          * @chainable
          ******************************************************************************/
         this.addSelectedInputFileHandler = function (added_step_id, doDigest) {
-            var pos = $scope.model.used_data.indexOf(added_step_id);
+            var propertyName = $scope.propertyName || 'used_data';
+
+            var pos = $scope.model[propertyName].indexOf(added_step_id);
             if (pos === -1) {
-                $scope.model.used_data.push(added_step_id);
+                $scope.model[propertyName].push(added_step_id);
                 if (doDigest === true) {
                     $scope.$digest();
                 }
@@ -1196,9 +1222,11 @@
          * @chainable
          ******************************************************************************/
         this.removeSelectedInputFileHandler = function (removed_step_id, doDigest) {
-            var pos = $scope.model.used_data.indexOf(removed_step_id);
+            var propertyName = $scope.propertyName || 'used_data';
+
+            var pos = $scope.model[propertyName].indexOf(removed_step_id);
             if (pos !== -1) {
-                $scope.model.used_data.splice(pos, 1);
+                $scope.model[propertyName].splice(pos, 1);
                 if (doDigest === true) {
                     $scope.$digest();
                 }

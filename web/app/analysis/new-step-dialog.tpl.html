@@ -5,22 +5,55 @@
     <div class="modal-body">
         <div style="margin: 20px;">
             <div class="form-group">
-                <label for="step_type">Step type:</label>
-                <select class="form-control" id="step_type" ng-model="typesInfo.step_type" ng-change="controller.updateStepSubtypes();">
-                    <option value="rawdata">Biological experiment (raw data)</option>
-                    <option value="intermediate_data">Intermediate data</option>
-                    <option value="processed_data">Processed data</option>
-                </select>
+                <a class="btn btn-default btn-lg" style="display: block; margin-bottom: 10px;" ng-model="typesInfo.step_type" ng-mouseenter="help = 'rawdata'" ng-click="controller.updateStepSubtypes();" uib-btn-radio="'rawdata'" uncheckable>Biological experiment (raw data)</a>
+                <a class="btn btn-default btn-lg" style="display: block; margin-bottom: 10px;"  ng-model="typesInfo.step_type" ng-mouseenter="help = 'intermediate_data'" ng-click="controller.updateStepSubtypes();" uib-btn-radio="'intermediate_data'" uncheckable>Intermediate data</a>
+                <a class="btn btn-default btn-lg" style="display: block; margin-bottom: 10px;"  ng-model="typesInfo.step_type" ng-mouseenter="help = 'external_source'" uib-btn-radio="'external_source'" uncheckable>External or reference file</a>
+                <a class="btn btn-default btn-lg" style="display: block; margin-bottom: 10px;"  ng-model="typesInfo.step_type" ng-mouseenter="help = 'processed_data'" ng-click="controller.updateStepSubtypes();" uib-btn-radio="'processed_data'" uncheckable>Processed data</a>
+                <div>
+                    <div class="well" ng-show="!help">
+                        <b>Please, choose the type for the new step.</b>
+                    </div>
+                    <div class="well" ng-show="help === 'rawdata'">
+                        <b><i class="fa fa-info-circle"></i> Biological experiment (raw data)</b>
+                        <p>
+                            These steps describe the data produced by the omics equipment. This information unit (IU) also contains detailed information for the experimental protocol applied to the analytical sample, i.e., the library preparation in a RNA-seq experiment, or the NMR analysis characteristics in the case of metabolomics.<br>
+                            For example, <i>.FASTQ</i> files in a sequencing experiment or NMR <i>.RAW</i> files in the case of a metabolomics experiment.
+                        </p>
+                    </div>
+                    <div class="well" ng-show="help === 'intermediate_data'">
+                        <b><i class="fa fa-info-circle"></i> Intermediate data</b>
+                        <p>
+                            This information unit (IU) includes all the processing steps in the workflow for producing the process data from the initial raw data. 
+                            Different omics experiment might require zero, one, or several intermediate steps. <br>
+                            For example, ChIP-seq experiments will generally have two intermediate steps consisting of the sequences mapping and the later peak calling.
+                        </p>
+                    </div>
+                    <div class="well" ng-show="help === 'processed_data'">
+                        <b><i class="fa fa-info-circle"></i> Processed data</b>
+                        <p>
+                            Use this information unit to describe the steps that produce a workflow result. <br>
+                            For example, the step for gene expression quantification in a RNA-seq experiment.
+                        </p>
+                    </div>
+                    <div class="well" ng-show="help === 'external_source'">
+                        <b><i class="fa fa-info-circle"></i> External or reference dataset</b>
+                        <p>
+                            Describe any external dataset used in the workflow used as reference or input for other steps.
+                            We consider a dataset as external if it is not the result for a previous step in the workflow.<br>
+                            E.g. a file containing the reference genome used during a mapping step, downloaded from the Ensembl website.
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="step_subtype">Step subtype:</label>
+            <div class="form-group" ng-hide="!typesInfo.step_type || typesInfo.step_type === 'external_source'">
+                <h4 class="form_subtitle">Now choose the <b>subtype for the new step</b></h4>
                 <select class="form-control" id="step_subtype" ng-model="typesInfo.step_subtype">
                     <option ng-repeat="step_subtype in typesInfo.step_subtypes">{{step_subtype}}</option>
                 </select>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-success" type="button" ng-disabled="!typesInfo.step_type || !typesInfo.step_subtype" ng-click="controller.addNewStepAcceptButtonHandler();">Add the new step</button>
+            <button class="btn btn-success btn-lg" type="button" ng-disabled="!typesInfo.step_type || (typesInfo.step_type !== 'external_source' && !typesInfo.step_subtype)" ng-click="controller.addNewStepAcceptButtonHandler();">Add the new step</button>
         </div>
     </div>
 </div>

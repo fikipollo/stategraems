@@ -1,16 +1,5 @@
 {
     "id": "Quantification-form",
     "content": [
-        {
-            "name": "section_1",
-            "title": "Quantification details",
-            "fields": [
-                {
-                    "name": "reference_region",
-                    "label": "Reference regions",
-                    "type": "textarea"
-                }
-            ]
-        }
     ]
 }

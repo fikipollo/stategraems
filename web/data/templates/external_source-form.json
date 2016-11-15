@@ -1,0 +1,43 @@
+{
+    "id": "external_source-form",
+    "content": [
+        {
+            "name": "section_1",
+            "title": "General details",
+            "fields": [
+                {
+                    "name": "step_name",
+                    "label": "Step name",
+                    "type": "text",
+                    "required" : true
+                },
+                {
+                    "name": "files_location",
+                    "label": "External files",
+                    "type": "output_files_selector"
+                },
+                {
+                    "name": "step_id",
+                    "label": "Step ID",
+                    "type": "display"
+                },
+                {
+                    "name": "submission_date",
+                    "label": "Submission date",
+                    "type": "date"
+                },
+                {
+                    "name": "last_edition_date",
+                    "label": "Last edition",
+                    "type": "date"
+                },
+                {
+                    "name": "step_owners",
+                    "label": "Owners",
+                    "type": "user_selector",
+                    "required" : true
+                }
+            ]
+        }
+    ]
+}

@@ -109,4 +109,45 @@
         };
     });
 
+    app.directive("referenceFilesSelectorField", function ($compile, AnalysisList) {
+        return {
+            restrict: 'E',
+            replace: true,
+            link: function ($scope, element, attrs) {
+                $scope.$watch('model.reference_data', function (newValues, oldValues, scope) {
+
+                    var template =
+                            '<div ng-controller="StepDetailController as controller">' +
+                            '   <div style="min-width:200px; min-height: 30px;">';
+
+                    for (var i in $scope.model.reference_data) {
+                        template +=
+                                '       <div class="fileLocationItem">{{file}}' +
+                                '         <b>Output files for step ' + $scope.model.reference_data[i] + '</b>' +
+                                '         <ul>';
+
+                        var step = AnalysisList.findStep($scope.model.reference_data[i]);
+                        if (step) {
+                            for (var j in step.files_location) {
+                                template += '         <li>' + step.files_location[j] + '</li>';
+                            }
+                        }
+
+                        template +=
+                                '         </ul>' +
+                                '       </div>';
+                    }
+                    template +=
+                            '   </div>' +
+                            '   <a class="btn btn-primary" ng-show="viewMode !== \'view\'" ng-click="controller.changeInputFilesHandler(\'reference_data\');"  style="margin-top:10px;">' +
+                            '      <i class="fa fa-plus" aria-hidden="true"></i> Choose reference files' +
+                            '   </a>' +
+                            '</div>';
+                    element.html(template);
+                    $compile(element.contents())($scope);
+                }, true);
+            }
+        };
+    });
+
 })();

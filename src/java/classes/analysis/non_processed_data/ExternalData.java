@@ -17,31 +17,27 @@
  *  More info http://bioinfo.cipf.es/stategraems
  *  Technical contact stategraemsdev@gmail.com
  *  *************************************************************** */
+package classes.analysis.non_processed_data;
 
-package classes.analysis.processed_data.region_step;
-
-import classes.analysis.processed_data.Region_step;
+import classes.analysis.NonProcessedData;
 import com.google.gson.Gson;
 
 /**
  *
  * @author Rafa Hernández de Diego
  */
-public class Region_calling_step extends Region_step {
-////Herited from Processed_data 
-////    protected String analysis_id;
-////    protected String type;//ENUM('data_matrix','region_step','calling_step','quantification_step')
-////    protected String software;
-////    protected String software_version;
-////    protected Software_configuration[] software_configuration;
-////    protected String results;
-////    protected String files;
+public class ExternalData extends NonProcessedData {
+//  Herited from Non_process_data     
+//    private String step_id;
+//    private String type;
 
-    private RegionElement[] reference_region;
-
-    public Region_calling_step() {
+    public ExternalData() {
         super();
-        this.processed_data_type = "region_calling_step";
+        this.type = "external_data";
+    }
+
+    public ExternalData(String step_id) {
+        super(step_id, "external_data");
     }
 
     /**
@@ -51,11 +47,11 @@ public class Region_calling_step extends Region_step {
      * @param jsonString the JSON object
      * @return the new Object.
      */
-    public static Region_calling_step fromJSON(String jsonString) {
+    public static ExternalData fromJSON(String jsonString) {
         Gson gson = new Gson();
-        Region_calling_step region_calling_step = gson.fromJson(jsonString, Region_calling_step.class);
+        ExternalData step = gson.fromJson(jsonString, ExternalData.class);
 
-        return region_calling_step;
+        return step;
     }
 
     @Override
@@ -69,12 +65,34 @@ public class Region_calling_step extends Region_step {
     //**********************************************************************
     //* GETTERS AND SETTERS ************************************************
     //**********************************************************************
-    public RegionElement[] getReferenceRegion() {
-        return reference_region;
+
+    @Override
+    public boolean updateAnalysisID(String new_analysis_id) {
+        //IF THE ANALYSIS ID IS DIFFERENT THAT THE TO-BE-CREATED ID, IT MEANS THAT 
+        //THE STEP IS AN IMPORTED STEP.
+        String analysis_id = this.getAnalysisID();
+
+        if (!"ANxxxx".equals(analysis_id)) {
+            return false;
+        }
+
+        this.setStepID(this.step_id.replaceFirst(analysis_id.substring(2), new_analysis_id.substring(2)));
+        if (this.associatedQualityReport != null) {
+            this.associatedQualityReport.setStudiedStepID(this.step_id);
+        }
+        return true;
     }
 
-    public void setReferenceRegion(RegionElement[] reference_region) {
-        this.reference_region = reference_region;
+    //***********************************************************************
+    //* OTHER FUNCTIONS *****************************************************
+    //***********************************************************************
+    @Override
+    public String toString() {
+        return this.toJSON();
     }
 
+    @Override
+    public void updatePreviousStepIDs(String old_analysis_id, String new_analysis_id) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

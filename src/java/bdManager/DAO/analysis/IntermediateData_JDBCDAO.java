@@ -42,10 +42,10 @@ public class IntermediateData_JDBCDAO extends Step_JDBCDAO {
      */
     @Override
     public boolean insert(Object object) throws SQLException {
-        IntermediateData intermediate_data = (IntermediateData) object;
+        IntermediateData step = (IntermediateData) object;
 
         //FIRST CALL TO PARENT INSERT FUNCTION
-        super.insert(intermediate_data);
+        super.insert(step);
 
         //1. Inserts a new entry in the intermediate_data table
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
@@ -53,22 +53,22 @@ public class IntermediateData_JDBCDAO extends Step_JDBCDAO {
                 + " step_id = ?, intermediate_data_type = ?, software = ?, software_version = ?, "
                 + " software_configuration= ?, motivation = ?, results = ? ");
 
-        ps.setString(1, intermediate_data.getStepID());
-        ps.setString(2, intermediate_data.getIntermediateDataType());
-        ps.setString(3, intermediate_data.getSoftware());
-        ps.setString(4, intermediate_data.getSoftwareVersion());
-        ps.setString(5, intermediate_data.getSoftwareConfiguration());
-        ps.setString(6, intermediate_data.getMotivation());
-        ps.setString(7, intermediate_data.getResults());
+        ps.setString(1, step.getStepID());
+        ps.setString(2, step.getIntermediateDataType());
+        ps.setString(3, step.getSoftware());
+        ps.setString(4, step.getSoftwareVersion());
+        ps.setString(5, step.getSoftwareConfiguration());
+        ps.setString(6, step.getMotivation());
+        ps.setString(7, step.getResults());
         ps.execute();
 
-        //1.   Inserts a new entry in the calling_step table
-        for (String used_data_step_id : intermediate_data.getUsedData()) {
+        //2. Register the used data files for the step
+        for (String used_data_step_id : step.getUsedData()) {
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                     + "INSERT INTO step_use_step SET "
-                    + "step_id = ?, used_data_id = ?");
+                    + "step_id = ?, used_data_id = ?, type='input'");
 
-            ps.setString(1, intermediate_data.getStepID());
+            ps.setString(1, step.getStepID());
             ps.setString(2, used_data_step_id);
             ps.execute();
         }
@@ -81,10 +81,10 @@ public class IntermediateData_JDBCDAO extends Step_JDBCDAO {
     //******************************************************************************************************************************************/
     @Override
     public boolean update(Object object) throws SQLException {
-        IntermediateData intermediate_data = (IntermediateData) object;
+        IntermediateData step = (IntermediateData) object;
 
         //FIRST CALL TO PARENT update FUNCTION
-        super.update(intermediate_data);
+        super.update(step);
 
         //1. Inserts a new entry in the intermediate_data table
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
@@ -93,30 +93,26 @@ public class IntermediateData_JDBCDAO extends Step_JDBCDAO {
                 + " software_configuration= ?, motivation = ?, results = ? "
                 + "WHERE step_id = ?");
 
-        ps.setString(1, intermediate_data.getIntermediateDataType());
-        ps.setString(2, intermediate_data.getSoftware());
-        ps.setString(3, intermediate_data.getSoftwareVersion());
-        ps.setString(4, intermediate_data.getSoftwareConfiguration());
-        ps.setString(5, intermediate_data.getMotivation());
-        ps.setString(6, intermediate_data.getResults());
-        ps.setString(7, intermediate_data.getStepID());
+        ps.setString(1, step.getIntermediateDataType());
+        ps.setString(2, step.getSoftware());
+        ps.setString(3, step.getSoftwareVersion());
+        ps.setString(4, step.getSoftwareConfiguration());
+        ps.setString(5, step.getMotivation());
+        ps.setString(6, step.getResults());
+        ps.setString(7, step.getStepID());
         ps.execute();
 
-        //1.   REMOVE THE PREVIOUS ENTRIES
+        //2.   REMOVE THE PREVIOUS ENTRIES
         ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                + "DELETE FROM step_use_step WHERE "
-                + "step_id = ?");
-
-        ps.setString(1, intermediate_data.getStepID());
+                + "DELETE FROM step_use_step WHERE step_id = ?");
+        ps.setString(1, step.getStepID());
         ps.execute();
 
-        //2.   Inserts a new entries
-        for (String used_data_step_id : intermediate_data.getUsedData()) {
+        //3a.   Inserts a new entries
+        for (String used_data_step_id : step.getUsedData()) {
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                    + "INSERT INTO step_use_step SET "
-                    + "step_id = ?, used_data_id = ?");
-
-            ps.setString(1, intermediate_data.getStepID());
+                    + "INSERT INTO step_use_step SET step_id = ?, used_data_id = ?, type='input'");
+            ps.setString(1, step.getStepID());
             ps.setString(2, used_data_step_id);
             ps.execute();
         }
@@ -127,18 +123,18 @@ public class IntermediateData_JDBCDAO extends Step_JDBCDAO {
         //However if after update step A is no longer used by B, the step A will not be desassoated and from the others analysis
         //in spite of the association could not have sense.
         //First get all analysis that use the step
-        String owner_analysis_id = "AN" + intermediate_data.getStepID().substring(2).split("\\.")[0];
+        String owner_analysis_id = "AN" + step.getStepID().substring(2).split("\\.")[0];
 
         //FIRST CHECK IF THERE IS MORE THAN ONE ANALYSIS USING THIS STEP
         ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "SELECT analysis_id FROM analysis_has_steps WHERE step_id = ? AND analysis_id != ?");
-        ps.setString(1, intermediate_data.getStepID());
+        ps.setString(1, step.getStepID());
         ps.setString(2, owner_analysis_id);
         ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
 
         //IF SO
         while (rs.next()) {
-            insertNewStepAssociation(intermediate_data.getUsedData(), rs.getString("analysis_id"));
+            insertNewStepAssociation(step.getUsedData(), rs.getString("analysis_id"));
         }
 
         return true;
@@ -187,9 +183,9 @@ public class IntermediateData_JDBCDAO extends Step_JDBCDAO {
             
             //STEP 4. GET THE INPUT FILES FOR THE STEP
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                    + "SELECT used_data_id FROM step_use_step WHERE step_id = ? ");
+                    + "SELECT used_data_id FROM step_use_step WHERE step_id = ? and type='input'");
             ps.setString(1, step.getStepID());
-            ResultSet rs1 = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);;
+            ResultSet rs1 = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
             
             ArrayList<String> used_data_id_list = new ArrayList<String>();
             while (rs1.next()) {

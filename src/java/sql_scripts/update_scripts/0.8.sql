@@ -64,6 +64,63 @@ ALTER TABLE intermediate_data DROP COLUMN files_description;
 ALTER TABLE intermediate_data DROP COLUMN reference_files;
 ALTER TABLE intermediate_data DROP COLUMN preprocessing_type;
 
+ALTER TABLE processed_data MODIFY COLUMN software VARCHAR(200);
+
+ALTER TABLE step_use_step ADD COLUMN type VARCHAR(50) DEFAULT 'input';
+
+DROP PROCEDURE update_regions;
+
+DELIMITER $$
+CREATE PROCEDURE update_regions()
+   BEGIN
+      DECLARE done INT DEFAULT FALSE;
+      DECLARE id VARCHAR(50);
+      DECLARE idpart1 VARCHAR(50);
+      DECLARE idpart2 VARCHAR(50);
+      DECLARE analysisid VARCHAR(50);
+      DECLARE str VARCHAR(500) default '';
+      DECLARE name VARCHAR(200);
+      DECLARE source VARCHAR(200);
+      DECLARE date VARCHAR(8);
+      DECLARE files TEXT;
+      DECLARE userid VARCHAR(50);
+      DECLARE cursor_i CURSOR FOR SELECT step_id, region_name, source, files_location FROM region_elements;
+      DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+      OPEN cursor_i;
+       read_loop: LOOP
+         FETCH cursor_i INTO id, name, source, files;
+         IF done THEN
+           LEAVE read_loop;
+         END IF;
+         SET analysisid = SPLIT_STR(id, '.', 1);
+         SET analysisid = REPLACE(analysisid, 'ST', 'AN');
+         
+         SELECT t1.step_id INTO id FROM step AS t1, analysis_has_steps as t2 WHERE t1.step_id = t2.step_id AND t2.analysis_id =analysisid ORDER BY step_id DESC LIMIT 1;
+         SELECT CURDATE() + 0 INTO date;
+         SELECT user_id INTO userid FROM step_owners WHERE step_id=id LIMIT 1;
+
+         SET idpart1 = SPLIT_STR(id, '.', 1);
+         SET idpart2 = SPLIT_STR(id, '.', 2);
+         SET idpart2 = CONVERT(idpart2,UNSIGNED INTEGER) + 1;
+         SET idpart1 = CONCAT(idpart1,'.',idpart2);
+         
+         INSERT INTO step SET step_id=idpart1, step_name=name, type='external_source', submission_date=date, last_edition_date=date, files_location=files;
+         INSERT INTO other_fields SET step_id=idpart1, field_name='description', value=source; 
+         INSERT INTO step_use_step SET step_id=id, used_data_id=idpart1, type='reference';
+         INSERT INTO analysis_has_steps SET step_id=idpart1, analysis_id=analysisid;
+         INSERT INTO step_owners SET step_id=idpart1, user_id=userid;
+
+         SET str = CONCAT(str, idpart1, ','); 
+       END LOOP;
+      CLOSE cursor_i;
+      select str;
+END $$
+DELIMITER ;
+
+CALL update_regions;
+
+
 UPDATE appVersion SET version='0.8';
 
 COMMIT;

@@ -11,7 +11,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr ng-repeat="input in model.used_data">
+            <tr ng-repeat="input in model[propertyName]">
                 <td style="text-align: left; ">Output files for step {{input}}</td>
                 <td style=" width: 30px; text-align: center; ">
                     <a class="clickable" ng-click="controller.removeSelectedInputFileHandler(input);"><i class="fa fa-trash text-danger"></i></a>
