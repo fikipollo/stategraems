@@ -20,7 +20,13 @@
 package servlets;
 
 import bdManager.DAO.DAO;
+import bdManager.DAO.DAOProvider;
+import bdManager.DAO.User_JDBCDAO;
 import bdManager.DBConnectionManager;
+import classes.User;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -33,11 +39,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Properties;
+import resources.SHA1;
 
 /**
  * SERVLET /login
@@ -101,30 +110,25 @@ public class Install_servlets extends Servlet {
                  * NoSuchAlgorithmException, GO TO STEP 2b ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                String mysqladminUser = null;
-                String mysqladminPass = null;
-                String dbname = null;
-                String emsusername = null;
-                String emsuserpass = null;
-                String emsadminpass = null;
-                String previousVersion = null;
-                String newVersion = null;
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
 
-                String installation_type = request.getParameter("installation_type");
-                String data_location = request.getParameter("data_location");
+                String installation_type = requestData.get("installation_type").getAsString();
+                String data_location = requestData.get("data_location").getAsString();
 
-                //SAVE THE STDOUT
-                /**
-                 * ************
-                 * INSTALL OPTION ************
-                 */
+                String emsadminpass = requestData.get("emsadminpass").getAsString();
+                String emsadminuser = requestData.get("emsadminuser").getAsString().toLowerCase();
+
+                /* *******************************************************
+                 * INSTALL OPTION
+                 * *******************************************************/
                 if ("install".equals(installation_type)) {
-                    mysqladminUser = request.getParameter("mysqladminUser");
-                    mysqladminPass = request.getParameter("mysqladminPass");
-                    dbname = request.getParameter("dbname");
-                    emsusername = request.getParameter("emsusername");
-                    emsuserpass = request.getParameter("emsuserpass");
-                    emsadminpass = request.getParameter("emsadminpass");
+                    String mysql_emsusername = requestData.get("emsusername").getAsString();
+                    String mysql_emsuserpass = requestData.get("emsuserpass").getAsString();
+                    String mysql_adminUser = requestData.get("mysqladminUser").getAsString();
+                    String mysql_adminPass = requestData.get("mysqladminPass").getAsString();
+                    String dbname = requestData.get("dbname").getAsString();
+                    String dbhost = requestData.get("dbhost").getAsString();
 
                     File f = new File(data_location);
                     if (!f.exists()) {
@@ -153,8 +157,8 @@ public class Install_servlets extends Servlet {
                         logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Adapting SQL script");
                         while ((line = bufferedReader.readLine()) != null) {
                             line = line.replace("STATegraDB", dbname);
-                            line = line.replace("emsuser#123", emsuserpass);
-                            line = line.replace("emsuser", emsusername);
+                            line = line.replace("emsuser#123", mysql_emsuserpass);
+                            line = line.replace("emsuser", mysql_emsusername);
                             line = line.replace("adminpassword", emsadminpass);
                             printWriter.println(line);
                         }
@@ -163,7 +167,7 @@ public class Install_servlets extends Servlet {
 
                         //2.Execute the SQL script
                         logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Executing SQL script");
-                        String[] mysqlCommand = {"mysql", "-u", mysqladminUser, "--password=" + mysqladminPass, "-e", "source " + data_location + "/install_databases.sql"};
+                        String[] mysqlCommand = {"mysql", "-u", mysql_adminUser, "--password=" + mysql_adminPass, "-h", dbhost, "-e", "source " + data_location + "/install_databases.sql"};
                         Process dumpProcess = Runtime.getRuntime().exec(mysqlCommand);
 
                         bufferedReader = new BufferedReader(new InputStreamReader(dumpProcess.getInputStream()));
@@ -212,8 +216,9 @@ public class Install_servlets extends Servlet {
 
                         while ((line = bufferedReader.readLine()) != null) {
                             line = line.replace("STATegraDB", dbname);
-                            line = line.replace("emsuser#123", emsuserpass);
-                            line = line.replace("emsuser", emsusername);
+                            line = line.replace("emsuser#123", mysql_emsuserpass);
+                            line = line.replace("emsuser", mysql_emsusername);
+                            line = line.replace("localhost", dbhost);
                             printWriter.println(line);
                         }
                         bufferedReader.close();
@@ -229,121 +234,148 @@ public class Install_servlets extends Servlet {
                         new File(data_location + "/install_databases.sql").delete();
 
                         logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Removing installation page...");
+                    } else {
+                        throw new IOException("Unable to write at " + data_location + "</br>Please check if directory exists and Tomcat user has read/write permissions on this directory.");
+                    }
+                }
+
+                try {
+                     /**************************************************************************************************************************/
+                     /* UPDATE OPTION                                                                                                          */ 
+                     /**************************************************************************************************************************/
+
+                     //CHECK IF USER IS VALID ADMIN
+                    String password = SHA1.getHash(emsadminpass);
+                    Object[] params = {password, false, false};                             
+                    DAO dao_instance = DAOProvider.getDAOByName("User");
+                    User user = (User) ((User_JDBCDAO)dao_instance).findByID("admin", params);
+                    
+                    if(user == null){
+                        throw new IOException("Unable to update databases. Invalid admin password.");
+                    }
+                    
+                    //GET PREVIOUS VERSION FROM DATABASE
+                    PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT version FROM appVersion;");
+                    ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
+                    double currentAppVersion = 0.6 * 10;
+                    if (rs.first()) {
+                        currentAppVersion = Double.parseDouble(rs.getString("version")) * 10;
+                    }
+
+                    //GET LAST UPDATE SCRIPT
+                    String path = Install_servlets.class.getResource("/sql_scripts/update_scripts/").getPath();
+                    double lastAppVersion = currentAppVersion;
+                    boolean exists = true;
+                    File f;
+                    while (exists) {
+                        lastAppVersion = lastAppVersion + 1;
+                        f = new File(path + lastAppVersion / 10 + ".sql");
+                        exists = f.exists();
+                    }
+
+                    //START UPDATING
+                    f = new File(data_location);
+                    if (!f.exists()) {
+                        throw new IOException("Unable to write at " + data_location + "</br>The directory doesn't exist.</br>Please check if parent directory exists and Tomcat user has read/write permissions on that directory.");
+                    }
+
+                    if (f.canWrite()) {
+                        BufferedReader bufferedReader;
+                        String line;
+                        String commandOutput = "";
+                        PrintWriter printWriter;
+                        Properties properties = new Properties();
+
+                        logWriter = new PrintWriter(new FileWriter(data_location + "/update.log"));
+                        logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Data location is " + data_location);
+
+                        properties.load(new FileReader(data_location + "/db_config.properties"));
+
+                        logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Upgrading from version " + currentAppVersion + " to " + (lastAppVersion - 0.1));
+
+                        //FOR EACH AVAILABLE NEW VERSION
+                        for (double i = currentAppVersion + 1; i < lastAppVersion; i = i + 1) {
+                            String dbuser = DBConnectionManager.getConnectionManager().getProperties().getProperty("username");
+                            String dbpass = DBConnectionManager.getConnectionManager().getProperties().getProperty("password");
+                            String dbname = DBConnectionManager.getConnectionManager().getProperties().getProperty("databasename");
+                            String dbhost = DBConnectionManager.getConnectionManager().getProperties().getProperty("url");
+                            dbhost = dbhost.replace("jdbc:mysql://", "").replace("/" + dbname, "");
+
+                            //1. Open the SQL Database update script,  Replace the database name 
+                            logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Upgrading to version " + i / 10);
+                            path = Install_servlets.class.getResource("/sql_scripts/update_scripts/" + i / 10 + ".sql").getPath();
+
+                            logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Adapting SQL script...");
+                            bufferedReader = new BufferedReader(new FileReader(path));
+                            printWriter = new PrintWriter(new FileWriter(data_location + "/" + i / 10 + ".sql"));
+                            while ((line = bufferedReader.readLine()) != null) {
+                                line = line.replace("STATegraDB", dbname);
+                                line = line.replace("emsadminuser@email.com", emsadminuser);
+                                printWriter.println(line);
+                            }
+                            bufferedReader.close();
+                            printWriter.close();
+
+                            //2.Execute the SQL script
+                            logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Executing SQL script...");
+                            String[] mysqlCommand = {"mysql", "-u", dbuser, "--password=" + dbpass, "-h", dbhost, "-e", "source " + data_location + "/" + i / 10 + ".sql"};
+                            Process dumpProcess = Runtime.getRuntime().exec(mysqlCommand);
+
+                            bufferedReader = new BufferedReader(new InputStreamReader(dumpProcess.getInputStream()));
+                            line = bufferedReader.readLine();
+                            // Mientras se haya leido alguna linea 
+                            while (line != null) {
+                                commandOutput += "\n" + line;
+                                line = bufferedReader.readLine();
+                            }
+                            int exitCode = dumpProcess.waitFor();
+
+                            //SAVE THE STDOUT
+                            logWriter.println("/************************************************************/\n*** STDOUT\n/************************************************************/");
+                            logWriter.println(commandOutput);
+
+                            //GET THE ERROR OUTPUT
+                            commandOutput = "";
+                            bufferedReader = new BufferedReader(new InputStreamReader(dumpProcess.getErrorStream()));
+                            line = bufferedReader.readLine();
+                            while (line != null) {
+                                commandOutput += "\n" + line;
+                                line = bufferedReader.readLine();
+                            }
+                            logWriter.println("/************************************************************/\n*** STERR\n/************************************************************/");
+                            logWriter.println(commandOutput);
+
+                            if (exitCode != 0) {
+                                throw new SQLException("Failed while executing the mysql database update script. Error: " + commandOutput);
+                            }
+                            logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Executing SQL script... DONE");
+                            logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Cleaning temporal files...");
+                            new File(data_location + "/" + i / 10 + ".sql").delete();
+                        }
+
+                        //3. Update the data location property
+                        logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Updating the application settings...");
+                        path = Install_servlets.class.getResource("/conf/data_location.properties").getPath();
+                        properties = new Properties();
+                        properties.load(new FileReader(path));
+
+                        FileOutputStream fileOutputStream = new FileOutputStream(path);
+                        properties.setProperty("data_location", data_location);
+                        properties.store(fileOutputStream, null);
+                        fileOutputStream.close();
+
+                        //6. Remove the temporal redirection
+                        logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Disabling installation page...");
                         path = Install_servlets.class.getResource("/").getPath();
                         new File(path + "/../../index.html").delete();
+                        new File(path + "/../../install.html").delete();
                         new File(path + "/../../_index.html").renameTo(new File(path + "/../../index.html"));
                     } else {
                         throw new IOException("Unable to write at " + data_location + "</br>Please check if directory exists and Tomcat user has read/write permissions on this directory.");
                     }
-                    /**
-                     * UPDATE OPTION
-                     */
-                } else {
-                    try {
-                        mysqladminUser = request.getParameter("mysqladminUser");
-                        mysqladminPass = request.getParameter("mysqladminPass");
-                        previousVersion = request.getParameter("previous_version");
-                        newVersion = request.getParameter("new_version");
 
-                        File f = new File(data_location);
-                        if (!f.exists()) {
-                            throw new IOException("Unable to write at " + data_location + "</br>The directory doesn't exist.</br>Please check if parent directory exists and Tomcat user has read/write permissions on that directory.");
-                        }
-
-                        if (f.canWrite()) {
-                            BufferedReader bufferedReader;
-                            String path;
-                            String line;
-                            String commandOutput = "";
-                            PrintWriter printWriter;
-                            Properties properties = new Properties();
-
-                            logWriter = new PrintWriter(new FileWriter(data_location + "/update.log"));
-                            logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Data location is " + data_location);
-
-                            properties.load(new FileReader(data_location + "/db_config.properties"));
-
-                            dbname = properties.getProperty("databasename");
-                            Double prevVersion = Double.parseDouble(previousVersion.replace("v", "")) + 0.1;
-                            Double currentVersion = Double.parseDouble(newVersion.replace("v", "").replace("r1","")) + 0.1;
-
-                            logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Upgrading from version " + prevVersion + " to " + currentVersion);
-
-                            for (double i = prevVersion; i < currentVersion; i = i + 0.1) {
-                                //1. Open the SQL Database update script,  Replace the database name 
-                                logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Upgrading to version " + i);
-                                path = Install_servlets.class.getResource("/sql_scripts/update_scripts/" + i + ".sql").getPath();
-
-                                logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Adapting SQL script...");
-                                bufferedReader = new BufferedReader(new FileReader(path));
-                                printWriter = new PrintWriter(new FileWriter(data_location + "/" + i + ".sql"));
-                                while ((line = bufferedReader.readLine()) != null) {
-                                    line = line.replace("STATegraDB", dbname);
-                                    printWriter.println(line);
-                                }
-                                bufferedReader.close();
-                                printWriter.close();
-
-                                //2.Execute the SQL script
-                                logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Executing SQL script...");
-                                String[] mysqlCommand = {"mysql", "-u", mysqladminUser, "--password=" + mysqladminPass, "-e", "source " + data_location + "/" + i + ".sql"};
-                                Process dumpProcess = Runtime.getRuntime().exec(mysqlCommand);
-
-                                bufferedReader = new BufferedReader(new InputStreamReader(dumpProcess.getInputStream()));
-                                line = bufferedReader.readLine();
-                                // Mientras se haya leido alguna linea 
-                                while (line != null) {
-                                    commandOutput += "\n" + line;
-                                    line = bufferedReader.readLine();
-                                }
-                                int exitCode = dumpProcess.waitFor();
-
-                                //SAVE THE STDOUT
-                                logWriter.println("/************************************************************/\n*** STDOUT\n/************************************************************/");
-                                logWriter.println(commandOutput);
-
-                                //GET THE ERROR OUTPUT
-                                commandOutput = "";
-                                bufferedReader = new BufferedReader(new InputStreamReader(dumpProcess.getErrorStream()));
-                                line = bufferedReader.readLine();
-                                while (line != null) {
-                                    commandOutput += "\n" + line;
-                                    line = bufferedReader.readLine();
-                                }
-                                logWriter.println("/************************************************************/\n*** STERR\n/************************************************************/");
-                                logWriter.println(commandOutput);
-
-                                if (exitCode != 0) {
-                                    throw new SQLException("Failed while executing the mysql database update script. Error: " + commandOutput);
-                                }
-                                logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Executing SQL script... DONE");
-                                logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Cleaning temporal files...");
-                                new File(data_location + "/" + i + ".sql").delete();
-                            }
-
-                            //3. Update the data location property
-                            logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Updating the application settings...");
-                            path = Install_servlets.class.getResource("/conf/data_location.properties").getPath();
-                            properties = new Properties();
-                            properties.load(new FileReader(path));
-
-                            FileOutputStream fileOutputStream = new FileOutputStream(path);
-                            properties.setProperty("data_location", data_location);
-                            properties.store(fileOutputStream, null);
-                            fileOutputStream.close();
-
-                            //6. Remove the temporal files
-                            logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Removing installation page...");
-                            path = Install_servlets.class.getResource("/").getPath();
-                            new File(path + "/../../index.html").delete();
-                            new File(path + "/../../_index.html").renameTo(new File(path + "/../../index.html"));
-                        } else {
-                            throw new IOException("Unable to write at " + data_location + "</br>Please check if directory exists and Tomcat user has read/write permissions on this directory.");
-                        }
-
-                    } catch (IOException e) {
-                        throw new IOException("Unable to read database configuration file at " + data_location + "</br>Please check if directory exists and Tomcat user has read/write permissions on this directory.");
-                    }
+                } catch (IOException e) {
+                    throw new IOException("Unable to read database configuration file at " + data_location + "</br>Please check if directory exists and Tomcat user has read/write permissions on this directory.");
                 }
 
             } catch (Exception e) {
@@ -370,7 +402,9 @@ public class Install_servlets extends Servlet {
                      * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
                      * *******************************************************
                      */
-                    response.getWriter().print("{success: " + true + " }");
+                    JsonObject obj = new JsonObject();
+                    obj.add("success", new JsonPrimitive(true));
+                    response.getWriter().print(obj.toString());
                 }
                 /**
                  * *******************************************************
