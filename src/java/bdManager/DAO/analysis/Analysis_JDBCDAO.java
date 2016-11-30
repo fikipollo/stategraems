@@ -61,7 +61,7 @@ public class Analysis_JDBCDAO extends DAO {
         ps.setString(2, analysis.getAnalysisType());
         ps.setString(3, analysis.getStatus());
         ps.setString(4, analysis.getAnalysisName());
-        ps.setString(5, String.join(", ", analysis.getTags()));
+        ps.setString(5, concatString(", ", analysis.getTags()));
         ps.execute();
 
         //Add ALL THE NON PROCESSED DATA
@@ -115,7 +115,7 @@ public class Analysis_JDBCDAO extends DAO {
         ps.setString(1, analysis.getAnalysisType());
         ps.setString(2, analysis.getStatus());
         ps.setString(3, analysis.getAnalysisName());
-        ps.setString(4, String.join(", ", analysis.getTags()));
+        ps.setString(4, concatString(", ", analysis.getTags()));
         ps.setString(5, analysis.getAnalysisID());
 
         ps.execute();
@@ -321,7 +321,7 @@ public class Analysis_JDBCDAO extends DAO {
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "UPDATE analysis SET remove_requests= ? WHERE analysis_id = ?");
 
-        ps.setString(1, String.join(", ", remove_requests));
+        ps.setString(1, concatString(", ", remove_requests));
         ps.setString(2, object_id);
         ps.execute();
         return true;

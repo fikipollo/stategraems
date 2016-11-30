@@ -66,7 +66,7 @@ public class Step_JDBCDAO extends DAO {
         ps.setString(4, step.getType());
         ps.setString(5, step.getSubmissionDate().replaceAll("/", ""));
         ps.setString(6, step.getLastEditionDate().replaceAll("/", ""));
-        ps.setString(7, String.join("$$", step.getFilesLocation()));
+        ps.setString(7, concatString("$$", step.getFilesLocation()));
         ps.execute();
 
         //ADD THE ASSOCIATION analysis <--> non_processed_data
@@ -166,7 +166,7 @@ public class Step_JDBCDAO extends DAO {
         ps.setString(1, step.getStepName());
         ps.setInt(2, step.getStepNumber());
         ps.setString(3, step.getLastEditionDate().replaceAll("/", ""));
-        ps.setString(4, String.join("$$", step.getFilesLocation()));
+        ps.setString(4, concatString("$$", step.getFilesLocation()));
         ps.setString(5, step.getStepID());
         ps.execute();
 

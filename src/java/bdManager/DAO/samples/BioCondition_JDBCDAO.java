@@ -71,7 +71,7 @@ public class BioCondition_JDBCDAO extends DAO {
         ps.setString(16, biocondition.getSubmissionDate().replaceAll("/", ""));
         ps.setString(17, biocondition.getLastEditionDate().replaceAll("/", ""));
         ps.setString(18, biocondition.getExternalLinks());
-        ps.setString(19, String.join(", ", biocondition.getTags()));
+        ps.setString(19, concatString(", ", biocondition.getTags()));
         ps.setBoolean(20, biocondition.isPublic());
         ps.setBoolean(21, biocondition.isExternal());
         ps.execute();
@@ -189,7 +189,7 @@ public class BioCondition_JDBCDAO extends DAO {
         ps.setString(14, biocondition.getProtocolDescription());
         ps.setString(15, biocondition.getLastEditionDate().replaceAll("/", ""));
         ps.setString(16, biocondition.getExternalLinks());
-        ps.setString(17, String.join(", ", biocondition.getTags()).replace(", ,", ", "));
+        ps.setString(17, concatString(", ", biocondition.getTags()).replace(", ,", ", "));
         ps.setBoolean(18, biocondition.isPublic());
         ps.setBoolean(19, biocondition.isExternal());
         ps.setString(20, biocondition.getBioConditionID());

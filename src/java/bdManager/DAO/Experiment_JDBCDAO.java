@@ -68,7 +68,7 @@ public class Experiment_JDBCDAO extends DAO {
         ps.setString(14, experiment.getPublicReferences());
         ps.setString(15, experiment.getSubmissionDate().replaceAll("/", ""));
         ps.setString(16, experiment.getLastEditionDate().replaceAll("/", ""));
-        ps.setString(17, String.join(", ", experiment.getTags()));
+        ps.setString(17, concatString(", ", experiment.getTags()));
         ps.setString(18, experiment.getExperimentDataDirectory());
         ps.execute();
 
@@ -135,7 +135,7 @@ public class Experiment_JDBCDAO extends DAO {
         ps.setString(13, experiment.getPublicReferences());
         ps.setString(14, experiment.getSubmissionDate().replaceAll("/", ""));
         ps.setString(15, experiment.getLastEditionDate().replaceAll("/", ""));
-        ps.setString(16, String.join(", ", experiment.getTags()));
+        ps.setString(16, concatString(", ", experiment.getTags()));
         ps.setString(17, experiment.getExperimentDataDirectory());
         ps.setString(18, experiment.getExperimentID());
 

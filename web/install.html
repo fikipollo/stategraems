@@ -104,7 +104,8 @@
                                 <label class="col-sm-3" for="emsuserpass">EMS database pass</label>
                                 <input class="col-sm-8" type="password" name="emsuserpass"
                                        ng-enable="config.installation_type === 'install'"
-                                       ng-model="config.emsuserpass" 
+                                       ng-model="config.emsuserpass"
+                                       ng-minlength="6"
                                        ng-required="true" >
                             </div>
                         </div>

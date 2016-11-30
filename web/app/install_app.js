@@ -102,7 +102,6 @@
             emsadminuser: 'emsuser',
             dbname: 'STATegraDB',
             dbhost : 'localhost',
-            emsusername: 'emsuser',
             data_location: '/data/stategraems_app_data/'
         };
     });
