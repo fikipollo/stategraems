@@ -99,7 +99,7 @@
 
         $scope.config = {
             installation_type: 'install',
-            emsadminuser: 'emsuser',
+            emsusername: 'emsuser',
             dbname: 'STATegraDB',
             dbhost : 'localhost',
             data_location: '/data/stategraems_app_data/'

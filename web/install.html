@@ -2,23 +2,26 @@
 <html ng-app="stategraemsApp">
     <head>
         <title>STATegra EMS v{{myAppConfig.VERSION}}</title>
-        <!--        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" > 
+        <!--        
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" > 
                 <link href='https://fonts.googleapis.com/css?family=Open+Sans:300,400' rel='stylesheet' type='text/css'> 
-                <link href="https://opensource.keycdn.com/fontawesome/4.6.3/font-awesome.min.css" rel="stylesheet"> 
-        
-        -->                <link rel="stylesheet" href="css/bootstrap.min.css" type='text/css'>
+                <link href="https://opensource.keycdn.com/fontawesome/4.6.3/font-awesome.min.css" rel="stylesheet">         
+        -->               
+        <link rel="stylesheet" href="css/bootstrap.min.css" type='text/css'>
         <link rel="stylesheet" href="css/fonts/OpenSans-Light.ttf" type='text/css'>
-        <link rel="stylesheet" href="css/font-awesome.min.css" type='text/css'>
+        <link rel="stylesheet" href="css/fonts/font-awesome.min.css" type='text/css'>
 
         <link rel="stylesheet" href="css/main.css" type='text/css'>
         <link rel="stylesheet" href="css/bootstrap-dialogs.min.css">
         <link rel="stylesheet" href="css/bootstrap-tagsinput.css">
         <link rel="stylesheet" href="css/bootstrap-treeview.min.css">
 
-        <!--        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script> 
+        <!--        
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script> 
                 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.3/jquery.min.js"></script> 
                 <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script> 
-                <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.18/angular-ui-router.min.js"></script> -->
+                <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.18/angular-ui-router.min.js"></script> 
+        -->
 
         <script type="text/javascript" src="lib/angular.min.js"></script>
         <script type="text/javascript" src="lib/jquery.min.js"></script>
@@ -50,7 +53,7 @@
             </div>
             <div id="page-content-wrapper" >
                 <div class="container-fluid">
-                    <form class="form-horizontal">
+                    <form name="installForm" class="form-horizontal">
                         <nav class="navbar navbar-default navbar-top title-bar">
                             <h1 class="form_title">Welcome to STATegra EMS {{myAppConfig.VERSION}} installator</h1>
                             <h2 class="form_subtitle">Please fill the form below to start installing</h2>
@@ -105,7 +108,6 @@
                                 <input class="col-sm-8" type="password" name="emsuserpass"
                                        ng-enable="config.installation_type === 'install'"
                                        ng-model="config.emsuserpass"
-                                       ng-minlength="6"
                                        ng-required="true" >
                             </div>
                         </div>
@@ -124,7 +126,9 @@
                                 <label class="col-sm-3" for="emsadminpass">Admin pass</label>
                                 <input class="col-sm-8" type="password" name="emsadminpass"
                                        ng-model="config.emsadminpass" 
+                                       ng-minlength="6"
                                        ng-required="true" >
+                                <span class="text-danger" ng-show="signForm.password.$error.minlength">Password must be at least 6 characters.</span>
                             </div>
                             <p style="font-size: 16px;font-weight: lighter; color: #868686; margin-left: 5px;">
                                 The STATegra EMS stores some files and images so it is necessary to specify the location for those files.</br>
@@ -140,8 +144,8 @@
                         </div>
                         <nav class="navbar navbar-default navbar-fixed-bottom progressNavigator" >
                             <div class="container">
-                                <a class="btn btn-success btn-md navbar-right" ng-show="viewMode !== 'view'"  ng-click="controller.sendInstallDataHandler()" >
-                                    <i class="fa fa-check fa-fw" ></i> Accept
+                                <a class="btn btn-success btn-md navbar-right" ng-show="viewMode !== 'view'" ng-disabled="installForm.$invalid" ng-click="controller.sendInstallDataHandler()" >
+                                    <i class="fa fa-check fa-fw" ></i> Install STATegra EMS
                                 </a>
                             </div>
                         </nav>
