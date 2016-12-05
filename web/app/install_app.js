@@ -99,9 +99,11 @@
 
         $scope.config = {
             installation_type: 'install',
-            emsusername: 'emsuser',
             dbname: 'STATegraDB',
             dbhost : 'localhost',
+            mysqladminUser : 'root',
+            emsusername: 'emsuser',
+            emsuserpass : Math.random().toString(36).substr(2, 16),
             data_location: '/data/stategraems_app_data/'
         };
     });

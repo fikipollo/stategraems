@@ -2,11 +2,11 @@
 <html ng-app="stategraemsApp">
     <head>
         <title>STATegra EMS v{{myAppConfig.VERSION}}</title>
-        <!--        
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" > 
-                <link href='https://fonts.googleapis.com/css?family=Open+Sans:300,400' rel='stylesheet' type='text/css'> 
-                <link href="https://opensource.keycdn.com/fontawesome/4.6.3/font-awesome.min.css" rel="stylesheet">         
-        -->               
+        <!--
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" >
+                <link href='https://fonts.googleapis.com/css?family=Open+Sans:300,400' rel='stylesheet' type='text/css'>
+                <link href="https://opensource.keycdn.com/fontawesome/4.6.3/font-awesome.min.css" rel="stylesheet">
+        -->
         <link rel="stylesheet" href="css/bootstrap.min.css" type='text/css'>
         <link rel="stylesheet" href="css/fonts/OpenSans-Light.ttf" type='text/css'>
         <link rel="stylesheet" href="css/fonts/font-awesome.min.css" type='text/css'>
@@ -16,11 +16,11 @@
         <link rel="stylesheet" href="css/bootstrap-tagsinput.css">
         <link rel="stylesheet" href="css/bootstrap-treeview.min.css">
 
-        <!--        
-        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script> 
-                <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.3/jquery.min.js"></script> 
-                <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script> 
-                <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.18/angular-ui-router.min.js"></script> 
+        <!--
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+                <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.3/jquery.min.js"></script>
+                <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+                <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.18/angular-ui-router.min.js"></script>
         -->
 
         <script type="text/javascript" src="lib/angular.min.js"></script>
@@ -71,40 +71,58 @@
                                 Please type the MYSQL user name which will be used to create the database (must have DATABASE and USER CREATION privileges)
                             </p>
                             <div class="field-group row">
-                                <label class="col-sm-3" for="dbname">Database name</label>
+                                <label class="col-sm-3" for="dbname" tooltip-placement='right' uib-tooltip="The name for the database for the STATegra EMS. Default: STATegraDB">
+                                    Database name
+                                    <i style="color: #31708f;line-height: 30px;" class="fa fa-question-circle" ></i>
+                                </label>
                                 <input class="col-sm-8" type="text" name="dbname"
-                                       ng-model="config.dbname" 
+                                       ng-model="config.dbname"
                                        ng-required="true" >
                             </div>
                             <div class="field-group row">
-                                <label class="col-sm-3" for="dbhost">Database host</label>
+                                <label class="col-sm-3" for="dbhost"  tooltip-placement='right' uib-tooltip='The host where the server is running. If you are using the dockerized version of the STATegra EMS, the default host name is "stategraems-mysql". The default value is localhost.'>
+                                    Database host
+                                    <i style="color: #31708f;line-height: 30px;" class="fa fa-question-circle" ></i>
+                                </label>
                                 <input class="col-sm-8" type="text" name="dbhost"
-                                       ng-model="config.dbhost" 
+                                       ng-model="config.dbhost"
                                        ng-required="true" >
                             </div>
                             <div class="field-group row">
-                                <label class="col-sm-3" for="mysqladminUser">MySQL admin name</label>
+                                <label class="col-sm-3" for="mysqladminUser"  tooltip-placement='right' uib-tooltip="The user name of the MySQL account you want to use. This user must have privileges for CREATE DATABASES, ADD USERS, and GRANT PRIVILEGES.  The default value is root. ">
+                                    MySQL admin name
+                                    <i style="color: #31708f;line-height: 30px;" class="fa fa-question-circle" ></i>
+                                </label>
                                 <input class="col-sm-8" type="text" name="mysqladminUser"
                                        ng-enable="config.installation_type === 'install'"
-                                       ng-model="config.mysqladminUser" 
+                                       ng-model="config.mysqladminUser"
                                        ng-required="true" >
                             </div>
                             <div class="field-group row">
-                                <label class="col-sm-3" for="mysqladminPass">MySQL admin pass</label>
+                                <label class="col-sm-3" for="mysqladminPass"  tooltip-placement='right' uib-tooltip="The password of the MySQL account.">
+                                    MySQL admin pass
+                                    <i style="color: #31708f;line-height: 30px;" class="fa fa-question-circle" ></i>
+                                </label>
                                 <input class="col-sm-8" type="password" name="mysqladminPass"
                                        ng-enable="config.installation_type === 'install'"
-                                       ng-model="config.mysqladminPass" 
+                                       ng-model="config.mysqladminPass"
                                        ng-required="true" >
                             </div>
                             <div class="field-group row">
-                                <label class="col-sm-3" for="emsusername">EMS database user</label>
+                                <label class="col-sm-3" for="emsusername"  tooltip-placement='right' uib-tooltip="The user name of the MySQL account that will manage the STATegra EMS database. Must be a non-existing user. The default value is emsuser. " >
+                                    EMS database user
+                                    <i style="color: #31708f;line-height: 30px;" class="fa fa-question-circle" ></i>
+                                </label>
                                 <input class="col-sm-8" type="text" name="emsusername"
                                        ng-enable="config.installation_type === 'install'"
-                                       ng-model="config.emsusername" 
+                                       ng-model="config.emsusername"
                                        ng-required="true" >
                             </div>
                             <div class="field-group row">
-                                <label class="col-sm-3" for="emsuserpass">EMS database pass</label>
+                                <label class="col-sm-3" for="emsuserpass"  tooltip-placement='right' uib-tooltip="The password for the STATegra EMS MySQL account. The default value is auto-generated (random 16 char).">
+                                    EMS database pass
+                                    <i style="color: #31708f;line-height: 30px;" class="fa fa-question-circle" ></i>
+                                </label>
                                 <input class="col-sm-8" type="password" name="emsuserpass"
                                        ng-enable="config.installation_type === 'install'"
                                        ng-model="config.emsuserpass"
@@ -114,18 +132,24 @@
                         <div class="section_box row">
                             <h2 class="section_subtitle">EMS configuration</h2>
                             <p style="font-size: 16px;font-weight: lighter; color: #868686; margin-left: 5px;">
-                                The STATegra EMS ships with an administrator user <i>admin</i>.</br>Please type the password for the administrator user.
+                                The STATegra EMS includes an administration user account.</br>Please type the email and the password for the administrator user.
                             </p>
                             <div class="field-group row">
-                                <label class="col-sm-3" for="emsadminpass">Admin email</label>
+                                <label class="col-sm-3" for="emsadminuser"  tooltip-placement='right' uib-tooltip="The email for the STATegra EMS admin account. E.g. myadmin@account.com">
+                                    Admin email
+                                    <i style="color: #31708f;line-height: 30px;" class="fa fa-question-circle" ></i>
+                                </label>
                                 <input class="col-sm-8" type="email" name="emsadminuser"
-                                       ng-model="config.emsadminuser" 
+                                       ng-model="config.emsadminuser"
                                        ng-required="true" >
                             </div>
                             <div class="field-group row">
-                                <label class="col-sm-3" for="emsadminpass">Admin pass</label>
+                                <label class="col-sm-3" for="emsadminpass"  tooltip-placement='right' uib-tooltip="The password for the STATegra EMS admin account. Min length 6 characters.">
+                                    Admin pass
+                                    <i style="color: #31708f;line-height: 30px;" class="fa fa-question-circle" ></i>
+                                </label>
                                 <input class="col-sm-8" type="password" name="emsadminpass"
-                                       ng-model="config.emsadminpass" 
+                                       ng-model="config.emsadminpass"
                                        ng-minlength="6"
                                        ng-required="true" >
                                 <span class="text-danger" ng-show="signForm.password.$error.minlength">Password must be at least 6 characters.</span>
@@ -136,9 +160,12 @@
                                 Note:<b>do not forget</b> allow read/write to Tomcat user in this location.
                             </p>
                             <div class="field-group row">
-                                <label class="col-sm-3" for="data_location">Data Location</label>
+                                <label class="col-sm-3" for="data_location"  tooltip-placement='right' uib-tooltip='The directory where the application will store some of the configuration files. The default location is "/data/stategraems_app_data/"'>
+                                    Data Location
+                                    <i style="color: #31708f;line-height: 30px;" class="fa fa-question-circle" ></i>
+                                </label>
                                 <input class="col-sm-8" type="text" name="data_location"
-                                       ng-model="config.data_location" 
+                                       ng-model="config.data_location"
                                        ng-required="true" >
                             </div>
                         </div>
