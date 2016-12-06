@@ -100,7 +100,8 @@ public class Install_servlets extends Servlet {
         JsonObject obj = new JsonObject();
         obj.add("success", new JsonPrimitive(valid));
 
-        String is_docker = properties.getProperty("is_docker");
+        String is_docker = System.getenv("is_docker");
+//        String is_docker = properties.getProperty("is_docker");
         obj.add("is_docker", new JsonPrimitive("true".equals(is_docker)));
 
         response.getWriter().print(obj.toString());
@@ -148,6 +149,8 @@ public class Install_servlets extends Servlet {
                     String dbname = requestData.get("dbname").getAsString();
                     String dbhost = requestData.get("dbhost").getAsString();
 
+                    String userHost = ("localhost".equals(dbhost)?dbhost:"%");
+
                     File f = new File(data_location);
                     if (!f.exists()) {
                         try {
@@ -178,7 +181,7 @@ public class Install_servlets extends Servlet {
                             line = line.replace("emsuser#123", mysql_emsuserpass);
                             line = line.replace("emsuser", mysql_emsusername);
                             line = line.replace("adminpassword", emsadminpass);
-                            line = line.replace("localhost", dbhost);
+                            line = line.replace("localhost", userHost);
 
                             printWriter.println(line);
                         }
