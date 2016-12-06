@@ -40,11 +40,38 @@
             return this;
         };
 
+        this.checkInstallationValidity = function () {
+            $http($rootScope.getHttpRequestConfig("POST", "check-install", {
+                headers: {'Content-Type': 'application/json'}
+            })).then(
+                    function successCallback(response) {
+                        if (response.data.success) {
+                            document.location = "/";
+                        }
+                        if (response.data.is_docker) {
+                            $scope.config.dbhost = "stategraems-mysql";
+                        }
+                    },
+                    function errorCallback(response) {
+                        $scope.isLoading = false;
+
+                        debugger;
+                        var message = "Failed while checking the validity of this emsinstance.";
+                        $dialogs.showErrorDialog(message, {
+                            logMessage: message + " at InstallController:checkInstallationValidity."
+                        });
+                        console.error(response.data);
+                    }
+            );
+        };
+
         $rootScope.getRequestPath = function (service, extra) {
             extra = (extra || "");
             switch (service) {
                 case "send-install":
                     return myAppConfig.EMS_SERVER + "install";
+                case "check-install":
+                    return myAppConfig.EMS_SERVER + "is_valid_installation";
                 default:
                     return "";
             }
@@ -100,11 +127,13 @@
         $scope.config = {
             installation_type: 'install',
             dbname: 'STATegraDB',
-            dbhost : 'localhost',
-            mysqladminUser : 'root',
+            dbhost: 'localhost',
+            mysqladminUser: 'root',
             emsusername: 'emsuser',
-            emsuserpass : Math.random().toString(36).substr(2, 16),
+            emsuserpass: Math.random().toString(36).substr(2, 16),
             data_location: '/data/stategraems_app_data/'
         };
+
+        this.checkInstallationValidity();
     });
 })();

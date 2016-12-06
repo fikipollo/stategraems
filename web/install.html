@@ -2,13 +2,10 @@
 <html ng-app="stategraemsApp">
     <head>
         <title>STATegra EMS v{{myAppConfig.VERSION}}</title>
-        <!--
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" >
-                <link href='https://fonts.googleapis.com/css?family=Open+Sans:300,400' rel='stylesheet' type='text/css'>
-                <link href="https://opensource.keycdn.com/fontawesome/4.6.3/font-awesome.min.css" rel="stylesheet">
-        -->
+        <!--<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" >-->
+        <!--<link href="https://opensource.keycdn.com/fontawesome/4.6.3/font-awesome.min.css" rel="stylesheet">-->
+
         <link rel="stylesheet" href="css/bootstrap.min.css" type='text/css'>
-        <link rel="stylesheet" href="css/fonts/OpenSans-Light.ttf" type='text/css'>
         <link rel="stylesheet" href="css/fonts/font-awesome.min.css" type='text/css'>
 
         <link rel="stylesheet" href="css/main.css" type='text/css'>
@@ -16,12 +13,10 @@
         <link rel="stylesheet" href="css/bootstrap-tagsinput.css">
         <link rel="stylesheet" href="css/bootstrap-treeview.min.css">
 
-        <!--
-        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
-                <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.3/jquery.min.js"></script>
-                <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-                <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.18/angular-ui-router.min.js"></script>
-        -->
+        <!--<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>-->
+        <!--<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.3/jquery.min.js"></script>-->
+        <!--<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>-->
+        <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.18/angular-ui-router.min.js"></script>-->
 
         <script type="text/javascript" src="lib/angular.min.js"></script>
         <script type="text/javascript" src="lib/jquery.min.js"></script>
@@ -55,7 +50,7 @@
                 <div class="container-fluid">
                     <form name="installForm" class="form-horizontal">
                         <nav class="navbar navbar-default navbar-top title-bar">
-                            <h1 class="form_title">Welcome to STATegra EMS {{myAppConfig.VERSION}} installator</h1>
+                            <h1 class="form_title">Welcome to STATegra EMS {{myAppConfig.VERSION}} installation</h1>
                             <h2 class="form_subtitle">Please fill the form below to start installing</h2>
                             <h3 class="form_subtitle">Please an option below:</h3>
                             <div class="radio">
@@ -68,7 +63,7 @@
                         <div class="section_box row" ng-show="config.installation_type === 'install'">
                             <h2 class="section_subtitle">Database configuration</h2>
                             <p style="font-size: 16px;font-weight: lighter; color: #868686; margin-left: 5px;">
-                                Please type the MYSQL user name which will be used to create the database (must have DATABASE and USER CREATION privileges)
+                                Please type the MySQL user name which will be used to create the database (must have DATABASE and USER CREATION privileges)
                             </p>
                             <div class="field-group row">
                                 <label class="col-sm-3" for="dbname" tooltip-placement='right' uib-tooltip="The name for the database for the STATegra EMS. Default: STATegraDB">

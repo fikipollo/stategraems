@@ -119,30 +119,24 @@
                         }
                 );
             }
-            ;
         };
 
         this.signUpButtonHandler = function () {
-            if ($scope.userInfo.email !== '' && $scope.userInfo.user_id !== '' && $scope.userInfo.password !== '' && $scope.userInfo.password == $scope.userInfo.passconfirm) {
+            if ($scope.userInfo.email !== '' && $scope.userInfo.user_id !== '' && $scope.userInfo.password !== '' && $scope.userInfo.password === $scope.userInfo.passconfirm) {
                 $http($rootScope.getHttpRequestConfig("POST", "user-sign-up", {
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    urlEncodedRequest: true,
+                    headers: {'Content-Type': 'application/json'},
                     data: {
                         email: $scope.userInfo.email,
                         user_id: $scope.userInfo.user_id,
-                        password: $scope.userInfo.password,
-                        confirm: $scope.userInfo.password,
-                        create_user_button: "Submit"
+                        password: $scope.userInfo.password
                     }}
                 )).then(
                         function successCallback(response) {
-                            response = $(response.data).find(".errormessage").text();
-
-                            if (response === undefined || response === "") {
+                            if (response.data.success) {
                                 $dialogs.showSuccessDialog("Your account has been created!");
                                 $scope.isLogin = true;
                             } else {
-                                $dialogs.showErrorDialog("Failed when creating new account: " + response);
+                                $dialogs.showErrorDialog("Failed when creating new account: " + response.data.reason);
                             }
 
                             delete $scope.userInfo.password;

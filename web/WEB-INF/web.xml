@@ -85,6 +85,7 @@
         <url-pattern>/add_user</url-pattern>
         <url-pattern>/logout</url-pattern>
         <url-pattern>/validate_session</url-pattern>
+        <url-pattern>/sign_up</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Samples_servlets</servlet-name>
@@ -108,6 +109,7 @@
     <servlet-mapping>
         <servlet-name>Install_servlets</servlet-name>
         <url-pattern>/install</url-pattern>
+        <url-pattern>/is_valid_installation</url-pattern>
     </servlet-mapping>    
     <session-config>
         <session-timeout>

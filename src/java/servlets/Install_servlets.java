@@ -75,6 +75,8 @@ public class Install_servlets extends Servlet {
 
         if (request.getServletPath().equals("/install")) {
             installPostHandler(request, response);
+        } else if (request.getServletPath().equals("/is_valid_installation")) {
+            checkInstallationValidityPostHandler(request, response);
         } else {
             common.ServerErrorManager.addErrorMessage(3, Install_servlets.class.getName(), "doPost", "What are you doing here?.");
             response.getWriter().print(ServerErrorManager.getErrorResponse());
@@ -88,6 +90,22 @@ public class Install_servlets extends Servlet {
      * ***************************************************************************
      * **************************************************************************
      */
+    private void checkInstallationValidityPostHandler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Properties properties = new Properties();
+        properties.load(DBConnectionManager.class.getResourceAsStream("/conf/data_location.properties"));
+        String data_location = properties.getProperty("data_location");
+        File f = new File(data_location + "/db_config.properties");
+        boolean valid = f.exists();
+
+        JsonObject obj = new JsonObject();
+        obj.add("success", new JsonPrimitive(valid));
+
+        String is_docker = properties.getProperty("is_docker");
+        obj.add("is_docker", new JsonPrimitive("true".equals(is_docker)));
+
+        response.getWriter().print(obj.toString());
+    }
+
     /**
      *
      * @param request
@@ -160,6 +178,8 @@ public class Install_servlets extends Servlet {
                             line = line.replace("emsuser#123", mysql_emsuserpass);
                             line = line.replace("emsuser", mysql_emsusername);
                             line = line.replace("adminpassword", emsadminpass);
+                            line = line.replace("localhost", dbhost);
+
                             printWriter.println(line);
                         }
                         bufferedReader.close();
@@ -240,20 +260,24 @@ public class Install_servlets extends Servlet {
                 }
 
                 try {
-                     /**************************************************************************************************************************/
-                     /* UPDATE OPTION                                                                                                          */ 
-                     /**************************************************************************************************************************/
+                    /**
+                     * ***********************************************************************************************************************
+                     */
+                    /* UPDATE OPTION                                                                                                          */
+                    /**
+                     * ***********************************************************************************************************************
+                     */
 
-                     //CHECK IF USER IS VALID ADMIN
+                    //CHECK IF USER IS VALID ADMIN
                     String password = SHA1.getHash(emsadminpass);
-                    Object[] params = {password, false, false};                             
+                    Object[] params = {password, false, false};
                     DAO dao_instance = DAOProvider.getDAOByName("User");
-                    User user = (User) ((User_JDBCDAO)dao_instance).findByID("admin", params);
-                    
-                    if(user == null){
+                    User user = (User) ((User_JDBCDAO) dao_instance).findByID("admin", params);
+
+                    if (user == null) {
                         throw new IOException("Unable to update databases. Invalid admin password.");
                     }
-                    
+
                     //GET PREVIOUS VERSION FROM DATABASE
                     PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT version FROM appVersion;");
                     ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
@@ -365,11 +389,11 @@ public class Install_servlets extends Servlet {
                         fileOutputStream.close();
 
                         //6. Remove the temporal redirection
-                        logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Disabling installation page...");
-                        path = Install_servlets.class.getResource("/").getPath();
-                        new File(path + "/../../index.html").delete();
-                        new File(path + "/../../install.html").delete();
-                        new File(path + "/../../_index.html").renameTo(new File(path + "/../../index.html"));
+//                        logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Disabling installation page...");
+//                        path = Install_servlets.class.getResource("/").getPath();
+//                        new File(path + "/../../index.html").delete();
+//                        new File(path + "/../../install.html").delete();
+//                        new File(path + "/../../_index.html").renameTo(new File(path + "/../../index.html"));
                     } else {
                         throw new IOException("Unable to write at " + data_location + "</br>Please check if directory exists and Tomcat user has read/write permissions on this directory.");
                     }
