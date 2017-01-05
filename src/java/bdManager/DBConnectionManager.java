@@ -46,7 +46,8 @@ public class DBConnectionManager {
     private HashMap<Long, Connection> connections = null;
     private DataSource connectionPool;
     private static String data_location;
-
+    Properties properties;
+    
     private DBConnectionManager() throws SQLException {
         initConnectionManager();
     }
@@ -54,7 +55,7 @@ public class DBConnectionManager {
     private void initConnectionManager() throws SQLException {
         try {
             connections = new HashMap<Long, Connection>();
-            Properties properties = new Properties();
+            properties = new Properties();
             properties.load(new FileReader(this.data_location + "/db_config.properties"));
             connectionPool = BasicDataSourceFactory.createDataSource(properties);
         } catch (Exception ex) {
@@ -94,6 +95,10 @@ public class DBConnectionManager {
 
     public static void setDataLocation(String data_location) {
         DBConnectionManager.data_location = data_location;
+    }
+
+    public Properties getProperties() {
+        return properties;
     }
 
     private synchronized static void createConnectionManager() throws SQLException {

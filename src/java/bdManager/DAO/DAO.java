@@ -17,19 +17,19 @@
  *  More info http://bioinfo.cipf.es/stategraems
  *  Technical contact stategraemsdev@gmail.com
  *  *************************************************************** */
-
 package bdManager.DAO;
 
 import bdManager.DBConnectionManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  * @author Rafa Hernández de Diego
  */
 public abstract class DAO {
-    
+
     public abstract boolean insert(Object object) throws SQLException;
 
     public abstract boolean update(Object object) throws SQLException;
@@ -37,7 +37,7 @@ public abstract class DAO {
     public abstract boolean remove(String object_id) throws SQLException;
 
     public abstract boolean remove(String[] object_id_list) throws SQLException;
-    
+
     public abstract String getNextObjectID(Object[] otherParams) throws SQLException;
 
     public abstract Object findByID(String objectID, Object[] otherParams) throws SQLException;
@@ -58,5 +58,16 @@ public abstract class DAO {
 
     public void doRollback() throws SQLException {
         DBConnectionManager.getConnectionManager().rollback();
+    }
+
+    protected static String concatString(String separator, String[] strings) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < strings.length; i++) {
+            sb.append(strings[i]);
+            if (i < strings.length - 1) {
+                sb.append(separator);
+            }
+        }
+        return sb.toString();
     }
 }

@@ -4,6 +4,8 @@ BEGIN;
 
 ALTER TABLE experiments CHANGE sample_tags tags TEXT;
 
+UPDATE users SET email = 'emsadminuser@email.com' WHERE email IS NULL AND user_id = 'admin';
+
 UPDATE experiments SET tags = CONCAT("Case-Control, ", tags) WHERE is_case_control_type = TRUE;
 UPDATE experiments SET tags = CONCAT("Multiple conditions, ", tags) WHERE is_multiple_conditions = TRUE;
 UPDATE experiments SET tags = CONCAT("Single condition, ", tags) WHERE is_single_condition = TRUE;
@@ -30,7 +32,7 @@ ALTER TABLE analyticalReplicate MODIFY COLUMN treatment_id VARCHAR(50);
 ALTER TABLE analysis CHANGE analysisType analysis_type varchar(200);
 ALTER TABLE analysis CHANGE analysisName analysis_name varchar(200);
 ALTER TABLE analysis ADD COLUMN tags TEXT;
-ALTER TABLE analysis ADD COLUMN remove_requests TEXT DEFAULT "";
+ALTER TABLE analysis ADD COLUMN remove_requests TEXT;
 
 ALTER TABLE rawdata MODIFY COLUMN analyticalReplicate_id VARCHAR(50);
 ALTER TABLE rawdata DROP foreign key fk_rawdata_30;
@@ -68,7 +70,15 @@ ALTER TABLE processed_data MODIFY COLUMN software VARCHAR(200);
 
 ALTER TABLE step_use_step ADD COLUMN type VARCHAR(50) DEFAULT 'input';
 
-DROP PROCEDURE update_regions;
+CREATE FUNCTION SPLIT_STR(
+  x VARCHAR(255),
+  delim VARCHAR(12),
+  pos INT
+)
+RETURNS VARCHAR(255)
+RETURN REPLACE(SUBSTRING(SUBSTRING_INDEX(x, delim, pos),
+       LENGTH(SUBSTRING_INDEX(x, delim, pos -1)) + 1),
+       delim, '');
 
 DELIMITER $$
 CREATE PROCEDURE update_regions()
@@ -125,6 +135,7 @@ DELIMITER ;
 CALL update_regions;
 DROP PROCEDURE update_regions;
 
+DROP PROCEDURE update_regions;
 
 UPDATE appVersion SET version='0.8';
 

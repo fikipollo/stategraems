@@ -45,79 +45,79 @@
                 templateUrl: "app/users/user-sign-in.tpl.html",
                 data: {requireLogin: false}
             },
-            home = {
-                name: 'home',
-                url: '/',
-                templateUrl: "app/home/home.tpl.html",
-                data: {requireLogin: true}
-            },
-            experiments = {
-                name: 'experiments',
-                url: '/experiments',
-                templateUrl: "app/experiments/experiment-list.tpl.html",
-                params: {
-                    force: false
-                },
-                data: {requireLogin: true}
-            },
-            experimentDetail = {
-                name: 'experimentDetail',
-                url: '/experiment-detail/',
-                templateUrl: "app/experiments/experiment-form.tpl.html",
-                params: {
-                    viewMode: 'view', //creation, edition
-                    experiment_id: null,
-                },
-                data: {requireLogin: true}
-            },
-            samples = {
-                name: 'samples',
-                url: '/samples',
-                templateUrl: "app/samples/sample-list.tpl.html",
-                params: {
-                    force: false
-                },
-                data: {requireLogin: true}
-            },
-            sampleDetail = {
-                name: 'sampleDetail',
-                url: '/sample-detail/',
-                templateUrl: "app/samples/biocondition-form.tpl.html",
-                params: {
-                    viewMode: 'view', //creation, edition
-                    biocondition_id: null
-                },
-                data: {requireLogin: true}
-            },
-            externalSampleDetail = {
-                name: 'externalSampleDetail',
-                url: '/ext-sample-detail/',
-                templateUrl: "app/samples/external-sample-form.tpl.html",
-                params: {
-                    viewMode: 'view', //creation, edition
-                    biocondition_id: null
-                },
-                data: {requireLogin: true}
-            },
-            analysis = {
-                name: 'analysis',
-                url: '/analysis',
-                templateUrl: "app/analysis/analysis-list.tpl.html",
-                params: {
-                    force: false
-                },
-                data: {requireLogin: true}
-            },
-            analysisDetail = {
-                name: 'analysisDetail',
-                url: '/analysis-detail/',
-                templateUrl: "app/analysis/analysis-form.tpl.html",
-                params: {
-                    viewMode: 'view', //creation, edition
-                    analysis_id: null,
-                },
-                data: {requireLogin: true}
-            };
+                    home = {
+                        name: 'home',
+                        url: '/',
+                        templateUrl: "app/home/home.tpl.html",
+                        data: {requireLogin: true}
+                    },
+                    experiments = {
+                        name: 'experiments',
+                        url: '/experiments',
+                        templateUrl: "app/experiments/experiment-list.tpl.html",
+                        params: {
+                            force: false
+                        },
+                        data: {requireLogin: true}
+                    },
+                    experimentDetail = {
+                        name: 'experimentDetail',
+                        url: '/experiment-detail/',
+                        templateUrl: "app/experiments/experiment-form.tpl.html",
+                        params: {
+                            viewMode: 'view', //creation, edition
+                            experiment_id: null,
+                        },
+                        data: {requireLogin: true}
+                    },
+                    samples = {
+                        name: 'samples',
+                        url: '/samples',
+                        templateUrl: "app/samples/sample-list.tpl.html",
+                        params: {
+                            force: false
+                        },
+                        data: {requireLogin: true}
+                    },
+                    sampleDetail = {
+                        name: 'sampleDetail',
+                        url: '/sample-detail/',
+                        templateUrl: "app/samples/biocondition-form.tpl.html",
+                        params: {
+                            viewMode: 'view', //creation, edition
+                            biocondition_id: null
+                        },
+                        data: {requireLogin: true}
+                    },
+                    externalSampleDetail = {
+                        name: 'externalSampleDetail',
+                        url: '/ext-sample-detail/',
+                        templateUrl: "app/samples/external-sample-form.tpl.html",
+                        params: {
+                            viewMode: 'view', //creation, edition
+                            biocondition_id: null
+                        },
+                        data: {requireLogin: true}
+                    },
+                    analysis = {
+                        name: 'analysis',
+                        url: '/analysis',
+                        templateUrl: "app/analysis/analysis-list.tpl.html",
+                        params: {
+                            force: false
+                        },
+                        data: {requireLogin: true}
+                    },
+                    analysisDetail = {
+                        name: 'analysisDetail',
+                        url: '/analysis-detail/',
+                        templateUrl: "app/analysis/analysis-form.tpl.html",
+                        params: {
+                            viewMode: 'view', //creation, edition
+                            analysis_id: null,
+                        },
+                        data: {requireLogin: true}
+                    };
             $stateProvider.state(signin);
             $stateProvider.state(home);
             $stateProvider.state(experiments);
@@ -196,7 +196,7 @@
                 case "sample-service-host-list":
                     return myAppConfig.EMS_SERVER + "get_sample_service_host_list";
                 case "sample-service-list":
-                    return myAppConfig.EMS_SERVER + "get_sample_service_list";                
+                    return myAppConfig.EMS_SERVER + "get_sample_service_list";
                 case "analysis-list":
                     return myAppConfig.EMS_SERVER + "get_all_analysis";
                 case "analysis-info":
@@ -215,6 +215,8 @@
                     return myAppConfig.EMS_SERVER + "get_step_subtypes";
                 case "file-list":
                     return myAppConfig.EMS_SERVER + "get_experiment_directory_content";
+                case "check-install":
+                    return myAppConfig.EMS_SERVER + "is_valid_installation";
                 default:
                     return "";
             }
@@ -373,5 +375,30 @@
         this.toogleMenuCollapseHandler = function () {
             $("#wrapper").toggleClass("toggled")
         }
+
+
+        this.checkInstallationValidity = function () {
+            $http($rootScope.getHttpRequestConfig("POST", "check-install", {
+                headers: {'Content-Type': 'application/json'}
+            })).then(
+                    function successCallback(response) {
+                        if (!response.data.success) {
+                            document.location = "install.html";
+                        }
+                    },
+                    function errorCallback(response) {
+                        $scope.isLoading = false;
+
+                        debugger;
+                        var message = "Failed while checking the validity of this emsinstance.";
+                        $dialogs.showErrorDialog(message, {
+                            logMessage: message + " at MainController:check-install."
+                        });
+                        console.error(response.data);
+                    }
+            );
+        };
+        
+        this.checkInstallationValidity();
     });
 })();

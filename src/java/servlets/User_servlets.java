@@ -78,6 +78,8 @@ public class User_servlets extends Servlet {
             removeUserPostHandler(request, response);
         } else if (request.getServletPath().equals("/validate_session")) {
             validateSessionPostHandler(request, response);
+        } else if (request.getServletPath().equals("/sign_up")) {
+            userSignUpPostHandler(request, response);
         } else {
             common.ServerErrorManager.addErrorMessage(3, User_servlets.class.getName(), "doPost", "What are you doing here?.");
             response.getWriter().print(ServerErrorManager.getErrorResponse());
@@ -91,6 +93,116 @@ public class User_servlets extends Servlet {
      * ***************************************************************************
      * **************************************************************************
      */
+    private void userSignUpPostHandler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            DAO dao_instance = null;
+            User user = null;
+            boolean ROLLBACK_NEEDED = false;
+            String error = "";
+            try {
+                /**
+                 * *******************************************************
+                 * STEP 1 Check if the user exists in the DB. IF ERROR -->
+                 * throws MySQL exception, GO TO STEP 2b throws
+                 * NoSuchAlgorithmException, GO TO STEP 2b ELSE --> GO TO STEP 2
+                 * *******************************************************
+                 */
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String email = requestData.get("email").getAsString();
+                String user_id = requestData.get("user_id").getAsString();
+                String password = requestData.get("password").getAsString();
+                password = SHA1.getHash(password);
+
+                dao_instance = DAOProvider.getDAOByName("User");
+                Object[] params = {null, false, true};
+                user = (User) ((User_JDBCDAO) dao_instance).findByID(email, params);
+                if (user != null) {
+                    throw new AccessControlException("Email already registered.");
+                }
+                user = (User) ((User_JDBCDAO) dao_instance).findByID(user_id, null);
+                if (user != null) {
+                    throw new AccessControlException("There is another user with that name. Try with another name.");
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 2 Create the new user instance.
+                 * *******************************************************
+                 */
+                user = new User(user_id, email);
+                user.setPassword(password);
+
+                /**
+                 * *******************************************************
+                 * STEP 3 INSERT IN DATABASE. IF ERROR --> throws exception if
+                 * not valid session, GO TO STEP 4b ELSE --> GO TO STEP 4
+                 * *******************************************************
+                 */
+                dao_instance = DAOProvider.getDAOByName("User");
+                dao_instance.disableAutocommit();
+                ROLLBACK_NEEDED = true;
+                dao_instance.insert(user);
+
+                /**
+                 * *******************************************************
+                 * STEP 4 COMMIT CHANGES IN DB. IF ERROR --> throws exception if
+                 * not valid session, GO TO STEP 4b ELSE --> GO TO STEP 5
+                 * *******************************************************
+                 */
+                dao_instance.doCommit();
+            } catch (AccessControlException e) {
+                error = e.getMessage();
+            } catch (Exception e) {
+                ServerErrorManager.handleException(e, User_servlets.class.getName(), "userLoginPostHandler", e.getMessage());
+            } finally {
+                /**
+                 * *******************************************************
+                 * STEP 3b CATCH ERROR. GO TO STEP 4
+                 * *******************************************************
+                 */
+                if (ServerErrorManager.errorStatus()) {
+                    response.setStatus(400);
+                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+                    
+                    if (ROLLBACK_NEEDED) {
+                        dao_instance.doRollback();
+                    }
+                } else {
+                    /**
+                     * *******************************************************
+                     * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
+                     * *******************************************************
+                     */
+                    if (error.length() > 0) {
+                        JsonObject obj = new JsonObject();
+                        obj.add("success", new JsonPrimitive(false));
+                        obj.add("reason", new JsonPrimitive(error));
+                        response.getWriter().print(obj.toString());
+                    } else {
+                        JsonObject obj = new JsonObject();
+                        obj.add("success", new JsonPrimitive(true));
+                        response.getWriter().print(obj.toString());
+                    }
+                }
+                /**
+                 * *******************************************************
+                 * STEP 4 Close connection.
+                 * ********************************************************
+                 */
+                if (dao_instance != null) {
+                    dao_instance.closeConnection();
+                }
+            }
+            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, User_servlets.class.getName(), "userSignUpPostHandler", e.getMessage());
+            response.setStatus(400);
+            response.getWriter().print(ServerErrorManager.getErrorResponse());
+        }
+    }
+
     /**
      *
      * @param request

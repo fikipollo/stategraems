@@ -1019,5 +1019,5 @@ INSERT IGNORE INTO `STATegraDB`.`users` (user_id, password) VALUES('admin',SHA1(
 
 use mysql;
 CREATE USER 'emsuser'@'localhost' IDENTIFIED BY 'emsuser#123';
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER ON STATegraDB.* TO 'emsuser'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, CREATE ROUTINE, ALTER ROUTINE, EXECUTE ON STATegraDB.* TO 'emsuser'@'localhost';
 flush privileges;

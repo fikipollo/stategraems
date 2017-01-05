@@ -123,33 +123,30 @@
                         }
                 );
             }
-            ;
         };
 
         this.signUpButtonHandler = function () {
-            if ($scope.userInfo.email !== '' && $scope.userInfo.user_id !== '' && $scope.userInfo.password !== '' && $scope.userInfo.password == $scope.userInfo.passconfirm) {
+            if ($scope.userInfo.email !== '' && $scope.userInfo.user_id !== '' && $scope.userInfo.password !== '' && $scope.userInfo.password === $scope.userInfo.passconfirm) {
                 $http($rootScope.getHttpRequestConfig("POST", "user-sign-up", {
                     headers: {'Content-Type': 'application/json'},
                     data: {
                         email: $scope.userInfo.email,
                         user_id: $scope.userInfo.user_id,
-                        password: $scope.userInfo.password,
-                        confirm: $scope.userInfo.password,
-                        create_user_button: "Submit"
+                        password: $scope.userInfo.password
                     }}
                 )).then(
                         function successCallback(response) {
-                            if (response.data.error === undefined || response.data.error === "") {
+                            if (response.data.success) {
                                 $dialogs.showSuccessDialog("Your account has been created!");
                                 $scope.isLogin = true;
                             } else {
-                                $dialogs.showErrorDialog("Failed when creating new account: " + response.data.error);
+                                $dialogs.showErrorDialog("Failed when creating new account: " + response.data.reason);
                             }
 
                             delete $scope.userInfo.password;
                             delete $scope.userInfo.passconfirm;
                             delete $scope.signForm;
-                            
+
                             Cookies.remove("loggedUser", {path: window.location.pathname});
                             Cookies.remove("sessionToken", {path: window.location.pathname});
                             Cookies.remove("loggedUserID", {path: window.location.pathname});
