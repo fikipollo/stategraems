@@ -142,27 +142,9 @@ public class ProcessedData extends Step {
     public void updatePreviousStepIDs(String old_analysis_id, String new_analysis_id) {
         if (this.used_data != null) {
             for (int i = 0; i < this.used_data.length; i++) {
-                this.used_data[i] = this.used_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2));
+                this.used_data[i] = this.used_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN","ST");
             }
         }
-    }
-
-    @Override
-    public boolean updateAnalysisID(String new_analysis_id) {
-        //IF THE ANALYSIS ID IS DIFFERENT THAT THE TO-BE-CREATED ID, IT MEANS THAT 
-        //THE STEP IS AN IMPORTED STEP.
-        String analysis_id = this.getAnalysisID();
-
-        if (!"ANxxxx".equals(analysis_id)) {
-            return false;
-        }
-
-        this.setStepID(this.step_id.replaceFirst(analysis_id.substring(2), new_analysis_id.substring(2)));
-        this.updatePreviousStepIDs(analysis_id, new_analysis_id);
-        if (this.associatedQualityReport != null) {
-            this.associatedQualityReport.setStudiedStepID(this.step_id);
-        }
-        return true;
     }
 
     //***********************************************************************

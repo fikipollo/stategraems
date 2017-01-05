@@ -64,6 +64,7 @@
         <url-pattern>/change_current_experiment</url-pattern>
         <url-pattern>/dump_database</url-pattern>
         <url-pattern>/get_experiment_directory_content</url-pattern>
+        <url-pattern>/experiment_member_request</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Treatment_servlets</servlet-name>
@@ -81,8 +82,8 @@
         <url-pattern>/remove_user</url-pattern>
         <url-pattern>/get_user</url-pattern>
         <url-pattern>/login</url-pattern>
+        <url-pattern>/sign_up</url-pattern>
         <url-pattern>/get_user_list</url-pattern>
-        <url-pattern>/add_user</url-pattern>
         <url-pattern>/logout</url-pattern>
         <url-pattern>/validate_session</url-pattern>
     </servlet-mapping>

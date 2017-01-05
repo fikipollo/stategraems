@@ -321,53 +321,8 @@
                     }
                     return false;
                 },
-                getMemento: function (model) {
-                    var memento = {};
-                    for (var key in model) {
-                        //IF IS ARRAY
-                        if ((!!model[key]) && (model[key].constructor === Array)) {
-                            memento[key] = [];
-                            for (var i in model[key]) {
-                                memento[key].push(model[key][i]);
-                            }
-                            //IF IS object
-                        } else if ((!!model[key]) && (model[key].constructor === Object)) {
-                            memento[key] = {};
-                            for (var i in model[key]) {
-                                memento[key][i] = model[key][i];
-                            }
-                        } else {
-                            memento[key] = model[key];
-                        }
-                    }
-
-                    return memento;
-                },
-                restoreFromMemento: function (model, memento) {
-                    for (var key in model) {
-                        if ((!!memento[key]) && (memento[key].constructor === Array)) {
-                            model[key].length = 0;
-                            for (var i in memento[key]) {
-                                model[key].push(memento[key][i]);
-                            }
-                            //IF IS object
-                        } else if ((!!memento[key]) && (memento[key].constructor === Object)) {
-                            for (var i in model[key]) {
-                                delete model[key][i];
-                            }
-
-                            for (var i in memento[key]) {
-                                model[key][i] = memento[key][i];
-                            }
-                        } else {
-                            model[key] = memento[key];
-                        }
-                    }
-                    return model;
-                },
                 hasChangedStep: function (newValues, oldValues) {
                     if ((newValues === undefined || oldValues === undefined) && newValues !== oldValues) {
-                        debugger;
                         return true;
                     }
 
@@ -375,21 +330,18 @@
                     if (newValues instanceof Array) {
                         //1. Check if same type and same number of elements
                         if (!oldValues instanceof Array || newValues.length !== oldValues.length) {
-                            debugger;
                             return true;
                         }
                         //2. Check if arrays are similar (including order)
                         for (var i in newValues) {
                             var hasChanged = this.hasChangedStep(newValues[i], oldValues[i]);
                             if (hasChanged) {
-                                debugger;
                                 return true;
                             }
                         }
                     } else if (newValues instanceof Object) {
                         //1. Check if same type and same number of properties
                         if (!oldValues instanceof Object) {
-                            debugger;
                             return true;
                         }
                         var newKeys = Object.keys(newValues).filter(function (key) {
@@ -399,14 +351,12 @@
                             return (key !== "status" && key !== "step_number" && key[0] !== "$")
                         });
                         if (newKeys.length !== oldKeys.length) {
-                            debugger;
                             return true;
                         }
                         //2. Check same properties and values
                         for (var i in newKeys) {
                             var hasChanged = this.hasChangedStep(newValues[newKeys[i]], oldValues[newKeys[i]]);
                             if (hasChanged) {
-                                debugger;
                                 return true;
                             }
                         }

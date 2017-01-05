@@ -88,7 +88,8 @@
                 </div>
             </div>
             <div uib-accordion-group class="panel-default" heading="Sample selection" is-open="browseDialog.current===2">
-                <a class="btn btn-danger" style=" display: block; width: 200px; margin: auto; " ng-click="browseDialog.current = browseDialog.current - 1"><i class="fa fa-long-arrow-left" aria-hidden="true"></i> Back to biocondition selection</a>
+                <a class="btn btn-danger" style=" display: block; width: 230px; margin: auto; " ng-click="browseDialog.current = browseDialog.current - 1"><i class="fa fa-long-arrow-left" aria-hidden="true"></i> Back to biocondition selection</a>
+                <i ng-show="!model.associatedBioreplicates || model.associatedBioreplicates.length === 0" style="display: block;text-align: center;margin-top: 20px;font-size: 20px;">This samples set is empty.</i>                
                 <div ng-repeat="bioreplicate in model.associatedBioreplicates" class="biocondition-card iu-card"  style="display: inline-block;">
                     <div class="iu-card-body">
                         <h2 class="iu-card-name">{{bioreplicate.bioreplicate_name}}</h2>
@@ -104,6 +105,7 @@
             </div>
             <div uib-accordion-group class="panel-default" heading="Aliquout selection" is-open="browseDialog.current===3">
                 <a class="btn btn-danger" style=" display: block; width: 200px; margin: auto; " ng-click="browseDialog.current = browseDialog.current - 1" ><i class="fa fa-long-arrow-left" aria-hidden="true"></i> Back to sample selection</a>
+                <i ng-show="!bioreplicate.associatedAnalyticalReplicates || bioreplicate.associatedAnalyticalReplicates.length === 0" style="display: block;text-align: center;margin-top: 20px;font-size: 20px;">No aliquots registered for this sample.</i>                
                 <div ng-repeat="analyticalReplicate in bioreplicate.associatedAnalyticalReplicates" class="biocondition-card iu-card"  style="display: inline-block;">
                     <div class="iu-card-body">
                         <h2 class="iu-card-name">{{analyticalReplicate.analytical_rep_name}}</h2>

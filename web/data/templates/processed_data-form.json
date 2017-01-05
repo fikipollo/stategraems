@@ -14,7 +14,7 @@
                 {
                     "name": "processed_data_type",
                     "label": "Step type",
-                    "type": "text"
+                    "type": "display"
                 },
                 {
                     "name": "files_location",

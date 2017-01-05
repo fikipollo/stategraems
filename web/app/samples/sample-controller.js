@@ -459,7 +459,6 @@
                             console.info((new Date()).toLocaleString() + "object locked successfully");
                             if (newViewMode === "edition") {
                                 $scope.initializeCountdownDialogs();
-                                $scope.memento = SampleList.getMemento($scope.model);
                             }
                             $scope.setViewMode(newViewMode || 'view');
                             $scope.setLoading(false);
@@ -619,8 +618,7 @@
             //IF NO MORE TASKS AND EVERYTHING GOES WELL
             else if (status) {
                 //TODO: $scope.cleanCountdownDialogs();
-                $scope.setViewMode("view");
-                this.retrieveSampleDetails($scope.model.biocondition_id, true);
+                $scope.setViewMode("view", true);
                 $dialogs.showSuccessDialog('Sample ' + $scope.model.biocondition_id + ' saved successfully');
             } else {
                 status = false;
@@ -657,7 +655,6 @@
                         function successCallback(response) {
                             //Notify all the other controllers that samples has been deleted
                             $rootScope.$broadcast(APP_EVENTS.sampleDeleted);
-                            me.send_unlock_sample();
                             $dialogs.showSuccessDialog("All the samples were successfully deleted.");
                             $state.go('samples', {force: true});
                         },
@@ -691,8 +688,8 @@
             $scope.isDialog = true;
 
             $scope.browseDialog = $uibModal.open({
-                templateUrl: 'app/samples/biocondition-form.tpl.html',
-                controller: 'BioconditionDetailController',
+                templateUrl: ($scope.model.isExternal ? 'app/samples/external-sample-form.tpl.html' : 'app/samples/biocondition-form.tpl.html'),
+                controller: ($scope.model.isExternal ? 'ExternalSampleDetailController' : 'BioconditionDetailController'),
                 controllerAs: 'controller',
                 size: "lg",
                 scope: $scope
@@ -739,7 +736,6 @@
             };
 
             $scope.closeSelectionDialog = function () {
-                debugger;
                 delete $scope.changeSelectedSample;
                 delete $scope.closeSelectionDialog;
 
@@ -842,7 +838,6 @@
             if ($scope.viewMode === 'view') {
                 $state.go('samples');
             } else if ($scope.viewMode === 'edition') {
-                this.retrieveSampleDetails($scope.model.biocondition_id, true);
                 this.send_unlock_sample();
             } else {
                 $state.go('samples');
@@ -862,8 +857,7 @@
                 $scope.panel_title = "Sample details.";
                 $scope.clearCountdownDialogs();
                 if (restore === true) {
-                    SampleList.restoreFromMemento($scope.model, $scope.memento);
-                    $scope.memento = null;
+                    me.retrieveSampleDetails($scope.model.biocondition_id, true);
                 }
             } else if (mode === 'creation') {
                 $scope.panel_title = "Sample creation.";
@@ -1331,7 +1325,6 @@
                             console.info((new Date()).toLocaleString() + "object locked successfully");
                             if (newViewMode === "edition") {
                                 $scope.initializeCountdownDialogs();
-                                $scope.memento = SampleList.getMemento($scope.model);
                             }
                             $scope.setViewMode(newViewMode || 'view');
                             $scope.setLoading(false);
@@ -1480,8 +1473,7 @@
             //IF NO MORE TASKS AND EVERYTHING GOES WELL
             else if (status) {
                 //TODO: $scope.cleanCountdownDialogs();
-                $scope.setViewMode("view");
-                this.retrieveSampleDetails($scope.model.biocondition_id, true);
+                $scope.setViewMode("view", true);
                 $dialogs.showSuccessDialog('Sample ' + $scope.model.biocondition_id + ' saved successfully');
             } else {
                 status = false;
@@ -1502,8 +1494,7 @@
                 $scope.panel_title = "External samples details.";
                 $scope.clearCountdownDialogs();
                 if (restore === true) {
-                    SampleList.restoreFromMemento($scope.model, $scope.memento);
-                    $scope.memento = null;
+                    me.retrieveSampleDetails($scope.model.biocondition_id, true);
                 }
             } else if (mode === 'creation') {
                 $scope.panel_title = "Registering external samples";
@@ -1592,7 +1583,6 @@
                         function successCallback(response) {
                             //Notify all the other controllers that samples has been deleted
                             $rootScope.$broadcast(APP_EVENTS.sampleDeleted);
-                            me.send_unlock_sample();
                             $dialogs.showSuccessDialog("All the samples were successfully deleted.");
                             $state.go('samples', {force: true});
                         },
@@ -1698,8 +1688,8 @@
         $scope.setViewMode($stateParams.viewMode || 'view');
         $scope.link_input_type = "manual";
 
-        if ($stateParams.biocondition_id) {
-            this.retrieveSampleDetails($stateParams.biocondition_id, true);
+        if ($stateParams.biocondition_id || $scope.biocondition_id) {
+            this.retrieveSampleDetails($stateParams.biocondition_id|| $scope.biocondition_id, true);
         } else {
             $scope.model.biocondition_id = "[Autogenerated after saving]";
             $scope.model.bioreplicates = [];

@@ -35,6 +35,10 @@
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
         this.getCurrentUserDetails = function () {
+            if (!Cookies.get("sessionToken")) {
+                return;
+            }
+
             $http($rootScope.getHttpRequestConfig("POST", "user-info", {
                 headers: {'Content-Type': 'application/json'},
                 data: $rootScope.getCredentialsParams({email: 'current'})
@@ -94,7 +98,7 @@
                             Cookies.set("loggedUser", $scope.userInfo.email, {expires: 1, path: window.location.pathname});
                             Cookies.set("loggedUserID", $scope.userInfo.user_id, {expires: 1, path: window.location.pathname});
                             Cookies.set("sessionToken", response.data.sessionToken, {expires: 1, path: window.location.pathname});
-
+                            Cookies.set("currentExperimentID", response.data.last_experiment_id, {expires: 1, path: window.location.pathname});
 
                             delete $scope.userInfo.password;
                             delete $scope.signForm;
@@ -125,8 +129,7 @@
         this.signUpButtonHandler = function () {
             if ($scope.userInfo.email !== '' && $scope.userInfo.user_id !== '' && $scope.userInfo.password !== '' && $scope.userInfo.password == $scope.userInfo.passconfirm) {
                 $http($rootScope.getHttpRequestConfig("POST", "user-sign-up", {
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    urlEncodedRequest: true,
+                    headers: {'Content-Type': 'application/json'},
                     data: {
                         email: $scope.userInfo.email,
                         user_id: $scope.userInfo.user_id,
@@ -136,18 +139,22 @@
                     }}
                 )).then(
                         function successCallback(response) {
-                            response = $(response.data).find(".errormessage").text();
-
-                            if (response === undefined || response === "") {
+                            if (response.data.error === undefined || response.data.error === "") {
                                 $dialogs.showSuccessDialog("Your account has been created!");
                                 $scope.isLogin = true;
                             } else {
-                                $dialogs.showErrorDialog("Failed when creating new account: " + response);
+                                $dialogs.showErrorDialog("Failed when creating new account: " + response.data.error);
                             }
 
                             delete $scope.userInfo.password;
                             delete $scope.userInfo.passconfirm;
                             delete $scope.signForm;
+                            
+                            Cookies.remove("loggedUser", {path: window.location.pathname});
+                            Cookies.remove("sessionToken", {path: window.location.pathname});
+                            Cookies.remove("loggedUserID", {path: window.location.pathname});
+                            Cookies.remove("currentExperimentID", {path: window.location.pathname});
+
                         },
                         function errorCallback(response) {
                             debugger;
@@ -176,7 +183,8 @@
             console.log("Cleaning all local session data.");
             Cookies.remove("loggedUser", {path: window.location.pathname});
             Cookies.remove("sessionToken", {path: window.location.pathname});
-            Cookies.remove("currentUserID", {path: window.location.pathname});
+            Cookies.remove("loggedUserID", {path: window.location.pathname});
+            Cookies.remove("currentExperimentID", {path: window.location.pathname});
 
             delete $scope.userInfo.email;
             delete $scope.userInfo.user_id;

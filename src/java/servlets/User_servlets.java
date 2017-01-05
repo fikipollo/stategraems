@@ -64,14 +64,14 @@ public class User_servlets extends Servlet {
 
         if (request.getServletPath().equals("/login")) {
             userLoginPostHandler(request, response);
+        } else if (request.getServletPath().equals("/sign_up")) {
+            userSignUpPostHandler(request, response);
         } else if (request.getServletPath().equals("/logout")) {
             userLogoutPostHandler(request, response);
         } else if (request.getServletPath().equals("/get_user_list")) {
             getUserListPostHandler(request, response);
         } else if (request.getServletPath().equals("/get_user")) {
             getUserPostHandler(request, response);
-        } else if (request.getServletPath().equals("/add_user")) {
-            addUserPostHandler(request, response);
         } else if (request.getServletPath().equals("/update_user")) {
             updateUserPostHandler(request, response);
         } else if (request.getServletPath().equals("/remove_user")) {
@@ -121,8 +121,8 @@ public class User_servlets extends Servlet {
                 boolean last_experiment = true;
                 Object[] params = {password, last_experiment, isEmail};
                 dao_instance = DAOProvider.getDAOByName("User");
-                
-                user = (User) ((User_JDBCDAO)dao_instance).findByID(email, params);
+
+                user = (User) ((User_JDBCDAO) dao_instance).findByID(email, params);
                 /**
                  * *******************************************************
                  * STEP 2 Check if user exists. IF NOT --> throws Exception, GO
@@ -132,7 +132,7 @@ public class User_servlets extends Servlet {
                 if (user == null) {
                     throw new AccessControlException("User not found. Please check the username and password.");
                 }
-                
+
                 user.setSessionToken(UserSessionManager.getUserSessionManager().registerNewUser(email));
 
             } catch (Exception e) {
@@ -154,6 +154,123 @@ public class User_servlets extends Servlet {
                      */
                     response.setStatus(200);
                     response.getWriter().print(user.toJSON());
+                }
+                /**
+                 * *******************************************************
+                 * STEP 4 Close connection.
+                 * ********************************************************
+                 */
+                if (dao_instance != null) {
+                    dao_instance.closeConnection();
+                }
+            }
+            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, User_servlets.class.getName(), "userLoginPostHandler", e.getMessage());
+            response.setStatus(400);
+            response.getWriter().print(ServerErrorManager.getErrorResponse());
+        }
+    }
+
+    private void userSignUpPostHandler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            DAO dao_instance = null;
+            User user = null;
+            boolean ROLLBACK_NEEDED = false;
+            String error = "";
+            try {
+                /**
+                 * *******************************************************
+                 * STEP 1 Check if the user exists in the DB. IF ERROR -->
+                 * throws MySQL exception, GO TO STEP 2b throws
+                 * NoSuchAlgorithmException, GO TO STEP 2b ELSE --> GO TO STEP 2
+                 * *******************************************************
+                 */
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String email = requestData.get("email").getAsString();
+                String password = requestData.get("password").getAsString();
+                String username = requestData.get("user_id").getAsString();
+
+                password = SHA1.getHash(password);
+
+                /**
+                 * *******************************************************
+                 * STEP 2 Check if user already exists. IF SO--> throws
+                 * Exception, GO TO STEP 2b ELSE --> GO TO STEP 3
+                 * *******************************************************
+                 */
+                boolean isEmail = true;
+                Object[] params = {null, false, isEmail};
+                dao_instance = DAOProvider.getDAOByName("User");
+
+                user = (User) ((User_JDBCDAO) dao_instance).findByID(email, params);
+                if (user != null) {
+                    error = "Email already registered. ";
+                }
+
+                isEmail = false;
+                params[2] = isEmail;
+                user = (User) ((User_JDBCDAO) dao_instance).findByID(username, params);
+
+                if (user != null) {
+                    error += "Username already taken.";
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 3 Create a new user and save it.
+                 * *******************************************************
+                 */
+                if (error.isEmpty()) {
+                    user = new User(username, email);
+                    user.setPassword(password);
+
+                    /**
+                     * *******************************************************
+                     * STEP 3 INSERT IN DATABASE. IF ERROR --> throws exception
+                     * if not valid session, GO TO STEP 4b ELSE --> GO TO STEP 4
+                     * *******************************************************
+                     */
+                    dao_instance = DAOProvider.getDAOByName("User");
+                    dao_instance.disableAutocommit();
+                    ROLLBACK_NEEDED = true;
+                    dao_instance.insert(user);
+
+                    /**
+                     * *******************************************************
+                     * STEP 4 COMMIT CHANGES IN DB. IF ERROR --> throws
+                     * exception if not valid session, GO TO STEP 4b ELSE --> GO
+                     * TO STEP 5
+                     * *******************************************************
+                     */
+                    dao_instance.doCommit();
+                }
+
+            } catch (Exception e) {
+                ServerErrorManager.handleException(e, User_servlets.class.getName(), "userSignUpPostHandler", e.getMessage());
+            } finally {
+                /**
+                 * *******************************************************
+                 * STEP 3b CATCH ERROR. GO TO STEP 4
+                 * *******************************************************
+                 */
+                if (ServerErrorManager.errorStatus()) {
+                    response.setStatus(400);
+                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+                } else {
+                    /**
+                     * *******************************************************
+                     * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
+                     * *******************************************************
+                     */
+                    response.setStatus(200);
+                    if (!error.isEmpty()) {
+                        JsonObject obj = new JsonObject();
+                        obj.add("error", new JsonPrimitive(error));
+                        response.getWriter().print(obj.toString());
+                    }
                 }
                 /**
                  * *******************************************************
@@ -318,10 +435,10 @@ public class User_servlets extends Servlet {
                 if ("current".equalsIgnoreCase(email)) {
                     email = loggedUser;
                 }
-                
+
                 boolean isEmail = true;
                 Object[] params = {null, false, isEmail};
-                user = (User) ((User_JDBCDAO)dao_instance).findByID(email, params);
+                user = (User) ((User_JDBCDAO) dao_instance).findByID(email, params);
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, User_servlets.class.getName(), "getUserPostHandler", e.getMessage());
             } finally {
@@ -343,102 +460,6 @@ public class User_servlets extends Servlet {
             }
         } catch (Exception e) {
             ServerErrorManager.handleException(e, User_servlets.class.getName(), "getUserPostHandler", e.getMessage());
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
-        }
-    }
-
-    /**
-     *
-     * @param request
-     * @param response
-     * @throws ServletException
-     * @throws IOException
-     */
-    private void addUserPostHandler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            boolean ROLLBACK_NEEDED = false;
-            DAO dao_instance = null;
-
-            try {
-
-                /**
-                 * *******************************************************
-                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
-                 * ERROR --> throws exception if not valid session, GO TO STEP
-                 * 4b ELSE --> GO TO STEP 2
-                 * *******************************************************
-                 */
-                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
-                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-                }
-
-                if (!"admin".equals(request.getParameter("loggedUser"))) {
-                    throw new AccessControlException(request.getParameter("loggedUser") + " is no allowed for this operation.");
-                }
-
-                /**
-                 * *******************************************************
-                 * STEP 2 PARSE THE JSON DATA AND GET THE NEW OBJECT. IF ERROR
-                 * --> throws exception if not valid session, GO TO STEP 4b ELSE
-                 * --> GO TO STEP 3
-                 * *******************************************************
-                 */
-                String user_json_data = request.getParameter("user_json_data");
-                User user = User.fromJSON(user_json_data);
-                String password = user.getPassword();
-                password = SHA1.getHash(password);
-                user.setPassword(password);
-
-                /**
-                 * *******************************************************
-                 * STEP 3 INSERT IN DATABASE. IF ERROR --> throws exception if
-                 * not valid session, GO TO STEP 4b ELSE --> GO TO STEP 4
-                 * *******************************************************
-                 */
-                dao_instance = DAOProvider.getDAOByName("User");
-                dao_instance.disableAutocommit();
-                ROLLBACK_NEEDED = true;
-                dao_instance.insert(user);
-
-                /**
-                 * *******************************************************
-                 * STEP 4 COMMIT CHANGES IN DB. IF ERROR --> throws exception if
-                 * not valid session, GO TO STEP 4b ELSE --> GO TO STEP 5
-                 * *******************************************************
-                 */
-                dao_instance.doCommit();
-
-            } catch (Exception e) {
-                ServerErrorManager.handleException(e, User_servlets.class.getName(), "addUserPostHandler", e.getMessage());
-            } finally {
-                /**
-                 * *******************************************************
-                 * STEP 4b CATCH ERROR, CLEAN CHANGES. throws SQLException
-                 * *******************************************************
-                 */
-                if (ServerErrorManager.errorStatus()) {
-                    response.setStatus(400);
-                    response.getWriter().print(ServerErrorManager.getErrorResponse());
-
-                    if (ROLLBACK_NEEDED) {
-                        dao_instance.doRollback();
-                    }
-                } else {
-                    response.getWriter().print("{success: " + true + "}");
-                }
-                /**
-                 * *******************************************************
-                 * STEP 6 Close connection.
-                 * ********************************************************
-                 */
-                if (dao_instance != null) {
-                    dao_instance.closeConnection();
-                }
-            }
-            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, User_servlets.class.getName(), "addUserPostHandler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }

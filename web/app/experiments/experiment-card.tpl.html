@@ -10,7 +10,7 @@
     </div>
     <div class="iu-card-author">
          <div ng-if="!isMember(experiment) && !(currentExperiment === experiment)"  style="text-align: center;">
-            <a class="btn btn-default" type="button" ng-click="controller.requestAccessToExperimentHandler(experiment)"><i class="fa fa-question-circle-o"></i> Request access to this study</a>
+            <a class="btn btn-default" type="button" ng-click="controller.send_membership_request(experiment.experiment_id)"><i class="fa fa-question-circle-o"></i> Request access to this study</a>
         </div>
         <div ng-if="isMember(experiment) && !(currentExperiment === experiment)"  style="text-align: center;">
             <a class="btn btn-success" type="button" ng-click="controller.changeCurrentExperiment(experiment.experiment_id)"><i class="fa fa-random"></i> Switch to this study</a>

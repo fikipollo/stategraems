@@ -153,7 +153,7 @@
                 for (var i in $scope.filters) {
                     filterAux = $scope.filters[i].toLowerCase();
                     item_tags = item.tags.join("");
-                    if (!((item.title.toLowerCase().indexOf(filterAux)) !== -1 || (item.analysis_description.toLowerCase().indexOf(filterAux)) !== -1 || (item_tags.toLowerCase().indexOf(filterAux)) !== -1)) {
+                    if (!((item.analysis_name.toLowerCase().indexOf(filterAux)) !== -1 || (item.analysis_type.toLowerCase().indexOf(filterAux)) !== -1 || (item_tags.toLowerCase().indexOf(filterAux)) !== -1)) {
                         return false;
                     }
                 }
@@ -479,7 +479,6 @@
                             console.info((new Date()).toLocaleString() + "object locked successfully");
                             if (newViewMode === "edition") {
                                 $scope.initializeCountdownDialogs();
-                                $scope.memento = AnalysisList.getMemento($scope.model);
                             }
                             $scope.setViewMode(newViewMode || 'view');
                             $scope.setLoading(false);
@@ -630,8 +629,7 @@
             //IF NO MORE TASKS AND EVERYTHING GOES WELL
             else if (status) {
                 //TODO: $scope.cleanCountdownDialogs();
-                $scope.setViewMode("view");
-                this.retrieveAnalysisDetails($scope.model.analysis_id, true);
+                $scope.setViewMode("view", true);
                 $dialogs.showSuccessDialog('Analysis ' + $scope.model.analysis_id + ' saved successfully');
             } else {
                 status = false;
@@ -761,6 +759,10 @@
             return this;
         };
 
+        this.closeAllDetailsViews = function () {
+            $scope.displayedSteps = [];
+            return this;
+        };
         /******************************************************************************
          * This function changes the view mode
          *
@@ -773,8 +775,7 @@
                 $scope.panel_title = "Analysis details.";
                 $scope.clearCountdownDialogs();
                 if (restore === true) {
-                    AnalysisList.restoreFromMemento($scope.model, $scope.memento);
-                    $scope.memento = null;
+                    me.retrieveAnalysisDetails($scope.model.analysis_id, true);
                 }
             } else if (mode === 'creation') {
                 $scope.panel_title = "Analysis creation.";
@@ -981,7 +982,6 @@
                                 $dialogs.showSuccessDialog("The analysis is now in deletion process and it will be completely deleted as soon as the other owners confirm this action.");
                             }
                             $rootScope.$broadcast(APP_EVENTS.analysisDeleted);
-                            me.send_unlock_analysis();
                             $state.go('analysis', {force: true});
                         },
                         function errorCallback(response) {
@@ -1042,6 +1042,7 @@
             }
 
             $scope.setLoading(true);
+            this.closeAllDetailsViews();
             $scope.setTaskQueue(this.clean_task_queue($scope.getTaskQueue()));
             this.execute_tasks(true);
             return this;
@@ -1062,13 +1063,12 @@
             if ($scope.viewMode === 'view') {
                 $state.go('analysis');
             } else if ($scope.viewMode === 'edition') {
+                this.closeAllDetailsViews();
                 this.send_unlock_analysis();
-                this.retrieveAnalysisDetails($scope.model.analysis_id, true);
             } else {
                 $state.go('analysis');
             }
         };
-
 
         this.updateMainDiagramHandler = function () {
             if ($scope.diagram) {

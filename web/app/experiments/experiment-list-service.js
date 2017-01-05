@@ -171,50 +171,6 @@
                         }
                     }
                     return false;
-                },
-                getMemento: function (model) {
-                    var memento = {};
-                    for (var key in model) {
-                        //IF IS ARRAY
-                        if ((!!model[key]) && (model[key].constructor === Array)) {
-                            memento[key] = [];
-                            for (var i in model[key]) {
-                                memento[key].push(model[key][i]);
-                            }
-                            //IF IS object
-                        } else if ((!!model[key]) && (model[key].constructor === Object)) {
-                            memento[key] = {};
-                            for (var i in model[key]) {
-                                memento[key][i] = model[key][i];
-                            }
-                        } else {
-                            memento[key] = model[key];
-                        }
-                    }
-
-                    return memento;
-                },
-                restoreFromMemento: function (model, memento) {
-                    for (var key in model) {
-                        if ((!!memento[key]) && (memento[key].constructor === Array)) {
-                            model[key].length = 0;
-                            for (var i in memento[key]) {
-                                model[key].push(memento[key][i]);
-                            }
-                            //IF IS object
-                        } else if ((!!memento[key]) && (memento[key].constructor === Object)) {
-                            for (var i in model[key]) {
-                                delete model[key][i];
-                            }
-
-                            for (var i in memento[key]) {
-                                model[key][i] = memento[key][i];
-                            }
-                        } else {
-                            model[key] = memento[key];
-                        }
-                    }
-                    return model;
                 }
             };
         }]);

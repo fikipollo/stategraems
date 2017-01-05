@@ -327,12 +327,12 @@ public class Step_JDBCDAO extends DAO {
             newID = "ST" + analysis_id.substring(2) + ".1";
         } else {
             newID = previousID.split("\\.")[1];
-            newID = String.format("%03d", Integer.parseInt(newID) + 1);
+            newID = String.format("%0" + newID.length() + "d", Integer.parseInt(newID) + 1);
             newID = "ST" + analysis_id.substring(2) + "." + newID;
         }
         while (!BlockedElementsManager.getBlockedElementsManager().lockID(newID)) {
             newID = newID.split("\\.")[1];
-            newID = String.format("%03d", Integer.parseInt(newID) + 1);
+            newID = String.format("%0" + newID.length() + "d", Integer.parseInt(newID) + 1);
             newID = "ST" + analysis_id.substring(2) + "." + newID;
         }
         return newID;
@@ -352,7 +352,7 @@ public class Step_JDBCDAO extends DAO {
         if (otherParams != null) {
             step = (Step) otherParams[0];
         }
-        
+
         //STEP 1. GET ALL THE DETAILS FOR THE GIVEN STEP
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "SELECT * FROM step "
@@ -361,7 +361,7 @@ public class Step_JDBCDAO extends DAO {
         ps.setString(1, objectID);
         ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
 
-        if (rs.first()) {         
+        if (rs.first()) {
             //STEP 2. SET THE DETAILS FOR THE STEP INSTANCE
             step.setStepID(objectID);
             step.setStepName(rs.getString("step_name"));
