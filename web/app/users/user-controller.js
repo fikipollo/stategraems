@@ -24,7 +24,7 @@
  */
 (function () {
     var app = angular.module('users.controllers.user-session', [
-        'common.dialogs',
+        'ang-dialogs',
         'ui.router',
         'users.services.user-list',
         'ui.bootstrap'

@@ -24,7 +24,7 @@
  */
 (function () {
     var app = angular.module('analysis.controllers', [
-        'common.dialogs',
+        'ang-dialogs',
         'angular.backtop',
         'analysis.services.analysis-list',
         'analysis.directives.analysis-views',
@@ -804,15 +804,6 @@
         $scope.clearCountdownDialogs = function () {
             //TODO
             console.error("cleanCountdownDialogs NOT IMPLEMENTED");
-        };
-
-        /******************************************************************************
-         * This function changes the Loading status of the view
-         * 
-         ******************************************************************************/
-        $scope.setLoading = function (loading) {
-            //TODO
-            console.error("setLoading NOT IMPLEMENTED");
         };
 
         /******************************************************************************      

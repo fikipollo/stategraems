@@ -23,7 +23,7 @@
  */
 (function () {
     var app = angular.module('experiments.controllers', [
-        'common.dialogs',
+        'ang-dialogs',
         'angular.backtop',
         'experiments.services.experiment-list',
         'experiments.directives.experiment-card',
@@ -719,16 +719,6 @@
             //TODO
             console.error("cleanCountdownDialogs NOT IMPLEMENTED");
         };
-
-        /******************************************************************************
-         * This function changes the Loading status of the view
-         * 
-         ******************************************************************************/
-        $scope.setLoading = function (loading) {
-            //TODO
-            console.error("setLoading NOT IMPLEMENTED");
-        };
-
         /******************************************************************************      
          *            _____   _____ _  _ _____         
          *           | __\ \ / / __| \| |_   _|        

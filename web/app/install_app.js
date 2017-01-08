@@ -1,7 +1,7 @@
 (function () {
 
     var app = angular.module('stategraemsApp', [
-        'common.dialogs',
+        'ang-dialogs',
     ]);
 
     app.constant('myAppConfig', {
@@ -15,20 +15,19 @@
     app.controller('InstallController', function ($rootScope, $scope, $http, $dialogs, myAppConfig) {
 
         this.sendInstallDataHandler = function () {
-            $scope.isLoading = true;
-
+            $scope.setLoading(true, "This process may take few minutes, be patient!", "Installing STATegra EMS");
             $http($rootScope.getHttpRequestConfig("POST", "send-install", {
                 headers: {'Content-Type': 'application/json'},
                 data: $scope.config
             })).then(
                     function successCallback(response) {
-                        $scope.isLoading = false;
+                        $scope.setLoading(false);
                         var message = "STATegra EMS was successfully installed. Please restart your Tomcat instance now to start working.";
                         alert(message);
                         document.location = "/";
                     },
                     function errorCallback(response) {
-                        $scope.isLoading = false;
+                        $scope.setLoading(false);
                         var message = "Failed while installing the application.<br><b>Error Message:</b> " + response.data.reason;
                         $dialogs.showErrorDialog(message, {
                             logMessage: message + " at InstallController:sendInstallData."
@@ -104,12 +103,11 @@
             return requestData;
         };
 
-        $rootScope.setLoading = function (loading) {
-            //TODO:
+        $rootScope.setLoading = function (loading, message, title) {
             if (loading === true) {
-                //$dialogs.showInfoDialog("Loading!", {title: "Hello world!"});
+                $dialogs.showWaitDialog((message || "Wait please..."), {title: (title || "")});
             } else {
-                //$dialogs.showInfoDialog("This is a dialog!", {title: "Hello world!"});
+                $dialogs.closeMessage();
             }
         };
         $rootScope.getParentController = function (controllerName) {

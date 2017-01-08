@@ -26,7 +26,7 @@
  */
 (function () {
     var app = angular.module('samples.controllers', [
-        'common.dialogs',
+        'ang-dialogs',
         'angular.backtop',
         'samples.services.sample-list',
         'samples.directives.sample-views',
@@ -894,15 +894,6 @@
         };
 
         /******************************************************************************
-         * This function changes the Loading status of the view
-         * 
-         ******************************************************************************/
-        $scope.setLoading = function (loading) {
-            //TODO
-            console.error("setLoading NOT IMPLEMENTED");
-        };
-
-        /******************************************************************************
          *      ___ _  _ ___ _____ ___   _   _    ___ ____  _ _____ ___ ___  _  _ 
          *     |_ _| \| |_ _|_   _|_ _| /_\ | |  |_ _|_  / /_\_   _|_ _/ _ \| \| |
          *      | || .` || |  | |  | | / _ \| |__ | | / / / _ \| |  | | (_) | .` |
@@ -1531,15 +1522,6 @@
         $scope.clearCountdownDialogs = function () {
             //TODO
             console.error("cleanCountdownDialogs NOT IMPLEMENTED");
-        };
-
-        /******************************************************************************
-         * This function changes the Loading status of the view
-         * 
-         ******************************************************************************/
-        $scope.setLoading = function (loading) {
-            //TODO
-            console.error("setLoading NOT IMPLEMENTED");
         };
 
         /******************************************************************************      

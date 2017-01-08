@@ -24,7 +24,7 @@
  */
 (function () {
     var app = angular.module('templates.directives.template', [
-        'common.dialogs',
+        'ang-dialogs',
         'bootstrap-tagsinput',
         'users.directives.user-list',
         'samples.directives.sample-views',

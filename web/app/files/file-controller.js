@@ -24,7 +24,7 @@
  */
 (function () {
     var app = angular.module('files.controllers', [
-        'common.dialogs',
+        'ang-dialogs',
         'ui.router',
         'files.services.file-list',
         'ui.bootstrap'

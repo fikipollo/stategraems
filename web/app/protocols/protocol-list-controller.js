@@ -23,7 +23,7 @@
  */
 (function () {
     var app = angular.module('protocols.controllers', [
-        'common.dialogs',
+        'ang-dialogs',
         'angular.backtop',
         'protocols.services.protocol-list',
         'protocols.directives.protocol-card',
@@ -779,11 +779,6 @@
         $scope.clearCountdownDialogs = function () {
             //TODO
             console.error("cleanCountdownDialogs NOT IMPLEMENTED");
-        };
-
-        $scope.setLoading = function (loading) {
-            //TODO
-            console.error("setLoading NOT IMPLEMENTED");
         };
 
         //The corresponding view will be watching to this variable

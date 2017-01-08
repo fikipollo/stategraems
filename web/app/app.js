@@ -1,7 +1,7 @@
 (function () {
 
     var app = angular.module('stategraemsApp', [
-        'common.dialogs',
+        'ang-dialogs',
         'ui.router',
         'angular-toArrayFilter',
         'users.directives.user-session',
@@ -280,12 +280,11 @@
         $rootScope.setTaskQueue = function (_taskQueue) {
             this.taskQueue = _taskQueue;
         };
-        $rootScope.setLoading = function (loading) {
-            //TODO:
+        $rootScope.setLoading = function (loading, message, title) {
             if (loading === true) {
-                //$dialogs.showInfoDialog("Loading!", {title: "Hello world!"});
+                $dialogs.showWaitDialog((message || "Wait please..."), {title: (title || "")});
             } else {
-                //$dialogs.showInfoDialog("This is a dialog!", {title: "Hello world!"});
+                $dialogs.closeMessage();
             }
         };
         $rootScope.getParentController = function (controllerName) {
@@ -385,8 +384,6 @@
                         }
                     },
                     function errorCallback(response) {
-                        $scope.isLoading = false;
-
                         debugger;
                         var message = "Failed while checking the validity of this emsinstance.";
                         $dialogs.showErrorDialog(message, {
