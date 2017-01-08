@@ -24,6 +24,7 @@ import bdManager.DAO.DAOProvider;
 import bdManager.DAO.Experiment_JDBCDAO;
 import bdManager.DBConnectionManager;
 import classes.Experiment;
+import classes.User;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -79,6 +80,8 @@ public class Experiment_servlets extends Servlet {
             dump_database_handler(request, response);
         } else if (request.getServletPath().equals("/get_experiment_directory_content")) {
             get_experiment_directory_content_handler(request, response);
+        } else if (request.getServletPath().equals("/experiment_member_request")) {
+            process_new_membership_request(request, response);
         } else {
             common.ServerErrorManager.addErrorMessage(3, Experiment_servlets.class.getName(), "doPost", "What are you doing here?.");
             response.setStatus(400);
@@ -964,4 +967,88 @@ public class Experiment_servlets extends Servlet {
         }
     }
 
+    /**
+     *
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void process_new_membership_request(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            DAO dao_instance = null;
+            boolean valid_experiment = false;
+            try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
+                String user_id = requestData.get("loggedUserID").getAsString();
+
+                /**
+                 * *******************************************************
+                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
+                 * ERROR --> throws exception if not valid session, GO TO STEP
+                 * 5b ELSE --> GO TO STEP 2
+                 * *******************************************************
+                 */
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 2 Get THE EXperiment Object from DB. IF ERROR -->
+                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * *******************************************************
+                 */
+                boolean loadRecursive = true;
+                Object[] params = {loadRecursive};
+                String experiment_id = requestData.get("experiment_id").getAsString();
+                dao_instance = DAOProvider.getDAOByName("Experiment");
+                Experiment experiment = (Experiment) dao_instance.findByID(experiment_id, params);
+                
+                for(User user:experiment.getExperimentOwners()){
+                    //TODO: SEND AN EMAIL TO ADMIN USERS
+                    //user.getEmail();
+                }
+
+            } catch (Exception e) {
+                ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "process_new_membership_request", e.getMessage());
+            } finally {
+                /**
+                 * *******************************************************
+                 * STEP 4b CATCH ERROR. GO TO STEP 5
+                 * *******************************************************
+                 */
+                if (ServerErrorManager.errorStatus()) {
+                    response.setStatus(400);
+                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+                } else {
+                    /**
+                     * *******************************************************
+                     * STEP 4A WRITE RESPONSE ERROR. GO TO STEP 5
+                     * *******************************************************
+                     */
+                    JsonObject obj = new JsonObject();
+                    obj.add("success", new JsonPrimitive(true));
+                    response.getWriter().print(obj.toString());
+                }
+                /**
+                 * *******************************************************
+                 * STEP 5 Close connection.
+                 * ********************************************************
+                 */
+                if (dao_instance != null) {
+                    dao_instance.closeConnection();
+                }
+            }
+            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
+            response.setStatus(400);
+            response.getWriter().print(ServerErrorManager.getErrorResponse());
+        }
+    }
 }

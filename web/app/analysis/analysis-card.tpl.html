@@ -4,9 +4,10 @@
             <span ng-show="analysis.isRemoved" class="label label-danger" style="float: right;padding: 10px;">Deleted</span>
             <i class="fa fa-info-circle text-danger" ng-show="!analysis.isRemoved && analysis.remove_requests.length > 0" uib-tooltip="Some users deleted this step. Please confirm deletion." style="float: right;padding: 10px;"></i>
             {{analysis.analysis_name}}
+            <span class="iu-card-description" style="font-size: 10px;">{{analysis.analysis_id}}</span>
         </h2>
         <div class="iu-card-description" >
-            <p>{{(analysis.analysis_description || "No description provided")}}</p>
+            <p>{{(analysis.analysis_description|| "No description provided")}}</p>
             <a><i class="fa fa-sitemap"></i> Show workflow diagram</a>
         </div>
         <div class="iu-card-tags-list">

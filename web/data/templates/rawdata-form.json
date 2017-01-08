@@ -14,7 +14,7 @@
                 {
                     "name": "raw_data_type",
                     "label": "Technology",
-                    "type": "text"
+                    "type": "display"
                 },
                 {
                     "name": "files_location",

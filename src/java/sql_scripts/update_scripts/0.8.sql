@@ -87,6 +87,7 @@ CREATE PROCEDURE update_regions()
       DECLARE id VARCHAR(50);
       DECLARE idpart1 VARCHAR(50);
       DECLARE idpart2 VARCHAR(50);
+      DECLARE origLength INT;
       DECLARE analysisid VARCHAR(50);
       DECLARE str VARCHAR(500) default '';
       DECLARE name VARCHAR(200);
@@ -112,7 +113,10 @@ CREATE PROCEDURE update_regions()
 
          SET idpart1 = SPLIT_STR(id, '.', 1);
          SET idpart2 = SPLIT_STR(id, '.', 2);
-         SET idpart2 = CONVERT(idpart2,UNSIGNED INTEGER) + 1;
+         SET origLength = CHAR_LENGTH(idpart2) * -1;
+         SET idpart2 = CONVERT(idpart2, UNSIGNED INTEGER) + 1;
+         SET idpart2 = CONCAT('0000000000', '', idpart2);
+         SET idpart2 = SUBSTRING(idpart2, origLength);
          SET idpart1 = CONCAT(idpart1,'.',idpart2);
          
          INSERT INTO step SET step_id=idpart1, step_name=name, type='external_source', submission_date=date, last_edition_date=date, files_location=files;
@@ -129,6 +133,7 @@ END $$
 DELIMITER ;
 
 CALL update_regions;
+DROP PROCEDURE update_regions;
 
 DROP PROCEDURE update_regions;
 

@@ -103,12 +103,15 @@
                             }
                         } else if (model.type === "checkbox") {
                             template +=
-                                    '<input type="checkbox" ' +
+                                    '<label class="col-sm-2" for="{{field.name}}"> </label>' +
+                                    '<div class="col-sm-9" style="padding-left: 0px;">' +
+                                    '  <input type="checkbox" ' +
                                     '       name="{{field.name}}"' +
-                                    '       ng-model="input.value"' +
+                                    '       ng-model="model.' + model.name + '"' +
                                     '       ' + (model.required ? "required" : "") +
                                     '       ng-readonly="viewMode === \'view\'">' +
-                                    '<label for="{{field.name}}"> {{field.label}}</label>';
+                                    '  <b> {{field.label}}</b>' +
+                                    '</div>';
                         } else if (model.type === "date") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +

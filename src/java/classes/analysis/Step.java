@@ -75,7 +75,7 @@ public abstract class Step implements Comparable<Step> {
             return false;
         }
 
-        this.setStepID(this.step_id.replaceFirst(analysis_id.substring(2), new_analysis_id.substring(2)));
+        this.setStepID(this.step_id.replaceFirst(analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN","ST"));
         this.updatePreviousStepIDs(analysis_id, new_analysis_id);
         if (this.associatedQualityReport != null) {
             this.associatedQualityReport.setStudiedStepID(this.step_id);

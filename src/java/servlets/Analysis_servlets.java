@@ -970,6 +970,12 @@ public class Analysis_servlets extends Servlet {
                         notUnlockedSteps.add(step_id);
                     }
                 }
+                for (Step step : analysis.getProcessedData()) {
+                    step_id = step.getStepID();
+                    if (!BlockedElementsManager.getBlockedElementsManager().unlockObject(step_id, loggedUser)) {
+                        notUnlockedSteps.add(step_id);
+                    }
+                }
             }
 
         } catch (Exception e) {
@@ -1022,6 +1028,8 @@ public class Analysis_servlets extends Servlet {
             boolean ROLLBACK_NEEDED = false;
             DAO daoInstance = null;
             boolean removable = true;
+            String loggedUser = null;
+            String analysisID = null;
 
             try {
                 /**
@@ -1034,7 +1042,7 @@ public class Analysis_servlets extends Servlet {
                 JsonParser parser = new JsonParser();
                 JsonObject requestData = (JsonObject) parser.parse(request.getReader());
 
-                String loggedUser = requestData.get("loggedUser").getAsString();
+                loggedUser = requestData.get("loggedUser").getAsString();
                 String sessionToken = requestData.get("sessionToken").getAsString();
 
                 if (!checkAccessPermissions(loggedUser, sessionToken)) {
@@ -1043,7 +1051,7 @@ public class Analysis_servlets extends Servlet {
 
                 String loggedUserID = requestData.get("loggedUserID").getAsString();
                 String experimentID = requestData.get("currentExperimentID").getAsString();
-                String analysisID = requestData.get("analysis_id").getAsString();
+                analysisID = requestData.get("analysis_id").getAsString();
 
                 /**
                  * *******************************************************
@@ -1156,6 +1164,8 @@ public class Analysis_servlets extends Servlet {
                     obj.add("removed", new JsonPrimitive(removable));
                     response.getWriter().print(obj.toString());
                 }
+
+                BlockedElementsManager.getBlockedElementsManager().unlockObject(analysisID, loggedUser);
 
                 /**
                  * *******************************************************

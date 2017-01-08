@@ -66,22 +66,6 @@ public class ExternalData extends NonProcessedData {
     //* GETTERS AND SETTERS ************************************************
     //**********************************************************************
 
-    @Override
-    public boolean updateAnalysisID(String new_analysis_id) {
-        //IF THE ANALYSIS ID IS DIFFERENT THAT THE TO-BE-CREATED ID, IT MEANS THAT 
-        //THE STEP IS AN IMPORTED STEP.
-        String analysis_id = this.getAnalysisID();
-
-        if (!"ANxxxx".equals(analysis_id)) {
-            return false;
-        }
-
-        this.setStepID(this.step_id.replaceFirst(analysis_id.substring(2), new_analysis_id.substring(2)));
-        if (this.associatedQualityReport != null) {
-            this.associatedQualityReport.setStudiedStepID(this.step_id);
-        }
-        return true;
-    }
 
     //***********************************************************************
     //* OTHER FUNCTIONS *****************************************************

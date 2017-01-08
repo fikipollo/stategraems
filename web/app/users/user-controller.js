@@ -35,6 +35,10 @@
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
         this.getCurrentUserDetails = function () {
+            if (!Cookies.get("sessionToken")) {
+                return;
+            }
+
             $http($rootScope.getHttpRequestConfig("POST", "user-info", {
                 headers: {'Content-Type': 'application/json'},
                 data: $rootScope.getCredentialsParams({email: 'current'})
@@ -94,7 +98,7 @@
                             Cookies.set("loggedUser", $scope.userInfo.email, {expires: 1, path: window.location.pathname});
                             Cookies.set("loggedUserID", $scope.userInfo.user_id, {expires: 1, path: window.location.pathname});
                             Cookies.set("sessionToken", response.data.sessionToken, {expires: 1, path: window.location.pathname});
-
+                            Cookies.set("currentExperimentID", response.data.last_experiment_id, {expires: 1, path: window.location.pathname});
 
                             delete $scope.userInfo.password;
                             delete $scope.signForm;
@@ -142,6 +146,12 @@
                             delete $scope.userInfo.password;
                             delete $scope.userInfo.passconfirm;
                             delete $scope.signForm;
+
+                            Cookies.remove("loggedUser", {path: window.location.pathname});
+                            Cookies.remove("sessionToken", {path: window.location.pathname});
+                            Cookies.remove("loggedUserID", {path: window.location.pathname});
+                            Cookies.remove("currentExperimentID", {path: window.location.pathname});
+
                         },
                         function errorCallback(response) {
                             debugger;
@@ -170,7 +180,8 @@
             console.log("Cleaning all local session data.");
             Cookies.remove("loggedUser", {path: window.location.pathname});
             Cookies.remove("sessionToken", {path: window.location.pathname});
-            Cookies.remove("currentUserID", {path: window.location.pathname});
+            Cookies.remove("loggedUserID", {path: window.location.pathname});
+            Cookies.remove("currentExperimentID", {path: window.location.pathname});
 
             delete $scope.userInfo.email;
             delete $scope.userInfo.user_id;

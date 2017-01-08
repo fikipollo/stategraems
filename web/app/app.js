@@ -171,6 +171,8 @@
                     return myAppConfig.EMS_SERVER + "update_experiment";
                 case "experiment-delete":
                     return myAppConfig.EMS_SERVER + "remove_experiment";
+                case "experiment-member-request":
+                    return myAppConfig.EMS_SERVER + "experiment_member_request";
                 case "experiment-lock":
                     return myAppConfig.EMS_SERVER + "lock_experiment";
                 case "experiment-unlock":

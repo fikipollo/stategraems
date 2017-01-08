@@ -130,7 +130,6 @@
             return this;
         };
 
-
         /******************************************************************************
          * This function try to change the current selected experiment to a given one (if
          * user is member or owner).
@@ -161,6 +160,32 @@
                         });
                         console.error(response.data);
                         debugger
+                    }
+            );
+        };
+        
+                /******************************************************************************      
+         * This function send a membership requests to the administrators of the 
+         * experiment. 
+         * @return   
+         ******************************************************************************/
+        this.send_membership_request = function (experiment_id) {
+            $scope.setLoading(true);
+
+            $http($rootScope.getHttpRequestConfig("POST", "experiment-member-request", {
+                headers: {'Content-Type': 'application/json'},
+                data: $rootScope.getCredentialsParams({'experiment_id': experiment_id}),
+            })).then(
+                    function successCallback(response) {
+                        $dialogs.showSuccessDialog("A new membership request has been sent to the experiment administrators.");
+                    },
+                    function errorCallback(response) {
+                        debugger;
+                        var message = "Failed while sending membership request.";
+                        $dialogs.showErrorDialog(message, {
+                            logMessage: message + " at ExperimentDetailController:send_membership_request."
+                        });
+                        console.error(response.data);
                     }
             );
         };
@@ -517,7 +542,6 @@
                             console.info((new Date()).toLocaleString() + "object locked successfully");
                             if (newViewMode === "edition") {
                                 $scope.initializeCountdownDialogs();
-                                $scope.memento = ExperimentList.getMemento($scope.model);
                             }
                             $scope.setViewMode(newViewMode || 'view');
                             $scope.setLoading(false);
@@ -667,8 +691,7 @@
             //IF NO MORE TASKS AND EVERYTHING GOES WELL
             else if (status) {
                 //TODO: $scope.cleanCountdownDialogs();
-                $scope.setViewMode("view");
-                this.retrieveExperimentDetails($scope.model.experiment_id, true);
+                $scope.setViewMode("view", true);
                 $dialogs.showSuccessDialog('Experiment ' + $scope.model.experiment_id + ' saved successfully');
             } else {
                 status = false;
@@ -689,8 +712,7 @@
                 $scope.panel_title = "Experiment details.";
                 $scope.clearCountdownDialogs();
                 if (restore === true) {
-                    ExperimentList.restoreFromMemento($scope.model, $scope.memento);
-                    $scope.memento = null;
+                    me.retrieveExperimentDetails($scope.model.experiment_id, true);
                 }
             } else if (mode === 'creation') {
                 $scope.panel_title = "Experiment creation.";
@@ -747,7 +769,6 @@
                             $dialogs.showSuccessDialog("The experiment was successfully deleted.");
                             //Notify all the other controllers that user has signed in
                             $rootScope.$broadcast(APP_EVENTS.experimentDeleted);
-                            me.send_unlock_experiment();
                             $state.go('experiments', {force: true});
                         },
                         function errorCallback(response) {
@@ -829,7 +850,6 @@
                 $state.go('experiments');
             } else if ($scope.viewMode === 'edition') {
                 this.send_unlock_experiment();
-                this.retrieveExperimentDetails($scope.model.experiment_id, true);
             } else {
                 $state.go('experiments');
             }
