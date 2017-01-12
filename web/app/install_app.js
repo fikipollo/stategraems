@@ -15,22 +15,44 @@
     app.controller('InstallController', function ($rootScope, $scope, $http, $dialogs, myAppConfig) {
 
         this.sendInstallDataHandler = function () {
-            $scope.setLoading(true, "This process may take few minutes, be patient!", "Installing STATegra EMS");
+            $scope.installing = true;
             $http($rootScope.getHttpRequestConfig("POST", "send-install", {
                 headers: {'Content-Type': 'application/json'},
                 data: $scope.config
             })).then(
                     function successCallback(response) {
-                        $scope.setLoading(false);
-                        var message = "STATegra EMS was successfully installed. Please restart your Tomcat instance now to start working.";
-                        alert(message);
-                        document.location = "/";
+                        $scope.install_done = true;
+                        setTimeout(function () {
+                            document.location = "/";
+                        }, 3000);
                     },
                     function errorCallback(response) {
-                        $scope.setLoading(false);
                         var message = "Failed while installing the application.<br><b>Error Message:</b> " + response.data.reason;
                         $dialogs.showErrorDialog(message, {
                             logMessage: message + " at InstallController:sendInstallData."
+                        });
+                        console.error(response.data);
+                    }
+            );
+
+            return this;
+        };
+
+        this.sendAutoInstallDataHandler = function () {
+            $http($rootScope.getHttpRequestConfig("POST", "send-autoinstall", {
+                headers: {'Content-Type': 'application/json'},
+                data: $scope.config
+            })).then(
+                    function successCallback(response) {
+                        $scope.install_done = true;
+                        setTimeout(function () {
+                            document.location = "/";
+                        }, 3000);
+                    },
+                    function errorCallback(response) {
+                        var message = "Failed while autoinstalling the application.<br><b>Error Message:</b> " + response.data.reason;
+                        $dialogs.showErrorDialog(message, {
+                            logMessage: message + " at InstallController:sendAutoInstallDataHandler."
                         });
                         console.error(response.data);
                     }
@@ -47,8 +69,11 @@
                         if (response.data.success) {
                             document.location = "/";
                         }
+
                         if (response.data.is_docker) {
-                            $scope.config.dbhost = "stategraems-mysql";
+                            $scope.config.installation_type = response.data.installation_type;
+                            $scope.installing = true;
+                            me.sendAutoInstallDataHandler();
                         }
                     },
                     function errorCallback(response) {
@@ -69,6 +94,8 @@
             switch (service) {
                 case "send-install":
                     return myAppConfig.EMS_SERVER + "install";
+                case "send-autoinstall":
+                    return myAppConfig.EMS_SERVER + "autoinstall";
                 case "check-install":
                     return myAppConfig.EMS_SERVER + "is_valid_installation";
                 default:
@@ -107,7 +134,7 @@
             if (loading === true) {
                 $dialogs.showWaitDialog((message || "Wait please..."), {title: (title || "")});
             } else {
-                $dialogs.closeMessage();
+                $dialogs.closeDialog();
             }
         };
         $rootScope.getParentController = function (controllerName) {
@@ -124,11 +151,11 @@
 
         $scope.config = {
             installation_type: 'install',
-            dbname: 'STATegraDB',
-            dbhost: 'localhost',
-            mysqladminUser: 'root',
-            emsusername: 'emsuser',
-            emsuserpass: Math.random().toString(36).substr(2, 16),
+            MYSQL_DATABASE_NAME: 'STATegraDB',
+            MYSQL_HOST: 'localhost',
+            MYSQL_ROOT_USER: 'root',
+            MYSQL_EMS_USER: 'emsuser',
+            MYSQL_EMS_PASS: Math.random().toString(36).substr(2, 16),
             data_location: '/data/stategraems_app_data/'
         };
 

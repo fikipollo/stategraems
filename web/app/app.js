@@ -286,7 +286,7 @@
             if (loading === true) {
                 $dialogs.showWaitDialog((message || "Wait please..."), {title: (title || "")});
             } else {
-                $dialogs.closeMessage();
+                $dialogs.closeDialog();
             }
         };
         $rootScope.getParentController = function (controllerName) {
@@ -351,7 +351,6 @@
             }
         });
 
-
         this.setPage = function (page) {
             if (page.params && page.params.experiment_id !== undefined) {
                 page.params.experiment_id = Cookies.get("currentExperimentID");
@@ -375,7 +374,6 @@
             $("#wrapper").toggleClass("toggled")
         }
 
-
         this.checkInstallationValidity = function () {
             $http($rootScope.getHttpRequestConfig("POST", "check-install", {
                 headers: {'Content-Type': 'application/json'}
@@ -395,7 +393,7 @@
                     }
             );
         };
-        
+
         this.checkInstallationValidity();
     });
 })();
