@@ -41,6 +41,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.security.SecureRandom;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -114,8 +115,8 @@ public class Install_servlets extends Servlet {
         JsonObject obj = new JsonObject();
         obj.add("success", new JsonPrimitive(is_valid));
         obj.add("installation_type", new JsonPrimitive(install_type));
-        //obj.add("is_docker", new JsonPrimitive("true".equals(is_docker)));
-        obj.add("is_docker", new JsonPrimitive(true));
+        obj.add("is_docker", new JsonPrimitive("true".equals(is_docker)));
+//        obj.add("is_docker", new JsonPrimitive(true));
 
         response.getWriter().print(obj.toString());
     }
@@ -496,7 +497,7 @@ public class Install_servlets extends Servlet {
         settings.addProperty("MYSQL_DATABASE_NAME", "STATegraDB");
         settings.addProperty("MYSQL_HOST", "stategraems-mysql");
         settings.addProperty("MYSQL_EMS_USER", "emsuser");
-        settings.addProperty("MYSQL_EMS_PASS ", getRandomPass());
+        settings.addProperty("MYSQL_EMS_PASS", getRandomPass());
         settings.addProperty("data_location", "/data/stategraems_app_data/");
 
         //Read the enviroment variables.
@@ -521,12 +522,6 @@ public class Install_servlets extends Servlet {
     }
 
     public String getRandomPass() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
-        char[] text = new char[16];
-        Random random = new Random();
-        for (int i = 0; i < 16; i++) {
-            text[i] = chars.charAt(random.nextInt(chars.length()));
-        }
-        return new String(text);
+        return new BigInteger(130, new SecureRandom()).toString(16);
     }
 }
