@@ -135,8 +135,6 @@ DELIMITER ;
 CALL update_regions;
 DROP PROCEDURE update_regions;
 
-DROP PROCEDURE update_regions;
-
 UPDATE appVersion SET version='0.8';
 
 COMMIT;
