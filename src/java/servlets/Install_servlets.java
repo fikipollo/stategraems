@@ -491,7 +491,7 @@ public class Install_servlets extends Servlet {
         JsonObject settings = new JsonObject();
         //Set the default values
         settings.addProperty("EMS_ADMIN_USER", "emsadminuser@email.com");
-        settings.addProperty("EMS_ADMIN_PASSWORD", "admin");
+        settings.addProperty("EMS_ADMIN_PASSWORD", "emsadminuser@email.com");
         settings.addProperty("MYSQL_ROOT_USER", "root");
         settings.addProperty("MYSQL_ROOT_PASSWORD", "");
         settings.addProperty("MYSQL_DATABASE_NAME", "STATegraDB");
