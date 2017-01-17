@@ -68,7 +68,9 @@
                 );
             } else {
                 $scope.files = FileList.getFiles();
+                $scope.filters = FileList.getFilters();
                 $scope.filteredFiles = $scope.files.length;
+                $scope.filesTree = FileList.getFilesTree();
                 $scope.isLoading = false;
             }
 
@@ -182,22 +184,45 @@
             return this;
         };
 
+        this.updateFileSelectionHandler = function () {
+            $scope.filesTree;
+            var selectedNodes = $('#files-tree-container').data('treeview').getChecked();
+            //Ignore directories from selection
+            var selection = [];
+            for (var i in $scope.models) {
+                selection.push($scope.models[i]);
+            }
+
+            for (var i in selectedNodes) {
+                if (selectedNodes[i].nodes === undefined) {
+                    var name = selectedNodes[i].text;
+                    var parent = $('#files-tree-container').data('treeview').getParent(selectedNodes[i].nodeId);
+                    while (parent !== undefined) {
+                        name = parent.text + "/" + name;
+                        parent = $('#files-tree-container').data('treeview').getParent(parent.nodeId);
+                    }
+                    selection.push(name);
+                }
+            }
+            selection = arrayUnique(selection);
+            $scope.models.length = 0;
+            for (var i in selection) {
+                $scope.models.push(selection[i]);
+            }
+
+            return this;
+        };
+
         /**
          * This function applies the filters when the file clicks on "Search"
          */
         this.applySearchHandler = function () {
-            var filters = arrayUnique($scope.filters.concat($scope.searchFor.split(" ")));
-            $scope.filters = FileList.setFilters(filters).getFilters();
+            $('#files-tree-container').data('treeview').search($scope.searchFor.search, {
+                ignoreCase: true, // case insensitive
+                exactMatch: false, // like or equals
+                revealResults: true, // reveal matching nodes
+            });
         };
-
-        /**
-         * This function remove a given filter when the file clicks at the "x" button
-         */
-        this.removeFilterHandler = function (filter) {
-            $scope.filters = FileList.removeFilter(filter).getFilters();
-        };
-
-
         //--------------------------------------------------------------------
         // INITIALIZATION
         //--------------------------------------------------------------------
@@ -207,13 +232,8 @@
         //a list of files + list of tags + list of filters. Hence, the application will not
         //request the data everytime that the file list panel is displayed (data persistance).
         if ($scope.isDialog === true) {
-            $scope.files = FileList.getFiles();
-            $scope.filters = FileList.getFilters();
-            $scope.filteredFiles = $scope.files.length;
-
-            if ($scope.files.length === 0) {
-                this.retrieveFilesData();
-            }
+            $scope.searchFor = {search: ""};
+            this.retrieveFilesData();
         }
     });
 })();

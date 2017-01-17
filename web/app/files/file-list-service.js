@@ -35,17 +35,28 @@
                     return filesTree;
                 },
                 setFilesTree: function (_filesTree) {
-                    filesTree = _filesTree;
+                    filesTree = this.extendFilesTreeData(_filesTree);
                     files = this.getFilesFromTree(filesTree, []);
                     old = new Date();
                     return this;
                 },
-                getFilesFromTree: function(node, list){
+                getFilesFromTree: function (node, list) {
                     list.push(node.text);
-                    for(var i in node.nodes){
+                    for (var i in node.nodes) {
                         this.getFilesFromTree(node.nodes[i], list);
                     }
                     return list;
+                },
+                extendFilesTreeData: function (node) {
+                    if (node.nodes !== undefined) {
+                        //Is a directory
+                        node.selectable = false;
+                        node.icon = "glyphicon glyphicon-folder-close";
+                        for (var i in node.nodes) {
+                            this.extendFilesTreeData(node.nodes[i]);
+                        }
+                    }
+                    return node;
                 },
                 getFiles: function () {
                     return files;

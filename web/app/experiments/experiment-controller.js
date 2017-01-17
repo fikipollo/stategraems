@@ -109,7 +109,7 @@
                             $scope.isLoading = false;
 
                             debugger;
-                            var message = "Failed while retrieving the experiments list.";
+                            var message = "Failed while retrieving the list of studies.";
                             $dialogs.showErrorDialog(message, {
                                 logMessage: message + " at ExperimentListController:retrieveExperimentsData."
                             });
@@ -148,13 +148,13 @@
                             Cookies.set('currentExperimentID', experiment_id, null, location.pathname);
                             AnalysisList.clearAnalysis();
                             $scope.currentExperiment = ExperimentList.getExperiment(Cookies.get('currentExperimentID'));
-                            $dialogs.showSuccessDialog("Now you are working with experiment \"" + ExperimentList.getExperiment(experiment_id).title + "\"");
+                            $dialogs.showSuccessDialog("Now you are working with study \"" + ExperimentList.getExperiment(experiment_id).title + "\"");
                         } else {
-                            showErrorMessage("You are not member of the selected experiment. Please, contact administrator or experiment owners to become a member.");
+                            showErrorMessage("You are not member of the selected study. Please, contact administrator or study owners to become a member.");
                         }
                     },
                     function errorCallback(response) {
-                        var message = "Failed while changing the current experiment.";
+                        var message = "Failed while changing the current study.";
                         $dialogs.showErrorDialog(message, {
                             logMessage: message + " at ExperimentListController:changeCurrentExperiment."
                         });
@@ -177,10 +177,12 @@
                 data: $rootScope.getCredentialsParams({'experiment_id': experiment_id}),
             })).then(
                     function successCallback(response) {
-                        $dialogs.showSuccessDialog("A new membership request has been sent to the experiment administrators.");
+                        $scope.setLoading(false);
+                        $dialogs.showSuccessDialog("A new membership request has been sent to the study administrators.");
                     },
                     function errorCallback(response) {
                         debugger;
+                        $scope.setLoading(false);
                         var message = "Failed while sending membership request.";
                         $dialogs.showErrorDialog(message, {
                             logMessage: message + " at ExperimentDetailController:send_membership_request."
@@ -399,7 +401,7 @@
                         },
                         function errorCallback(response) {
                             debugger;
-                            var message = "Failed while retrieving the experiment's details.";
+                            var message = "Failed while retrieving the details for the study.";
                             $dialogs.showErrorDialog(message, {
                                 logMessage: message + " at ExperimentDetailController:retrieveExperimentDetails."
                             });
@@ -445,7 +447,7 @@
                 data: $rootScope.getCredentialsParams({'experiment_json_data': $scope.model}),
             })).then(
                     function successCallback(response) {
-                        console.info((new Date()).toLocaleString() + "Experiment " + $scope.model.experiment_id + " successfully saved in server");
+                        console.info((new Date()).toLocaleString() + "Study " + $scope.model.experiment_id + " successfully saved in server");
                         $scope.model.experiment_id = response.data.newID;
                         ExperimentList.addExperiment($scope.model);
 //                        //Notify all the other controllers that a new experiment exists
@@ -456,7 +458,7 @@
                     },
                     function errorCallback(response) {
                         debugger;
-                        var message = "Failed while creating a new experiment.";
+                        var message = "Failed while creating a new study.";
                         $dialogs.showErrorDialog(message, {
                             logMessage: message + " at ExperimentDetailController:send_create_experiment."
                         });
@@ -506,13 +508,13 @@
                 data: $rootScope.getCredentialsParams({'experiment_json_data': $scope.model}),
             })).then(
                     function successCallback(response) {
-                        console.info((new Date()).toLocaleString() + "Experiment " + $scope.model.experiment_id + " successfully updated in server");
+                        console.info((new Date()).toLocaleString() + "Study " + $scope.model.experiment_id + " successfully updated in server");
                         $scope.setLoading(false);
                         callback_caller[callback_function](true);
                     },
                     function errorCallback(response) {
                         debugger;
-                        var message = "Failed while updating the experiment.";
+                        var message = "Failed while updating the study.";
                         $dialogs.showErrorDialog(message, {
                             logMessage: message + " at ExperimentDetailController:send_update_experiment."
                         });
@@ -547,7 +549,7 @@
                             $scope.setLoading(false);
                         } else {
                             $dialogs.showErrorDialog('Apparently user ' + response.data.user_id + ' opened this object for editing. </br>Please, try again later. If the problem persists, please contact with tecnical support.', {
-                                logMessage: ((new Date()).toLocaleString() + "EDITION DENIED FOR Experiment " + $scope.model.experiment_id)
+                                logMessage: ((new Date()).toLocaleString() + "EDITION DENIED FOR Study " + $scope.model.experiment_id)
                             });
                             $scope.setLoading(false);
                         }
@@ -659,20 +661,20 @@
                     switch (current_task.command)
                     {
                         case "create_new_experiment":
-                            console.info((new Date()).toLocaleString() + "SENDING SAVE NEW experiment REQUEST TO SERVER");
+                            console.info((new Date()).toLocaleString() + "SENDING SAVE NEW study REQUEST TO SERVER");
                             this.send_create_experiment(this, "execute_tasks");
-                            console.info((new Date()).toLocaleString() + "SAVE NEW experiment REQUEST SENT TO SERVER");
+                            console.info((new Date()).toLocaleString() + "SAVE NEW study REQUEST SENT TO SERVER");
                             break;
                         case "update_experiment":
-                            console.info((new Date()).toLocaleString() + "SENDING UPDATE Experiment REQUEST TO SERVER");
+                            console.info((new Date()).toLocaleString() + "SENDING UPDATE study REQUEST TO SERVER");
                             this.send_update_experiment(this, "execute_tasks");
-                            console.info((new Date()).toLocaleString() + "UPDATE Experiment REQUEST SENT TO SERVER");
+                            console.info((new Date()).toLocaleString() + "UPDATE study REQUEST SENT TO SERVER");
                             break;
                         case "clear_locked_status":
                             //TODO:
-                            console.info(new Date().toLocaleString() + "SENDING UNLOCK Experiment " + $scope.model.experiment_id + " REQUEST TO SERVER");
+                            console.info(new Date().toLocaleString() + "SENDING UNLOCK study " + $scope.model.experiment_id + " REQUEST TO SERVER");
                             this.send_unlock_experiment(this, "execute_tasks");
-                            console.info(new Date().toLocaleString() + "UNLOCK Experiment " + $scope.model.experiment_id + " REQUEST SENT TO SERVER");
+                            console.info(new Date().toLocaleString() + "UNLOCK study " + $scope.model.experiment_id + " REQUEST SENT TO SERVER");
                             break;
                         default:
                             status = false;
@@ -692,7 +694,7 @@
             else if (status) {
                 //TODO: $scope.cleanCountdownDialogs();
                 $scope.setViewMode("view", true);
-                $dialogs.showSuccessDialog('Experiment ' + $scope.model.experiment_id + ' saved successfully');
+                $dialogs.showSuccessDialog('Study ' + $scope.model.experiment_id + ' saved successfully');
             } else {
                 status = false;
                 $scope.taskQueue.unshift(current_task);
@@ -766,13 +768,13 @@
                     data: $rootScope.getCredentialsParams({'experiment_id': $scope.model.experiment_id, loggedUserID: current_user_id}),
                 })).then(
                         function successCallback(response) {
-                            $dialogs.showSuccessDialog("The experiment was successfully deleted.");
+                            $dialogs.showSuccessDialog("The study was successfully deleted.");
                             //Notify all the other controllers that user has signed in
                             $rootScope.$broadcast(APP_EVENTS.experimentDeleted);
                             $state.go('experiments', {force: true});
                         },
                         function errorCallback(response) {
-                            var message = "Failed while deleting the experiment.";
+                            var message = "Failed while deleting the study.";
                             $dialogs.showErrorDialog(message, {
                                 logMessage: message + " at ExperimentDetailController:deleteExperimentHandler."
                             });
@@ -802,13 +804,13 @@
             //TODO: THIS CODE COULD BE BETTER IN THE SERVER (JAVASCRIPT IS VULNERABLE)
             var current_user_id = '' + Cookies.get('loggedUserID');
             if (!ExperimentList.isOwner($scope.model, current_user_id) && current_user_id !== "admin") {
-                console.error((new Date()).toLocaleString() + " EDITION REQUEST DENIED. Error message: User " + current_user_id + " has not Edition privileges over the Experiment " + $scope.model.experiment_id);
-                $dialogs.showErrorDialog("Your user is not allowed to edit this experiment");
+                console.error((new Date()).toLocaleString() + " EDITION REQUEST DENIED. Error message: User " + current_user_id + " has not Edition privileges over the study " + $scope.model.experiment_id);
+                $dialogs.showErrorDialog("Your user is not allowed to edit this study");
                 return;
             }
 
             //2. SEND LOCK REQUEST
-            console.info((new Date()).toLocaleString() + "SENDING EDIT REQUEST FOR Experiment " + $scope.model.experiment_id + " TO SERVER");
+            console.info((new Date()).toLocaleString() + "SENDING EDIT REQUEST FOR study " + $scope.model.experiment_id + " TO SERVER");
             this.send_lock_experiment('edition');
 
             return this;

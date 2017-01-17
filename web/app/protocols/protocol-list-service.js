@@ -25,7 +25,7 @@
     var app = angular.module('protocols.services.protocol-list', []);
 
     app.factory("ProtocolList", ['$rootScope', function ($rootScope) {
-            var protocols = [];
+            var protocols = [{protocol_id:"Unknown", name: "Default"}];
             var tags = [];
             var filters = [];
             var tagColors = ['yellow', 'green', 'red', 'blue', 'purple', 'pink', 'yellow2', 'green2', 'red2', 'blue2', 'purple2', 'pink2']

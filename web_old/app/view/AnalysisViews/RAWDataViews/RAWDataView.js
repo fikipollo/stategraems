@@ -99,7 +99,7 @@ Ext.define('SL.view.AnalysisViews.RAWDataViews.RAWDataView', {
 
         //4.Load the file location info
         var fileLocation = model.getFileLocation();
-        fileLocation = fileLocation.split("$$");
+        fileLocation = fileLocation.split("\\$\\$");
         var step_fileLocation = this.queryById("fileLocationField");
         var fileLocationElement, fileLocationsModels = [];
         for (var i in fileLocation) {

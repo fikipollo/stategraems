@@ -127,7 +127,7 @@ public class Install_servlets extends Servlet {
 
             JsonObject requestData = (JsonObject) new JsonParser().parse(request.getReader());
             settings.addProperty("installation_type", requestData.get("installation_type").getAsString());
-
+            Thread.sleep(5000); //Wait for MySQL docker to start
             response = install(settings, response);
         } catch (Exception e) {
             ServerErrorManager.handleException(e, Install_servlets.class.getName(), "userLoginPostHandler", e.getMessage());

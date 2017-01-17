@@ -5,6 +5,8 @@ BEGIN;
 ALTER TABLE experiments CHANGE sample_tags tags TEXT;
 
 UPDATE users SET email = 'emsadminuser@email.com' WHERE email IS NULL AND user_id = 'admin';
+ALTER TABLE users ADD COLUMN apicode varchar(200);
+ALTER TABLE users ADD COLUMN apicode_date VARCHAR(8) NOT NULL DEFAULT "19870729";
 
 UPDATE experiments SET tags = CONCAT("Case-Control, ", tags) WHERE is_case_control_type = TRUE;
 UPDATE experiments SET tags = CONCAT("Multiple conditions, ", tags) WHERE is_multiple_conditions = TRUE;

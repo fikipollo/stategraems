@@ -22,6 +22,7 @@ package classes;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -287,12 +288,17 @@ public class Experiment {
 
     public String getExperimentDataDirectoryContent(String applicationDataDirectory) throws IOException, InterruptedException, Exception {
         String dirURL = this.getExperimentDataDirectory();
+        dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/");
         ArrayList<String> lines = new ArrayList<String>();
 
-        if (dirURL != null && !dirURL.equals("")) {
-            String[] script = null;
+        if (dirURL == null) {
+            throw new IOException("Invalid data directory");
+        }
 
-            script = new String[]{"find", this.getExperimentDataDirectory()};
+        File f = new File(dirURL + ".stategraems_dir");
+        if (f.exists()) {
+            String[] script = null;
+            script = new String[]{"find", dirURL};
 
             Runtime rt = Runtime.getRuntime();
             Process dumpProcess = rt.exec(script);
@@ -318,9 +324,9 @@ public class Experiment {
                 throw new FileNotFoundException("Failed while getting directory tree for the Experiment " + this.getExperimentID() + " . Error: " + output);
             }
 
-        } //IF THE DIRECTORY WAS NOT SPECIFIED, LETS TRY TO READ THE FILE CONTAINING THE DIRECTORY CONTENT
-        //WHICH SHOULD BE CREATED BY THE ADMIN AND UPDATED PERIODICALLY
-        else {
+        } else if (dirURL.isEmpty()) {
+            //IF THE DIRECTORY WAS NOT SPECIFIED, LETS TRY TO READ THE FILE CONTAINING THE DIRECTORY CONTENT
+            //WHICH SHOULD BE CREATED BY THE ADMIN AND UPDATED PERIODICALLY
             try {
                 BufferedReader br = new BufferedReader(new FileReader(applicationDataDirectory + "/" + this.getExperimentID() + "/experimentDataDirectoryContent.txt"));
                 try {
@@ -333,7 +339,10 @@ public class Experiment {
                     br.close();
                 }
             } catch (FileNotFoundException e) {
+                lines.add("The data directory for this study is not valid.");
             }
+        } else {
+            lines.add("The data directory for this study is not valid.");
         }
 
         if (lines.size() > 0) {
@@ -342,8 +351,6 @@ public class Experiment {
             if (line.charAt(line.length() - 1) == '/') {
                 line = line.substring(0, line.length() - 1);
             }
-            
-            
 
             Directory directory = new Directory(line);
 
@@ -374,7 +381,7 @@ public class Experiment {
             return directoryStack.get(0).toJSONString(0);
         }
 
-        return "'Directory not specified'";
+        return null;
     }
 
     public String[] getTags() {
@@ -445,8 +452,8 @@ class Directory {
     public String toJSONString(int level) {
         String childrenCode = "";
         if (this.children != null) {
-            for (int i = 0;  i < children.size(); i++) {
-                childrenCode += children.get(i).toJSONString(level + 1) + ((i + 1) < children.size() ? ",":"" );
+            for (int i = 0; i < children.size(); i++) {
+                childrenCode += children.get(i).toJSONString(level + 1) + ((i + 1) < children.size() ? "," : "");
             }
         }
         return "{\"text\" : \"" + name + "\"" + (childrenCode.equals("") ? "" : ", \"nodes\" :[" + childrenCode + "]") + "}";

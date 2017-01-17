@@ -160,7 +160,7 @@ Ext.define('SL.view.AnalysisViews.ProcessedDataViews.ProcessedDataView', {
                 var fileLocationField = fileLocationFields[i];
                 var fieldName = fileLocationField.name;
                 var values = me.getModel().get(fieldName);
-                values = values.split("$$");
+                values = values.split("\\$\\$");
 
                 var fileLocationElement, fileLocationsModels = [];
                 for (var i in values) {

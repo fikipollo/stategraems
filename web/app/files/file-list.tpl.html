@@ -10,20 +10,13 @@
                     <div class="row">
                         <div class="col-sm-8">
                             <div class="input-group" style="width: 100%;margin-bottom: 4px;">
-                                <input type="text" class="form-control" placeholder="Search for..." ng-model="searchFor" ng-enter="controller.applySearchHandler()">
+                                <input type="text" class="form-control" placeholder="Search for..." ng-model="searchFor.search">
                                 <span class="input-group-btn">
                                     <button class="btn btn-default" type="button" ng-click="controller.applySearchHandler()">
                                         <span class="glyphicon glyphicon-search"></span>
                                     </button>
                                 </span>
                             </div><!-- /input-group -->
-                            <div class="currentSearchTagContainer">
-                                <i class="tag" ng-repeat="item in filters">
-                                    <span class="tag-name ">
-                                        <i class="fa fa-times" ng-click="controller.removeFilterHandler(item);"></i>{{item}}
-                                    </span>
-                                </i>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -39,6 +32,7 @@
                     </div>
                 </div>
                 <files-tree></files-tree>
+                <button type="button" class="btn btn-primary" style="float: right;" ng-click="controller.updateFileSelectionHandler();"><i class="fa fa-plus"></i> Add the files</button>
             </uib-tab>
             <uib-tab heading="Manual entry" classes="btn-sm" ng-init="manual_entries = '';">
                 <div class="well well-sm text-info"><i class="fa fa-info-circle"></i> Type the location for the files (one file per line). You can use file paths (e.g. /mydata/mydir/this_file.txt), URLs (http://myserver.com/mydata/myfiles), FTP links (ftp://myftpserver.com/mydata/myfiles), or even textual descriptions (in one line).</div>

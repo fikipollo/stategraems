@@ -76,9 +76,9 @@
          * @returns this
          ******************************************************************************/
         this.retrieveAnalysisData = function (group, force) {
-            $scope.isLoading = true;
+            $scope.setLoading(true);
             if (!Cookies.get("currentExperimentID")) {
-                $dialogs.showInfoDialog("Please, choose first an experiment at the \"Browse studies\" section.");
+                $dialogs.showInfoDialog("Please, choose first an study at the \"Browse studies\" section.");
                 $state.go('experiments');
                 return;
             }
@@ -107,10 +107,10 @@
                             }
                             $scope.visibleAnalysis = Math.min($scope.filteredAnalysis, $scope.visibleAnalysis);
 
-                            $scope.isLoading = false;
+                            $scope.setLoading(false);
                         },
                         function errorCallback(response) {
-                            $scope.isLoading = false;
+                            $scope.setLoading(false);
 
                             debugger;
                             var message = "Failed while retrieving the analysis list.";
@@ -124,7 +124,7 @@
                 $scope.analysis = AnalysisList.getAnalysis();
                 $scope.tags = AnalysisList.getTags();
                 $scope.filteredAnalysis = $scope.analysis.length;
-                $scope.isLoading = false;
+                $scope.setLoading(false);
             }
 
             return this;
@@ -213,7 +213,6 @@
          *
          ******************************************************************************/
         $scope.$on(APP_EVENTS.experimentDeleted, function (event, args) {
-            debugger;
             this.retrieveExperimentsData('', true);
         });
 
@@ -887,12 +886,14 @@
                             step.type = "rawdata";
                             step.raw_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
                             step.extractionMethod = {extraction_method_type: $scope.typesInfo.step_subtype.replace(/ /g, "_")};
+                            step.step_name = "Unnamed " + step.raw_data_type +" step";
                             step.analyticalReplicate_id = null;
                             $scope.model.non_processed_data.push(step);
                             $scope.model.nextStepID++;
                         } else if ($scope.typesInfo.step_type === "intermediate_data") {
                             step.type = "intermediate_data";
                             step.intermediate_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
+                            step.step_name = "Unnamed " + step.intermediate_data_type +" step";
                             step.used_data = [];
                             $scope.model.non_processed_data.push(step);
                             $scope.model.nextStepID++;
@@ -903,6 +904,7 @@
                         } else if ($scope.typesInfo.step_type === "processed_data") {
                             step.type = "processed_data";
                             step.processed_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
+                            step.step_name = "Unnamed " + step.processed_data_type +" step";
                             step.used_data = [];
                             step.reference_data = [];
                             $scope.model.processed_data.push(step);
@@ -962,11 +964,13 @@
             var current_user_id = '' + Cookies.get('loggedUserID');
 
             if (AnalysisList.isOwner($scope.model, current_user_id) || current_user_id === "admin") {
+                $scope.setLoading(true);
                 $http($rootScope.getHttpRequestConfig("POST", "analysis-delete", {
                     headers: {'Content-Type': 'application/json; charset=utf-8'},
                     data: $rootScope.getCredentialsParams({'analysis_id': $scope.model.analysis_id, loggedUserID: current_user_id}),
                 })).then(
                         function successCallback(response) {
+                            $scope.setLoading(false);
                             if (response.data.removed) {
                                 $dialogs.showSuccessDialog("The analysis was successfully deleted.");
                             } else {
@@ -976,6 +980,7 @@
                             $state.go('analysis', {force: true});
                         },
                         function errorCallback(response) {
+                            $scope.setLoading(false);
                             var message = "Failed while deleting the analysis.";
                             $dialogs.showErrorDialog(message, {
                                 logMessage: message + " at AnalysisDetailController:deleteAnalysisHandler."
@@ -1032,7 +1037,6 @@
                 return false;
             }
 
-            $scope.setLoading(true);
             this.closeAllDetailsViews();
             $scope.setTaskQueue(this.clean_task_queue($scope.getTaskQueue()));
             this.execute_tasks(true);

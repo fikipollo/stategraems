@@ -345,7 +345,7 @@ public class Samples_servlets extends Servlet {
                                 String nextID = analyticalSampleDAO.getNextObjectID(params);
                                 BLOCKED_IDs.add(nextID);
                                 analyticalReplicate.setAnalyticalReplicateID(nextID);
-                                analyticalReplicate.setBioreplicate_id(bioreplicate.getBioreplicateID());
+                                analyticalReplicate.setBioreplicateID(bioreplicate.getBioreplicateID());
                                 to_be_created_AS.add(analyticalReplicate); //CREATES THE AS
                             } else if ("edited".equals(analyticalReplicate.getStatus())) {
                                 to_be_updated_AS.add(analyticalReplicate);

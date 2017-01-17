@@ -369,7 +369,7 @@ public class Step_JDBCDAO extends DAO {
             step.setType(rs.getString("type"));
             step.setSubmissionDate(rs.getString("submission_date"));
             step.setLastEditionDate(rs.getString("last_edition_date"));
-            step.setFilesLocation(rs.getString("files_location").split("$$"));
+            step.setFilesLocation(rs.getString("files_location").split("\\$\\$"));
 
             //STEP 3. GET THE INFORMATION FOR THE STEP OWNERS
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""

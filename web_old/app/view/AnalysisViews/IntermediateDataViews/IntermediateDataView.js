@@ -120,7 +120,7 @@ Ext.define('SL.view.AnalysisViews.IntermediateDataViews.IntermediateDataView', {
 
             //4.Load the file location info
             var fileLocation = model.getFileLocation();
-            fileLocation = fileLocation.split("$$");
+            fileLocation = fileLocation.split("\\$\\$");
             var step_fileLocation = me.queryById("fileLocationField");
             var fileLocationElement, fileLocationsModels = [];
             for (var i in fileLocation) {

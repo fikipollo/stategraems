@@ -131,6 +131,7 @@ public class User_servlets extends Servlet {
                  */
                 user = new User(user_id, email);
                 user.setPassword(password);
+                user.setRandomAPICode();
 
                 /**
                  * *******************************************************

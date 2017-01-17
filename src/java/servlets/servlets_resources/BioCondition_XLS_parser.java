@@ -287,8 +287,8 @@ public class BioCondition_XLS_parser {
             bioreplicateInstance = bioreplicatesTable.get(bioreplicateID);
 
             analyticalSampleInstance = new AnalyticalReplicate();
-            analyticalSampleInstance.setBioreplicate_id(bioreplicateInstance.getBioreplicateID());
-            analyticalSampleInstance.setTreatment_id(treatmentID);
+            analyticalSampleInstance.setBioreplicateID(bioreplicateInstance.getBioreplicateID());
+            analyticalSampleInstance.setTreatmentID(treatmentID);
             analyticalSampleInstance.setAnalyticalReplicateName(analyticalSampleName);
 
             bioreplicateInstance.addAssociatedAnalyticalReplicate(analyticalSampleInstance);
