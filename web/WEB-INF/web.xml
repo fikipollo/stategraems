@@ -17,8 +17,8 @@
         <servlet-class>servlets.Samples_servlets</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>Treatment_servlets</servlet-name>
-        <servlet-class>servlets.Treatment_servlets</servlet-class>
+        <servlet-name>Protocols_servlets</servlet-name>
+        <servlet-class>servlets.Protocols_servlets</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>User_servlets</servlet-name>
@@ -67,14 +67,16 @@
         <url-pattern>/experiment_member_request</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>Treatment_servlets</servlet-name>
-        <url-pattern>/get_all_treatments</url-pattern>
+        <servlet-name>Protocols_servlets</servlet-name>
+        <url-pattern>/get_all_protocols</url-pattern>
         <url-pattern>/get_sop_file</url-pattern>
-        <url-pattern>/add_treatment</url-pattern>
-        <url-pattern>/get_treatment</url-pattern>
-        <url-pattern>/update_treatment</url-pattern>
-        <url-pattern>/remove_treatment</url-pattern>
-        <url-pattern>/check_removable_treatment</url-pattern>
+        <url-pattern>/add_protocol</url-pattern>
+        <url-pattern>/get_protocol</url-pattern>
+        <url-pattern>/update_protocol</url-pattern>
+        <url-pattern>/lock_protocol</url-pattern>
+        <url-pattern>/unlock_protocol</url-pattern>
+        <url-pattern>/remove_protocol</url-pattern>
+        <url-pattern>/check_removable_protocol</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>User_servlets</servlet-name>
@@ -111,7 +113,7 @@
         <url-pattern>/install</url-pattern>
         <url-pattern>/autoinstall</url-pattern>
         <url-pattern>/is_valid_installation</url-pattern>
-    </servlet-mapping>    
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             30

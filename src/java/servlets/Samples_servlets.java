@@ -29,7 +29,7 @@ import classes.samples.AnalyticalReplicate;
 import classes.samples.Batch;
 import classes.samples.Bioreplicate;
 import classes.samples.BioCondition;
-import classes.samples.Treatment;
+import classes.samples.Protocol;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -528,7 +528,7 @@ public class Samples_servlets extends Servlet {
 
                 ArrayList<BioCondition> biocondition_list = (ArrayList<BioCondition>) parsingResult[0];
                 HashMap<String, Batch> batchesTable = (HashMap<String, Batch>) parsingResult[1];
-                HashMap<String, Treatment> treatmentsTable = (HashMap<String, Treatment>) parsingResult[2];
+                HashMap<String, Protocol> protocolsTable = (HashMap<String, Protocol>) parsingResult[2];
 
                 /**
                  * *******************************************************
@@ -551,15 +551,15 @@ public class Samples_servlets extends Servlet {
                     dao_instance.insert(batch);
                 }
 
-                dao_instance = DAOProvider.getDAOByName("Treatment");
+                dao_instance = DAOProvider.getDAOByName("Protocol");
                 //IF WE ARE HERE IT MEANS THAT APARENTLY EVERTHING WAS OK
                 //therefore WE SHOULD START ADDING THE INFORMATION INTO THE DB
-                for (Treatment treatment : treatmentsTable.values()) {
-                    String treatmentID = dao_instance.getNextObjectID(null);
-                    BLOCKED_IDs.add(treatmentID);
-                    treatment.setTreatmentID(treatmentID);
+                for (Protocol protocol : protocolsTable.values()) {
+                    String protocolID = dao_instance.getNextObjectID(null);
+                    BLOCKED_IDs.add(protocolID);
+                    protocol.setProtocolID(protocolID);
                     //THE BATCH ID SHOULD BE UPDATED IN ALL THE BIOREPLICATES (BECAUSE IS THE SAME OBJECT)
-                    dao_instance.insert(treatment);
+                    dao_instance.insert(protocol);
                 }
 
                 dao_instance = DAOProvider.getDAOByName("BioCondition");

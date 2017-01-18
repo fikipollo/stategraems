@@ -183,11 +183,11 @@
                         _bioreplicates[j].extractionProtocols = {};
                         var analyticalSamples = _bioreplicates[j].associatedAnalyticalReplicates;
                         for (var k in analyticalSamples) {
-                            var treatmentID = (analyticalSamples[k].treatment_id || "Unknown");
-                            if (!_bioreplicates[j].extractionProtocols[treatmentID]) {
-                                _bioreplicates[j].extractionProtocols[treatmentID] = [];
+                            var protocolID = (analyticalSamples[k].protocol_id || "Unknown");
+                            if (!_bioreplicates[j].extractionProtocols[protocolID]) {
+                                _bioreplicates[j].extractionProtocols[protocolID] = [];
                             }
-                            _bioreplicates[j].extractionProtocols[treatmentID].push(analyticalSamples[k]);
+                            _bioreplicates[j].extractionProtocols[protocolID].push(analyticalSamples[k]);
                         }
                     }
                     return _bioreplicates;

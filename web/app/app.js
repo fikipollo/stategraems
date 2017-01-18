@@ -7,6 +7,7 @@
         'users.directives.user-session',
         'experiments.controllers',
         'samples.controllers',
+        'protocols.controllers',
         'analysis.controllers',
         'files.controllers',
         'templates.services.template-list'
@@ -26,6 +27,9 @@
         experimentDeleted: 'experiment-deleted',
         sampleCreated: 'sample-created',
         sampleDeleted: 'sample-deleted',
+        protocolCreated: 'protocol-created',
+        protocolDeleted: 'protocol-deleted',
+        protocolSelection: 'protocol-selection',
         analysisCreated: 'analysis-created',
         analysisDeleted: 'analysis-deleted',
         stepChanged: "step-changed",
@@ -89,6 +93,25 @@
                         },
                         data: {requireLogin: true}
                     },
+                    protocols = {
+                        name: 'protocols',
+                        url: '/protocols',
+                        templateUrl: "app/protocols/protocol-list.tpl.html",
+                        params: {
+                            force: false
+                        },
+                        data: {requireLogin: true}
+                    },
+                    protocolDetail = {
+                        name: 'protocolDetail',
+                        url: '/protocol-detail/',
+                        templateUrl: "app/protocols/protocol-form.tpl.html",
+                        params: {
+                            viewMode: 'view', //creation, edition
+                            protocol_id: null
+                        },
+                        data: {requireLogin: true}
+                    },
                     externalSampleDetail = {
                         name: 'externalSampleDetail',
                         url: '/ext-sample-detail/',
@@ -124,6 +147,8 @@
             $stateProvider.state(experimentDetail);
             $stateProvider.state(samples);
             $stateProvider.state(sampleDetail);
+            $stateProvider.state(protocols);
+            $stateProvider.state(protocolDetail);
             $stateProvider.state(externalSampleDetail);
             $stateProvider.state(analysis);
             $stateProvider.state(analysisDetail);
@@ -143,6 +168,9 @@
             {name: '', title: 'Samples', icon: 'flask', isParent: true},
             {name: 'samples', title: 'Browse samples', icon: 'angle-right', isParent: false},
             {name: 'sampleDetail', title: 'Annotate new samples', icon: 'angle-right', isParent: false, params: {viewMode: 'creation'}},
+            {name: '', title: 'Protocols', icon: 'file-powerpoint-o', isParent: true},
+            {name: 'protocols', title: 'Browse protocols', icon: 'angle-right', isParent: false},
+            {name: 'protocolDetail', title: 'Annotate new protocol', icon: 'angle-right', isParent: false, params: {viewMode: 'creation'}},
             {name: '', title: 'Analysis', icon: 'sitemap', isParent: true},
             {name: 'analysis', title: 'Browse analysis', icon: 'angle-right', isParent: false},
             {name: 'analysisDetail', title: 'Annotate new analysis', icon: 'angle-right', isParent: false, params: {viewMode: 'creation'}}
@@ -213,6 +241,20 @@
                     return myAppConfig.EMS_SERVER + "unlock_analysis";
                 case "analysis-step-subtypes":
                     return myAppConfig.EMS_SERVER + "get_step_subtypes";
+                case "protocol-list":
+                    return myAppConfig.EMS_SERVER + "get_all_protocols";
+                case "protocol-info":
+                    return myAppConfig.EMS_SERVER + "get_protocol";
+                case "protocol-create":
+                    return myAppConfig.EMS_SERVER + "add_protocol";
+                case "protocol-update":
+                    return myAppConfig.EMS_SERVER + "update_protocol";
+                case "protocol-delete":
+                    return myAppConfig.EMS_SERVER + "remove_protocol";
+                case "protocol-lock":
+                    return myAppConfig.EMS_SERVER + "lock_protocol";
+                case "protocol-unlock":
+                    return myAppConfig.EMS_SERVER + "unlock_protocol";
                 case "file-list":
                     return myAppConfig.EMS_SERVER + "get_experiment_directory_content";
                 case "check-install":

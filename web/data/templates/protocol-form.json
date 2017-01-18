@@ -1,0 +1,49 @@
+{
+    "id": "protocol-form",
+    "content": [
+        {
+            "name": "section_1",
+            "title": "General details",
+            "fields": [
+                {
+                    "name": "protocol_id",
+                    "label": "Protocol ID",
+                    "type": "display"
+                },
+                {
+                    "name": "protocol_name",
+                    "label": "Title",
+                    "type": "text",
+                    "required" : true
+                },
+                {
+                    "name": "description",
+                    "label": "Description",
+                    "type": "textarea",
+                    "required" : true
+                },
+                {
+                    "name": "biomolecule",
+                    "label": "Extracted biomolecule",
+                    "type": "text"
+                },
+                {
+                    "name": "tags",
+                    "label": "Protocol tags",
+                    "type": "tag"
+                }
+            ]
+        },
+        {
+            "name": "section_2",
+            "title": "Other information",
+            "fields": [
+                {
+                    "name": "owners",
+                    "label": "Owners",
+                    "type": "user_selector"
+                }
+            ]
+        }
+    ]
+}

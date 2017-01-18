@@ -25,7 +25,7 @@
     var app = angular.module('protocols.services.protocol-list', []);
 
     app.factory("ProtocolList", ['$rootScope', function ($rootScope) {
-            var protocols = [{protocol_id:"Unknown", name: "Default"}];
+            var protocols = [{protocol_id:"Unknown", protocol_name: "Default"}];
             var tags = [];
             var filters = [];
             var tagColors = ['yellow', 'green', 'red', 'blue', 'purple', 'pink', 'yellow2', 'green2', 'red2', 'blue2', 'purple2', 'pink2']
@@ -137,28 +137,11 @@
                     return (new Date() - old) / 60000;
                 },
                 adaptInformation: function (_protocols) {
-                    for (var i in _protocols) {
-                        //ADAPT THE DATES
-                        var date = _protocols[i].submission_date;
-                        if (date.indexOf("/") === -1) {
-                            date = date.substr(0, 4) + "/" + date.substr(4, 2) + "/" + date.substr(6, 2);
-                        }
-                        _protocols[i].submission_date = new Date(date);
-
-                        date = _protocols[i].last_edition_date;
-                        if (date.indexOf("/") === -1) {
-                            date = date.substr(0, 4) + "/" + date.substr(4, 2) + "/" + date.substr(6, 2);
-                        }
-                        _protocols[i].last_edition_date = new Date(date);
-
-                        //ADAPT THE TAGS
-//                        _protocols[i].tags = ((_protocols[i].tags !== undefined) ? _protocols[i].tags.split(",") : ["Case-control"]);
-                    }
                     return _protocols;
                 },
                 isOwner: function (protocol, user_id) {
-                    for (var i in protocol.protocol_owners) {
-                        if (protocol.protocol_owners[i].user_id === user_id) {
+                    for (var i in protocol.owners) {
+                        if (protocol.owners[i].user_id === user_id) {
                             return true;
                         }
                     }
@@ -171,50 +154,6 @@
                         }
                     }
                     return false;
-                },
-                getMemento: function (model) {
-                    var memento = {};
-                    for (var key in model) {
-                        //IF IS ARRAY
-                        if ((!!model[key]) && (model[key].constructor === Array)) {
-                            memento[key] = [];
-                            for (var i in model[key]) {
-                                memento[key].push(model[key][i]);
-                            }
-                            //IF IS object
-                        } else if ((!!model[key]) && (model[key].constructor === Object)) {
-                            memento[key] = {};
-                            for (var i in model[key]) {
-                                memento[key][i] = model[key][i];
-                            }
-                        } else {
-                            memento[key] = model[key];
-                        }
-                    }
-
-                    return memento;
-                },
-                restoreFromMemento: function (model, memento) {
-                    for (var key in model) {
-                        if ((!!memento[key]) && (memento[key].constructor === Array)) {
-                            model[key].length = 0;
-                            for (var i in memento[key]) {
-                                model[key].push(memento[key][i]);
-                            }
-                            //IF IS object
-                        } else if ((!!memento[key]) && (memento[key].constructor === Object)) {
-                            for (var i in model[key]) {
-                                delete model[key][i];
-                            }
-
-                            for (var i in memento[key]) {
-                                model[key][i] = memento[key][i];
-                            }
-                        } else {
-                            model[key] = memento[key];
-                        }
-                    }
-                    return model;
                 }
             };
         }]);

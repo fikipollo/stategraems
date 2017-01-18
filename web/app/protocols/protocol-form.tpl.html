@@ -1,0 +1,44 @@
+<div ng-controller="ProtocolDetailController as controller" >
+    <form name="protocolForm" class="form-horizontal">
+        <nav class="navbar navbar-default navbar-top title-bar">
+            <h1 class="form_title">{{panel_title}}</h1>
+            <h1 class="form_subtitle">Protocol</h1>
+        </nav>
+        <div ng-if="template === undefined">
+            <p>Generating the form...</p>
+        </div>
+
+        <div ng-if="template !== undefined">
+            <div class="section_box row" ng-repeat="section in template.content">
+                <h2 class="section_subtitle">{{section.title}}</h2>
+                <form-field ng-repeat="field in section.fields"></form-field>
+                <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+            </div>
+        </div>
+        <uib-accordion close-others="oneAtATime" ng-show="viewMode === 'edition'">
+            <div uib-accordion-group class="panel-danger" >
+                <uib-accordion-heading><i class='fa fa-trash'></i> Delete this protocol</uib-accordion-heading>
+                <p ng-if="model.owners.length > 1"><b>Delete this protocol from your collection?</b><br>You will be removed from the owners list but the protocol will not deleted before all the administrators remove the protocol.</p>
+                <p ng-if="model.owners.length < 2"><b>Delete this protocol from the system?</b><br>This action will remove all the data for the protocol from database, including all associated analysis.<br>This action cannot be undone.</p>
+                <p>Please, to delete this protocol, click the button below</p>
+                <a class="btn btn-danger" ng-click="controller.deleteProtocolHandler(model);"><i class='fa fa-trash'></i> Delete</a>
+            </div>
+        </uib-accordion>
+        <nav class="navbar navbar-default navbar-fixed-bottom progressNavigator" >
+            <div class="container">
+                <a class="btn btn-danger btn-md navbar-right" ng-click="controller.cancelButtonHandler();">
+                    <i class="fa fa-times"></i> <span ng-if="viewMode === 'view'">Close</span><span ng-if="viewMode !== 'view'">Cancel</span> 
+                </a>
+                <a class="btn btn-warning btn-md navbar-right" ng-show="viewMode === 'view'" ng-click="controller.editButtonHandler();">
+                    <i class="fa fa-pencil-square-o"></i> Edit
+                </a>
+                <a class="btn btn-success btn-md navbar-right" ng-show="viewMode !== 'view'"  ng-click="controller.acceptButtonHandler()" >
+                    <i class="fa fa-check fa-fw" ></i> Accept
+                </a>
+            </div>
+        </nav>
+        <nav class=" navbar-fixed-bottom" style="left: initial;">
+            <back-top scroll-speed=600 button-theme="btn btn-default btn-sm navbar-right"></back-top>
+        </nav>
+    </form>
+</div>

@@ -26,7 +26,7 @@
         'ang-dialogs',
         'angular.backtop',
         'experiments.services.experiment-list',
-        'experiments.directives.experiment-card',
+        'experiments.directives.experiment-views',
         'analysis.services.analysis-list',
         'templates.directives.template',
         'ui.bootstrap'
@@ -451,7 +451,7 @@
                         $scope.model.experiment_id = response.data.newID;
                         ExperimentList.addExperiment($scope.model);
 //                        //Notify all the other controllers that a new experiment exists
-//                        $rootScope.$broadcast(APP_EVENTS.experimentCreated);
+//                        $rootScope.$emit(APP_EVENTS.experimentCreated);
                         $scope.setLoading(false);
 
                         callback_caller[callback_function](true);
@@ -694,6 +694,7 @@
             else if (status) {
                 //TODO: $scope.cleanCountdownDialogs();
                 $scope.setViewMode("view", true);
+                $scope.setLoading(false);
                 $dialogs.showSuccessDialog('Study ' + $scope.model.experiment_id + ' saved successfully');
             } else {
                 status = false;
@@ -760,20 +761,23 @@
          ******************************************************************************/
         this.deleteExperimentHandler = function () {
             var me = this;
-            var current_user_id = '' + Cookies.get('loggedUserID');
+            $scope.setLoading(true);
 
+            var current_user_id = '' + Cookies.get('loggedUserID');
             if (ExperimentList.isOwner($scope.model, current_user_id) || current_user_id === "admin") {
                 $http($rootScope.getHttpRequestConfig("POST", "experiment-delete", {
                     headers: {'Content-Type': 'application/json; charset=utf-8'},
                     data: $rootScope.getCredentialsParams({'experiment_id': $scope.model.experiment_id, loggedUserID: current_user_id}),
                 })).then(
                         function successCallback(response) {
-                            $dialogs.showSuccessDialog("The study was successfully deleted.");
+                            $scope.setLoading(false);
                             //Notify all the other controllers that user has signed in
-                            $rootScope.$broadcast(APP_EVENTS.experimentDeleted);
+                            $rootScope.$emit(APP_EVENTS.experimentDeleted);
+                            $dialogs.showSuccessDialog("The study was successfully deleted.");
                             $state.go('experiments', {force: true});
                         },
                         function errorCallback(response) {
+                            $scope.setLoading(false);
                             var message = "Failed while deleting the study.";
                             $dialogs.showErrorDialog(message, {
                                 logMessage: message + " at ExperimentDetailController:deleteExperimentHandler."
@@ -785,6 +789,24 @@
             }
         };
 
+        /******************************************************************************
+         * This function handles the event accept_button_pressed fires in other Controller 
+         * (eg. ApplicationController) when a button Accept is pressed.
+         *  
+         * @returns the controller;
+         * @chainable
+         ******************************************************************************/
+        this.acceptButtonHandler = function () {
+            if (!$scope.experimentForm.$valid) {
+                $dialogs.showErrorDialog("Invalid form, please check the form and fill the empty fields.");
+                return false;
+            }
+
+            $scope.setTaskQueue(this.clean_task_queue($scope.getTaskQueue()));
+            this.execute_tasks(true);
+            return this;
+        };
+        
         /******************************************************************************
          * This function send a Edition request to the server in order to block the Experiment
          * avoiding that other users edit it before the user saves the changes.
@@ -801,7 +823,6 @@
          ******************************************************************************/
         this.editButtonHandler = function () {
             //1. CHECK IF THE USER HAS EDITING PRIVILEGES OVER THE Experiment (ONLY OWNERS)
-            //TODO: THIS CODE COULD BE BETTER IN THE SERVER (JAVASCRIPT IS VULNERABLE)
             var current_user_id = '' + Cookies.get('loggedUserID');
             if (!ExperimentList.isOwner($scope.model, current_user_id) && current_user_id !== "admin") {
                 console.error((new Date()).toLocaleString() + " EDITION REQUEST DENIED. Error message: User " + current_user_id + " has not Edition privileges over the study " + $scope.model.experiment_id);
@@ -817,32 +838,12 @@
         };
 
         /******************************************************************************
-         * This function handles the event accept_button_pressed fires in other Controller 
-         * (eg. ApplicationController)
-         * when a button Accept is pressed.
-         *  
-         * @returns {ExperimentDetailController} the controller;
-         * @chainable
-         ******************************************************************************/
-        this.acceptButtonHandler = function () {
-            if (!$scope.experimentForm.$valid) {
-                $dialogs.showErrorDialog("Invalid form, please check the form and fill the empty fields.")
-                return false;
-            }
-
-            $scope.setLoading(true);
-            $scope.setTaskQueue(this.clean_task_queue($scope.getTaskQueue()));
-            this.execute_tasks(true);
-            return this;
-        };
-
-        /******************************************************************************
          * This function handles the cancel_button_pressed thown by the Application Controller
          * when the Cancel button located in MainView is pressed and the inner panel is an
          * ExperimentDetailsView panel.
          * Asks the user if close without save changes. If user selects "Yes", the panel is closed.
-         * if the panel was in a "Editing mode" (if the panel has a timer id), then sends a signal to the server in order to unblock
-         * the Experiment in the list of blocked elements.
+         * if the panel was in a "Editing mode" (if the panel has a timer id), then sends a signal 
+         * to the server in order to unlock the Experiment in the list of locked elements.
          ******************************************************************************/
         this.cancelButtonHandler = function () {
             //TODO: REMOVE COUNTERS AND UNLOCK EXPERIMENT

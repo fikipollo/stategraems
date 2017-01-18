@@ -106,8 +106,8 @@ public class DAOProvider {
             return new AnalyticalReplicate_JDBCDAO();
         } else if ("Batch".equalsIgnoreCase(className)) {
             return new Batch_JDBCDAO();
-        } else if ("Treatment".equalsIgnoreCase(className)) {
-            return new Treatment_JDBCDAO();
+        } else if ("Protocol".equalsIgnoreCase(className)) {
+            return new Protocol_JDBCDAO();
         } else if ("Analysis".equalsIgnoreCase(className)) {
             return new Analysis_JDBCDAO();
         } else if ("Step".equalsIgnoreCase(className)) {

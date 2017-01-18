@@ -48,7 +48,7 @@ public class User {
     }
 
     /**
-     * This static function returns a new Treatment object using the data
+     * This static function returns a new user object using the data
      * contained in the given JSON object (as String).
      *
      * @param jsonString the JSON object

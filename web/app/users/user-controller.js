@@ -104,7 +104,7 @@
                             delete $scope.signForm;
 
                             //Notify all the other controllers that user has signed in
-                            $rootScope.$broadcast(APP_EVENTS.loginSuccess);
+                            $rootScope.$emit(APP_EVENTS.loginSuccess);
 
                             $state.go('home');
                         },
@@ -187,7 +187,7 @@
             delete $scope.userInfo.user_id;
 
             $state.go('signin');
-            $rootScope.$broadcast(APP_EVENTS.logoutSuccess); //Notify all the other controllers that user has signed in
+            $rootScope.$emit(APP_EVENTS.logoutSuccess); //Notify all the other controllers that user has signed in
         };
 
         //--------------------------------------------------------------------

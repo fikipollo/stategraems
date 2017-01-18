@@ -28,6 +28,7 @@
         'bootstrap-tagsinput',
         'users.directives.user-list',
         'samples.directives.sample-views',
+        'protocols.directives.protocol-views',
         'files.directives.file-list'
     ]);
 
@@ -185,6 +186,12 @@
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
                                     '</sample-selector-field>';
+                        } else if (model.type === "protocol_selector") {
+                            template +=
+                                    '<protocol-selector-field name="{{field.name}}" ' +
+                                    '                      ' + (model.required ? "required" : "") +
+                                    '                      ng-readonly="viewMode === \'view\'">' +
+                                    '</protocol-selector-field>';
                         } else {
                             throw 'Unknown input type ' + model.type + ' : ' + JSON.stringify(model);
                         }

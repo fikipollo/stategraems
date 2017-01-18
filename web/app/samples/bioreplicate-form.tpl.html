@@ -43,7 +43,7 @@
             </table>
             <div ng-if="viewMode !== 'view' && (model.status === undefined || model.status.indexOf('deleted') === - 1)" class="navbar-form">
                 <div style="margin: auto;display: block;max-width: 625px;text-align: center;margin-top: 34px;">
-                    <a class="btn btn-sm btn-primary" type="button" ng-click="controller.addNewAnalyticalReplicateButtonHandler(protocol_id)">
+                    <a class="btn btn-sm btn-primary" type="button" ng-click="controller.addAnalyticalReplicateToProtocolButtonHandler(protocol_id)">
                         <i class="fa fa-plus-circle"></i> Add new aliquot for this protocol
                     </a>
                 </div>

@@ -83,7 +83,7 @@ public class Experiment_servlets extends Servlet {
         } else if (request.getServletPath().equals("/experiment_member_request")) {
             process_new_membership_request(request, response);
         } else {
-            common.ServerErrorManager.addErrorMessage(3, Experiment_servlets.class.getName(), "doPost", "What are you doing here?.");
+            common.ServerErrorManager.addErrorMessage(3, Protocols_servlets.class.getName(), "doPost", "What are you doing here?.");
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -99,7 +99,7 @@ public class Experiment_servlets extends Servlet {
     private void add_experiment_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
 
-            String BLOCKED_ID = null;
+            String LOCKED_ID = null;
             boolean ROLLBACK_NEEDED = false;
             DAO dao_instance = null;
 
@@ -129,7 +129,7 @@ public class Experiment_servlets extends Servlet {
                  */
                 dao_instance = DAOProvider.getDAOByName("Experiment");
                 String newID = dao_instance.getNextObjectID(null);
-                BLOCKED_ID = newID;
+                LOCKED_ID = newID;
 
                 /**
                  * *******************************************************
@@ -185,7 +185,7 @@ public class Experiment_servlets extends Servlet {
                 dao_instance.doCommit();
 
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "add_experiment_handler", e.getMessage());
+                ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "add_experiment_handler", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -201,12 +201,12 @@ public class Experiment_servlets extends Servlet {
                     }
                 } else {
                     JsonObject obj = new JsonObject();
-                    obj.add("newID", new JsonPrimitive(BLOCKED_ID));
+                    obj.add("newID", new JsonPrimitive(LOCKED_ID));
                     response.getWriter().print(obj.toString());
                 }
 
-                if (BLOCKED_ID != null) {
-                    BlockedElementsManager.getBlockedElementsManager().unlockID(BLOCKED_ID);
+                if (LOCKED_ID != null) {
+                    BlockedElementsManager.getBlockedElementsManager().unlockID(LOCKED_ID);
                 }
                 /**
                  * *******************************************************
@@ -219,7 +219,7 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "add_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "add_experiment_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -232,7 +232,6 @@ public class Experiment_servlets extends Servlet {
             DAO dao_instance = null;
 
             try {
-
                 /**
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
@@ -295,7 +294,7 @@ public class Experiment_servlets extends Servlet {
                 dao_instance.doCommit();
 
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "update_experiment_handler", e.getMessage());
+                ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "update_experiment_handler", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -325,7 +324,7 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "update_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "update_experiment_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -372,7 +371,7 @@ public class Experiment_servlets extends Servlet {
                 Object[] params = {loadRecursive};
                 experimentsList = dao_instance.findAll(params);
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "get_all_experiments_handler", e.getMessage());
+                ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "get_all_experiments_handler", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -408,7 +407,7 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "get_all_experiments_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "get_all_experiments_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -457,7 +456,7 @@ public class Experiment_servlets extends Servlet {
                 experiment = (Experiment) dao_instance.findByID(experiment_id, params);
 
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "get_experiment_handler", e.getMessage());
+                ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "get_experiment_handler", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -486,7 +485,7 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "get_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "get_experiment_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -524,7 +523,7 @@ public class Experiment_servlets extends Servlet {
                 locker_id = BlockedElementsManager.getBlockedElementsManager().getLockerID(experimentID);
             }
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "lock_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "lock_experiment_handler", e.getMessage());
         } finally {
             /**
              * *******************************************************
@@ -586,7 +585,7 @@ public class Experiment_servlets extends Servlet {
             String experiment_id = requestData.get("experiment_id").getAsString();
             alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(experiment_id, loggedUser);
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "unlock_analysis_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "unlock_analysis_handler", e.getMessage());
         } finally {
             /**
              * *******************************************************
@@ -709,7 +708,7 @@ public class Experiment_servlets extends Servlet {
                 } else if (e.getClass().getSimpleName().equals("AccessControlException")) {
                     ServerErrorManager.handleException(null, null, null, e.getMessage());
                 } else {
-                    ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "remove_experiment_handler", e.getMessage());
+                    ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "remove_experiment_handler", e.getMessage());
                 }
             } finally {
                 /**
@@ -743,7 +742,7 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "remove_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "remove_experiment_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -790,7 +789,7 @@ public class Experiment_servlets extends Servlet {
                 valid_experiment = ((Experiment_JDBCDAO) dao_instance).checkValidExperiment(experiment_id, user_id);
 
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
+                ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -821,7 +820,7 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -854,7 +853,7 @@ public class Experiment_servlets extends Servlet {
              */
             DBConnectionManager.getConnectionManager().doDatabaseDump(backup_file_location);
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "dump_database_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "dump_database_handler", e.getMessage());
         } finally {
             /**
              * *******************************************************
@@ -1015,7 +1014,7 @@ public class Experiment_servlets extends Servlet {
                 }
 
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "process_new_membership_request", e.getMessage());
+                ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "process_new_membership_request", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -1046,7 +1045,7 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }

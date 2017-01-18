@@ -59,12 +59,13 @@
 
         /******************************************************************************      
          * This function retrieves all the samples registered in the system
-         * @param {type} group, limit the search to "user's" samples (not used)
-         * @param {type} force
+         * @param {String} group limit the search to "user's" samples (not used)
+         * @param {boolean} force true if the request must be executed
+         * @param {boolean} recursive true if the request should be recursive (get samples, aliquots, etc.)
          * @returns this
          ******************************************************************************/
         this.retrieveSamplesData = function (group, force, recursive) {
-            $scope.isLoading = true;
+            $scope.setLoading(true);
 
             if (SampleList.getOld() > 1 || force) { //Max age for data 5min.
                 $http($rootScope.getHttpRequestConfig("POST", "sample-list", {
@@ -72,7 +73,6 @@
                     data: $rootScope.getCredentialsParams({recursive: (recursive !== undefined)})
                 })).then(
                         function successCallback(response) {
-                            $scope.isLoading = false;
                             $scope.samples = SampleList.setSamples(response.data).getSamples();
                             $scope.tags = SampleList.updateTags().getTags();
                             $scope.filteredSamples = $scope.samples.length;
@@ -87,9 +87,10 @@
                             }
 
                             $scope.visibleSamples = Math.min($scope.filteredSamples, $scope.visibleSamples);
+                            $scope.setLoading(false);
                         },
                         function errorCallback(response) {
-                            $scope.isLoading = false;
+                            $scope.setLoading(false);
 
                             debugger;
                             var message = "Failed while retrieving the samples list.";
@@ -103,7 +104,7 @@
                 $scope.samples = SampleList.getSamples();
                 $scope.tags = SampleList.getTags();
                 $scope.filteredSamples = $scope.samples.length;
-                $scope.isLoading = false;
+                $scope.setLoading(false);
             }
 
             return this;
@@ -286,6 +287,7 @@
          * This function gets the details for a given Sample
          * 
          * @param biocondition_id the id for the Sample to be retieved
+         * @param force true if the request must be executed
          ******************************************************************************/
         this.retrieveSampleDetails = function (biocondition_id, force) {
             $scope.setLoading(true);
@@ -354,7 +356,7 @@
 
             $http($rootScope.getHttpRequestConfig("POST", "sample-create", {
                 headers: {'Content-Type': 'application/json'},
-                data: $rootScope.getCredentialsParams({'biocondition_json_data': $scope.model}),
+                data: $rootScope.getCredentialsParams({'biocondition_json_data': $scope.model})
             })).then(
                     function successCallback(response) {
                         console.info((new Date()).toLocaleString() + "Sample " + $scope.model.biocondition_id + " successfully saved in server");
@@ -363,7 +365,7 @@
                         SampleList.addBiocondition($scope.model);
 
                         //Notify all the other controllers that a new sample exists
-                        //$rootScope.$broadcast(APP_EVENTS.sampleCreated);
+                        //$rootScope.$emit(APP_EVENTS.sampleCreated);
                         $scope.setLoading(false);
 
                         callback_caller[callback_function](true);
@@ -406,8 +408,6 @@
          *           the current task is re-added to the TASK QUEUE and an error message is showed.
          *           The insertion process is aborted, however all "TO DO" steps are saved in order to be executed again.
          *  
-         *  
-         * @param  sampleView the SampleDetailsView panel which fires the create action and contains the TASK QUEUE. Needed for the callback function.
          * @param  callback_caller after the success/failure event, this object will call to the callback_function. Is needed to preserve the enviroment.
          * @param  callback_function the function invoked by the callback_caller after the success/failure event
          * @return    
@@ -418,7 +418,7 @@
 
             $http($rootScope.getHttpRequestConfig("POST", "sample-update", {
                 headers: {'Content-Type': 'application/json'},
-                data: $rootScope.getCredentialsParams({'biocondition_json_data': $scope.model}),
+                data: $rootScope.getCredentialsParams({'biocondition_json_data': $scope.model})
             })).then(
                     function successCallback(response) {
                         console.info((new Date()).toLocaleString() + "Sample " + $scope.model.biocondition_id + " successfully updated in server");
@@ -450,7 +450,7 @@
 
             $http($rootScope.getHttpRequestConfig("POST", "sample-lock", {
                 headers: {'Content-Type': 'application/json'},
-                data: $rootScope.getCredentialsParams({'biocondition_id': $scope.model.biocondition_id}),
+                data: $rootScope.getCredentialsParams({'biocondition_id': $scope.model.biocondition_id})
             })).then(
                     function successCallback(response) {
                         if (response.data.success) {
@@ -482,6 +482,9 @@
 
         /******************************************************************************      
          * This function lock a sample for editing.  
+         * 
+         * @param  callback_caller after the success/failure event, this object will call to the callback_function. Is needed to preserve the enviroment.
+         * @param  callback_function the function invoked by the callback_caller after the success/failure event
          * @return this;  
          ******************************************************************************/
         this.send_unlock_sample = function (callback_caller, callback_function) {
@@ -489,7 +492,7 @@
 
             $http($rootScope.getHttpRequestConfig("POST", "sample-unlock", {
                 headers: {'Content-Type': 'application/json'},
-                data: $rootScope.getCredentialsParams({'biocondition_id': $scope.model.biocondition_id}),
+                data: $rootScope.getCredentialsParams({'biocondition_id': $scope.model.biocondition_id})
             })).then(
                     function successCallback(response) {
                         console.info((new Date()).toLocaleString() + "object unlocked successfully");
@@ -515,9 +518,11 @@
         };
 
         /******************************************************************************      
+         * This function receives a list of tasks to be executed and adapts the content 
+         * accordingly. 
          * 
-         * @param {type} tasks_queue
-         * @returns {Array}
+         * @param {Array} tasks_queue
+         * @returns {Array} new tasks_queue
          ******************************************************************************/
         this.clean_task_queue = function (tasks_queue) {
             console.info((new Date()).toLocaleString() + "CLEANING TASK QUEUE");
@@ -525,6 +530,7 @@
                 if (tasks_queue.length === 0) {
                     return tasks_queue;
                 }
+                var tasks_queue_temp;
 
                 //IF THE QUEUE INCLUDES A CREATION TASK
                 //The create_new_sample task must be always in the first position (if we are creating a new sample)
@@ -532,17 +538,16 @@
                     //The sample creation send all the information (sample, bioreplicates, ... )to the server in only one step 
                     //So it's neccessary to remove all the tasks related with bioreplicates and analytical replicates insertion.
                     //After that only "create_new_sample" and others tasks like "send_treatment_document" should be in the queue
-                    var tasks_queue_temp = [tasks_queue[0]];
-                    //TODO: SEND DOCUMENT
+                    tasks_queue_temp = [tasks_queue[0]];
+                    //TODO: SEND SOP DOCUMENT
                     //for (var i = tasks_queue.length - 1; i > 0; i--) {
                     //    if ("send_treatment_document" === tasks_queue[i].command) {
                     //        tasks_queue_temp.push(tasks_queue[i]);
                     //        break;
                     //    }
                     //}
-                    return tasks_queue_temp;
                 } else {
-                    var tasks_queue_temp = [];
+                    tasks_queue_temp = [];
                     tasks_queue_temp.push({command: "update_sample", object: null});
                     //TODO: SEND DOCUMENT
                     tasks_queue_temp.push({command: "clear_locked_status", object: null});
@@ -618,13 +623,55 @@
             else if (status) {
                 //TODO: $scope.cleanCountdownDialogs();
                 $scope.setViewMode("view", true);
-                $dialogs.showSuccessDialog('Sample ' + $scope.model.biocondition_id + ' saved successfully');
                 $scope.setLoading(false);
+                $dialogs.showSuccessDialog('Sample ' + $scope.model.biocondition_id + ' saved successfully');
             } else {
                 status = false;
                 $scope.taskQueue.unshift(current_task);
                 $scope.setLoading(false);
             }
+        };
+
+        /******************************************************************************
+         * This function changes the view mode
+         *
+         * @param {String} mode the new mode for the view
+         * @param {Boolean} restore determines if the model should be restored from a saved memento
+         * @return {String} the new mode
+         ******************************************************************************/
+        $scope.setViewMode = function (mode, restore) {
+            if (mode === 'view') {
+                $scope.panel_title = "Sample details.";
+                $scope.clearCountdownDialogs();
+                if (restore === true) {
+                    me.retrieveSampleDetails($scope.model.biocondition_id, true);
+                }
+            } else if (mode === 'creation') {
+                $scope.panel_title = "Sample creation.";
+                $scope.addNewTask("create_new_sample", null);
+            } else if (mode === 'edition') {
+                $scope.panel_title = "Sample edition.";
+                this.addNewTask("clear_locked_status", null);
+            }
+            $scope.viewMode = mode;//'view', 'creation', 'edition'
+        };
+
+        /******************************************************************************
+         * This function initialize the timers that check the max time for editing
+         *
+         ******************************************************************************/
+        $scope.initializeCountdownDialogs = function () {
+            //TODO
+            console.error("initializeCountdownDialogs NOT IMPLEMENTED");
+        };
+
+        /******************************************************************************
+         * This function clears the timers that check the max time for editing
+         *
+         ******************************************************************************/
+        $scope.clearCountdownDialogs = function () {
+            //TODO
+            console.error("cleanCountdownDialogs NOT IMPLEMENTED");
         };
 
         /******************************************************************************      
@@ -643,22 +690,24 @@
          *
          ******************************************************************************/
         this.deleteBiologicalConditionHandler = function () {
-            debugger;
             var me = this;
-            var current_user_id = '' + Cookies.get('loggedUserID');
+            $scope.setLoading(true);
 
+            var current_user_id = '' + Cookies.get('loggedUserID');
             if (SampleList.isOwner($scope.model, current_user_id) || current_user_id === "admin") {
                 $http($rootScope.getHttpRequestConfig("POST", "sample-delete", {
                     headers: {'Content-Type': 'application/json; charset=utf-8'},
                     data: $rootScope.getCredentialsParams({'biocondition_id': $scope.model.biocondition_id, loggedUserID: current_user_id}),
                 })).then(
                         function successCallback(response) {
+                            $scope.setLoading(false);
                             //Notify all the other controllers that samples has been deleted
-                            $rootScope.$broadcast(APP_EVENTS.sampleDeleted);
+                            $rootScope.$emit(APP_EVENTS.sampleDeleted);
                             $dialogs.showSuccessDialog("All the samples were successfully deleted.");
                             $state.go('samples', {force: true});
                         },
                         function errorCallback(response) {
+                            $scope.setLoading(false);
                             var message = "Failed while deleting the samples.";
                             $dialogs.showErrorDialog(message, {
                                 logMessage: message + " at SampleDetailController:deleteBiologicalConditionHandler."
@@ -773,14 +822,15 @@
         };
 
         /******************************************************************************
-         * This function handles the event accept_button_pressed fires in other Controller (eg. ApplicationController)
-         * when a button Accept is pressed.
+         * This function handles the event accept_button_pressed fires in other Controller 
+         * (eg. ApplicationController) when a button Accept is pressed.
          *  
-         * @returns this
+         * @returns the controller;
+         * @chainable
          ******************************************************************************/
         this.acceptButtonHandler = function () {
             if (!$scope.bioconditionForm.$valid) {
-                $dialogs.showErrorDialog("Invalid form, please check the form and fill the empty fields.")
+                $dialogs.showErrorDialog("Invalid form, please check the form and fill the empty fields.");
                 return false;
             }
 
@@ -801,11 +851,10 @@
          * After BLOCKET_TIME minutes, the server automatically frees the blocked object, so the user
          * will be asked 1 minute before the liberation takes place.
          * 
-         * @returns this;
+         * @returns the controller;
          ******************************************************************************/
         this.editButtonHandler = function () {
             //1. CHECK IF THE USER HAS EDITING PRIVILEGES OVER THE Sample (ONLY OWNERS)
-            //TODO: THIS CODE COULD BE BETTER IN THE SERVER (JAVASCRIPT IS VULNERABLE)
             var current_user_id = '' + Cookies.get('loggedUserID');
             if (!SampleList.isOwner($scope.model, current_user_id) && current_user_id !== "admin") {
                 console.error((new Date()).toLocaleString() + " EDITION REQUEST DENIED. Error message: User " + current_user_id + " has not Edition privileges over the Sample " + $scope.model.biocondition_id);
@@ -825,14 +874,11 @@
          * when the Cancel button located in MainView is pressed and the inner panel is an
          * SampleDetailsView panel.
          * Asks the user if close without save changes. If user selects "Yes", the panel is closed.
-         * if the panel was in a "Editing mode" (if the panel has a timer id), then sends a signal to the server in order to unblock
-         * the Sample in the list of blocked elements.
-         * 
-         * @param {type} sampleView
-         * @param {type} force
-         * @returns {undefined}
+         * if the panel was in a "Editing mode" (if the panel has a timer id), then sends a signal 
+         * to the server in order to unlock the Sample in the list of locked elements.
          ******************************************************************************/
         this.cancelButtonHandler = function () {
+            //TODO: REMOVE COUNTERS AND UNLOCK EXPERIMENT
             $scope.clearTaskQueue();
 
             if ($scope.viewMode === 'view') {
@@ -842,49 +888,6 @@
             } else {
                 $state.go('samples');
             }
-
-        };
-
-        /******************************************************************************
-         * This function changes the view mode
-         *
-         * @param {String} mode the new mode for the view
-         * @param {Boolean} restore determines if the model should be restored from a saved memento
-         * @return {String} the new mode
-         ******************************************************************************/
-        $scope.setViewMode = function (mode, restore) {
-            if (mode === 'view') {
-                $scope.panel_title = "Sample details.";
-                $scope.clearCountdownDialogs();
-                if (restore === true) {
-                    me.retrieveSampleDetails($scope.model.biocondition_id, true);
-                }
-            } else if (mode === 'creation') {
-                $scope.panel_title = "Sample creation.";
-                $scope.addNewTask("create_new_sample", null);
-            } else if (mode === 'edition') {
-                $scope.panel_title = "Sample edition.";
-                this.addNewTask("clear_locked_status", null);
-            }
-            $scope.viewMode = mode;//'view', 'creation', 'edition'
-        };
-
-        /******************************************************************************
-         * This function initialize the timers that check the max time for editing
-         *
-         ******************************************************************************/
-        $scope.initializeCountdownDialogs = function () {
-            //TODO
-            console.error("initializeCountdownDialogs NOT IMPLEMENTED");
-        };
-
-        /******************************************************************************
-         * This function clears the timers that check the max time for editing
-         *
-         ******************************************************************************/
-        $scope.clearCountdownDialogs = function () {
-            //TODO
-            console.error("cleanCountdownDialogs NOT IMPLEMENTED");
         };
 
         /******************************************************************************
@@ -933,7 +936,7 @@
         }
     });
 
-    app.controller('BioreplicateDetailController', function ($state, $rootScope, $scope, $http, $uibModal, SampleList, ProtocolList, TemplateList) {
+    app.controller('BioreplicateDetailController', function ($state, $rootScope, $scope, $http, $uibModal, SampleList, ProtocolList, APP_EVENTS, TemplateList) {
         /******************************************************************************      
          *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
          *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
@@ -946,7 +949,7 @@
          ******************************************************************************/
 
         $scope.getProtocolName = function (protocol_id) {
-            return ProtocolList.getProtocol(protocol_id).name;
+            return ProtocolList.getProtocol(protocol_id).protocol_name;
         };
         $scope.getTotalExtractionProcotols = function () {
             return Object.keys($scope.model.extractionProtocols || {}).length;
@@ -983,12 +986,43 @@
         }, true);
 
         /**
-         * This function handles the event when the "Add new sample" is pressed
+         * This function handles the event when the "Add new aliquout" is pressed
          */
-        this.addNewAnalyticalReplicateButtonHandler = function (protocol_id) {
+        this.addNewAnalyticalReplicateButtonHandler = function () {
+            $scope.isDialog = true;
+            $scope.force = true;
+
+            $scope.browseDialog = $uibModal.open({
+                templateUrl: 'app/protocols/protocol-chooser-dialog.tpl.html',
+                controller: 'ProtocolListController',
+                controllerAs: 'controller',
+                size: "lg",
+                scope: $scope
+            });
+            
+            $scope.changeSelectedProtocol = function(protocol_id){
+                $scope.protocol_id = protocol_id;
+            };
+
+            $scope.closeSelectionDialog = function () {
+                delete $scope.changeSelectedProtocol;
+                delete $scope.closeSelectionDialog;
+
+                $scope.browseDialog.dismiss("cancel");
+                delete $scope.browseDialog;
+                me.addAnalyticalReplicateToProtocolButtonHandler($scope.protocol_id);
+            };
+            return this;
+        };
+
+        /**
+         * This function handles the event when the "Add new aliquout" is pressed
+         * with a given protocol_id
+         */
+        this.addAnalyticalReplicateToProtocolButtonHandler = function (protocol_id) {
             $scope.model.associatedAnalyticalReplicates.push({
                 analytical_rep_name: "",
-                treatment_id: protocol_id,
+                protocol_id: protocol_id,
                 status: "new"
             });
             SampleList.adaptBioreplicatesInformation([$scope.model]);
@@ -1244,7 +1278,7 @@
                         SampleList.addBiocondition($scope.model);
 
                         //Notify all the other controllers that a new sample exists
-                        //$rootScope.$broadcast(APP_EVENTS.sampleCreated);
+                        //$rootScope.$emit(APP_EVENTS.sampleCreated);
                         $scope.setLoading(false);
 
                         callback_caller[callback_function](true);
@@ -1563,7 +1597,7 @@
                 })).then(
                         function successCallback(response) {
                             //Notify all the other controllers that samples has been deleted
-                            $rootScope.$broadcast(APP_EVENTS.sampleDeleted);
+                            $rootScope.$emit(APP_EVENTS.sampleDeleted);
                             $dialogs.showSuccessDialog("All the samples were successfully deleted.");
                             $state.go('samples', {force: true});
                         },

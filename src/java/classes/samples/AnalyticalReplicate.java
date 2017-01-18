@@ -30,7 +30,7 @@ public class AnalyticalReplicate {
     private String analytical_rep_id;
     private String analytical_rep_name;
     private String bioreplicate_id;
-    private String treatment_id;
+    private String protocol_id;
     String status = null;
 
     /**
@@ -44,13 +44,13 @@ public class AnalyticalReplicate {
      * @param analytical_rep_id
      * @param analytical_rep_name
      * @param bioreplicate_id
-     * @param treatment_id
+     * @param protocol_id
      */
-    public AnalyticalReplicate(String analytical_rep_id, String analytical_rep_name, String bioreplicate_id, String treatment_id) {
+    public AnalyticalReplicate(String analytical_rep_id, String analytical_rep_name, String bioreplicate_id, String protocol_id) {
         this.analytical_rep_id = analytical_rep_id;
         this.analytical_rep_name = analytical_rep_name;
         this.bioreplicate_id = bioreplicate_id;
-        this.treatment_id = treatment_id;
+        this.protocol_id = protocol_id;
     }
 
     /**
@@ -110,12 +110,12 @@ public class AnalyticalReplicate {
         this.bioreplicate_id = bioreplicate_id;
     }
 
-    public String getTreatmentID() {
-        return treatment_id;
+    public String getProtocolID() {
+        return protocol_id;
     }
 
-    public void setTreatmentID(String treatment_id) {
-        this.treatment_id = treatment_id;
+    public void setProtocolID(String protocol_id) {
+        this.protocol_id = protocol_id;
     }
 
     public String getStatus() {

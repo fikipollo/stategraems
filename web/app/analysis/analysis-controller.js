@@ -385,7 +385,7 @@
                         $scope.model.analysis_id = response.data.newID;
                         AnalysisList.addAnalysis($scope.model);
 //                        //Notify all the other controllers that a new analysis exists
-//                        $rootScope.$broadcast(APP_EVENTS.analysisCreated);
+//                        $rootScope.$emit(APP_EVENTS.analysisCreated);
                         $scope.setLoading(false);
 
                         callback_caller[callback_function](true);
@@ -913,7 +913,7 @@
                         delete $scope.typesInfo;
                         delete $scope.isModal;
 
-                        $rootScope.$broadcast(APP_EVENTS.stepChanged);
+                        $rootScope.$emit(APP_EVENTS.stepChanged);
 
                         me.showStepDetails(step);
                     },
@@ -976,7 +976,7 @@
                             } else {
                                 $dialogs.showSuccessDialog("The analysis is now in deletion process and it will be completely deleted as soon as the other owners confirm this action.");
                             }
-                            $rootScope.$broadcast(APP_EVENTS.analysisDeleted);
+                            $rootScope.$emit(APP_EVENTS.analysisDeleted);
                             $state.go('analysis', {force: true});
                         },
                         function errorCallback(response) {
@@ -1235,7 +1235,7 @@
         this.removeStepHandler = function () {
             //TODO: CHECK IF CONTAINS NOT REMOVABLE AS
             AnalysisList.updateModelStatus($scope.model, "deleted");
-            $rootScope.$broadcast(APP_EVENTS.stepChanged);
+            $rootScope.$emit(APP_EVENTS.stepChanged);
         };
 
         /******************************************************************************
@@ -1244,7 +1244,7 @@
          ******************************************************************************/
         this.unremoveStepHandler = function () {
             AnalysisList.updateModelStatus($scope.model, "undo");
-            $rootScope.$broadcast(APP_EVENTS.stepChanged);
+            $rootScope.$emit(APP_EVENTS.stepChanged);
         };
 
         /******************************************************************************
@@ -1262,7 +1262,7 @@
             var hasChanged = AnalysisList.hasChangedStep(newValues, oldValues);
             if (hasChanged) {
                 AnalysisList.updateModelStatus($scope.model, "edited");
-                $rootScope.$broadcast(APP_EVENTS.stepChanged);
+                $rootScope.$emit(APP_EVENTS.stepChanged);
                 return true;
             }
             return false;
