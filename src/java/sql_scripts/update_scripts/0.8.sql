@@ -2,12 +2,28 @@ USE STATegraDB;
 START TRANSACTION;
 BEGIN;
 
-ALTER TABLE experiments CHANGE sample_tags tags TEXT;
+CREATE TABLE IF NOT EXISTS `STATegraDB`.`messages` (
+  `user_id` VARCHAR(50) NOT NULL,
+  `message_id` int NOT NULL AUTO_INCREMENT,
+  `type` VARCHAR(50) NOT NULL,
+  `subject` VARCHAR(200) NOT NULL,
+  `content` TEXT DEFAULT NULL,
+  `date` VARCHAR(8) NOT NULL,
+  `is_read` BOOLEAN DEFAULT FALSE,
+  PRIMARY KEY (`message_id`),
+  INDEX `idx_messages` (`user_id` ASC),
+  CONSTRAINT `fk_message_owners_1`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `STATegraDB`.`users` (`user_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
 
 UPDATE users SET email = 'emsadminuser@email.com' WHERE email IS NULL AND user_id = 'admin';
 ALTER TABLE users ADD COLUMN apicode varchar(200);
 ALTER TABLE users ADD COLUMN apicode_date VARCHAR(8) NOT NULL DEFAULT "19870729";
 
+ALTER TABLE experiments CHANGE sample_tags tags TEXT;
 UPDATE experiments SET tags = CONCAT("Case-Control, ", tags) WHERE is_case_control_type = TRUE;
 UPDATE experiments SET tags = CONCAT("Multiple conditions, ", tags) WHERE is_multiple_conditions = TRUE;
 UPDATE experiments SET tags = CONCAT("Single condition, ", tags) WHERE is_single_condition = TRUE;

@@ -54,9 +54,9 @@
                                 <label for="sortBySelector">Show:</label>
                                 <select style="display:inline-block;" class="form-control" ng-model="show.steps">
                                     <option value="all">All step types</option>
+                                    <option value="external_source">External and reference files</option>
                                     <option value="rawdata">Biological experiment</option>
                                     <option value="intermediate_data">Intermediate data</option>
-                                    <option value="external_source">External and reference files</option>
                                     <option value="processed_data">Processed data</option>
                                 </select>
                             </li>
@@ -74,12 +74,12 @@
                         </a>
                     </div>
                 </div>
+                <h3 class="" style=" color: #ea8f60; font-weight: lighter; margin-left: 5px; margin-bottom: 20px;">External and reference files</h3>
+                <external-source-form ng-repeat="model in model.non_processed_data| filter:filterSteps('external_source') | orderBy:'step_number'" ng-init="summary = true"></external-source-form>
                 <h3 class="" style=" color: #ea8f60; font-weight: lighter; margin-left: 5px; margin-bottom: 20px; ">Biological experiments</h3>
                 <raw-data-form ng-repeat="model in model.non_processed_data | filter:filterSteps('rawdata') |  orderBy:'step_number'" ng-init="summary = true"></raw-data-form>
                 <h3 class="" style=" color: #ea8f60; font-weight: lighter; margin-left: 5px; margin-bottom: 20px;">Intermediate steps</h3>
                 <intermediate-data-form ng-repeat="model in model.non_processed_data| filter:filterSteps('intermediate_data') | orderBy:'step_number'" ng-init="summary = true"></intermediate-data-form>
-                <h3 class="" style=" color: #ea8f60; font-weight: lighter; margin-left: 5px; margin-bottom: 20px;">External and reference files</h3>
-                <external-source-form ng-repeat="model in model.non_processed_data| filter:filterSteps('external_source') | orderBy:'step_number'" ng-init="summary = true"></external-source-form>
                 <h3 class="" style=" color: #ea8f60; font-weight: lighter; margin-left: 5px; margin-bottom: 20px; ">Processed data</h3>
                 <processed-data-form ng-repeat="model in model.processed_data | filter:filterSteps('processed_data') | orderBy:'step_number'" ng-init="summary = true"></processed-data-form>
             </uib-tab>

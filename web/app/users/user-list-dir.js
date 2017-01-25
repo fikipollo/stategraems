@@ -48,7 +48,7 @@
             replace: true,
             template:
                     '<div ng-controller="UserListController as controller">' +
-                    '   <div class="bootstrap-tagsinput" style="min-width:200px; min-height: 30px;">'+
+                    '   <div class="tag-container" style="min-width:200px; min-height: 30px;">'+
                     '     <span class="tag label label-info" ng-repeat="user in models">'+
                     '       {{user.user_id}} <i class="fa fa-times" style="cursor:pointer;" ng-show="viewMode !== \'view\'" ng-click="controller.removeSelectedUser(user)";></i>' + 
                     '     </span>' + 

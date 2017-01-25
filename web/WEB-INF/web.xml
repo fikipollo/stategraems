@@ -28,8 +28,13 @@
         <servlet-name>Install_servlets</servlet-name>
         <servlet-class>servlets.Install_servlets</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>Message_servlets</servlet-name>
+        <servlet-class>servlets.Message_servlets</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>Analysis_servlets</servlet-name>
+        <url-pattern>/rest/analysis/*</url-pattern>
         <url-pattern>/get_all_analysis</url-pattern>
         <url-pattern>/get_analysis</url-pattern>
         <url-pattern>/get_all_region_steps</url-pattern>
@@ -113,6 +118,10 @@
         <url-pattern>/install</url-pattern>
         <url-pattern>/autoinstall</url-pattern>
         <url-pattern>/is_valid_installation</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Message_servlets</servlet-name>
+        <url-pattern>/rest/messages/*</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

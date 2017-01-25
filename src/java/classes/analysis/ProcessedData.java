@@ -19,7 +19,13 @@
  *  *************************************************************** */
 package classes.analysis;
 
+import classes.User;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 /**
  *
@@ -41,7 +47,7 @@ public class ProcessedData extends Step {
     }
 
     public ProcessedData(String step_id) {
-        super(step_id, "intermediate_data");
+        super(step_id, "processed_data");
     }
 
     /**
@@ -142,7 +148,7 @@ public class ProcessedData extends Step {
     public void updatePreviousStepIDs(String old_analysis_id, String new_analysis_id) {
         if (this.used_data != null) {
             for (int i = 0; i < this.used_data.length; i++) {
-                this.used_data[i] = this.used_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN","ST");
+                this.used_data[i] = this.used_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN", "ST");
             }
         }
     }
@@ -153,5 +159,50 @@ public class ProcessedData extends Step {
     @Override
     public String toString() {
         return this.toJSON();
+    }
+
+    public static ProcessedData parseStepGalaxyData(JsonObject step_json_object, JsonObject analysisData, String emsuser) {
+        ProcessedData step = new ProcessedData("STxxxx." + step_json_object.get("id").getAsString());
+        step.setProcessedDataType("quantification_step");
+        step.setSoftware(step_json_object.get("tool_id").getAsString());
+        step.setSoftwareVersion(step_json_object.get("tool_version").getAsString());
+        ArrayList<String> used_data = new ArrayList<String>();
+        if (step_json_object.has("used_data")) {
+            for (JsonElement data : step_json_object.get("used_data").getAsJsonArray()) {
+                used_data.add(data.getAsString());
+            }
+        }
+        step.setUsedData(used_data.toArray(new String[]{}));
+        step.setFilesLocation(new String[]{});
+
+        String description = "Step " + step_json_object.get("id").getAsString() + " in Galaxy history " + analysisData.get("history_id").getAsString() + ".\n";
+        description += "The tool exited with code " + step_json_object.get("exit_code").getAsString() + "\n";
+        description += "Outputs:\n";
+        for (JsonElement output : step_json_object.get("outputs").getAsJsonArray()) {
+            description += "  - " + output.getAsJsonObject().get("file").getAsString() + " (id:" + output.getAsJsonObject().get("id").getAsString() + ")\n";
+        }
+        step.setResults(description);
+
+        description = "Step inputs:\n";
+        for (JsonElement input : step_json_object.get("inputs").getAsJsonArray()) {
+            description += "  - " + input.getAsJsonObject().get("file").getAsString() + " (id:" + input.getAsJsonObject().get("id").getAsString() + ")\n";
+        }
+        description += "\n";
+        description += "Parameters:\n";
+        for (JsonElement input : step_json_object.get("parameters").getAsJsonArray()) {
+            description += "  - " + input.getAsJsonObject().get("name").getAsString() + ": " + input.getAsJsonObject().get("value").getAsString() + "\n";
+        }
+
+        step.setSoftwareConfiguration(description);
+
+        Date dateNow = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+        step.setSubmissionDate(dateFormat.format(dateNow));
+        step.setLastEditionDate(dateFormat.format(dateNow));
+        step.addOwner(new User(emsuser, ""));
+        step.setStepName(step_json_object.get("tool_id").getAsString());
+        step.setStepNumber(step_json_object.get("id").getAsInt());
+
+        return step;
     }
 }

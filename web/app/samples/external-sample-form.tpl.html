@@ -30,7 +30,8 @@
             </div>
             <div class="field-group row">
                 <label class="col-sm-2" for="tags">Sample tags</label>
-                <bootstrap-tagsinput class="col-sm-9" tagClass="label label-info" name="tags" ng-model="model.tags" ng-readonly="viewMode === 'view'"></bootstrap-tagsinput>
+                <!--<bootstrap-tagsinput class="col-sm-9" tagClass="label label-info" name="tags" ng-model="model.tags" ng-readonly="viewMode === 'view'"></bootstrap-tagsinput>-->
+                <tag-field class="col-sm-9" name="tags" ng-model="model.tags" editable="viewMode !== 'view'"></tag-field>
             </div>            
         </div>
         <div class="section_box" >

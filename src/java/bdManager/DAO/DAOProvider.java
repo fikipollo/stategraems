@@ -29,6 +29,7 @@ import bdManager.DAO.analysis.non_processed_data.raw_data.ExtractionMethods.*;
 import bdManager.DAO.analysis.non_processed_data.raw_data.RAWdata_JDBCDAO;
 import bdManager.DAO.analysis.non_processed_data.raw_data.SeparationMethods.*;
 import bdManager.DAO.samples.*;
+import classes.Message;
 import classes.analysis.Analysis;
 import classes.analysis.ProcessedData;
 import classes.analysis.QualityReport;
@@ -46,7 +47,9 @@ import classes.analysis.non_processed_data.raw_data.SeparationMethods.*;
 public class DAOProvider {
 
     public static DAO getDAO(Object object) {
-        if (object instanceof Analysis) {
+        if (object instanceof Message) {
+            return new Message_JDBCDAO();
+        }else if (object instanceof Analysis) {
             return new Analysis_JDBCDAO();
             //************************
             // EXTRACTION METHOD DAOS 
@@ -158,6 +161,8 @@ public class DAOProvider {
             return new QualityReport_JDBCDAO();
         } else if ("User".equalsIgnoreCase(className)) {
             return new User_JDBCDAO();
+        } else if ("Message".equalsIgnoreCase(className)) {
+            return new Message_JDBCDAO();
         } else {
             return null;
         }

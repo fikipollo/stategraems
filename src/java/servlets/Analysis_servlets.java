@@ -23,6 +23,9 @@ import bdManager.DAO.DAO;
 import bdManager.DAO.DAOProvider;
 import bdManager.DAO.analysis.Analysis_JDBCDAO;
 import bdManager.DAO.analysis.Step_JDBCDAO;
+import classes.Experiment;
+import classes.Message;
+import classes.User;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -50,328 +53,118 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import org.apache.commons.codec.binary.Base64;
 
 /**
  *
- * <p/>
- * SERVLET FOR: - Get a list of all analysis /get_all_analysis - Get an analysis
- * /get_analysis - Add an analysis /add_analysis - Save an analysis image
- * /save_analysis_image - Get an analysis image /get_analysis_img (GET PROTOCOL)
- * - Add new non processed data /add_new_non_processed_data - Add new processed
- * data /add_new_processed_data - Edit an analysis /edit_analysis - Unblock an
- * analysis /unblock_analysis - Update a non processed data
- * /update_non_processed_data - Update a processed data /update_processed_data -
- * Remove analysis /remove_analysis - Remove non processed data
- * /remove_non_processed_data - Remove processed data /remove_processed_data
- * <p/>
- * This class implements the servlet used to manage all analysis requests from
- * non processed and processed data. All requests should be carried out only via
- * POST.
+ * SERVLET FOR ANALYSIS:
+ * +----------------------+-----------------------+---------------+------------------------------------------------------+---------------------+
+ * | Resource             |       POST            |    GET        |                       PUT                            |        DELETE       |
+ * +----------------------+-----------------------+---------------+------------------------------------------------------+---------------------+
+ * | /rest/analysis       | Create a new analysis | List analysis | Replace analysis list with new analysis(Bulk update) | Delete all analysis |
+ * +----------------------+-----------------------+---------------+------------------------------------------------------+---------------------+
+ * | /rest/analysis/1234  |       Error           | Show analysis |       If exist update analysis else ERROR            | Delete analysis     |
+ * +----------------------+-----------------------+---------------+------------------------------------------------------+---------------------+
+ * | /rest/analysis/import| Import a new analysis |     Error     |                        Error                         |          Error      |
+ * +----------------------+-----------------------+---------------+------------------------------------------------------+---------------------+
  *
- * @authors Rafa Hernández de Diego & Noemi Boix Chova
  */
 public class Analysis_servlets extends Servlet {
 
     String IMAGE_FILES_LOCATION = File.separator + "<experiment_id>" + File.separator + "analysis_images" + File.separator;
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.addHeader("Access-Control-Allow-Origin", "*");
         response.setContentType("application/json");
-//        response.setContentType("text/html");
 
-        if (request.getServletPath().equals("/get_all_analysis")) {
-            get_all_analysis_handler(request, response);
-        } else if (request.getServletPath().equals("/get_analysis")) {
-            get_analysis_handler(request, response);
-        } else if (request.getServletPath().equals("/get_all_region_steps")) {
+        //OLD SERVICES
+        if (!matchService(request.getServletPath(), "/rest/analysis(.*)")) {
+            if (request.getServletPath().equals("/get_all_analysis")) {
+                get_all_analysis_handler(request, response);
+            } else if (request.getServletPath().equals("/get_analysis")) {
+                get_analysis_handler(request, response);
+            } else if (request.getServletPath().equals("/get_all_region_steps")) {
 //            get_all_region_steps_handler(request, response);
-        } else if (request.getServletPath().equals("/add_analysis")) {
-            add_analysis_handler(request, response);
-        } else if (request.getServletPath().equals("/save_analysis_image")) {
-            save_analysis_image_handler(request, response);
-        } else if (request.getServletPath().equals("/update_analysis")) {
-            update_analysis_handler(request, response);
-        } else if (request.getServletPath().equals("/lock_analysis")) {
-            lock_analysis_handler(request, response);
-        } else if (request.getServletPath().equals("/unlock_analysis")) {
-            unlock_analysis_handler(request, response);
-        } else if (request.getServletPath().equals("/remove_analysis")) {
-            remove_analysis_handler(request, response);
+            } else if (request.getServletPath().equals("/add_analysis")) {
+                add_analysis_handler(request, response);
+            } else if (request.getServletPath().equals("/save_analysis_image")) {
+                save_analysis_image_handler(request, response);
+            } else if (request.getServletPath().equals("/update_analysis")) {
+                update_analysis_handler(request, response);
+            } else if (request.getServletPath().equals("/lock_analysis")) {
+                lock_analysis_handler(request, response);
+            } else if (request.getServletPath().equals("/unlock_analysis")) {
+                unlock_analysis_handler(request, response);
+            } else if (request.getServletPath().equals("/remove_analysis")) {
+                delete_analysis_handler(request, response);
+            }
+            return;
+        }
+
+        //NEW SERVICES
+        if (matchService(request.getPathInfo(), "/import")) {
+            import_analysis_handler(request, response);
+        } else if (matchService(request.getPathInfo(), "/(.+)")) {
+            //Do nothing
         } else {
-            common.ServerErrorManager.addErrorMessage(3, Analysis_servlets.class.getName(), "doPost", "What are you doing here?.");
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
+            add_analysis_handler(request, response);
         }
     }
 
-    //************************************************************************************
-    //************************************************************************************
-    //*****ANALYSIS SERVLET HANDLERS ****************************************************
-    //************************************************************************************
-    //************************************************************************************
-    /**
-     *
-     * @param request
-     * @param response
-     * @throws IOException
-     */
-    private void get_all_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        try {
-            DAO dao_instance = null;
-            ArrayList<Object> analysisList = null;
-            try {
-
-                JsonParser parser = new JsonParser();
-                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
-
-                String loggedUser = requestData.get("loggedUser").getAsString();
-                String sessionToken = requestData.get("sessionToken").getAsString();
-
-                /**
-                 * *******************************************************
-                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
-                 * ERROR --> throws exception if not valid session, GO TO STEP
-                 * 5b ELSE --> GO TO STEP 2
-                 * *******************************************************
-                 */
-                if (!checkAccessPermissions(loggedUser, sessionToken)) {
-                    throw new AccessControlException("Your session is invalid. Please sign in again.");
-                }
-
-                /**
-                 * *******************************************************
-                 * STEP 2 Get ALL THE ANALYSIS Object from DB. IF ERROR -->
-                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
-                 * *******************************************************
-                 */
-                boolean loadRecursive = false;
-                if (requestData.has("loadRecursive")) {
-                    loadRecursive = requestData.get("loadRecursive").getAsBoolean();
-                }
-
-                String experiment_id = null;
-                if (requestData.has("experiment_id")) {
-                    experiment_id = requestData.get("experiment_id").getAsString();
-                } else {
-                    experiment_id = requestData.get("currentExperimentID").getAsString();
-                }
-
-                Object[] params = {loadRecursive, experiment_id};
-                dao_instance = DAOProvider.getDAOByName("Analysis");
-                analysisList = dao_instance.findAll(params);
-            } catch (Exception e) {
-                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_analysis_handler", e.getMessage());
-            } finally {
-                /**
-                 * *******************************************************
-                 * STEP 3b CATCH ERROR. GO TO STEP 4
-                 * *******************************************************
-                 */
-                if (ServerErrorManager.errorStatus()) {
-                    response.setStatus(400);
-                    response.getWriter().print(ServerErrorManager.getErrorResponse());
-                } else {
-                    /**
-                     * *******************************************************
-                     * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
-                     * *******************************************************
-                     */
-                    String analysisJSON = "[";
-
-                    for (int i = 0; i < analysisList.size(); i++) {
-                        analysisJSON += ((Analysis) analysisList.get(i)).toJSON() + ((i < analysisList.size() - 1) ? "," : "");
-                    }
-                    analysisJSON += "]";
-
-                    response.getWriter().print(analysisJSON);
-                }
-                /**
-                 * *******************************************************
-                 * STEP 4 Close connection.
-                 * ********************************************************
-                 */
-                if (dao_instance != null) {
-                    dao_instance.closeConnection();
-                }
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        //OLD SERVICES
+        if (!matchService(request.getServletPath(), "/rest/analysis(.*)")) {
+            if (request.getServletPath().equals("/get_analysis_img_prev")) {
+                getAnalysisPreviewImageHandler(request, response);
+            } else if (request.getServletPath().equals("/get_analysis_img")) {
+                getAnalysisImageHandler(request, response);
+            } else if (request.getServletPath().equals("/get_step_subtypes")) {
+                get_step_subtypes_handler(request, response);
             }
-            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_analysis_handler", e.getMessage());
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
+            return;
+        }
+
+        //NEW SERVICES
+        if (matchService(request.getPathInfo(), "/(.+)")) {
+            get_analysis_handler(request, response);
+        } else {
+            get_all_analysis_handler(request, response);
         }
     }
 
-    /**
-     *
-     * @param request
-     * @param response
-     * @throws IOException
-     */
-    private void get_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        try {
-            DAO dao_instance = null;
-            Analysis analysis = null;
-            try {
-                JsonParser parser = new JsonParser();
-                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
-
-                String loggedUser = requestData.get("loggedUser").getAsString();
-                String sessionToken = requestData.get("sessionToken").getAsString();
-
-                /**
-                 * *******************************************************
-                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
-                 * ERROR --> throws exception if not valid session, GO TO STEP
-                 * 5b ELSE --> GO TO STEP 2
-                 * *******************************************************
-                 */
-                if (!checkAccessPermissions(loggedUser, sessionToken)) {
-                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-                }
-
-                /**
-                 * *******************************************************
-                 * STEP 2 Get THE ANALYSIS Object from DB. IF ERROR --> throws
-                 * MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
-                 * *******************************************************
-                 */
-                dao_instance = DAOProvider.getDAOByName("Analysis");
-                boolean loadRecursive = true;
-                Object[] params = {loadRecursive};
-                String analysis_id = requestData.get("analysis_id").getAsString();
-                analysis = (Analysis) dao_instance.findByID(analysis_id, params);
-
-            } catch (Exception e) {
-                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_analysis_handler", e.getMessage());
-            } finally {
-                /**
-                 * *******************************************************
-                 * STEP 3b CATCH ERROR. GO TO STEP 4
-                 * *******************************************************
-                 */
-                if (ServerErrorManager.errorStatus()) {
-                    response.setStatus(400);
-                    response.getWriter().print(ServerErrorManager.getErrorResponse());
-                } else {
-                    /**
-                     * *******************************************************
-                     * STEP 3A WRITE SUCCESS RESPONSE. GO TO STEP 4
-                     * *******************************************************
-                     */
-                    response.getWriter().print(analysis.toJSON());
-                }
-                /**
-                 * *******************************************************
-                 * STEP 4 Close connection.
-                 * ********************************************************
-                 */
-                if (dao_instance != null) {
-                    dao_instance.closeConnection();
-                }
-            }
-            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_analysis_handler", e.getMessage());
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
+    @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        response.setContentType("application/json");
+        if (matchService(request.getPathInfo(), "/(.+)")) {
+            update_analysis_handler(request, response);
+        } else {
+            update_all_analysis_handler(request, response);
         }
     }
-//
-//    /*
-//     * name: get_all_region_steps_handler
-//     * description :
-//     * @param request
-//     * @param response
-//     * @throws ServletException
-//     * @throws IOException
-//     */
-//    private void get_all_region_steps_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-//        try {
-//            DAO dao_instance = null;
-//            ArrayList<Object> region_step_list = null;
-//            try {
-//
-//                /**
-//                 * *******************************************************
-//                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
-//                 * ERROR --> throws exception if not valid session, GO TO STEP
-//                 * 5b ELSE --> GO TO STEP 2
-//                 * *******************************************************
-//                 */
-//                if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
-//                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-//                }
-//
-//                /**
-//                 * *******************************************************
-//                 * STEP 2 Get ALL THE REGIONS Object from DB. IF ERROR -->
-//                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
-//                 * *******************************************************
-//                 */
-//                boolean loadRecursive = false;
-//                Object[] params = {loadRecursive};
-//                dao_instance = DAOProvider.getDAOByName("Region_step");
-//                region_step_list = dao_instance.findAll(params);
-//
-//            } catch (Exception e) {
-//                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_region_steps_handler", e.getMessage());
-//            } finally {
-//                /**
-//                 * *******************************************************
-//                 * STEP 3b CATCH ERROR. GO TO STEP 4
-//                 * *******************************************************
-//                 */
-//                if (ServerErrorManager.errorStatus()) {
-//                    response.setStatus(400);
-//                    response.getWriter().print(ServerErrorManager.getErrorResponse());
-//                } else {
-//                    /**
-//                     * *******************************************************
-//                     * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
-//                     * *******************************************************
-//                     */
-//                    String regionStepsListJSON = "regionStepsList : [";
-//                    for (Object region_step : region_step_list) {
-//                        regionStepsListJSON += ((Region_step) region_step).toJSON() + ", ";
-//                    }
-//                    regionStepsListJSON += "]";
-//                    response.getWriter().print("{success: " + true + ", " + regionStepsListJSON + " }");
-//                }
-//                /**
-//                 * *******************************************************
-//                 * STEP 4 Close connection.
-//                 * ********************************************************
-//                 */
-//                if (dao_instance != null) {
-//                    dao_instance.closeConnection();
-//                }
-//            }
-//            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
-//        } catch (Exception e) {
-//            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_region_steps_handler", e.getMessage());
-//            response.setStatus(400);
-//            response.getWriter().print(ServerErrorManager.getErrorResponse());
-//        }
-//    }
 
-    /**
-     *
-     * @param request
-     * @param response
-     * @throws IOException
-     */
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        response.setContentType("application/json");
+        if (matchService(request.getPathInfo(), "/(.+)")) {
+            delete_analysis_handler(request, response);
+        } else {
+            delete_all_analysis_handler(request, response);
+        }
+    }
+
+    /*------------------------------------------------------------------------------------------*
+     *                                                                                          *
+     * POST REQUEST HANDLERS                                                                    *
+     *                                                                                          *
+     *------------------------------------------------------------------------------------------*/
     private void add_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             String lockedID = null;
@@ -499,12 +292,311 @@ public class Analysis_servlets extends Servlet {
         }
     }
 
-    /**
-     *
-     * @param request
-     * @param response
-     * @throws IOException
-     */
+    private void import_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            String lockedID = null;
+            boolean ROLLBACK_NEEDED = false;
+            DAO daoInstance = null;
+            Analysis analysis = null;
+            try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String emsuser = requestData.get("username").getAsString();
+                String experimentID = requestData.get("experiment_id").getAsString();
+                String origin = requestData.get("origin").getAsString();
+
+                /**
+                 * *******************************************************
+                 * STEP 1 CHECK IF THE USER EXISTS AND IF EXPERIMENT IS VALID
+                 * *******************************************************
+                 */
+                daoInstance = DAOProvider.getDAOByName("User");
+                User user = (User) daoInstance.findByID(emsuser, null);
+                if (user == null) {
+                    user = (User) daoInstance.findByID(emsuser, new Object[]{null, false, true});
+                    if (user == null) {
+                        throw new AccessControlException("User or email not found.");
+                    }
+                }
+
+                daoInstance = DAOProvider.getDAOByName("Experiment");
+                Experiment experiment = (Experiment) daoInstance.findByID(experimentID, null);
+                if (experiment == null) {
+                    throw new AccessControlException(experimentID + " is not a valid experiment identifier.");
+                } else if (!experiment.isOwner(emsuser) && !experiment.isMember(emsuser)) {
+                    throw new AccessControlException("User " + emsuser + " is not a valid member of the experiment " + experimentID + ".");
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 2 Get the new ID for the ANALYSIS. IF ERROR --> throws
+                 * SQL Exception, GO TO STEP 5b ELSE --> GO TO STEP 3
+                 * *******************************************************
+                 */
+                daoInstance = DAOProvider.getDAOByName("Analysis");
+                lockedID = daoInstance.getNextObjectID(null);
+
+                /**
+                 * *******************************************************
+                 * STEP 3 Get the ANALYSIS Object by parsing the JSON data. IF
+                 * ERROR --> throws JsonParseException, GO TO STEP 5b ELSE -->
+                 * GO TO STEP 4
+                 * *******************************************************
+                 */
+                analysis = Analysis.parseAnalysisData(origin, emsuser, requestData);
+                analysis.updateAnalysisID(lockedID);
+                analysis.setAssociated_experiment(experimentID);
+
+                /**
+                 * *******************************************************
+                 * STEP 4 Add the new ANALYSIS Object in the DATABASE. IF ERROR
+                 * --> throws SQL Exception, GO TO STEP 5b ELSE --> GO TO STEP 5
+                 * *******************************************************
+                 */
+                daoInstance.disableAutocommit();
+                ROLLBACK_NEEDED = true;
+                daoInstance.insert(analysis);
+
+                /**
+                 * *******************************************************
+                 * STEP 4 Add a new message. IF ERROR
+                 * --> throws SQL Exception, GO TO STEP 5b ELSE --> GO TO STEP 5
+                 * *******************************************************
+                 */
+                Message message = new Message();
+                message.setUserID(user.getUserID());
+                message.setType("info");
+                message.setSubject("New analysis imported from " + origin);
+                message.setContent(
+                        "A new analysis called \"" + analysis.getAnalysisName() + "\" has been created for experiment " + experimentID
+                        + " using an external tool (data imported from " + origin + ").");
+
+                daoInstance = DAOProvider.getDAOByName("Message");
+                daoInstance.insert(message);
+
+                /**
+                 * *******************************************************
+                 * STEP 5 COMMIT CHANGES TO DATABASE. throws SQLException IF
+                 * ERROR --> throws SQL Exception, GO TO STEP 5b ELSE --> GO TO
+                 * STEP 6
+                 * *******************************************************
+                 */
+                daoInstance.doCommit();
+
+            } catch (Exception e) {
+                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "import_analysis_handler", e.getMessage());
+            } finally {
+                /**
+                 * *******************************************************
+                 * STEP 5b CATCH ERROR, CLEAN CHANGES. throws SQLException
+                 * *******************************************************
+                 */
+                if (ServerErrorManager.errorStatus()) {
+                    response.setStatus(400);
+                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+                    if (ROLLBACK_NEEDED) {
+                        daoInstance.doRollback();
+                    }
+                } else {
+                    JsonObject obj = new JsonObject();
+                    obj.add("newID", new JsonPrimitive(lockedID));
+                    response.getWriter().print(obj.toString());
+                }
+
+                /**
+                 * UNLOCK THE IDS
+                 */
+                if (lockedID != null) {
+                    BlockedElementsManager.getBlockedElementsManager().unlockID(lockedID);
+                }
+                /**
+                 * *******************************************************
+                 * STEP 6 Close connection.
+                 * ********************************************************
+                 */
+                if (daoInstance != null) {
+                    daoInstance.closeConnection();
+                }
+            }
+            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "import_analysis_handler", e.getMessage());
+            response.setStatus(400);
+            response.getWriter().print(ServerErrorManager.getErrorResponse());
+        }
+    }
+
+    /*------------------------------------------------------------------------------------------*
+     *                                                                                          *
+     * GET REQUEST HANDLERS                                                                     *
+     *                                                                                          *
+     *------------------------------------------------------------------------------------------*/
+    private void get_all_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            DAO dao_instance = null;
+            ArrayList<Object> analysisList = null;
+            try {
+
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
+
+                /**
+                 * *******************************************************
+                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
+                 * ERROR --> throws exception if not valid session, GO TO STEP
+                 * 5b ELSE --> GO TO STEP 2
+                 * *******************************************************
+                 */
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. Please sign in again.");
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 2 Get ALL THE ANALYSIS Object from DB. IF ERROR -->
+                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * *******************************************************
+                 */
+                boolean loadRecursive = false;
+                if (requestData.has("loadRecursive")) {
+                    loadRecursive = requestData.get("loadRecursive").getAsBoolean();
+                }
+
+                String experiment_id = null;
+                if (requestData.has("experiment_id")) {
+                    experiment_id = requestData.get("experiment_id").getAsString();
+                } else {
+                    experiment_id = requestData.get("currentExperimentID").getAsString();
+                }
+
+                Object[] params = {loadRecursive, experiment_id};
+                dao_instance = DAOProvider.getDAOByName("Analysis");
+                analysisList = dao_instance.findAll(params);
+            } catch (Exception e) {
+                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_analysis_handler", e.getMessage());
+            } finally {
+                /**
+                 * *******************************************************
+                 * STEP 3b CATCH ERROR. GO TO STEP 4
+                 * *******************************************************
+                 */
+                if (ServerErrorManager.errorStatus()) {
+                    response.setStatus(400);
+                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+                } else {
+                    /**
+                     * *******************************************************
+                     * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
+                     * *******************************************************
+                     */
+                    String analysisJSON = "[";
+
+                    for (int i = 0; i < analysisList.size(); i++) {
+                        analysisJSON += ((Analysis) analysisList.get(i)).toJSON() + ((i < analysisList.size() - 1) ? "," : "");
+                    }
+                    analysisJSON += "]";
+
+                    response.getWriter().print(analysisJSON);
+                }
+                /**
+                 * *******************************************************
+                 * STEP 4 Close connection.
+                 * ********************************************************
+                 */
+                if (dao_instance != null) {
+                    dao_instance.closeConnection();
+                }
+            }
+            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_analysis_handler", e.getMessage());
+            response.setStatus(400);
+            response.getWriter().print(ServerErrorManager.getErrorResponse());
+        }
+    }
+
+    private void get_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            DAO dao_instance = null;
+            Analysis analysis = null;
+            try {
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                String loggedUser = requestData.get("loggedUser").getAsString();
+                String sessionToken = requestData.get("sessionToken").getAsString();
+
+                /**
+                 * *******************************************************
+                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
+                 * ERROR --> throws exception if not valid session, GO TO STEP
+                 * 5b ELSE --> GO TO STEP 2
+                 * *******************************************************
+                 */
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 2 Get THE ANALYSIS Object from DB. IF ERROR --> throws
+                 * MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * *******************************************************
+                 */
+                dao_instance = DAOProvider.getDAOByName("Analysis");
+                boolean loadRecursive = true;
+                Object[] params = {loadRecursive};
+                String analysis_id = requestData.get("analysis_id").getAsString();
+                analysis = (Analysis) dao_instance.findByID(analysis_id, params);
+
+            } catch (Exception e) {
+                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_analysis_handler", e.getMessage());
+            } finally {
+                /**
+                 * *******************************************************
+                 * STEP 3b CATCH ERROR. GO TO STEP 4
+                 * *******************************************************
+                 */
+                if (ServerErrorManager.errorStatus()) {
+                    response.setStatus(400);
+                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+                } else {
+                    /**
+                     * *******************************************************
+                     * STEP 3A WRITE SUCCESS RESPONSE. GO TO STEP 4
+                     * *******************************************************
+                     */
+                    response.getWriter().print(analysis.toJSON());
+                }
+                /**
+                 * *******************************************************
+                 * STEP 4 Close connection.
+                 * ********************************************************
+                 */
+                if (dao_instance != null) {
+                    dao_instance.closeConnection();
+                }
+            }
+            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_analysis_handler", e.getMessage());
+            response.setStatus(400);
+            response.getWriter().print(ServerErrorManager.getErrorResponse());
+        }
+    }
+
+    /*------------------------------------------------------------------------------------------*
+     *                                                                                          *
+     * PUT REQUEST HANDLERS                                                                     *
+     *                                                                                          *
+     *------------------------------------------------------------------------------------------*/
+    private void update_all_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    }
+
     private void update_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             ArrayList<String> BLOCKED_IDs = new ArrayList<String>();
@@ -666,7 +758,7 @@ public class Analysis_servlets extends Servlet {
                 if (e.getClass().getSimpleName().equals("MySQLIntegrityConstraintViolationException")) {
                     ServerErrorManager.handleException(null, null, null, "Unable to update the Analysis information.");
                 } else {
-                    ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "update_analysis_handler", e.getMessage());
+                    ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "update_analysis_handler", e.getMessage());
                 }
             } finally {
                 /**
@@ -711,319 +803,15 @@ public class Analysis_servlets extends Servlet {
         }
     }
 
-    /**
-     *
-     * @param request
-     * @param response
-     * @throws IOException
-     */
-    private void save_analysis_image_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        boolean REMOVE_FILE_NEEDED = false;
-        String filePath = "";
-        String filePath2 = "";
-        try {
-
-            /**
-             * *******************************************************
-             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
-             * --> throws exception if not valid session, GO TO STEP 5b ELSE -->
-             * GO TO STEP 2
-             * *******************************************************
-             */
-            if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
-                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-            }
-
-            /**
-             * *******************************************************
-             * STEP 2 GET THE REQUEST PARAMETERS. IF ERROR --> throws exception
-             * if not valid session, GO TO STEP 5b ELSE --> GO TO STEP 2 ***
-             */
-            String analysis_id = request.getParameter("analysis_id");
-            String experiment_id = request.getParameter("currentExperimentID");
-            String analysis_image_code = request.getParameter("analysis_image");
-
-            //WE WILL SAVE 2 IMAGES A SMALL AND LOW QUALITY IMAGE FOR PREVIEW AND A BIGGER IMAGE
-            if (analysis_image_code != null) {
-                REMOVE_FILE_NEEDED = true;
-                filePath = DATA_LOCATION + IMAGE_FILES_LOCATION.replaceAll("<experiment_id>", experiment_id) + analysis_id + ".png";
-                File outputfile = new File(filePath);
-                BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(Base64.decodeBase64(analysis_image_code)));
-                ImageIO.write(bufferedImage, "png", outputfile);
-
-                int height = bufferedImage.getHeight();
-                int width = bufferedImage.getWidth();
-                double proportion = (double) height / (double) width;
-
-                int minWidth = Math.min(500, width);
-                int minHeight = (int) Math.round(minWidth * proportion);
-
-                minHeight = Math.min(200, minHeight);
-                minWidth = (int) Math.round(minHeight / proportion);
-
-                BufferedImage resizedImage = new BufferedImage(minWidth, minHeight, BufferedImage.TYPE_INT_RGB);
-                Graphics2D g = resizedImage.createGraphics();
-                g.drawImage(bufferedImage, 0, 0, minWidth, minHeight, null);
-                g.dispose();
-                filePath2 = DATA_LOCATION + IMAGE_FILES_LOCATION.replaceAll("<experiment_id>", experiment_id) + analysis_id + "_prev.jpg";
-                outputfile = new File(filePath2);
-                ImageIO.write(resizedImage, "jpg", outputfile);
-            }
-
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "save_analysis_image_handler", e.getMessage());
-        } finally {
-            /**
-             * *******************************************************
-             * STEP 5b CATCH ERROR, CLEAN CHANGES. throws SQLException
-             * *******************************************************
-             */
-            if (ServerErrorManager.errorStatus()) {
-                response.setStatus(400);
-                response.getWriter().print(ServerErrorManager.getErrorResponse());
-
-                if (REMOVE_FILE_NEEDED) {
-                    File file = new File(filePath);
-                    if (file.exists()) {
-                        file.delete();
-                    }
-                    file = new File(filePath2);
-                    if (file.exists()) {
-                        file.delete();
-                    }
-                }
-            } else {
-                response.getWriter().print("{success: " + true + "}");
-            }
-        }
+    /*------------------------------------------------------------------------------------------*
+     *                                                                                          *
+     * DELETE REQUEST HANDLERS                                                                  *
+     *                                                                                          *
+     *------------------------------------------------------------------------------------------*/
+    private void delete_all_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
     }
 
-    /*
-     * name: edit_analysis_handler
-     * description :
-     * @param request
-     * @param response
-     * @throws ServletException
-     * @throws IOException
-     */
-    private void lock_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        boolean alreadyLocked = false;
-        String locker_id = "";
-        ArrayList<String> notLockedSteps = new ArrayList<String>();
-
-        try {
-            JsonParser parser = new JsonParser();
-            JsonObject requestData = (JsonObject) parser.parse(request.getReader());
-
-            String loggedUser = requestData.get("loggedUser").getAsString();
-            String sessionToken = requestData.get("sessionToken").getAsString();
-
-            /**
-             * *******************************************************
-             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
-             * --> throws exception if not valid session, GO TO STEP ELSE --> GO
-             * TO STEP 2 *******************************************************
-             */
-            if (!checkAccessPermissions(loggedUser, sessionToken)) {
-                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-            }
-
-            /**
-             * *******************************************************
-             * STEP 2 GET THE OBJECT ID AND TRY TO LOCK IT. IF ERROR --> throws
-             * exception, GO TO STEP ELSE --> GO TO STEP 3
-             * *******************************************************
-             */
-            String analysis_id = requestData.get("analysis_id").getAsString();
-            alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().lockObject(analysis_id, loggedUser);
-
-            /**
-             * *******************************************************
-             * STEP 3 TRY TO LOCK THE STEPS. exception, GO TO STEP ELSE --> GO
-             * TO STEP 3 *******************************************************
-             */
-            if (!alreadyLocked) {
-                DAO dao_instance = DAOProvider.getDAOByName("Analysis");
-                boolean loadRecursive = true;
-                Object[] params = {loadRecursive};
-                Analysis analysis = (Analysis) dao_instance.findByID(analysis_id, params);
-                dao_instance.closeConnection();
-                String step_id;
-                for (Step step : analysis.getNonProcessedData()) {
-                    step_id = step.getStepID();
-                    if (!BlockedElementsManager.getBlockedElementsManager().lockObject(step_id, loggedUser)) {
-                        notLockedSteps.add(step_id);
-                    }
-                }
-                for (Step step : analysis.getProcessedData()) {
-                    step_id = step.getStepID();
-                    if (!BlockedElementsManager.getBlockedElementsManager().lockObject(step_id, loggedUser)) {
-                        notLockedSteps.add(step_id);
-                    }
-                }
-
-                //UNLOCK STEPS AND ANALYSIS
-                if (notLockedSteps.size() > 0) {
-                    BlockedElementsManager.getBlockedElementsManager().unlockObject(analysis_id, loggedUser);
-                    for (Step step : analysis.getNonProcessedData()) {
-                        BlockedElementsManager.getBlockedElementsManager().unlockObject(step.getStepID(), loggedUser);
-                    }
-                    for (Step step : analysis.getProcessedData()) {
-                        BlockedElementsManager.getBlockedElementsManager().unlockObject(step.getStepID(), loggedUser);
-                    }
-                }
-            } else {
-                locker_id = BlockedElementsManager.getBlockedElementsManager().getLockerID(analysis_id);
-            }
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "lock_analysis_handler", e.getMessage());
-        } finally {
-            /**
-             * *******************************************************
-             * STEP 4b CATCH ERROR. GO TO STEP 5
-             * *******************************************************
-             */
-            if (ServerErrorManager.errorStatus()) {
-                response.setStatus(400);
-                response.getWriter().print(ServerErrorManager.getErrorResponse());
-            } else {
-                /**
-                 * *******************************************************
-                 * STEP 3A WRITE RESPONSE .
-                 * *******************************************************
-                 */
-                JsonObject obj = new JsonObject();
-                if (alreadyLocked) {
-                    obj.add("success", new JsonPrimitive(false));
-                    obj.add("reason", new JsonPrimitive(BlockedElementsManager.getErrorMessage()));
-                    obj.add("user_id", new JsonPrimitive(locker_id));
-                } else if (notLockedSteps.size() > 0) {
-                    JsonArray _notLockedSteps = new JsonArray();
-                    obj.add("success", new JsonPrimitive(false));
-                    obj.add("reason", new JsonPrimitive("Some of the steps are locked by other users"));
-                    for (String step_id : notLockedSteps) {
-                        _notLockedSteps.add(new JsonPrimitive(step_id));
-                    }
-                    obj.add("notLockedSteps", _notLockedSteps);
-
-                } else {
-                    obj.add("success", new JsonPrimitive(true));
-                }
-                response.getWriter().print(obj.toString());
-            }
-        }
-    }
-
-    /*
-     * name: unblock_analysis_handler
-     * description :
-     * @param request
-     * @param response
-     * @throws ServletException
-     * @throws IOException
-     */
-    private void unlock_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        boolean alreadyUnlocked = false;
-        ArrayList<String> notUnlockedSteps = new ArrayList<String>();
-
-        try {
-            JsonParser parser = new JsonParser();
-            JsonObject requestData = (JsonObject) parser.parse(request.getReader());
-
-            String loggedUser = requestData.get("loggedUser").getAsString();
-            String sessionToken = requestData.get("sessionToken").getAsString();
-
-            /**
-             * *******************************************************
-             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
-             * --> throws exception if not valid session, GO TO STEP ELSE --> GO
-             * TO STEP 2 *******************************************************
-             */
-            if (!checkAccessPermissions(loggedUser, sessionToken)) {
-                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-            }
-
-            /**
-             * *******************************************************
-             * STEP 2 GET THE OBJECT ID AND TRY TO UNLOCK IT. IF ERROR -->
-             * throws exception, GO TO STEP ELSE --> GO TO STEP 3
-             * *******************************************************
-             */
-            String analysis_id = requestData.get("analysis_id").getAsString();
-            alreadyUnlocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(analysis_id, loggedUser);
-
-            /**
-             * *******************************************************
-             * STEP 3 TRY TO UNLOCK THE STEPS. exception, GO TO STEP ELSE --> GO
-             * TO STEP 3 *******************************************************
-             */
-            DAO dao_instance = DAOProvider.getDAOByName("Analysis");
-            boolean loadRecursive = true;
-            Object[] params = {loadRecursive};
-            Analysis analysis = (Analysis) dao_instance.findByID(analysis_id, params);
-            dao_instance.closeConnection();
-            if (analysis != null) {
-                String step_id;
-                for (Step step : analysis.getNonProcessedData()) {
-                    step_id = step.getStepID();
-                    if (!BlockedElementsManager.getBlockedElementsManager().unlockObject(step_id, loggedUser)) {
-                        notUnlockedSteps.add(step_id);
-                    }
-                }
-                for (Step step : analysis.getProcessedData()) {
-                    step_id = step.getStepID();
-                    if (!BlockedElementsManager.getBlockedElementsManager().unlockObject(step_id, loggedUser)) {
-                        notUnlockedSteps.add(step_id);
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "unlock_analysis_handler", e.getMessage());
-        } finally {
-            /**
-             * *******************************************************
-             * STEP 3b CATCH ERROR.
-             * *******************************************************
-             */
-            if (ServerErrorManager.errorStatus()) {
-                response.setStatus(400);
-                response.getWriter().print(ServerErrorManager.getErrorResponse());
-            } else {
-                /**
-                 * *******************************************************
-                 * STEP 3A WRITE RESPONSE .
-                 * *******************************************************
-                 */
-                JsonObject obj = new JsonObject();
-                if (alreadyUnlocked) {
-                    obj.add("success", new JsonPrimitive(false));
-                    obj.add("reason", new JsonPrimitive(BlockedElementsManager.getErrorMessage()));
-                } else {
-                    obj.add("success", new JsonPrimitive(true));
-
-                    if (notUnlockedSteps.size() > 0) {
-                        JsonArray _notUnlockedSteps = new JsonArray();
-                        for (String step_id : notUnlockedSteps) {
-                            _notUnlockedSteps.add(new JsonPrimitive(step_id));
-                        }
-                        obj.add("notUnlockedSteps", _notUnlockedSteps);
-                    }
-                }
-                response.getWriter().print(obj.toString());
-            }
-        }
-    }
-
-    /*
-     * name: remove_analysis_handler
-     * description :
-     * @param request
-     * @param response
-     * @throws ServletException
-     * @throws IOException
-     */
-    private void remove_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void delete_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             boolean ROLLBACK_NEEDED = false;
             DAO daoInstance = null;
@@ -1189,28 +977,285 @@ public class Analysis_servlets extends Servlet {
     //*****OTHER SERVLET HANDLERS ****************************************************
     //************************************************************************************
     //************************************************************************************
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.addHeader("Access-Control-Allow-Origin", "*");
-        //TODO: TEST IF THE USER HAS LOGGED IN THE APP.
-        if (request.getServletPath().equals("/get_analysis_img_prev")) {
-            getAnalysisPreviewImageHandler(request, response);
-        } else if (request.getServletPath().equals("/get_analysis_img")) {
-            getAnalysisImageHandler(request, response);
-        } else if (request.getServletPath().equals("/get_step_subtypes")) {
-            get_step_subtypes_handler(request, response);
-        } else {
-            ServerErrorManager.addErrorMessage(3, Analysis_servlets.class.getName(), "doGet", "What are you doing here?.");
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
+    private void save_analysis_image_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        boolean REMOVE_FILE_NEEDED = false;
+        String filePath = "";
+        String filePath2 = "";
+        try {
+
+            /**
+             * *******************************************************
+             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
+             * --> throws exception if not valid session, GO TO STEP 5b ELSE -->
+             * GO TO STEP 2
+             * *******************************************************
+             */
+            if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
+                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+            }
+
+            /**
+             * *******************************************************
+             * STEP 2 GET THE REQUEST PARAMETERS. IF ERROR --> throws exception
+             * if not valid session, GO TO STEP 5b ELSE --> GO TO STEP 2 ***
+             */
+            String analysis_id = request.getParameter("analysis_id");
+            String experiment_id = request.getParameter("currentExperimentID");
+            String analysis_image_code = request.getParameter("analysis_image");
+
+            //WE WILL SAVE 2 IMAGES A SMALL AND LOW QUALITY IMAGE FOR PREVIEW AND A BIGGER IMAGE
+            if (analysis_image_code != null) {
+                REMOVE_FILE_NEEDED = true;
+                filePath = DATA_LOCATION + IMAGE_FILES_LOCATION.replaceAll("<experiment_id>", experiment_id) + analysis_id + ".png";
+                File outputfile = new File(filePath);
+                BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(Base64.decodeBase64(analysis_image_code)));
+                ImageIO.write(bufferedImage, "png", outputfile);
+
+                int height = bufferedImage.getHeight();
+                int width = bufferedImage.getWidth();
+                double proportion = (double) height / (double) width;
+
+                int minWidth = Math.min(500, width);
+                int minHeight = (int) Math.round(minWidth * proportion);
+
+                minHeight = Math.min(200, minHeight);
+                minWidth = (int) Math.round(minHeight / proportion);
+
+                BufferedImage resizedImage = new BufferedImage(minWidth, minHeight, BufferedImage.TYPE_INT_RGB);
+                Graphics2D g = resizedImage.createGraphics();
+                g.drawImage(bufferedImage, 0, 0, minWidth, minHeight, null);
+                g.dispose();
+                filePath2 = DATA_LOCATION + IMAGE_FILES_LOCATION.replaceAll("<experiment_id>", experiment_id) + analysis_id + "_prev.jpg";
+                outputfile = new File(filePath2);
+                ImageIO.write(resizedImage, "jpg", outputfile);
+            }
+
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "save_analysis_image_handler", e.getMessage());
+        } finally {
+            /**
+             * *******************************************************
+             * STEP 5b CATCH ERROR, CLEAN CHANGES. throws SQLException
+             * *******************************************************
+             */
+            if (ServerErrorManager.errorStatus()) {
+                response.setStatus(400);
+                response.getWriter().print(ServerErrorManager.getErrorResponse());
+
+                if (REMOVE_FILE_NEEDED) {
+                    File file = new File(filePath);
+                    if (file.exists()) {
+                        file.delete();
+                    }
+                    file = new File(filePath2);
+                    if (file.exists()) {
+                        file.delete();
+                    }
+                }
+            } else {
+                response.getWriter().print("{success: " + true + "}");
+            }
+        }
+    }
+
+    private void lock_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        boolean alreadyLocked = false;
+        String locker_id = "";
+        ArrayList<String> notLockedSteps = new ArrayList<String>();
+
+        try {
+            JsonParser parser = new JsonParser();
+            JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+            String loggedUser = requestData.get("loggedUser").getAsString();
+            String sessionToken = requestData.get("sessionToken").getAsString();
+
+            /**
+             * *******************************************************
+             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
+             * --> throws exception if not valid session, GO TO STEP ELSE --> GO
+             * TO STEP 2 *******************************************************
+             */
+            if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+            }
+
+            /**
+             * *******************************************************
+             * STEP 2 GET THE OBJECT ID AND TRY TO LOCK IT. IF ERROR --> throws
+             * exception, GO TO STEP ELSE --> GO TO STEP 3
+             * *******************************************************
+             */
+            String analysis_id = requestData.get("analysis_id").getAsString();
+            alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().lockObject(analysis_id, loggedUser);
+
+            /**
+             * *******************************************************
+             * STEP 3 TRY TO LOCK THE STEPS. exception, GO TO STEP ELSE --> GO
+             * TO STEP 3 *******************************************************
+             */
+            if (!alreadyLocked) {
+                DAO dao_instance = DAOProvider.getDAOByName("Analysis");
+                boolean loadRecursive = true;
+                Object[] params = {loadRecursive};
+                Analysis analysis = (Analysis) dao_instance.findByID(analysis_id, params);
+                dao_instance.closeConnection();
+                String step_id;
+                for (Step step : analysis.getNonProcessedData()) {
+                    step_id = step.getStepID();
+                    if (!BlockedElementsManager.getBlockedElementsManager().lockObject(step_id, loggedUser)) {
+                        notLockedSteps.add(step_id);
+                    }
+                }
+                for (Step step : analysis.getProcessedData()) {
+                    step_id = step.getStepID();
+                    if (!BlockedElementsManager.getBlockedElementsManager().lockObject(step_id, loggedUser)) {
+                        notLockedSteps.add(step_id);
+                    }
+                }
+
+                //UNLOCK STEPS AND ANALYSIS
+                if (notLockedSteps.size() > 0) {
+                    BlockedElementsManager.getBlockedElementsManager().unlockObject(analysis_id, loggedUser);
+                    for (Step step : analysis.getNonProcessedData()) {
+                        BlockedElementsManager.getBlockedElementsManager().unlockObject(step.getStepID(), loggedUser);
+                    }
+                    for (Step step : analysis.getProcessedData()) {
+                        BlockedElementsManager.getBlockedElementsManager().unlockObject(step.getStepID(), loggedUser);
+                    }
+                }
+            } else {
+                locker_id = BlockedElementsManager.getBlockedElementsManager().getLockerID(analysis_id);
+            }
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "lock_analysis_handler", e.getMessage());
+        } finally {
+            /**
+             * *******************************************************
+             * STEP 4b CATCH ERROR. GO TO STEP 5
+             * *******************************************************
+             */
+            if (ServerErrorManager.errorStatus()) {
+                response.setStatus(400);
+                response.getWriter().print(ServerErrorManager.getErrorResponse());
+            } else {
+                /**
+                 * *******************************************************
+                 * STEP 3A WRITE RESPONSE .
+                 * *******************************************************
+                 */
+                JsonObject obj = new JsonObject();
+                if (alreadyLocked) {
+                    obj.add("success", new JsonPrimitive(false));
+                    obj.add("reason", new JsonPrimitive(BlockedElementsManager.getErrorMessage()));
+                    obj.add("user_id", new JsonPrimitive(locker_id));
+                } else if (notLockedSteps.size() > 0) {
+                    JsonArray _notLockedSteps = new JsonArray();
+                    obj.add("success", new JsonPrimitive(false));
+                    obj.add("reason", new JsonPrimitive("Some of the steps are locked by other users"));
+                    for (String step_id : notLockedSteps) {
+                        _notLockedSteps.add(new JsonPrimitive(step_id));
+                    }
+                    obj.add("notLockedSteps", _notLockedSteps);
+
+                } else {
+                    obj.add("success", new JsonPrimitive(true));
+                }
+                response.getWriter().print(obj.toString());
+            }
+        }
+    }
+
+    private void unlock_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        boolean alreadyUnlocked = false;
+        ArrayList<String> notUnlockedSteps = new ArrayList<String>();
+
+        try {
+            JsonParser parser = new JsonParser();
+            JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+            String loggedUser = requestData.get("loggedUser").getAsString();
+            String sessionToken = requestData.get("sessionToken").getAsString();
+
+            /**
+             * *******************************************************
+             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
+             * --> throws exception if not valid session, GO TO STEP ELSE --> GO
+             * TO STEP 2 *******************************************************
+             */
+            if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+            }
+
+            /**
+             * *******************************************************
+             * STEP 2 GET THE OBJECT ID AND TRY TO UNLOCK IT. IF ERROR -->
+             * throws exception, GO TO STEP ELSE --> GO TO STEP 3
+             * *******************************************************
+             */
+            String analysis_id = requestData.get("analysis_id").getAsString();
+            alreadyUnlocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(analysis_id, loggedUser);
+
+            /**
+             * *******************************************************
+             * STEP 3 TRY TO UNLOCK THE STEPS. exception, GO TO STEP ELSE --> GO
+             * TO STEP 3 *******************************************************
+             */
+            DAO dao_instance = DAOProvider.getDAOByName("Analysis");
+            boolean loadRecursive = true;
+            Object[] params = {loadRecursive};
+            Analysis analysis = (Analysis) dao_instance.findByID(analysis_id, params);
+            dao_instance.closeConnection();
+            if (analysis != null) {
+                String step_id;
+                for (Step step : analysis.getNonProcessedData()) {
+                    step_id = step.getStepID();
+                    if (!BlockedElementsManager.getBlockedElementsManager().unlockObject(step_id, loggedUser)) {
+                        notUnlockedSteps.add(step_id);
+                    }
+                }
+                for (Step step : analysis.getProcessedData()) {
+                    step_id = step.getStepID();
+                    if (!BlockedElementsManager.getBlockedElementsManager().unlockObject(step_id, loggedUser)) {
+                        notUnlockedSteps.add(step_id);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "unlock_analysis_handler", e.getMessage());
+        } finally {
+            /**
+             * *******************************************************
+             * STEP 3b CATCH ERROR.
+             * *******************************************************
+             */
+            if (ServerErrorManager.errorStatus()) {
+                response.setStatus(400);
+                response.getWriter().print(ServerErrorManager.getErrorResponse());
+            } else {
+                /**
+                 * *******************************************************
+                 * STEP 3A WRITE RESPONSE .
+                 * *******************************************************
+                 */
+                JsonObject obj = new JsonObject();
+                if (alreadyUnlocked) {
+                    obj.add("success", new JsonPrimitive(false));
+                    obj.add("reason", new JsonPrimitive(BlockedElementsManager.getErrorMessage()));
+                } else {
+                    obj.add("success", new JsonPrimitive(true));
+
+                    if (notUnlockedSteps.size() > 0) {
+                        JsonArray _notUnlockedSteps = new JsonArray();
+                        for (String step_id : notUnlockedSteps) {
+                            _notUnlockedSteps.add(new JsonPrimitive(step_id));
+                        }
+                        obj.add("notUnlockedSteps", _notUnlockedSteps);
+                    }
+                }
+                response.getWriter().print(obj.toString());
+            }
         }
     }
 
@@ -1283,12 +1328,6 @@ public class Analysis_servlets extends Servlet {
         }
     }
 
-    /**
-     *
-     * @param request
-     * @param response
-     * @throws IOException
-     */
     private void get_step_subtypes_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         ArrayList<String> subtypes = new ArrayList<String>();
         try {

@@ -25,7 +25,8 @@
 (function () {
     var app = angular.module('templates.directives.template', [
         'ang-dialogs',
-        'bootstrap-tagsinput',
+        'ang-tags',
+//        'bootstrap-tagsinput',
         'users.directives.user-list',
         'samples.directives.sample-views',
         'protocols.directives.protocol-views',
@@ -132,12 +133,21 @@
                         } else if (model.type === "tag") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
-                                    '<bootstrap-tagsinput  class="col-sm-9" tagClass="label label-info" ' +
+                                    '<tag-field class="col-sm-9" ' +
                                     '                      name="{{field.name}}" ' +
                                     '                      ng-model="model.' + model.name + '" ' +
                                     '                      ' + (model.required ? "required" : "") +
-                                    '                      ng-readonly="viewMode === \'view\'">' +
-                                    '</bootstrap-tagsinput>';
+                                    '                      editable="viewMode !== \'view\'">' +
+                                    '</tag-field>';
+//                        } else if (model.type === "tag") {
+//                            template +=
+//                                    '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
+//                                    '<bootstrap-tagsinput  class="col-sm-9" tagClass="label label-info" ' +
+//                                    '                      name="{{field.name}}" ' +
+//                                    '                      ng-model="model.' + model.name + '" ' +
+//                                    '                      ' + (model.required ? "required" : "") +
+//                                    '                      ng-readonly="viewMode === \'view\'">' +
+//                                    '</bootstrap-tagsinput>';
                         } else if (model.type === "display") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +

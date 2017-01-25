@@ -75,7 +75,7 @@ public abstract class Step implements Comparable<Step> {
             return false;
         }
 
-        this.setStepID(this.step_id.replaceFirst(analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN","ST"));
+        this.setStepID(this.step_id.replaceFirst(analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN", "ST"));
         this.updatePreviousStepIDs(analysis_id, new_analysis_id);
         if (this.associatedQualityReport != null) {
             this.associatedQualityReport.setStudiedStepID(this.step_id);
@@ -210,7 +210,7 @@ public abstract class Step implements Comparable<Step> {
     public void setExtra(ExtraField[] extra) {
         this.extra = extra;
     }
-    
+
     //***********************************************************************
     //* OTHER FUNCTIONS *****************************************************
     //***********************************************************************
@@ -222,5 +222,5 @@ public abstract class Step implements Comparable<Step> {
     @Override
     public int compareTo(Step anotherInstance) {
         return this.step_number - anotherInstance.step_number;
-    }    
+    }
 }

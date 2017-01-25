@@ -23,9 +23,14 @@ import bdManager.DBConnectionManager;
 import common.UserSessionManager;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -105,5 +110,30 @@ public abstract class Servlet extends HttpServlet {
             return false;
         }
         return true;
+    }
+    
+    /*------------------------------------------------------------------------------------------*
+     *                                                                                          *
+     * OTHER FUNCTIONS                                                                          *
+     *                                                                                          *
+     *------------------------------------------------------------------------------------------*/
+    protected boolean matchService(String request, String service) {
+        if(request == null){
+            return false;
+        }
+        // Create a Pattern object
+        Pattern r = Pattern.compile(service);
+        // Now create matcher object.
+        Matcher m = r.matcher(request);
+        return m.find();
+        //m.group(0)
+    }
+    
+    protected Map<String, Cookie> getCookies(HttpServletRequest request){
+        HashMap<String, Cookie> cookies = new HashMap<String, Cookie>();
+        for(Cookie cookie : request.getCookies()){
+            cookies.put(cookie.getName(), cookie);
+        }
+        return cookies;
     }
 }

@@ -19,8 +19,12 @@
  *  *************************************************************** */
 package classes.analysis.non_processed_data;
 
+import classes.User;
 import classes.analysis.NonProcessedData;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  *
@@ -65,8 +69,6 @@ public class ExternalData extends NonProcessedData {
     //**********************************************************************
     //* GETTERS AND SETTERS ************************************************
     //**********************************************************************
-
-
     //***********************************************************************
     //* OTHER FUNCTIONS *****************************************************
     //***********************************************************************
@@ -77,6 +79,22 @@ public class ExternalData extends NonProcessedData {
 
     @Override
     public void updatePreviousStepIDs(String old_analysis_id, String new_analysis_id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //Do nothing
     }
+
+    public static ExternalData parseStepGalaxyData(JsonObject step_json_object, JsonObject analysisData, String emsuser) {
+        ExternalData step = new ExternalData("STxxxx." + step_json_object.get("id").getAsString());
+        step.setFilesLocation(new String[]{});
+        
+        Date dateNow = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+        step.setSubmissionDate(dateFormat.format(dateNow));
+        step.setLastEditionDate(dateFormat.format(dateNow));
+        step.addOwner(new User(emsuser, ""));
+        step.setStepName(step_json_object.get("tool_id").getAsString());
+        step.setStepNumber(step_json_object.get("id").getAsInt());
+
+        return step;
+    }
+
 }
