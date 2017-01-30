@@ -48,14 +48,14 @@
             replace: true,
             template:
                     '<div ng-controller="UserListController as controller">' +
-                    '   <div class="tag-container" style="min-width:200px; min-height: 30px;">'+
+                    '   <a class="btn btn-primary btn-sm" style="float: right; margin-top: 2px;" ng-show="viewMode !== \'view\'" ng-click="controller.changeSelectedUsersButtonHandler();">' +
+                    '      <i class="fa fa-plus" aria-hidden="true"></i> Choose users' +
+                    '   </a>' +
+                    '   <div class="tag-container" style="min-width:200px; min-height: 30px; margin-right: 120px;">'+
                     '     <span class="tag label label-info" ng-repeat="user in models">'+
                     '       {{user.user_id}} <i class="fa fa-times" style="cursor:pointer;" ng-show="viewMode !== \'view\'" ng-click="controller.removeSelectedUser(user)";></i>' + 
                     '     </span>' + 
                     '   </div>'+
-                    '   <a class="btn btn-primary" ng-show="viewMode !== \'view\'" ng-click="controller.changeSelectedUsersButtonHandler();">' +
-                    '      <i class="fa fa-plus" aria-hidden="true"></i> Choose users' +
-                    '   </a>' +
                     '</div>'
         };
     });

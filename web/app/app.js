@@ -5,6 +5,7 @@
         'ui.router',
         'angular-toArrayFilter',
         'users.directives.user-session',
+        'messages.controllers',
         'experiments.controllers',
         'samples.controllers',
         'protocols.controllers',
@@ -30,6 +31,8 @@
         protocolCreated: 'protocol-created',
         protocolDeleted: 'protocol-deleted',
         protocolSelection: 'protocol-selection',
+        messageCreated: 'message-created',
+        messageDeleted: 'message-deleted',
         analysisCreated: 'analysis-created',
         analysisDeleted: 'analysis-deleted',
         stepChanged: "step-changed",
@@ -48,101 +51,100 @@
                 url: '/signin',
                 templateUrl: "app/users/user-sign-in.tpl.html",
                 data: {requireLogin: false}
-            },
-                    home = {
-                        name: 'home',
-                        url: '/',
-                        templateUrl: "app/home/home.tpl.html",
-                        data: {requireLogin: true}
-                    },
-                    experiments = {
-                        name: 'experiments',
-                        url: '/experiments',
-                        templateUrl: "app/experiments/experiment-list.tpl.html",
-                        params: {
-                            force: false
-                        },
-                        data: {requireLogin: true}
-                    },
-                    experimentDetail = {
-                        name: 'experimentDetail',
-                        url: '/experiment-detail/',
-                        templateUrl: "app/experiments/experiment-form.tpl.html",
-                        params: {
-                            viewMode: 'view', //creation, edition
-                            experiment_id: null,
-                        },
-                        data: {requireLogin: true}
-                    },
-                    samples = {
-                        name: 'samples',
-                        url: '/samples',
-                        templateUrl: "app/samples/sample-list.tpl.html",
-                        params: {
-                            force: false
-                        },
-                        data: {requireLogin: true}
-                    },
-                    sampleDetail = {
-                        name: 'sampleDetail',
-                        url: '/sample-detail/',
-                        templateUrl: "app/samples/biocondition-form.tpl.html",
-                        params: {
-                            viewMode: 'view', //creation, edition
-                            biocondition_id: null
-                        },
-                        data: {requireLogin: true}
-                    },
-                    protocols = {
-                        name: 'protocols',
-                        url: '/protocols',
-                        templateUrl: "app/protocols/protocol-list.tpl.html",
-                        params: {
-                            force: false
-                        },
-                        data: {requireLogin: true}
-                    },
-                    protocolDetail = {
-                        name: 'protocolDetail',
-                        url: '/protocol-detail/',
-                        templateUrl: "app/protocols/protocol-form.tpl.html",
-                        params: {
-                            viewMode: 'view', //creation, edition
-                            protocol_id: null
-                        },
-                        data: {requireLogin: true}
-                    },
-                    externalSampleDetail = {
-                        name: 'externalSampleDetail',
-                        url: '/ext-sample-detail/',
-                        templateUrl: "app/samples/external-sample-form.tpl.html",
-                        params: {
-                            viewMode: 'view', //creation, edition
-                            biocondition_id: null
-                        },
-                        data: {requireLogin: true}
-                    },
-                    analysis = {
-                        name: 'analysis',
-                        url: '/analysis',
-                        templateUrl: "app/analysis/analysis-list.tpl.html",
-                        params: {
-                            force: false
-                        },
-                        data: {requireLogin: true}
-                    },
-                    analysisDetail = {
-                        name: 'analysisDetail',
-                        url: '/analysis-detail/',
-                        templateUrl: "app/analysis/analysis-form.tpl.html",
-                        params: {
-                            viewMode: 'view', //creation, edition
-                            analysis_id: null,
-                        },
-                        data: {requireLogin: true}
-                    };
+            }, home = {
+                name: 'home',
+                url: '/',
+                templateUrl: "app/home/home.tpl.html",
+                data: {requireLogin: true}
+            }, messages = {
+                name: 'messages',
+                url: '/messages',
+                templateUrl: "app/messages/message-list.tpl.html",
+                params: {
+                    force: false
+                },
+                data: {requireLogin: true}
+            }, experiments = {
+                name: 'experiments',
+                url: '/experiments',
+                templateUrl: "app/experiments/experiment-list.tpl.html",
+                params: {
+                    force: false
+                },
+                data: {requireLogin: true}
+            }, experimentDetail = {
+                name: 'experimentDetail',
+                url: '/experiment-detail/',
+                templateUrl: "app/experiments/experiment-form.tpl.html",
+                params: {
+                    viewMode: 'view', //creation, edition
+                    experiment_id: null,
+                },
+                data: {requireLogin: true}
+            }, samples = {
+                name: 'samples',
+                url: '/samples',
+                templateUrl: "app/samples/sample-list.tpl.html",
+                params: {
+                    force: false
+                },
+                data: {requireLogin: true}
+            }, sampleDetail = {
+                name: 'sampleDetail',
+                url: '/sample-detail/',
+                templateUrl: "app/samples/biocondition-form.tpl.html",
+                params: {
+                    viewMode: 'view', //creation, edition
+                    biocondition_id: null
+                },
+                data: {requireLogin: true}
+            }, protocols = {
+                name: 'protocols',
+                url: '/protocols',
+                templateUrl: "app/protocols/protocol-list.tpl.html",
+                params: {
+                    force: false
+                },
+                data: {requireLogin: true}
+            }, protocolDetail = {
+                name: 'protocolDetail',
+                url: '/protocol-detail/',
+                templateUrl: "app/protocols/protocol-form.tpl.html",
+                params: {
+                    viewMode: 'view', //creation, edition
+                    protocol_id: null
+                },
+                data: {requireLogin: true}
+            }, externalSampleDetail = {
+                name: 'externalSampleDetail',
+                url: '/ext-sample-detail/',
+                templateUrl: "app/samples/external-sample-form.tpl.html",
+                params: {
+                    viewMode: 'view', //creation, edition
+                    biocondition_id: null
+                },
+                data: {requireLogin: true}
+            }, analysis = {
+                name: 'analysis',
+                url: '/analysis',
+                templateUrl: "app/analysis/analysis-list.tpl.html",
+                params: {
+                    force: false
+                },
+                data: {requireLogin: true}
+            }, analysisDetail = {
+                name: 'analysisDetail',
+                url: '/analysis-detail/',
+                templateUrl: "app/analysis/analysis-form.tpl.html",
+                params: {
+                    viewMode: 'view', //creation, edition
+                    analysis_id: null,
+                },
+                data: {requireLogin: true}
+            };
             $stateProvider.state(signin);
             $stateProvider.state(home);
+            $stateProvider.state(messages);
             $stateProvider.state(experiments);
             $stateProvider.state(experimentDetail);
             $stateProvider.state(samples);
@@ -161,6 +163,7 @@
 
         this.pages = [
             {name: 'home', title: 'Home', icon: 'home', isParent: true},
+            {name: 'messages', title: 'Inbox', icon: 'envelope', isParent: false},
             {name: '', title: 'Studies', icon: 'book', isParent: true},
             {name: 'experiments', title: 'Browse studies', icon: 'angle-right', isParent: false},
             {name: 'experimentDetail', title: 'Show current study', icon: 'angle-right', isParent: false, params: {viewMode: 'view', experiment_id: "promise"}},
@@ -177,7 +180,7 @@
         ];
 
         $rootScope.getRequestPath = function (service, extra) {
-            extra = (extra || "");
+            extra = (extra !== undefined ? "/" + extra : "");
             switch (service) {
                 case "user-sign-in":
                     return myAppConfig.EMS_SERVER + "login";
@@ -255,6 +258,8 @@
                     return myAppConfig.EMS_SERVER + "lock_protocol";
                 case "protocol-unlock":
                     return myAppConfig.EMS_SERVER + "unlock_protocol";
+                case "message-rest":
+                    return myAppConfig.EMS_SERVER + "rest/messages" + extra;
                 case "file-list":
                     return myAppConfig.EMS_SERVER + "get_experiment_directory_content";
                 case "check-install":

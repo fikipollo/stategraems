@@ -1,0 +1,145 @@
+<div ng-controller="MessageListController as controller">
+    <nav class="navbar navbar-default navbar-top title-bar">
+        <h1 class="form_title">Message browser</h1>
+    </nav>
+    <div class="navbar-form navbar-default top-toolbar" role="search">
+        <h2 class="form_subtitle">Search and filter</h2>
+        <div class="row">
+            <div class="col-sm-8">
+                <div class="input-group" style="width: 100%;margin-bottom: 4px;">
+                    <input type="text" class="form-control" placeholder="Search for..." ng-model="searchFor" ng-enter="controller.applySearchHandler()">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" ng-click="controller.applySearchHandler()">
+                            <span class="glyphicon glyphicon-search"></span>
+                        </button>
+                    </span>
+                </div><!-- /input-group -->
+                <div class="currentSearchTagContainer">
+                    <i class="tag" ng-repeat="item in filters">
+                        <span class="tag-name">
+                            <i class="fa fa-times" ng-click="controller.removeFilterHandler(item);"></i>{{item}}
+                        </span>
+                    </i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="navbar-form">
+        <div style="margin: auto;display: block;max-width: 650px;">
+            <ul class="nav navbar-nav">
+                <li class="dropdown">
+                    <label for="sortBySelector">Show:</label>
+                    <select style="display:inline-block;" class="form-control" id="sortBySelector"
+                            ng-model="show"
+                            ng-init="show = 'all'"
+                            ng-change="controller.showMessageChooserChangeHandler(value);"
+                            >
+                        <option value="all">All messages</option>
+                        <option value="info">Information messages</option>
+                        <option value="warning">Alerts</option>
+                        <option value="sent">Sent messages</option>
+                    </select>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav" style="margin-left: 15px;">
+                <li class="dropdown">
+                    <label for="sortBySelector">Sort by:</label>
+                    <select class="form-control" id="sortBySelector" ng-model="sortBy" ng-init="sortBy = 'name'">
+                        <option value="name">Name</option>
+                        <option value="owner">Author</option>
+                    </select>
+                </li>
+            </ul>
+            <i ng-show="isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
+                <i class="fa fa-spinner fa-pulse fa-fw"></i> Loading messages...
+            </i>
+            <i ng-show="!isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
+                Found {{filteredMessages}} messages
+                <a ng-click="controller.retrieveMessagesData('', true);" style="margin-left:10px; font-size: 10px; cursor: pointer;"><i class="fa fa-refresh"></i>Refresh list</a>
+            </i>
+        </div>
+    </div>
+    <div class="col-sm-5">
+        <div class="message-list-container clickable panel panel-container ">
+            <h4 style="text-align: center; font-weight: bold">Inbox</h4>
+            <div class="message-preview" 
+                 ng-class="message.read ? '' : 'unread'" 
+                 ng-repeat="message in messages| filter:filterMessages() | orderBy : sortBy | limitTo : visibleMessages"
+                 ng-click="controller.changeCurrentMessageHandler(message)">
+                <p class="message-preview-sender">
+                    <i ng-show="message.type === 'info'" class="fa fa-info-circle text-info"></i> 
+                    <i ng-show="message.type === 'warning'" class="fa fa-exclamation-circle text-warning"></i> 
+                    <i ng-show="message.type === 'sent'" class="fa fa-paper-plane-o"></i> 
+                    {{message.sender}}
+                </p>
+                <p class="message-preview-date">{{message.date}}</p>
+                <p class="message-preview-subject">{{message.subject}}</p>
+                <div class="message-preview-content">{{message.content}}</div>
+            </div>
+            <div class="row" style="text-align: center;">
+                <button class="btn btn-lg btn-success" type="button" ng-click="controller.showMoreMessagesHandler()" ng-show="(filteredMessages - visibleMessages) > 0">
+                    Show more messages ({{filteredMessages - visibleMessages}} left)
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-7 ">
+        <div class="panel panel-container">
+            <div class="navbar-form">
+                <div style="display: block;text-align: right;">
+                    <a ng-show="action !== 'new-message'" class="clickable text-primary" ng-click="controller.startNewMessageHandler();" style="margin-right: 5px;"><i class="fa fa-plus-circle"></i> New message</a>
+                    <a ng-show="action !== 'new-message'&& currentMessage !== undefined && currentMessage.sender !== 'STATegraEMS notifications'" class="clickable text-info"  ng-click="controller.replyMessageHandler(currentMessage);"  style="margin-right: 5px;"><i class="fa fa-reply"></i> Reply</a>
+                    <a ng-show="action !== 'new-message'&& currentMessage !== undefined" class="clickable text-danger" style="margin-right: 5px;"><i class="fa fa-trash"></i> Delete</a>
+                    <a ng-show="action === 'new-message'" ng-click="controller.sendNewMessageHandler();" class="clickable text-success" style="margin-right: 5px;"><i class="fa fa-paper-plane"></i> Send message</a>
+                    <a ng-show="action === 'new-message'" ng-click="action = null" class="clickable text-danger" style="margin-right: 5px;"><i class="fa fa-trash"></i> Cancel</a>
+                </div>
+            </div>
+            <div ng-show="action !== 'new-message' && currentMessage === undefined"><h3>No message selected</h3><p>Choose a message at left panel or start a new message.</p></div>
+            <form ng-show="action !== 'new-message' && currentMessage !== undefined" class="form-horizontal">
+                <h3>
+                    <i ng-show="currentMessage.type === 'info'" class="fa fa-info-circle text-info"></i> 
+                    <i ng-show="currentMessage.type === 'warning'" class="fa fa-exclamation-circle text-warning"></i> 
+                    <i ng-show="currentMessage.type === 'sent'" class="fa fa-paper-plane-o"></i> 
+                    {{currentMessage.subject}}
+                </h3>
+                <div class="row">
+                    <label class="control-label col-sm-2" >Sender:</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-static">{{currentMessage.sender}}</p>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <label class="control-label col-sm-2" >Date:</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-static">{{currentMessage.date}}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <label class="control-label col-sm-2" >Message:</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-static">{{currentMessage.content}}</p>
+                    </div>
+                </div>
+            </form>
+            <form ng-show="action === 'new-message'" class="form-horizontal">
+                <h3>New message {{newMessage.subject}}</h3>
+                <div class="field-group row">
+                    <label class="col-sm-2" style=" width: 70px; ">To:</label>
+                    <user-selector-field class="col-sm-9" ng-init="models = newMessage.users"></user-selector-field>
+                </div>
+                <div class="field-group row">
+                    <label class="col-sm-2" style=" width: 70px; ">Subject:</label>
+                    <input class="col-sm-9" type="text" ng-model="newMessage.subject">
+                </div>
+                <div class="field-group row">
+                    <label class="col-sm-2" style=" width: 70px; ">Message:</label>
+                    <textarea class="col-sm-9" rows="10" ng-model="newMessage.content" ></textarea>
+                </div>
+            </form>
+        </div>    
+    </div>
+    <nav class=" navbar-fixed-bottom" style="left: initial;">
+        <back-top scroll-speed=600 button-theme="btn btn-default btn-sm navbar-right"></back-top>
+    </nav>
+</div>

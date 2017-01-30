@@ -6,27 +6,12 @@ src: url('fonts/OpenSans-Light.ttf');
 html{background-color: #fff;}
 body{font-family: 'Open Sans', sans-serif; font-weight: lighter;  }
 
-/*header {
-margin-bottom: 10px;
-background-color: #2B3143;
-height: 55px;
-}
-header .navbar-default{
-background: #2B3143;
-}
-header .navbar-default .navbar-nav>li>a {
-line-height: 40px;
-font-size: 25px;
-color: #AFAFAF;
-}
-header .navbar-default .navbar-nav>li>a:hover {
-color: #FFFFFF;
-}*/
 .navbar-default{border-radius: 0;}
 
 #header .navbar-header{background-image: url('stategraems_logo_250x50.png'); width: 250px; margin: 0px 10px; background-size: cover; height: 50px;}
 
-a.clickable{text-decoration: none; cursor: pointer;}
+.clickable{cursor: pointer;}
+a.clickable{text-decoration: none; }
 
 #sidebar-wrapper {
     z-index: 1000;
@@ -776,4 +761,42 @@ tr.deletedDataset {
 }
 tr.selectedDataset {
     background-color: #d9edf7;
+}
+
+
+/*------------------------------------------------------*/
+/*STYLES FOR MESSAGES LIST                             */
+/*------------------------------------------------------*/
+.message-list-container {
+    max-height: 800px;
+    overflow-y: auto;
+}
+.message-preview {
+    padding: 10px 5px;
+    border-top: 1px solid #eaeaea;
+    font-size: 12px;
+}
+.message-preview.unread {
+    border-left: 5px solid #337ab7;
+}
+.message-preview-sender {
+    font-size: 16px;
+}
+.message-preview.unread .message-preview-sender {
+    font-weight: bold;
+}
+.message-preview.unread .message-preview-subject {
+    font-weight: bold;
+    color: #337ab7;
+}
+.message-preview-date {
+    float: right;
+}
+.message-preview-content {
+    color: #717171;
+    display: block;
+    margin-top: 5px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }

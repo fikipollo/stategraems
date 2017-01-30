@@ -21,7 +21,6 @@ package classes;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -34,6 +33,7 @@ public class Message {
     private String user_id;
     private String message_id;
     private String type; //alert, info, 
+    private String sender;
     private String subject;
     private String content;
     private String date;
@@ -44,10 +44,11 @@ public class Message {
         this.read = false;
     }
 
-    public Message(String user_id, String message_id, String type, String subject, String content) {
+    public Message(String user_id, String message_id, String type, String sender, String subject, String content) {
         this.user_id = user_id;
         this.message_id = message_id;
         this.type = type;
+        this.sender = sender;
         this.subject = subject;
         this.content = content;
         this.date = new SimpleDateFormat("yyyyMMdd").format(new Date());
@@ -102,6 +103,14 @@ public class Message {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getSender() {
+        return sender;
+    }
+
+    public void setSender(String sender) {
+        this.sender = sender;
     }
 
     public String getSubject() {

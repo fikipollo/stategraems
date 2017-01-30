@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS `STATegraDB`.`messages` (
   `user_id` VARCHAR(50) NOT NULL,
   `message_id` int NOT NULL AUTO_INCREMENT,
   `type` VARCHAR(50) NOT NULL,
+  `sender` VARCHAR(200) NOT NULL,
   `subject` VARCHAR(200) NOT NULL,
   `content` TEXT DEFAULT NULL,
   `date` VARCHAR(8) NOT NULL,

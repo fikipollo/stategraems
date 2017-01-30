@@ -39,14 +39,15 @@ public class Message_JDBCDAO extends DAO {
         Message message = (Message) object;
 
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                + "INSERT INTO messages SET user_id = ?, type=?, subject= ?, content=?, date=?, is_read=?");
+                + "INSERT INTO messages SET user_id = ?, type=?, sender=?, subject= ?, content=?, date=?, is_read=?");
 
         ps.setString(1, message.getUserID());
         ps.setString(2, message.getType());
-        ps.setString(3, message.getSubject());
-        ps.setString(4, message.getContent());
-        ps.setString(5, message.getDate());
-        ps.setBoolean(6, message.isRead());
+        ps.setString(3, message.getSender());
+        ps.setString(4, message.getSubject());
+        ps.setString(5, message.getContent());
+        ps.setString(6, message.getDate());
+        ps.setBoolean(7, message.isRead());
         ps.execute();
 
         return true;
@@ -62,15 +63,16 @@ public class Message_JDBCDAO extends DAO {
         Message message = (Message) object;
 
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                + "UPDATE messages SET user_id = ?, type=?, subject= ?, content=?, date=?, is_read=? WHERE message_id=?");
+                + "UPDATE messages SET user_id = ?, type=?, sender=?, subject= ?, content=?, date=?, is_read=? WHERE message_id=?");
 
         ps.setString(1, message.getUserID());
         ps.setString(2, message.getType());
-        ps.setString(3, message.getSubject());
-        ps.setString(4, message.getContent());
-        ps.setString(5, message.getDate());
-        ps.setBoolean(6, message.isRead());
-        ps.setString(7, message.getMessageID());
+        ps.setString(3, message.getSender());
+        ps.setString(4, message.getSubject());
+        ps.setString(5, message.getContent());
+        ps.setString(6, message.getDate());
+        ps.setBoolean(7, message.isRead());
+        ps.setString(8, message.getMessageID());
         ps.execute();
 
         return true;
@@ -97,6 +99,7 @@ public class Message_JDBCDAO extends DAO {
             message.setUserID(rs.getString("user_id"));
             message.setMessageID(rs.getString("message_id"));
             message.setType(rs.getString("type"));
+            message.setSender(rs.getString("sender"));
             message.setSubject(rs.getString("subject"));
             message.setContent(rs.getString("content"));
             message.setDate(rs.getString("date"));
@@ -116,6 +119,7 @@ public class Message_JDBCDAO extends DAO {
             message.setUserID(rs.getString("user_id"));
             message.setMessageID(rs.getString("message_id"));
             message.setType(rs.getString("type"));
+            message.setSender(rs.getString("sender"));
             message.setSubject(rs.getString("subject"));
             message.setContent(rs.getString("content"));
             message.setDate(rs.getString("date"));

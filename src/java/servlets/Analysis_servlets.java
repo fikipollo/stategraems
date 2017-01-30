@@ -367,6 +367,7 @@ public class Analysis_servlets extends Servlet {
                 Message message = new Message();
                 message.setUserID(user.getUserID());
                 message.setType("info");
+                message.setSender("STATegraEMS notifications");
                 message.setSubject("New analysis imported from " + origin);
                 message.setContent(
                         "A new analysis called \"" + analysis.getAnalysisName() + "\" has been created for experiment " + experimentID
