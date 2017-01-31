@@ -30,28 +30,18 @@ import java.util.Date;
  */
 public class Message {
 
-    private String user_id;
-    private String message_id;
-    private String type; //alert, info, 
-    private String sender;
-    private String subject;
-    private String content;
-    private String date;
-    private boolean read;
+    private String user_id = ""; //The owner of the message instance
+    private String message_id = "";
+    private String type; //alert, info, sent, message 
+    private String sender = "";
+    private String to = "";
+    private String subject = "";
+    private String content = "";
+    private String date = "";
+    private boolean read = false;
 
     public Message() {
-        this.date = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        this.read = false;
-    }
-
-    public Message(String user_id, String message_id, String type, String sender, String subject, String content) {
-        this.user_id = user_id;
-        this.message_id = message_id;
-        this.type = type;
-        this.sender = sender;
-        this.subject = subject;
-        this.content = content;
-        this.date = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        this.setDate("now");
         this.read = false;
     }
 
@@ -113,6 +103,14 @@ public class Message {
         this.sender = sender;
     }
 
+    public String getTo() {
+        return to;
+    }
+
+    public void setTo(String to) {
+        this.to = to;
+    }
+
     public String getSubject() {
         return subject;
     }
@@ -134,6 +132,9 @@ public class Message {
     }
 
     public void setDate(String date) {
+        if ("now".equalsIgnoreCase(date)) {
+            date = new SimpleDateFormat("yyyyMMdd HH:mm").format(new Date());
+        }
         this.date = date;
     }
 

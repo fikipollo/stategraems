@@ -33,18 +33,20 @@ import common.ServerErrorManager;
 import java.security.AccessControlException;
 import java.util.ArrayList;
 
-import java.util.Base64;
 import java.util.Map;
 import javax.servlet.http.Cookie;
+
 /**
  *
  * SERVLET FOR MESSAGES:
  * +----------------------+-----------------------+---------------+------------------------------------------------------+---------------------+
- * | Resource             |       POST            |    GET        |                       PUT                            |        DELETE       |
+ * | Resource | POST | GET | PUT | DELETE |
  * +----------------------+-----------------------+---------------+------------------------------------------------------+---------------------+
- * | /rest/messages       |  Create a new message | List messages | Replace messages list with new messages(Bulk update) | Delete all messages |
+ * | /rest/messages | Create a new message | List messages | Replace messages
+ * list with new messages(Bulk update) | Delete all messages |
  * +----------------------+-----------------------+---------------+------------------------------------------------------+---------------------+
- * | /rest/messages/1234  |       Error           | Show message  |       If exist update message else ERROR             | Delete message      |
+ * | /rest/messages/1234 | Error | Show message | If exist update message else
+ * ERROR | Delete message |
  * +----------------------+-----------------------+---------------+------------------------------------------------------+---------------------+
  *
  */
@@ -110,8 +112,9 @@ public class Message_servlets extends Servlet {
                 JsonParser parser = new JsonParser();
                 JsonObject requestData = (JsonObject) parser.parse(request.getReader());
 
-                String loggedUser = requestData.get("loggedUser").getAsString();
-                String sessionToken = requestData.get("sessionToken").getAsString();
+                Map<String, Cookie> cookies = this.getCookies(request);
+                String loggedUser = cookies.get("loggedUser").getValue();
+                String sessionToken = cookies.get("sessionToken").getValue();
 
                 /**
                  * *******************************************************
@@ -141,6 +144,8 @@ public class Message_servlets extends Servlet {
                  */
                 //Get parameters
                 message = Message.fromJSON(requestData.get("message_json_data"));
+                message.setDate("now");
+                message.setRead(false);
 
                 /**
                  * *******************************************************
@@ -212,7 +217,7 @@ public class Message_servlets extends Servlet {
                 String loggedUser = cookies.get("loggedUser").getValue();
                 String sessionToken = cookies.get("sessionToken").getValue();
                 String loggedUserID = cookies.get("loggedUserID").getValue();
-                
+
                 /**
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
@@ -356,7 +361,7 @@ public class Message_servlets extends Servlet {
     private void update_message_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             boolean ROLLBACK_NEEDED = false;
-            DAO daoInstance1 = null;
+            DAO daoInstance = null;
 
             try {
 
@@ -370,8 +375,10 @@ public class Message_servlets extends Servlet {
                 JsonParser parser = new JsonParser();
                 JsonObject requestData = (JsonObject) parser.parse(request.getReader());
 
-                String loggedUser = requestData.get("loggedUser").getAsString();
-                String sessionToken = requestData.get("sessionToken").getAsString();
+                Map<String, Cookie> cookies = this.getCookies(request);
+                String loggedUser = cookies.get("loggedUser").getValue();
+                String sessionToken = cookies.get("sessionToken").getValue();
+                
                 String messageID = request.getPathInfo().replaceAll("/", "");
 
                 if (!checkAccessPermissions(loggedUser, sessionToken)) {
@@ -381,21 +388,22 @@ public class Message_servlets extends Servlet {
                 /**
                  * *******************************************************
                  * STEP 2 Get the Object by parsing the JSON data. IF ERROR -->
-                 * throws JsonParseException, GO TO STEP 5A ELSE --> GO TO STEP 3
-                 *  *******************************************************
+                 * throws JsonParseException, GO TO STEP 5A ELSE --> GO TO STEP
+                 * 3 *******************************************************
                  */
                 Message message = Message.fromJSON(requestData.get("message_json_data"));
-
+                message.setMessageID(messageID);
+                
                 /**
                  * *******************************************************
-                 * STEP 3 UPDATE the message in DATABASE.
-                 * IF ERROR --> throws SQL Exception, GO TO STEP 5A ELSE --> GO
-                 * TO STEP 4
+                 * STEP 3 UPDATE the message in DATABASE. IF ERROR --> throws
+                 * SQL Exception, GO TO STEP 5A ELSE --> GO TO STEP 4
                  * *******************************************************
                  */
-                daoInstance1.disableAutocommit();
+                daoInstance = DAOProvider.getDAOByName("Message");
+                daoInstance.disableAutocommit();
                 ROLLBACK_NEEDED = true;
-                daoInstance1.update(message);
+                daoInstance.update(message);
 
                 /**
                  * *******************************************************
@@ -404,7 +412,7 @@ public class Message_servlets extends Servlet {
                  * STEP 5B
                  * *******************************************************
                  */
-                daoInstance1.doCommit();
+                daoInstance.doCommit();
             } catch (Exception e) {
                 if (e.getClass().getSimpleName().equals("MySQLIntegrityConstraintViolationException")) {
                     ServerErrorManager.handleException(null, null, null, "Unable to update the Analysis information.");
@@ -422,7 +430,7 @@ public class Message_servlets extends Servlet {
                     response.getWriter().print(ServerErrorManager.getErrorResponse());
 
                     if (ROLLBACK_NEEDED) {
-                        daoInstance1.doRollback();
+                        daoInstance.doRollback();
                     }
                 } else {
                     /**
@@ -440,8 +448,8 @@ public class Message_servlets extends Servlet {
                  * STEP 6 Close connection.
                  * ********************************************************
                  */
-                if (daoInstance1 != null) {
-                    daoInstance1.closeConnection();
+                if (daoInstance != null) {
+                    daoInstance.closeConnection();
                 }
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
@@ -473,11 +481,10 @@ public class Message_servlets extends Servlet {
                  * ELSE --> GO TO STEP 2
                  * *******************************************************
                  */
-                JsonParser parser = new JsonParser();
-                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
-
-                String loggedUser = requestData.get("loggedUser").getAsString();
-                String sessionToken = requestData.get("sessionToken").getAsString();
+                Map<String, Cookie> cookies = this.getCookies(request);
+                String loggedUser = cookies.get("loggedUser").getValue();
+                String sessionToken = cookies.get("sessionToken").getValue();
+                
                 String messageID = request.getPathInfo().replaceAll("/", "");
 
                 if (!checkAccessPermissions(loggedUser, sessionToken)) {

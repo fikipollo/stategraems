@@ -17,9 +17,7 @@
             </div>
         </div>
         <div class="col-md-6">
-            <user-session-info-panel style="height: 170px;"></user-session-info-panel>
-        </div>
-        <div class="col-md-6" >
+            <user-session-info-panel style="height: 170px; margin-top: 20px;"></user-session-info-panel>
             <div class="panel panel-container" style="height: 170px; font-size: 16px;">
                 <h4>Resources</h4>
                 <ul>
@@ -34,6 +32,9 @@
                     </li>
                 </ul>
             </div>
+        </div>
+        <div class="col-md-6" >
+            <message-inbox ng-controller="MessageListController as controller" ng-init="show = 'unread'; lite=true; title='Unread messages'; limit=2"></message-inbox>
         </div>
 
     </div>

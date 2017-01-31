@@ -52,10 +52,10 @@ import java.security.AccessControlException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
+import javax.servlet.http.Cookie;
 import org.apache.commons.codec.binary.Base64;
 
 /**
@@ -368,6 +368,7 @@ public class Analysis_servlets extends Servlet {
                 message.setUserID(user.getUserID());
                 message.setType("info");
                 message.setSender("STATegraEMS notifications");
+                message.setTo(user.getUserID());
                 message.setSubject("New analysis imported from " + origin);
                 message.setContent(
                         "A new analysis called \"" + analysis.getAnalysisName() + "\" has been created for experiment " + experimentID
@@ -617,10 +618,11 @@ public class Analysis_servlets extends Servlet {
                 JsonParser parser = new JsonParser();
                 JsonObject requestData = (JsonObject) parser.parse(request.getReader());
 
-                String loggedUser = requestData.get("loggedUser").getAsString();
-                String loggedUserID = requestData.get("loggedUserID").getAsString();
-                String sessionToken = requestData.get("sessionToken").getAsString();
-
+                Map<String, Cookie> cookies = this.getCookies(request);
+                String loggedUser = cookies.get("loggedUser").getValue();
+                String sessionToken = cookies.get("sessionToken").getValue();
+                String loggedUserID = cookies.get("loggedUserID").getValue();
+                
                 if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
@@ -640,6 +642,10 @@ public class Analysis_servlets extends Servlet {
                 Analysis analysisAux = (Analysis) daoInstance1.findByID(analysis.getAnalysisID(), new Object[]{loadRecursive});
                 if (!analysisAux.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
                     throw new AccessControlException("Cannot update selected Analysis. Current user has not privileges over this element.");
+                }
+                
+                if("pending".equalsIgnoreCase(analysis.getStatus())){
+                    analysis.setStatus("open");
                 }
 
                 /**

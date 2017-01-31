@@ -24,6 +24,7 @@ import bdManager.DAO.DAOProvider;
 import bdManager.DAO.Experiment_JDBCDAO;
 import bdManager.DBConnectionManager;
 import classes.Experiment;
+import classes.Message;
 import classes.User;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -35,10 +36,14 @@ import java.io.IOException;
 import java.security.AccessControlException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 
 /**
@@ -975,15 +980,17 @@ public class Experiment_servlets extends Servlet {
      */
     private void process_new_membership_request(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            DAO dao_instance = null;
-            boolean valid_experiment = false;
+            DAO daoInstance = null;
+            boolean ROLLBACK_NEEDED = false;
+
             try {
                 JsonParser parser = new JsonParser();
                 JsonObject requestData = (JsonObject) parser.parse(request.getReader());
 
-                String loggedUser = requestData.get("loggedUser").getAsString();
-                String sessionToken = requestData.get("sessionToken").getAsString();
-                String user_id = requestData.get("loggedUserID").getAsString();
+                Map<String, Cookie> cookies = this.getCookies(request);
+                String loggedUser = cookies.get("loggedUser").getValue();
+                String sessionToken = cookies.get("sessionToken").getValue();
+                String loggedUserID = cookies.get("loggedUserID").getValue();
 
                 /**
                  * *******************************************************
@@ -998,21 +1005,57 @@ public class Experiment_servlets extends Servlet {
 
                 /**
                  * *******************************************************
-                 * STEP 2 Get THE EXperiment Object from DB. IF ERROR -->
-                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * STEP 2 Get THE EXperiment Object from DB. IF ERROR --> throws
+                 * MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
                  * *******************************************************
                  */
                 boolean loadRecursive = true;
                 Object[] params = {loadRecursive};
                 String experiment_id = requestData.get("experiment_id").getAsString();
-                dao_instance = DAOProvider.getDAOByName("Experiment");
-                Experiment experiment = (Experiment) dao_instance.findByID(experiment_id, params);
-                
-                for(User user:experiment.getExperimentOwners()){
-                    //TODO: SEND AN EMAIL TO ADMIN USERS
-                    //user.getEmail();
+                daoInstance = DAOProvider.getDAOByName("Experiment");
+                Experiment experiment = (Experiment) daoInstance.findByID(experiment_id, params);
+
+                daoInstance = DAOProvider.getDAOByName("Message");
+                daoInstance.disableAutocommit();
+                ROLLBACK_NEEDED = true;
+
+                /**
+                 * *******************************************************
+                 * STEP 4 Add a new message. IF ERROR --> throws SQL Exception,
+                 * GO TO STEP 5b ELSE --> GO TO STEP 5
+                 * *******************************************************
+                 */
+                Message message = new Message();
+                message.setType("info");
+                message.setSender(loggedUserID);
+
+                for (User user : experiment.getExperimentOwners()) {
+                    message.setTo(message.getTo() + user.getUserID());
                 }
 
+                message.setTo(message.getTo());
+                message.setSubject("New membership request for experiment " + experiment_id);
+                message.setContent(
+                        "User " + loggedUserID + " (" + loggedUser + ") want to become a member for the experiment \"" + experiment.getTitle() + "\" (" + experiment_id + ").\n"
+                        + "As administrator for this experiment you can easily add new members using the tools located at the Experiment form.");
+
+                for (User user : experiment.getExperimentOwners()) {
+                    message.setUserID(user.getUserID());
+                    daoInstance.insert(message);
+                }
+
+                message.setUserID(loggedUserID);
+                message.setType("sent");
+                daoInstance.insert(message);
+                
+                /**
+                 * *******************************************************
+                 * STEP 4 COMMIT CHANGES TO DATABASE. throws SQLException IF
+                 * ERROR --> throws SQL Exception, GO TO STEP 5A ELSE --> GO TO
+                 * STEP 5B
+                 * *******************************************************
+                 */
+                daoInstance.doCommit();
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "process_new_membership_request", e.getMessage());
             } finally {
@@ -1024,6 +1067,10 @@ public class Experiment_servlets extends Servlet {
                 if (ServerErrorManager.errorStatus()) {
                     response.setStatus(400);
                     response.getWriter().print(ServerErrorManager.getErrorResponse());
+
+                    if (ROLLBACK_NEEDED) {
+                        daoInstance.doRollback();
+                    }
                 } else {
                     /**
                      * *******************************************************
@@ -1039,13 +1086,13 @@ public class Experiment_servlets extends Servlet {
                  * STEP 5 Close connection.
                  * ********************************************************
                  */
-                if (dao_instance != null) {
-                    dao_instance.closeConnection();
+                if (daoInstance != null) {
+                    daoInstance.closeConnection();
                 }
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "process_new_membership_request", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }

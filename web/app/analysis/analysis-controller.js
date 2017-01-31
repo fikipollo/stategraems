@@ -91,6 +91,13 @@
                         function successCallback(response) {
                             //LOAD ANALYSIS
                             $scope.analysis = AnalysisList.setAnalysis(response.data).getAnalysis();
+
+                            for (var i in $scope.analysis) {
+                                if ($scope.analysis[i].status === "pending") {
+                                    $scope.review = true;
+                                    break;
+                                }
+                            }
                             //UPDATE THE LIST OF TAGS
                             $scope.tags = AnalysisList.updateTags().getTags();
                             //Update the list of analysis types
@@ -124,6 +131,12 @@
                 $scope.analysis = AnalysisList.getAnalysis();
                 $scope.tags = AnalysisList.getTags();
                 $scope.filteredAnalysis = $scope.analysis.length;
+                for (var i in $scope.analysis) {
+                    if ($scope.analysis[i].status === "pending") {
+                        $scope.review = true;
+                        break;
+                    }
+                }
                 $scope.setLoading(false);
             }
 
@@ -276,6 +289,13 @@
         $scope.analysisTypes = AnalysisList.getAnalysisTypes();
         $scope.filters = AnalysisList.getFilters();
         $scope.filteredAnalysis = $scope.analysis.length;
+
+        for (var i in $scope.analysis) {
+            if ($scope.analysis[i].status === "pending") {
+                $scope.review = true;
+                break;
+            }
+        }
 
         //Display the analysis in batches
         if (window.innerWidth > 1500) {
@@ -886,14 +906,14 @@
                             step.type = "rawdata";
                             step.raw_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
                             step.extractionMethod = {extraction_method_type: $scope.typesInfo.step_subtype.replace(/ /g, "_")};
-                            step.step_name = "Unnamed " + step.raw_data_type +" step";
+                            step.step_name = "Unnamed " + step.raw_data_type + " step";
                             step.analyticalReplicate_id = null;
                             $scope.model.non_processed_data.push(step);
                             $scope.model.nextStepID++;
                         } else if ($scope.typesInfo.step_type === "intermediate_data") {
                             step.type = "intermediate_data";
                             step.intermediate_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
-                            step.step_name = "Unnamed " + step.intermediate_data_type +" step";
+                            step.step_name = "Unnamed " + step.intermediate_data_type + " step";
                             step.used_data = [];
                             $scope.model.non_processed_data.push(step);
                             $scope.model.nextStepID++;
@@ -904,7 +924,7 @@
                         } else if ($scope.typesInfo.step_type === "processed_data") {
                             step.type = "processed_data";
                             step.processed_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
-                            step.step_name = "Unnamed " + step.processed_data_type +" step";
+                            step.step_name = "Unnamed " + step.processed_data_type + " step";
                             step.used_data = [];
                             step.reference_data = [];
                             $scope.model.processed_data.push(step);

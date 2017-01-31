@@ -24,6 +24,7 @@
     var app = angular.module('messages.controllers', [
         'ang-dialogs',
         'angular.backtop',
+        'messages.directives.message-views',
         'messages.services.message-list',
         'users.directives.user-list',
         'ui.bootstrap'
@@ -67,17 +68,12 @@
                             $scope.isLoading = false;
                             $scope.messages = MessageList.setMessages(response.data).getMessages();
                             $scope.filteredMessages = $scope.messages.length;
-
-                            //Display the messages in batches
-                            if (window.innerWidth > 1500) {
-                                $scope.visibleMessages = 14;
-                            } else if (window.innerWidth > 1200) {
-                                $scope.visibleMessages = 10;
-                            } else {
-                                $scope.visibleMessages = 6;
+                            $scope.unread = 0;
+                            for (var i in $scope.messages) {
+                                if (!$scope.messages[i].read) {
+                                    $scope.unread++;
+                                }
                             }
-
-                            $scope.visibleMessages = Math.min($scope.filteredMessages, $scope.visibleMessages);
                             $scope.setLoading(false);
                         },
                         function errorCallback(response) {
@@ -94,6 +90,12 @@
             } else {
                 $scope.messages = MessageList.getMessages();
                 $scope.filteredMessages = $scope.messages.length;
+                $scope.unread = 0;
+                for (var i in $scope.messages) {
+                    if (!$scope.messages[i].read) {
+                        $scope.unread++;
+                    }
+                }
                 $scope.setLoading(false);
             }
 
@@ -112,6 +114,10 @@
             $scope.filteredMessages = 0;
             $scope.user_id = $scope.user_id || Cookies.get("loggedUserID");
             return function (item) {
+                if ($scope.show === "unread") {
+                    return !item.read;
+                }
+
                 if ($scope.show !== "all") {
                     return item.type === $scope.show;
                 }
@@ -149,8 +155,31 @@
         this.changeCurrentMessageHandler = function (message) {
             if ($scope.action !== "new-message") {
                 //TODO: SEND "READ" UPDATE TO SERVER
-                message.read = true;
                 $scope.currentMessage = message;
+
+                if (!$scope.currentMessage.read) {
+                    $scope.currentMessage.read = true;
+                    $scope.unread--;
+
+                    $http($rootScope.getHttpRequestConfig("PUT", "message-rest", {
+                        headers: {'Content-Type': 'application/json'},
+                        extra: message.message_id,
+                        data: {
+                            message_json_data: $scope.currentMessage
+                        }
+                    })).then(
+                            function successCallback(response) {
+                            },
+                            function errorCallback(response) {
+                                debugger;
+                                var message = "Failed while updating the message.";
+                                $dialogs.showErrorDialog(message, {
+                                    logMessage: message + " at MessageListController:changeCurrentMessageHandler."
+                                });
+                                console.error(response.data);
+                            }
+                    );
+                }
             }
         };
 
@@ -174,12 +203,72 @@
         };
 
         this.sendNewMessageHandler = function () {
+            var to = "";
             for (var i in $scope.newMessage.users) {
-                $scope.newMessage.users[i].user_id;
+                to += $scope.newMessage.users[i].user_id + ", ";
+            }
+
+            $scope.newMessage.users.push({user_id: Cookies.get("loggedUserID")});
+
+            var total = $scope.newMessage.users.length;
+            for (var i in $scope.newMessage.users) {
                 //TODO: CREATE NEW INSTANCE AND SEND
+                $http($rootScope.getHttpRequestConfig("POST", "message-rest", {
+                    headers: {'Content-Type': 'application/json'},
+                    data: {
+                        message_json_data: {
+                            user_id: $scope.newMessage.users[i].user_id,
+                            sender: Cookies.get("loggedUserID"),
+                            to: to,
+                            subject: $scope.newMessage.subject,
+                            content: $scope.newMessage.content,
+                            type: ($scope.newMessage.users[i].user_id === Cookies.get("loggedUserID")) ? "sent" : "message"
+                        }
+                    }
+                })).then(
+                        function successCallback(response) {
+                            total--;
+                            if (total === 0) {
+                                $scope.action = null;
+                                me.retrieveMessagesData(null, true);
+                            }
+                        },
+                        function errorCallback(response) {
+                            debugger;
+                            var message = "Failed while sending the new message.";
+                            $dialogs.showErrorDialog(message, {
+                                logMessage: message + " at MessageListController:sendNewMessageHandler."
+                            });
+                            console.error(response.data);
+
+                            total--;
+                            if (total === 0) {
+                                me.retrieveMessagesData(null, true);
+                            }
+                        }
+                );
             }
         };
 
+        this.deleteMessageHandler = function (message) {
+            $http($rootScope.getHttpRequestConfig("DELETE", "message-rest", {
+                headers: {'Content-Type': 'application/json'},
+                extra: message.message_id
+            })).then(
+                    function successCallback(response) {
+                        delete $scope.currentMessage;
+                        me.retrieveMessagesData(null, true);
+                    },
+                    function errorCallback(response) {
+                        debugger;
+                        var message = "Failed while deleting the message.";
+                        $dialogs.showErrorDialog(message, {
+                            logMessage: message + " at MessageListController:deleteMessageHandler."
+                        });
+                        console.error(response.data);
+                    }
+            );
+        };
         /**
          * This function applies the filters when the user clicks on "Search"
          */
@@ -202,17 +291,6 @@
             $scope.filters = MessageList.removeFilter(filter).getFilters();
         };
 
-        this.showMoreMessagesHandler = function () {
-            if (window.innerWidth > 1500) {
-                $scope.visibleMessages += 10;
-            } else if (window.innerWidth > 1200) {
-                $scope.visibleMessages += 6;
-            } else {
-                $scope.visibleMessages += 4;
-            }
-            $scope.visibleMessages = Math.min($scope.filteredMessages, $scope.visibleMessages);
-        };
-
         /******************************************************************************
          *      ___ _  _ ___ _____ ___   _   _    ___ ____  _ _____ ___ ___  _  _ 
          *     |_ _| \| |_ _|_   _|_ _| /_\ | |  |_ _|_  / /_\_   _|_ _/ _ \| \| |
@@ -229,24 +307,17 @@
         $scope.messages = MessageList.getMessages();
         $scope.filters = MessageList.getFilters();
         $scope.filteredMessages = $scope.messages.length;
+        $scope.unread = 0;
+        for (var i in $scope.messages) {
+            if (!$scope.messages[i].read) {
+                $scope.unread++;
+            }
+        }
         $scope.newMessage = {
             users: []
         };
 
-        //Display the messages in batches
-        if (window.innerWidth > 1500) {
-            $scope.visibleMessages = 14;
-        } else if (window.innerWidth > 1200) {
-            $scope.visibleMessages = 10;
-        } else {
-            $scope.visibleMessages = 6;
-        }
-
-        $scope.visibleMessages = Math.min($scope.filteredMessages, $scope.visibleMessages);
-
-        if ($scope.messages.length === 0) { //includes the default message
-            this.retrieveMessagesData("my_messages", true);
-        }
+        this.retrieveMessagesData("my_messages", true);
     });
 
 })();

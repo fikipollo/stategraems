@@ -19,7 +19,6 @@
  *  *************************************************************** */
 package classes.analysis;
 
-import classes.User;
 import classes.analysis.non_processed_data.ExternalData;
 import classes.analysis.non_processed_data.IntermediateData;
 import com.google.gson.Gson;
@@ -33,11 +32,9 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 
 /**

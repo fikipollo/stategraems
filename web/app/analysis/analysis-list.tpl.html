@@ -53,7 +53,7 @@
                 </li>
             </ul>
             <div class="nav navbar-nav checkbox" style="margin-left: 15px; line-height: 36px;">
-                <label><input type="checkbox" ng-model="showDeleted" ng-init="showDeleted = false">Show deleted analysis</label>
+                <label><input type="checkbox" ng-model="showDeleted" ng-init="showDeleted = false"> Show deleted analysis</label>
             </div>
             <i ng-show="isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
                 <i class="fa fa-spinner fa-pulse fa-fw"></i> Loading analysis...
@@ -68,6 +68,9 @@
         <div style="margin: auto;display: block;max-width: 625px;text-align: center;margin-top: 34px;">
             <button class="btn btn-lg btn-primary" type="button" ui-sref="analysisDetail({viewMode : 'creation'})"><i class="fa fa-plus-circle"></i> Annotate new analysis</button>
         </div>
+        <div ng-if="review === true" class="panel-danger" style="margin-top:15px; ">
+            <div class="well panel-heading">Some analysis should be reviewed</div>
+         </div>
     </div>
     <div class="row analysis-card-container" id="analysisContainer">
         <analysis-card  ng-repeat="analysis in analysis| filter:filterAnalysis() | orderBy : sortBy | limitTo : visibleAnalysis"></analysis-card>

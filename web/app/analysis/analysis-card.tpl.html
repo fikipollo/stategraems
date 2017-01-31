@@ -7,6 +7,9 @@
             <span class="iu-card-description" style="font-size: 10px;">{{analysis.analysis_id}}</span>
         </h2>
         <div class="iu-card-description" >
+            <div ng-if="analysis.status === 'pending'">
+                <b class="text-danger">This analysis was imported and should be reviewed.</b>
+            </div>
             <p>{{(analysis.analysis_description|| "No description provided")}}</p>
             <a><i class="fa fa-sitemap"></i> Show workflow diagram</a>
         </div>
@@ -14,6 +17,10 @@
             <i class="tag {{getTagColor(tag)}}" ng-repeat="tag in analysis.tags| orderBy">{{tag}}</i>
         </div>
     </div>
-    <a ng-if="analysis.public !== false" class="btn btn-info open-iu-button" ui-sref="analysisDetail({viewMode : 'view', analysis_id : analysis.analysis_id})"> <i class="fa fa-info-circle"></i> More details </a>
-    <a ng-if="analysis.public === false" ng-disabled="true" class="btn btn-info open-iu-button"> <i class="fa fa-info-circle"></i> More details </a>
+    <a ng-if="analysis.status !== 'pending'" class="btn btn-info open-iu-button" ui-sref="analysisDetail({viewMode : 'view', analysis_id : analysis.analysis_id})"> 
+        <i class="fa fa-info-circle"></i> More details 
+    </a>
+    <a ng-if="analysis.status === 'pending'" class="btn btn-danger open-iu-button" ui-sref="analysisDetail({viewMode : 'view', analysis_id : analysis.analysis_id})"> 
+        <i class="fa fa-info-circle"></i> Review this analysis
+    </a>
 </div>
