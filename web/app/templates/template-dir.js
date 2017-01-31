@@ -26,7 +26,6 @@
     var app = angular.module('templates.directives.template', [
         'ang-dialogs',
         'ang-tags',
-//        'bootstrap-tagsinput',
         'users.directives.user-list',
         'samples.directives.sample-views',
         'protocols.directives.protocol-views',
@@ -51,7 +50,8 @@
                                     '       name="{{field.name}}" ' +
                                     '       ng-model="model.' + model.name + '"' +
                                     '       ' + (model.required ? "required" : "") +
-                                    '       ng-readonly="viewMode === \'view\'">';
+                                    '       ng-readonly="viewMode === \'view\'">' +
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "number") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -62,7 +62,8 @@
                                     '       ' + (model.max ? 'max="' + model.max + '"' : '') +
                                     '       ' + (model.step ? 'step="' + model.step + '"' : '') +
                                     '       ' + (model.required ? "required" : "") +
-                                    '       ng-readonly="viewMode === \'view\'">';
+                                    '       ng-readonly="viewMode === \'view\'">' +
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "textarea") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -71,7 +72,8 @@
                                     '          ng-model="model.' + model.name + '"' +
                                     '          ' + (model.required ? "required" : "") +
                                     '          ng-readonly="viewMode === \'view\'">' +
-                                    '</textarea>';
+                                    '</textarea>' +
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "select") {
                             if (model.free === false) {
                                 template +=
@@ -82,7 +84,8 @@
                                         '        ng-model="model.' + model.name + '"' +
                                         '        ng-options="option.value as option.label for option in options.' + model.name.replace(/\./, "_") + '"' +
                                         '        ' + (model.required ? "required" : "") + '>' +
-                                        '</select>';
+                                        '</select>' +
+                                        '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                             } else {
                                 template +=
                                         '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -90,7 +93,8 @@
                                         '       ng-model="model.' + model.name + '"' +
                                         '       uib-typeahead="option.label for option in options.' + model.name.replace(/\./, "_") + ' | filter:$viewValue:startsWith"' +
                                         '       ' + (model.required ? "required" : "") +
-                                        '       ng-readonly="viewMode === \'view\'">';
+                                        '       ng-readonly="viewMode === \'view\'">' +
+                                        '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                             }
 
                             if (model.source) {
@@ -117,7 +121,7 @@
                         } else if (model.type === "date") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
-                                    '<p style=" max-width: 155px; " class="col-sm-7 input-group">' +
+                                    '<div style=" max-width: 155px; " class="col-sm-7 input-group">' +
                                     '  <input type="text" class="form-control"' +
                                     '         uib-datepicker-popup="yyyy/MM/dd" ' +
                                     '         is-open="' + model.name + '_popup.opened" close-text="Close"' +
@@ -128,32 +132,42 @@
                                     '    <button type="button" class="btn btn-default"' +
                                     '            ng-click="' + model.name + '_popup.opened = true;"><i class="glyphicon glyphicon-calendar"></i>' +
                                     '    </button>' +
-                                    '  </span>' +
-                                    '</p>';
+                                    '  </span>'  +
+                                    '<i style="margin-top:-20px;" ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '</div>';
                         } else if (model.type === "tag") {
+                            if (model.source) {
+                                $scope.options[model.name.replace(/\./, "_")] = [];
+                                $http({
+                                    method: 'GET',
+                                    url: model.source,
+                                }).success(function (options) {
+                                    for (var i in options[model.name]) {
+                                        $scope.options[model.name.replace(/\./, "_")].push(options[model.name][i]);
+                                    }
+                                });
+                            }
+
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
                                     '<tag-field class="col-sm-9" ' +
                                     '                      name="{{field.name}}" ' +
                                     '                      ng-model="model.' + model.name + '" ' +
                                     '                      ' + (model.required ? "required" : "") +
+                                    '                      ' + (model.options ? "options=\'" + JSON.stringify(model.options) + "\'" : "") +
+                                    '                      ' + (model.source ? "options=\'options[\"" + model.name.replace(/\./, "_") + "\"]\'" : "") +
+                                    '                      ' + (model.popular ? "popular=\'" + JSON.stringify(model.popular) + "\'" : "") +
                                     '                      editable="viewMode !== \'view\'">' +
-                                    '</tag-field>';
-//                        } else if (model.type === "tag") {
-//                            template +=
-//                                    '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
-//                                    '<bootstrap-tagsinput  class="col-sm-9" tagClass="label label-info" ' +
-//                                    '                      name="{{field.name}}" ' +
-//                                    '                      ng-model="model.' + model.name + '" ' +
-//                                    '                      ' + (model.required ? "required" : "") +
-//                                    '                      ng-readonly="viewMode === \'view\'">' +
-//                                    '</bootstrap-tagsinput>';
+                                    '</tag-field>' +
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+
                         } else if (model.type === "display") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
                                     '<input class="col-sm-9" type="text" disabled' +
                                     '       ng-model="model.' + model.name + '"' +
-                                    '       ng-readonly="viewMode === \'view\'">';
+                                    '       ng-readonly="viewMode === \'view\'">' +
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "user_selector") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -162,7 +176,8 @@
                                     '                      ng-init="models=model.' + model.name + '"' +
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
-                                    '</user-selector-field>';
+                                    '</user-selector-field>' +
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "output_files_selector") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -171,7 +186,8 @@
                                     '                      ng-init="models=model.' + model.name + '"' +
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
-                                    '</output-files-selector-field>';
+                                    '</output-files-selector-field>' +
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "input_files_selector") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -180,7 +196,8 @@
                                     '                      ng-init="models=model.' + model.name + '"' +
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
-                                    '</input-files-selector-field>';
+                                    '</input-files-selector-field>' +
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "reference_files_selector") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -189,19 +206,22 @@
                                     '                      ng-init="models=model.' + model.name + '"' +
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
-                                    '</reference-files-selector-field>';
+                                    '</reference-files-selector-field>' +
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "sample_selector") {
                             template +=
                                     '<sample-selector-field name="{{field.name}}" ' +
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
-                                    '</sample-selector-field>';
+                                    '</sample-selector-field>' +
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "protocol_selector") {
                             template +=
                                     '<protocol-selector-field name="{{field.name}}" ' +
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
-                                    '</protocol-selector-field>';
+                                    '</protocol-selector-field>' +
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else {
                             throw 'Unknown input type ' + model.type + ' : ' + JSON.stringify(model);
                         }

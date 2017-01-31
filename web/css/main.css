@@ -1,6 +1,6 @@
 @font-face {
-font-family: 'Open Sans';
-src: url('fonts/OpenSans-Light.ttf');
+    font-family: 'Open Sans';
+    src: url('fonts/OpenSans-Light.ttf');
 }
 
 html{background-color: #fff;}
@@ -127,7 +127,7 @@ a.clickable{text-decoration: none; }
     #alt_menu_bar {
         display: none;
     }
-    
+
     #wrapper {
         padding-left: 200px;
     }
@@ -239,6 +239,9 @@ table.table td:nth-child(1) {text-align: left;}
 /******************************************************************************************/
 /* STYLES FOR FORMS                                                                       */
 /******************************************************************************************/
+.form-help-tip{margin-left: 5px; vertical-align: middle; color: #bbbbbb}
+.form-help-tip:hover{color: #668B9C}
+
 .form_title {
     /*font-size: 34px;*/
     margin-bottom: 5px;

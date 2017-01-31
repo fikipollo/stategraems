@@ -14,19 +14,19 @@
                     "name": "title",
                     "label": "Title",
                     "type": "text",
-                    "required" : true
+                    "required": true
                 },
                 {
                     "name": "experimentDataDirectory",
                     "label": "Data Directory",
                     "type": "text",
-                    "required" : true
+                    "required": true
                 },
                 {
                     "name": "experiment_description",
                     "label": "Description",
                     "type": "textarea",
-                    "required" : true
+                    "required": true
                 },
                 {
                     "name": "public_references",
@@ -42,7 +42,87 @@
                 {
                     "name": "tags",
                     "label": "Experiment tags",
-                    "type": "tag"
+                    "type": "tag",
+                    "options": [
+                        {
+                            "key": 1,
+                            "value": "Birth cohort"
+                        },                            
+                        {
+                            "key": 2,
+                            "value": "Case-Control"
+                        },
+                        {
+                            "key": 3,
+                            "value": "Cohort"
+                        },
+                        {
+                            "key": 4,
+                            "value": "Cross-sectional"
+                        },
+                        {
+                            "key": 5,
+                            "value": "Disease specific"
+                        },
+                        {
+                            "key": 6,
+                            "value": "Longitudinal"
+                        },
+                        {
+                            "key": 7,
+                            "value": "Multiple conditions"
+                        },
+                        {
+                            "key": 8,
+                            "value": "Other"
+                        },
+                        {
+                            "key": 9,
+                            "value": "Population-based"
+                        },
+                        {
+                            "key": 10,
+                            "value": "Quality control"
+                        },
+                        {
+                            "key": 11,
+                            "value": "Single condition"
+                        },
+                        {
+                            "key": 12,
+                            "value": "Survival"
+                        },
+                        {
+                            "key": 13,
+                            "value": "Time course"
+                        },
+                        {
+                            "key": 14,
+                            "value": "Twin study"
+                        }
+                    ],
+                    "popular": [
+                        {
+                            "key": 1,
+                            "value": "Case-Control"
+                        },
+                        {
+                            "key": 2,
+                            "value": "Multiple conditions"
+                        },
+                        {
+                            "key": 3,
+                            "value": "Single condition"
+                        },
+                        {
+                            "key": 4,
+                            "value": "Survival"
+                        },
+                        {
+                            "key": 5,
+                            "value": "Time course"
+                        }
+                    ]
                 }
             ]
         },
