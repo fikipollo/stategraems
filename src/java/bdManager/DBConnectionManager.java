@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 import javax.sql.DataSource;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.dbcp.BasicDataSourceFactory;
 
 /**
@@ -57,6 +58,7 @@ public class DBConnectionManager {
             connections = new HashMap<Long, Connection>();
             properties = new Properties();
             properties.load(new FileReader(this.data_location + "/db_config.properties"));
+            properties.setProperty("password", new String(Base64.decodeBase64(properties.getProperty("password"))));
             connectionPool = BasicDataSourceFactory.createDataSource(properties);
         } catch (Exception ex) {
             System.err.println(String.format("%tc", new Date()) + " STATEGRAEMS LOG > FAILED TRYING TO OPEN A NEW CONNECTIONS POOL");

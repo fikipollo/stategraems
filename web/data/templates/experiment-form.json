@@ -15,13 +15,7 @@
                     "label": "Title",
                     "type": "text",
                     "required": true
-                },
-                {
-                    "name": "experimentDataDirectory",
-                    "label": "Data Directory",
-                    "type": "text",
-                    "required": true
-                },
+                },                
                 {
                     "name": "experiment_description",
                     "label": "Description",
@@ -35,8 +29,70 @@
                 }
             ]
         },
+
         {
             "name": "section_2",
+            "title": "Data storage",
+            "fields": [
+                {
+                    "name": "data_dir_type",
+                    "label": "Data directory",
+                    "type": "select",
+                    "free": false,
+                    "options": [{
+                            "value": "local_dir",
+                            "label": "Local directory (in server)"
+                        }, {
+                            "value": "ftp_dir",
+                            "label": "FTP directory"
+                        }, {
+                            "value": "irods_dir",
+                            "label": "iRODS directory"
+                        }, {
+                            "value": "none",
+                            "label": "None"
+                        }],
+                    "required": true
+                },
+                {
+                    "name": "data_dir_host",
+                    "label": "Host",
+                    "type": "text",
+                    "required": "model.data_dir_type.search('none|local_dir') < 0",
+                    "dependency": "data_dir_type.search('none|local_dir') < 0"
+                },
+                {
+                    "name": "data_dir_port",
+                    "label": "Port number",
+                    "type": "text",
+                    "required": "model.data_dir_type.search('none|local_dir') < 0",
+                    "dependency": "data_dir_type.search('none|local_dir') < 0"
+                },
+                {
+                    "name": "data_dir_user",
+                    "label": "User",
+                    "type": "text",
+                    "required": "model.data_dir_type.search('none|local_dir') < 0",
+                    "dependency": "data_dir_type.search('none|local_dir') < 0"
+                },
+                {
+                    "name": "data_dir_pass",
+                    "label": "Password",
+                    "type": "password",
+                    "required": "model.data_dir_type.search('none|local_dir') < 0",
+                    "dependency": "data_dir_type.search('none|local_dir') < 0"
+                },
+                {
+                    "name": "data_dir_path",
+                    "label": "Path",
+                    "type": "text",
+                    "required": "model.data_dir_type !== 'none'",
+                    "dependency": "data_dir_type !== 'none'"
+                }
+            ]
+        },
+        {
+            "name": "section_3",
             "title": "Experimental design",
             "fields": [
                 {
@@ -127,7 +183,7 @@
             ]
         },
         {
-            "name": "section_3",
+            "name": "section_4",
             "title": "Other information",
             "fields": [
                 {

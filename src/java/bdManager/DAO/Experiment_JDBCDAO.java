@@ -50,7 +50,7 @@ public class Experiment_JDBCDAO extends DAO {
                 + "  technical_rep_no = ?, contains_chipseq = ?, "
                 + "  contains_dnaseseq = ?, contains_metabolomics = ?, contains_methylseq = ?, contains_mirnaseq = ?, contains_mrnaseq = ?,  "
                 + "  contains_proteomics = ?, contains_other = ?, public_references = ?, submission_date = ?, last_edition_date = ?,"
-                + "  tags= ?, experimentDataDirectory = ? ");
+                + "  tags= ?, data_dir_type = ?, data_dir_host = ?, data_dir_port = ?, data_dir_user = ?, data_dir_pass = ?, data_dir_path = ?");
 
         ps.setString(1, experiment.getExperimentID());
         ps.setString(2, experiment.getTitle());
@@ -69,7 +69,12 @@ public class Experiment_JDBCDAO extends DAO {
         ps.setString(15, experiment.getSubmissionDate().replaceAll("/", ""));
         ps.setString(16, experiment.getLastEditionDate().replaceAll("/", ""));
         ps.setString(17, concatString(", ", experiment.getTags()));
-        ps.setString(18, experiment.getExperimentDataDirectory());
+        ps.setString(18, experiment.getDataDirectoryType());
+        ps.setString(19, experiment.getDataDirectoryHost());
+        ps.setString(20, experiment.getDataDirectoryPort());
+        ps.setString(21, experiment.getDataDirectoryUser());
+        ps.setString(22, experiment.getDataDirectoryPass());
+        ps.setString(23, experiment.getDataDirectoryPath());
         ps.execute();
 
         //Add new entries into the experiment_owners table.
@@ -117,7 +122,7 @@ public class Experiment_JDBCDAO extends DAO {
                 + "  technical_rep_no = ?, contains_chipseq = ?, "
                 + "  contains_dnaseseq = ?, contains_metabolomics = ?, contains_methylseq = ?, contains_mirnaseq = ?, contains_mrnaseq = ?,  "
                 + "  contains_proteomics = ?, contains_other = ?, public_references = ?, submission_date = ?, last_edition_date = ?, "
-                + "  tags = ?, experimentDataDirectory = ? "
+                + "  tags = ?, data_dir_type = ?, data_dir_host = ?, data_dir_port = ?, data_dir_user = ?, data_dir_pass = ?, data_dir_path = ? "
                 + "WHERE experiment_id = ?");
 
         ps.setString(1, experiment.getTitle());
@@ -136,8 +141,13 @@ public class Experiment_JDBCDAO extends DAO {
         ps.setString(14, experiment.getSubmissionDate().replaceAll("/", ""));
         ps.setString(15, experiment.getLastEditionDate().replaceAll("/", ""));
         ps.setString(16, concatString(", ", experiment.getTags()));
-        ps.setString(17, experiment.getExperimentDataDirectory());
-        ps.setString(18, experiment.getExperimentID());
+        ps.setString(17, experiment.getDataDirectoryType());
+        ps.setString(18, experiment.getDataDirectoryHost());
+        ps.setString(19, experiment.getDataDirectoryPort());
+        ps.setString(20, experiment.getDataDirectoryUser());
+        ps.setString(21, experiment.getDataDirectoryPass());
+        ps.setString(22, experiment.getDataDirectoryPath());        
+        ps.setString(23, experiment.getExperimentID());
 
         ps.execute();
 
@@ -218,8 +228,13 @@ public class Experiment_JDBCDAO extends DAO {
             experiment.setPublicReferences(rs.getString("public_references"));
             experiment.setSubmissionDate(rs.getString("submission_date"));
             experiment.setLastEditionDate(rs.getString("last_edition_date"));
-            experiment.setExperimentDataDirectory(rs.getString("experimentDataDirectory"));
             experiment.setTags(rs.getString("tags"));
+            experiment.setDataDirectoryType(rs.getString("data_dir_type"));
+            experiment.setDataDirectoryHost(rs.getString("data_dir_host"));
+            experiment.setDataDirectoryPort(rs.getString("data_dir_port"));
+            experiment.setDataDirectoryUser(rs.getString("data_dir_user"));
+            experiment.setDataDirectoryPass(rs.getString("data_dir_pass"));
+            experiment.setDataDirectoryPath(rs.getString("data_dir_path"));
         }
 
         if (experiment != null) {
@@ -296,8 +311,13 @@ public class Experiment_JDBCDAO extends DAO {
             experiment.setPublicReferences(rs.getString("public_references"));
             experiment.setSubmissionDate(rs.getString("submission_date"));
             experiment.setLastEditionDate(rs.getString("last_edition_date"));
-            experiment.setExperimentDataDirectory(rs.getString("experimentDataDirectory"));
             experiment.setTags(rs.getString("tags"));
+            experiment.setDataDirectoryType(rs.getString("data_dir_type"));
+            experiment.setDataDirectoryHost(rs.getString("data_dir_host"));
+            experiment.setDataDirectoryPort(rs.getString("data_dir_port"));
+            experiment.setDataDirectoryUser(rs.getString("data_dir_user"));
+            experiment.setDataDirectoryPass(rs.getString("data_dir_pass"));
+            experiment.setDataDirectoryPath(rs.getString("data_dir_path"));
             experimentsList.add(experiment);
         }
 

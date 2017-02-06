@@ -2,6 +2,7 @@
     <div class="iu-card-body">
         <h2 class="iu-card-name">{{experiment.title}}</h2>
         <div class="iu-card-description" ng-if="experiment.experiment_description !== undefined">
+            <p>{{experiment.experiment_id}}</p>
             <span>{{(experiment.experiment_description !== ""?experiment.experiment_description:"No description provided")}}</span>
         </div>
         <div class="iu-card-tags-list">

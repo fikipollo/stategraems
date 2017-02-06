@@ -53,8 +53,13 @@ public class Experiment {
     String public_references;
     String submission_date;
     String last_edition_date;
-    String experimentDataDirectory;
     String[] tags;
+    String data_dir_type;
+    String data_dir_host;
+    String data_dir_port;
+    String data_dir_user;
+    String data_dir_pass;
+    String data_dir_path;
 
     User[] experiment_owners;
     User[] experiment_members;
@@ -278,16 +283,85 @@ public class Experiment {
         return false;
     }
 
-    public String getExperimentDataDirectory() {
-        return experimentDataDirectory;
+    public String getDataDirectoryType() {
+        return data_dir_type;
     }
 
-    public void setExperimentDataDirectory(String experimentDataDirectory) {
-        this.experimentDataDirectory = experimentDataDirectory;
+    public void setDataDirectoryType(String data_dir_type) {
+        this.data_dir_type = data_dir_type;
     }
 
-    public String getExperimentDataDirectoryContent(String applicationDataDirectory) throws IOException, InterruptedException, Exception {
-        String dirURL = this.getExperimentDataDirectory();
+    public String getDataDirectoryHost() {
+        return data_dir_host;
+    }
+
+    public void setDataDirectoryHost(String data_dir_host) {
+        this.data_dir_host = data_dir_host;
+    }
+
+    public String getDataDirectoryPort() {
+        return data_dir_port;
+    }
+
+    public void setDataDirectoryPort(String data_dir_port) {
+        this.data_dir_port = data_dir_port;
+    }
+
+    public String getDataDirectoryUser() {
+        return data_dir_user;
+    }
+
+    public void setDataDirectoryUser(String data_dir_user) {
+        this.data_dir_user = data_dir_user;
+    }
+
+    public String getDataDirectoryPass() {
+        return data_dir_pass;
+    }
+
+    public void setDataDirectoryPass(String data_dir_pass) {
+        this.data_dir_pass = data_dir_pass;
+    }
+
+    public String getDataDirectoryPath() {
+        return data_dir_path;
+    }
+
+    public void setDataDirectoryPath(String data_dir_path) {
+        this.data_dir_path = data_dir_path;
+    }
+
+    public String[] getTags() {
+        return tags;
+    }
+
+    public void setTags(String[] tags) {
+        this.tags = tags;
+    }
+
+    public void setTags(String tags) {
+        if (tags != null) {
+            this.tags = tags.split(", ");
+        }
+    }
+
+    //***********************************************************************
+    //* OTHER FUNCTIONS *****************************************************
+    //***********************************************************************
+    public String getExperimentDataDirectoryContent() throws Exception {
+        if ("local_dir".equalsIgnoreCase(this.data_dir_type)) {
+            return this.getLocalDirectoryContent();
+        } else if ("ftp_dir".equalsIgnoreCase(this.data_dir_type)) {
+            throw new IOException("Invalid data directory");
+        } else if ("irods_dir".equalsIgnoreCase(this.data_dir_type)) {
+            throw new IOException("Invalid data directory");
+        }
+        return null;
+    }
+
+    public String getLocalDirectoryContent() throws Exception {
+        String dirURL = this.getDataDirectoryPath();
+
         dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/");
         ArrayList<String> lines = new ArrayList<String>();
 
@@ -328,7 +402,7 @@ public class Experiment {
             //IF THE DIRECTORY WAS NOT SPECIFIED, LETS TRY TO READ THE FILE CONTAINING THE DIRECTORY CONTENT
             //WHICH SHOULD BE CREATED BY THE ADMIN AND UPDATED PERIODICALLY
             try {
-                BufferedReader br = new BufferedReader(new FileReader(applicationDataDirectory + "/" + this.getExperimentID() + "/experimentDataDirectoryContent.txt"));
+                BufferedReader br = new BufferedReader(new FileReader(this.getDataDirectoryPath() + "/" + this.getExperimentID() + "/experimentDataDirectoryContent.txt"));
                 try {
                     String line = br.readLine();
                     while (line != null) {
@@ -384,23 +458,6 @@ public class Experiment {
         return null;
     }
 
-    public String[] getTags() {
-        return tags;
-    }
-
-    public void setTags(String[] tags) {
-        this.tags = tags;
-    }
-
-    public void setTags(String tags) {
-        if (tags != null) {
-            this.tags = tags.split(", ");
-        }
-    }
-
-    //***********************************************************************
-    //* OTHER FUNCTIONS *****************************************************
-    //***********************************************************************
     @Override
     public String toString() {
         return this.toJSON();

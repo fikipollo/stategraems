@@ -36,14 +36,12 @@ import java.io.IOException;
 import java.security.AccessControlException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.codec.binary.StringUtils;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 
 /**
@@ -285,6 +283,17 @@ public class Experiment_servlets extends Servlet {
                     throw new AccessControlException("Cannot update selected Experiment. Current user has not privileges over this Experiment.");
                 }
 
+                //UPDATE THE INFORMATION FOR DATA DIR (REMOVE UNNECESARY DATA)
+                if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType()) || "none".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+                    experiment.setDataDirectoryHost("");
+                    experiment.setDataDirectoryPort("");
+                    experiment.setDataDirectoryUser("");
+                    experiment.setDataDirectoryPass("");
+                } else if ("".equalsIgnoreCase(experiment.getDataDirectoryPass()) || "dummypassword".equalsIgnoreCase(experiment.getDataDirectoryPass())) {
+                    //KEEP PREVIOUS PASS
+                    experiment.setDataDirectoryPass(experimentAux.getDataDirectoryPass());
+                }
+
                 dao_instance.disableAutocommit();
                 ROLLBACK_NEEDED = true;
                 dao_instance.update(experiment);
@@ -395,6 +404,7 @@ public class Experiment_servlets extends Servlet {
                     String experimentsJSON = "[";
 
                     for (int i = 0; i < experimentsList.size(); i++) {
+                        ((Experiment) experimentsList.get(i)).setDataDirectoryPass("dummypassword");
                         experimentsJSON += ((Experiment) experimentsList.get(i)).toJSON() + ((i < experimentsList.size() - 1) ? "," : "");
                     }
                     experimentsJSON += "]";
@@ -459,6 +469,7 @@ public class Experiment_servlets extends Servlet {
                 Object[] params = {loadRecursive};
                 String experiment_id = requestData.get("experiment_id").getAsString();
                 experiment = (Experiment) dao_instance.findByID(experiment_id, params);
+                experiment.setDataDirectoryPass("dummypassword");
 
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "get_experiment_handler", e.getMessage());
@@ -933,10 +944,10 @@ public class Experiment_servlets extends Servlet {
                     throw new AccessControlException("Cannot get files for selected Experiment. Current useris not a valid member for this Experiment.");
                 }
 
-                directoryContent = experiment.getExperimentDataDirectoryContent(DATA_LOCATION);
+                directoryContent = experiment.getExperimentDataDirectoryContent();
 
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_analysis_handler", e.getMessage());
+                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_experiment_directory_content_handler", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -1047,7 +1058,7 @@ public class Experiment_servlets extends Servlet {
                 message.setUserID(loggedUserID);
                 message.setType("sent");
                 daoInstance.insert(message);
-                
+
                 /**
                  * *******************************************************
                  * STEP 4 COMMIT CHANGES TO DATABASE. throws SQLException IF

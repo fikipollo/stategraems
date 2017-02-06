@@ -13,7 +13,6 @@
     });
 
     app.controller('InstallController', function ($rootScope, $scope, $http, $dialogs, myAppConfig) {
-
         this.sendInstallDataHandler = function () {
             $scope.installing = true;
             $http($rootScope.getHttpRequestConfig("POST", "send-install", {
@@ -27,6 +26,7 @@
                         }, 3000);
                     },
                     function errorCallback(response) {
+                        $scope.installing = false;
                         var message = "Failed while installing the application.<br><b>Error Message:</b> " + response.data.reason;
                         $dialogs.showErrorDialog(message, {
                             logMessage: message + " at InstallController:sendInstallData."
@@ -50,6 +50,7 @@
                         }, 3000);
                     },
                     function errorCallback(response) {
+                        $scope.installing = false;
                         var message = "Failed while autoinstalling the application.<br><b>Error Message:</b> " + response.data.reason;
                         $dialogs.showErrorDialog(message, {
                             logMessage: message + " at InstallController:sendAutoInstallDataHandler."

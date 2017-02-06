@@ -1,7 +1,7 @@
 <div ng-class="(lite === true)?'':'col-sm-5'" style="min-height: 360px; margin-top: 20px;">
     <div class="message-list-container clickable panel panel-container " style="min-height: 360px;">
         <h4 style="text-align: center; font-weight: bold">{{title || "Inbox"}} <span ng-show="unread > 0" class="badge">{{unread}}</span> </h4>
-        <p ng-show="messages.length === 0">Your inbox is empty</p>
+        <p ng-show="show !== 'unread' && messages.length === 0" style="text-align: center">Your inbox is empty</p>
         <p ng-show="show === 'unread' && unread === 0" style="text-align: center">You don't have unread messages</p>
         <div class="message-preview" 
              ng-class="message.read ? '' : 'unread'" 
