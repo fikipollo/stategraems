@@ -45,9 +45,8 @@
             $scope.isLoading = true;
 
             if (FileList.getOld() > 1 || force) { //Max age for data 5min.
-                $http($rootScope.getHttpRequestConfig("POST", "file-list", {
-                    headers: {'Content-Type': 'application/json'},
-                    data: $rootScope.getCredentialsParams()
+                $http($rootScope.getHttpRequestConfig("GET", "file-rest", {
+                    headers: {'Content-Type': 'application/json'}
                 })).then(
                         function successCallback(response) {
                             $scope.isLoading = false;
@@ -116,6 +115,72 @@
         //--------------------------------------------------------------------
         // EVENT HANDLERS
         //--------------------------------------------------------------------
+        this.selectNewFileHandler = function () {
+            $('#uploadFileSelector').click();
+        };
+
+        this.uploadFileHandler = function (nItem) {
+            this.removeAllowed = false;
+
+            if (nItem === undefined) {
+                nItem = 0;
+            }
+
+            if ($scope.uploadFiles === undefined) {
+                this.removeAllowed = true;
+                return;
+            }
+
+            if (nItem === $scope.uploadFiles.length) {
+                //Notify all the other controllers that history-list has changed
+                this.removeAllowed = true;
+                me.retrieveFilesData(true);
+                return;
+            }
+
+            var file = $scope.uploadFiles[nItem];
+
+            if (file.state !== "pending") {
+                this.removeAllowed = true;
+                me.uploadFileHandler(nItem + 1);
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('file_data', file);
+            file.state = "uploading";
+
+            $http($rootScope.getHttpRequestConfig("POST", "file-rest", {
+                data: formData,
+                headers: {'Content-Type': undefined},
+                config: {
+                    transformRequest: angular.identity,
+                }
+            })).then(
+                    function successCallback(response) {
+                        file.state = "done";
+                        me.uploadFileHandler(nItem + 1);
+                    },
+                    function errorCallback(response) {
+                        file.state = "error";
+                        me.uploadFileHandler(nItem + 1);
+                        debugger;
+                        console.error("Error while uploading a new file at FileListController:uploadFileHandler.");
+                        console.error(response);
+                    }
+            );
+        };
+
+        this.deleteToUploadFileHandler = function (selectedItem) {
+            $('#uploadFileSelector').val("");
+            for (var i in $scope.uploadFiles) {
+                if ($scope.uploadFiles[i] === selectedItem) {
+                    $scope.uploadFiles.splice(i, 1);
+                    return;
+                }
+            }
+        };
+
         /**
          * This function handles the event when clicking on the "Choose files" button
          * in a "File selector" field.
@@ -228,6 +293,12 @@
         //--------------------------------------------------------------------
         var me = this;
 
+        $scope.files = FileList.getFiles();
+        $scope.filters = FileList.getFilters();
+        $scope.filteredFiles = $scope.files.length;
+        $scope.filesTree = FileList.getFilesTree();
+        $scope.uploadFiles = [];
+
         //This controller uses the FileList, which defines a Singleton instance of
         //a list of files + list of tags + list of filters. Hence, the application will not
         //request the data everytime that the file list panel is displayed (data persistance).
@@ -235,5 +306,6 @@
             $scope.searchFor = {search: ""};
             this.retrieveFilesData();
         }
+
     });
 })();

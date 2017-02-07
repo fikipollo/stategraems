@@ -56,7 +56,7 @@
                     '          </button>' +
                     '          <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">' +
                     '            <li class="dropdown-header">Signed in as <b>{{userInfo.email}}</b></li>' +
-                    '            <li><a ng-click="controller.signOutButtonHandler()">Sign out</a></li>' +
+                    '            <li><a ng-click="controller.signOutButtonHandler()" class="clickable">Sign out</a></li>' +
                     // '            <li role="separator" class="divider"></li>' +
                     // '            <li><a href="' + EMS_SERVER_URL + '" target="_blank">Go to Galaxy site</a></li>' +
                     '          </ul>' +
@@ -94,6 +94,7 @@
                     ' <div class="panel panel-container" ng-controller="UserSessionController as controller">' +
                     '   <h4>Your account</h4>' +
                     '   <p><b>Signed in as </b> <i>{{userInfo.email}}</i></p>' +
+                    '   <p><b>API code: </b> <i>{{userInfo.apicode}}</i></p>' +
                     '  <div style="text-align: center;">' +
                     '    <a class="btn btn-primary btn-sm" style="display: inline-block;margin: auto;" ng-click="controller.changePasswordButtonHandler()"><i class="fa fa-key fa-fw"></i> Change password</a>' +
                     '    <a class="btn btn-danger btn-sm" style="display: inline-block; margin: auto;" ng-click="controller.signOutButtonHandler()"><i class="fa fa-sign-out fa-fw"></i> Close session</a>' +

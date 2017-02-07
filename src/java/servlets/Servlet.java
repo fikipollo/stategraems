@@ -111,14 +111,14 @@ public abstract class Servlet extends HttpServlet {
         }
         return true;
     }
-    
+
     /*------------------------------------------------------------------------------------------*
      *                                                                                          *
      * OTHER FUNCTIONS                                                                          *
      *                                                                                          *
      *------------------------------------------------------------------------------------------*/
     protected boolean matchService(String request, String service) {
-        if(request == null){
+        if (request == null) {
             return false;
         }
         // Create a Pattern object
@@ -128,11 +128,14 @@ public abstract class Servlet extends HttpServlet {
         return m.find();
         //m.group(0)
     }
-    
-    protected Map<String, Cookie> getCookies(HttpServletRequest request){
-        HashMap<String, Cookie> cookies = new HashMap<String, Cookie>();
-        for(Cookie cookie : request.getCookies()){
-            cookies.put(cookie.getName(), cookie);
+
+    protected Map<String, Cookie> getCookies(HttpServletRequest request) {
+        HashMap<String, Cookie> cookies = null;
+        if (request.getCookies() != null) {
+            cookies = new HashMap<String, Cookie>();
+            for (Cookie cookie : request.getCookies()) {
+                cookies.put(cookie.getName(), cookie);
+            }
         }
         return cookies;
     }

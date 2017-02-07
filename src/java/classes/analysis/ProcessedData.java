@@ -26,6 +26,7 @@ import com.google.gson.JsonObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 
 /**
  *
@@ -190,7 +191,7 @@ public class ProcessedData extends Step {
         description += "\n";
         description += "Parameters:\n";
         for (JsonElement input : step_json_object.get("parameters").getAsJsonArray()) {
-            description += "  - " + input.getAsJsonObject().get("name").getAsString() + ": " + input.getAsJsonObject().get("value").getAsString() + "\n";
+            description += Step.getParameterDescription(input.getAsJsonObject(), 1);
         }
 
         step.setSoftwareConfiguration(description);
@@ -205,4 +206,5 @@ public class ProcessedData extends Step {
 
         return step;
     }
+
 }

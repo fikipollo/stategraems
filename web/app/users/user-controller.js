@@ -1,6 +1,6 @@
 /*
- * (C) Copyright 2016 SLU Global Bioinformatics Centre, SLU
- * (http://sgbc.slu.se) and the B3Africa Project (http://www.b3africa.org/).
+ * (C) Copyright 2014 The Genomics of Gene Expression Lab, CIPF 
+ * (http://bioinfo.cipf.es/aconesawp) and others.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -13,9 +13,8 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     Rafael Hernandez de Diego <rafahdediego@gmail.com>
- *     Tomas Klingström
- *     Erik Bongcam-Rudloff
+ *     Rafael Hernandez de Diego, rhernandez@cipf.es
+ *     Ana Conesa Cegarra, aconesa@cipf.es
  *     and others.
  *
  * THIS FILE CONTAINS THE FOLLOWING MODULE DECLARATION
@@ -46,6 +45,7 @@
                     function successCallback(response) {
                         $scope.userInfo.email = response.data.email;
                         $scope.userInfo.user_id = response.data.user_id;
+                        $scope.userInfo.apicode = btoa(response.data.email + ":" + Cookies.get("sessionToken"));
                     },
                     function errorCallback(response) {
                         var message = "Failed while getting user's details at UserSessionController:getCurrentUserDetails";
@@ -93,12 +93,15 @@
 
                             $scope.userInfo.email = response.data.email;
                             $scope.userInfo.user_id = response.data.user_id;
+                            $scope.userInfo.apicode = btoa(response.data.email + ":" + response.data.sessionToken);
 
                             //SET THE COOKIES
                             Cookies.set("loggedUser", $scope.userInfo.email, {expires: 1, path: window.location.pathname});
                             Cookies.set("loggedUserID", $scope.userInfo.user_id, {expires: 1, path: window.location.pathname});
                             Cookies.set("sessionToken", response.data.sessionToken, {expires: 1, path: window.location.pathname});
-                            Cookies.set("currentExperimentID", response.data.last_experiment_id, {expires: 1, path: window.location.pathname});
+                            if (response.data.last_experiment_id !== undefined) {
+                                Cookies.set("currentExperimentID", response.data.last_experiment_id, {expires: 1, path: window.location.pathname});
+                            }
 
                             delete $scope.userInfo.password;
                             delete $scope.signForm;

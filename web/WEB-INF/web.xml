@@ -32,6 +32,10 @@
         <servlet-name>Message_servlets</servlet-name>
         <servlet-class>servlets.Message_servlets</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>File_servlets</servlet-name>
+        <servlet-class>servlets.File_servlets</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>Analysis_servlets</servlet-name>
         <url-pattern>/rest/analysis/*</url-pattern>
@@ -122,6 +126,10 @@
     <servlet-mapping>
         <servlet-name>Message_servlets</servlet-name>
         <url-pattern>/rest/messages/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>File_servlets</servlet-name>
+        <url-pattern>/rest/files/*</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

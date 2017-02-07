@@ -260,8 +260,8 @@
                     return myAppConfig.EMS_SERVER + "unlock_protocol";
                 case "message-rest":
                     return myAppConfig.EMS_SERVER + "rest/messages" + extra;
-                case "file-list":
-                    return myAppConfig.EMS_SERVER + "get_experiment_directory_content";
+                case "file-rest":
+                    return myAppConfig.EMS_SERVER + "rest/files";
                 case "check-install":
                     return myAppConfig.EMS_SERVER + "is_valid_installation";
                 default:
@@ -287,7 +287,8 @@
                 headers: options.headers,
                 url: this.getRequestPath(service, options.extra),
                 params: options.params,
-                data: options.data
+                data: options.data,
+                config: options.config
             };
             if (options.transformRequest !== undefined) {
                 requestData.transformRequest = options.transformRequest;

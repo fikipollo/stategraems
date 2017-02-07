@@ -37,11 +37,11 @@ public class ExternalData extends NonProcessedData {
 
     public ExternalData() {
         super();
-        this.type = "external_data";
+        this.type = "external_source";
     }
 
     public ExternalData(String step_id) {
-        super(step_id, "external_data");
+        super(step_id, "external_source");
     }
 
     /**

@@ -21,6 +21,7 @@ package classes.analysis.non_processed_data;
 
 import classes.User;
 import classes.analysis.NonProcessedData;
+import classes.analysis.Step;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -178,7 +179,7 @@ public class IntermediateData extends NonProcessedData {
         description += "\n";
         description += "Parameters:\n";
         for (JsonElement input : step_json_object.get("parameters").getAsJsonArray()) {
-            description += "  - " + input.getAsJsonObject().get("name").getAsString() + ": " + input.getAsJsonObject().get("value").getAsString() + "\n";
+            description += Step.getParameterDescription(input.getAsJsonObject(), 1);
         }
 
         step.setSoftwareConfiguration(description);
