@@ -76,13 +76,13 @@
          * @returns this
          ******************************************************************************/
         this.retrieveAnalysisData = function (group, force) {
-            $scope.setLoading(true);
             if (!Cookies.get("currentExperimentID")) {
                 $dialogs.showInfoDialog("Please, choose first an study at the \"Browse studies\" section.");
                 $state.go('experiments');
                 return;
             }
 
+            $scope.setLoading(true);
             if (AnalysisList.getOld() > 1 || force) { //Max age for data 5min.
                 $http($rootScope.getHttpRequestConfig("POST", "analysis-list", {
                     headers: {'Content-Type': 'application/json'},

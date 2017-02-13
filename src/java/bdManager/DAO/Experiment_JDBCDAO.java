@@ -146,7 +146,7 @@ public class Experiment_JDBCDAO extends DAO {
         ps.setString(19, experiment.getDataDirectoryPort());
         ps.setString(20, experiment.getDataDirectoryUser());
         ps.setString(21, experiment.getDataDirectoryPass());
-        ps.setString(22, experiment.getDataDirectoryPath());        
+        ps.setString(22, experiment.getDataDirectoryPath());
         ps.setString(23, experiment.getExperimentID());
 
         ps.execute();
@@ -411,10 +411,12 @@ public class Experiment_JDBCDAO extends DAO {
     //******************************************************************************************************************************************/
     @Override
     public boolean remove(String object_id) throws SQLException {
+        //First remove the associated analysis if no other experiments are using them
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "SELECT analysis_id FROM experiments_contains_analysis WHERE experiment_id = ?");
         ps.setString(1, object_id);
         ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
+
         String analysisId;
         ResultSet rs1;
         DAO analysisDAO = DAOProvider.getDAOByName("Analysis");
@@ -427,6 +429,12 @@ public class Experiment_JDBCDAO extends DAO {
             rs1.first();
             if (rs1.getInt(1) == 1) {
                 analysisDAO.remove(analysisId);
+            } else {
+                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                        + "DELETE FROM experiments_contains_analysis WHERE experiment_id = ? AND analysis_id = ?");
+                ps.setString(1, object_id);
+                ps.setString(2, analysisId);
+                rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
             }
         }
 

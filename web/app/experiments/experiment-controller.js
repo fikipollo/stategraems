@@ -163,8 +163,8 @@
                     }
             );
         };
-        
-                /******************************************************************************      
+
+        /******************************************************************************      
          * This function send a membership requests to the administrators of the 
          * experiment. 
          * @return   
@@ -770,6 +770,10 @@
                     data: $rootScope.getCredentialsParams({'experiment_id': $scope.model.experiment_id, loggedUserID: current_user_id}),
                 })).then(
                         function successCallback(response) {
+                            if ($scope.model.experiment_id === Cookies.get('currentExperimentID')) {
+                                Cookies.remove("currentExperimentID", {path: window.location.pathname});
+                            }
+                            
                             $scope.setLoading(false);
                             //Notify all the other controllers that user has signed in
                             $rootScope.$emit(APP_EVENTS.experimentDeleted);
@@ -806,7 +810,7 @@
             this.execute_tasks(true);
             return this;
         };
-        
+
         /******************************************************************************
          * This function send a Edition request to the server in order to block the Experiment
          * avoiding that other users edit it before the user saves the changes.
