@@ -1130,7 +1130,7 @@
         }
     });
 
-    app.controller('StepDetailController', function ($state, $rootScope, $scope, $http, $uibModal, APP_EVENTS, AnalysisList, SampleList, TemplateList) {
+    app.controller('StepDetailController', function ($state, $rootScope, $scope, $http, $uibModal, $dialogs, APP_EVENTS, AnalysisList, SampleList, TemplateList) {
         /******************************************************************************      
          *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
          *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
@@ -1265,6 +1265,71 @@
         this.unremoveStepHandler = function () {
             AnalysisList.updateModelStatus($scope.model, "undo");
             $rootScope.$emit(APP_EVENTS.stepChanged);
+        };
+
+        this.sendStepToGalaxyHandler = function (model) {
+            $scope.files_selection = {
+                destination: '',
+                selection: 'all',
+                files: []
+            };
+
+            $scope.modalInstance = $uibModal.open({
+                templateUrl: 'app/analysis/send-step-dialog.tpl.html',
+                scope: $scope,
+                backdrop: 'static',
+                size: 'md'
+            });
+
+        };
+
+        this.changeFileSelection = function (file) {
+            var pos = $scope.files_selection.files.indexOf(file);
+            if (pos !== -1) {
+                $scope.files_selection.files.splice(pos, 1);
+            } else {
+                $scope.files_selection.files.push(file);
+            }
+        };
+
+        this.closeSendStepDialogHandler = function (option) {
+            if (option === 'send') {
+                $scope.setLoading(true);
+                if ($scope.files_selection.selection === "all") {
+                    $scope.files_selection.files = $scope.model.files_location;
+                }
+              
+                $http($rootScope.getHttpRequestConfig("POST", "file-rest", {
+                    headers: {'Content-Type': 'application/json; charset=utf-8'},
+                    data: {
+                        files : $scope.files_selection.files,
+                        destination : $scope.files_selection.destination
+                    },
+                    extra : "send"
+                })).then(
+                        function successCallback(response) {
+                            $scope.setLoading(false);
+                            if (response.data.errors === "") {
+                                $dialogs.showSuccessDialog("The selected files have being sent successfully.");
+                            } else {
+                                $dialogs.showWarningDialog("Some errors were found while sending the selected files: " + response.data.errors);
+                            }
+                        },
+                        function errorCallback(response) {
+                            $scope.setLoading(false);
+                            var message = "Failed while sending the files.";
+                            $dialogs.showErrorDialog(message, {
+                                logMessage: message + " at AnalysisDetailController:closeSendStepDialogHandler."
+                            });
+                            console.error(response.data);
+                            debugger
+                        }
+                );
+            }
+
+            $scope.modalInstance.close();
+            delete $scope.modalInstance;
+            delete $scope.files_selection;
         };
 
         /******************************************************************************

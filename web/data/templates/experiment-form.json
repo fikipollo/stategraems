@@ -49,6 +49,9 @@
                             "value": "irods_dir",
                             "label": "iRODS directory"
                         }, {
+                            "value": "seeddms_dir",
+                            "label": "SeedDMS directory"
+                        }, {
                             "value": "none",
                             "label": "None"
                         }],

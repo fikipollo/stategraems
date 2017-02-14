@@ -1,0 +1,33 @@
+<div>
+    <nav class="modal-header navbar navbar-default navbar-top title-bar">
+        <h1 class="form_title">Send step results</h1>
+    </nav>
+    <div class="modal-body">
+        <div style="margin: 20px;">
+            <div class="form-group">
+                <label for="sel1">Choose destination:</label>
+                <select class="form-control" name="destination" ng-model="files_selection.destination">
+                    <option>BiBBox Galaxy</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <div class="radio">
+                    <label><input type="radio" name="file_selection" value="all" ng-model="files_selection.selection">All files</label>
+                </div>
+                <div class="radio">
+                    <label><input type="radio" name="file_selection" value="choose" ng-model="files_selection.selection">Choose the files to send</label>
+                </div>
+            </div>
+            <div ng-show="files_selection.selection === 'choose'" style=" padding: 5px 15px; border: 1px solid #dedede; border-radius: 4px; ">
+                <div class="checkbox" ng-repeat="file in model.files_location">
+                    <label><input type="checkbox" value="{{file}}" ng-click="controller.changeFileSelection(file)">{{file}}</label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-success btn-lg" type="button" ng-disabled="(files_selection.selection !== 'all') && (files_selection.files.length === 0)" ng-click="controller.closeSendStepDialogHandler('send');">Send the results</button>
+            <button class="btn btn-danger btn-lg" type="button" ng-click="controller.closeSendStepDialogHandler('cancel');">Cancel</button>
+        </div>
+    </div>
+</div>
+

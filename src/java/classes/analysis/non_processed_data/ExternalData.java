@@ -22,8 +22,10 @@ package classes.analysis.non_processed_data;
 import classes.User;
 import classes.analysis.NonProcessedData;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -84,7 +86,13 @@ public class ExternalData extends NonProcessedData {
 
     public static ExternalData parseStepGalaxyData(JsonObject step_json_object, JsonObject analysisData, String emsuser) {
         ExternalData step = new ExternalData("STxxxx." + step_json_object.get("id").getAsString());
-        step.setFilesLocation(new String[]{});
+        
+        String prefix = analysisData.get("experiment_id").getAsString() + "/" + analysisData.get("analysis_id").getAsString() + "/";
+        ArrayList<String> outputs = new ArrayList<String>();
+        for(JsonElement output : step_json_object.get("outputs").getAsJsonArray()){
+            outputs.add(prefix + output.getAsJsonObject().get("file").getAsString().replaceAll(" ", "_") + "." + output.getAsJsonObject().get("extension").getAsString());
+        }
+        step.setFilesLocation(outputs.toArray(new String[]{}));
         
         Date dateNow = new Date();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");

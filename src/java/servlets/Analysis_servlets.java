@@ -357,7 +357,8 @@ public class Analysis_servlets extends Servlet {
                  */
                 daoInstance = DAOProvider.getDAOByName("Analysis");
                 lockedID = daoInstance.getNextObjectID(null);
-
+                requestData.add("analysis_id", new JsonPrimitive(lockedID));
+                
                 /**
                  * *******************************************************
                  * STEP 3 Get the ANALYSIS Object by parsing the JSON data. IF

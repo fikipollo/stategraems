@@ -56,7 +56,7 @@ public class Experiment {
     String submission_date;
     String last_edition_date;
     String[] tags;
-    String data_dir_type;
+    String data_dir_type; //local_dir, ftp_dir, irods_dir, seeddms_dir
     String data_dir_host;
     String data_dir_port;
     String data_dir_user;
@@ -326,7 +326,7 @@ public class Experiment {
     }
 
     public String getDataDirectoryPath() {
-        return data_dir_path;
+        return (data_dir_path.lastIndexOf("/") == data_dir_path.length()-1)? data_dir_path : data_dir_path + "/";
     }
 
     public void setDataDirectoryPath(String data_dir_path) {

@@ -24,6 +24,7 @@ import bdManager.DAO.DAOProvider;
 import classes.Experiment;
 import classes.Message;
 import classes.User;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -33,10 +34,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import common.ServerErrorManager;
 import java.io.File;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.AccessControlException;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import java.util.Map;
@@ -44,6 +49,15 @@ import javax.servlet.http.Cookie;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 /**
  *
@@ -55,6 +69,8 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
  * +----------------------+-----------------------+---------------+------------------------------+---------------------+
  * | /rest/files/1234     | Error                 | Download file | If exist replace file        | Delete file         |
  * +----------------------+-----------------------+---------------+------------------------------+---------------------+
+ * | /rest/files/send     | Send selection        |               |                              |                     |
+ * +----------------------+-----------------------+---------------+------------------------------+---------------------+
  *
  */
 public class File_servlets extends Servlet {
@@ -63,7 +79,9 @@ public class File_servlets extends Servlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.addHeader("Access-Control-Allow-Origin", "*");
         response.setContentType("application/json");
-        if (matchService(request.getPathInfo(), "/(.+)")) {
+        if (matchService(request.getPathInfo(), "/send")) {
+            send_file_handler(request, response);
+        } else if (matchService(request.getPathInfo(), "/(.+)")) {
             //Do nothing
         } else {
             add_new_file_handler(request, response);
@@ -114,6 +132,7 @@ public class File_servlets extends Servlet {
             Experiment experiment = null;
             boolean REMOVE_FILE_NEEDED = false;
             String parent_dir = "";
+            String file_name = "";
             try {
 
                 if (!ServletFileUpload.isMultipartContent(request)) {
@@ -134,19 +153,19 @@ public class File_servlets extends Servlet {
                     loggedUser = cookies.get("loggedUser").getValue();
                     sessionToken = cookies.get("sessionToken").getValue();
                     loggedUserID = cookies.get("loggedUserID").getValue();
-                } else{
+                } else {
                     String apicode = request.getParameter("apicode");
                     apicode = new String(Base64.getDecoder().decode(apicode));
-                    
+
                     loggedUser = apicode.split(":")[0];
                     sessionToken = apicode.split(":")[1];
                 }
-                
+
                 if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
-                
-                if(loggedUserID == null){
+
+                if (loggedUserID == null) {
                     daoInstance = DAOProvider.getDAOByName("User");
                     loggedUserID = ((User) daoInstance.findByID(loggedUser, new Object[]{null, false, true})).getUserID();
                 }
@@ -163,10 +182,15 @@ public class File_servlets extends Servlet {
                 } else {
                     experiment_id = cookies.get("currentExperimentID").getValue();
                 }
-                
+
                 parent_dir = "";
                 if (request.getParameter("parent_dir") != null) {
                     parent_dir = request.getParameter("parent_dir");
+                }
+                
+                file_name = "";
+                if (request.getParameter("file_name") != null) {
+                    file_name = request.getParameter("file_name");
                 }
                 /**
                  * *******************************************************
@@ -188,9 +212,9 @@ public class File_servlets extends Servlet {
                  */
                 FileItem tmpUploadedFile = null;
                 final String CACHE_PATH = "/tmp/";
-                final int CACHE_SIZE = 100 * (int) Math.pow(10, 6);
-                final int MAX_REQUEST_SIZE = 50 * (int) Math.pow(10, 6);
-                final int MAX_FILE_SIZE = 20 * (int) Math.pow(10, 6); //TODO: READ FROM SETTINGS
+                final int CACHE_SIZE = 500 * (int) Math.pow(10, 6);
+                final int MAX_REQUEST_SIZE = 600 * (int) Math.pow(10, 6);
+                final int MAX_FILE_SIZE = 500 * (int) Math.pow(10, 6); //TODO: READ FROM SETTINGS
 
                 // Create a factory for disk-based file items
                 DiskFileItemFactory factory = new DiskFileItemFactory();
@@ -226,7 +250,8 @@ public class File_servlets extends Servlet {
                  */
                 //First check if the file already exists -> error, probably a previous treatmente exists with the same treatment_id
                 Path tmpDir = Files.createTempDirectory(null);
-                uploadedFile = new File(tmpDir.toString(), tmpUploadedFile.getName());
+                file_name = (file_name.isEmpty()? tmpUploadedFile.getName() : file_name);
+                uploadedFile = new File(tmpDir.toString(), file_name);
 
                 try {
                     tmpUploadedFile.write(uploadedFile);
@@ -263,6 +288,111 @@ public class File_servlets extends Servlet {
             }
         } catch (Exception e) {
             ServerErrorManager.handleException(e, File_servlets.class.getName(), "add_new_file_handler", e.getMessage());
+            response.setStatus(400);
+            response.getWriter().print(ServerErrorManager.getErrorResponse());
+        }
+    }
+
+    private void send_file_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            DAO daoInstance = null;
+            String errors = "";
+            try {
+
+                /**
+                 * *******************************************************
+                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
+                 * ERROR --> throws exception if not valid session, GO TO STEP
+                 * 5b ELSE --> GO TO STEP 2
+                 * *******************************************************
+                 */
+                Map<String, Cookie> cookies = this.getCookies(request);
+
+                String loggedUser, loggedUserID = null, sessionToken;
+                loggedUser = cookies.get("loggedUser").getValue();
+                sessionToken = cookies.get("sessionToken").getValue();
+                loggedUserID = cookies.get("loggedUserID").getValue();
+
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 2 Get the Experiment Object from DB. IF ERROR -->
+                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * *******************************************************
+                 */
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                ArrayList<String> files = new ArrayList<String>();
+                Iterator<JsonElement> it = requestData.get("files").getAsJsonArray().iterator();
+                while (it.hasNext()) {
+                    files.add(it.next().getAsString());
+                }
+
+                String destination = requestData.get("destination").getAsString();
+                //TODO: read destination URL and credentials from User
+                HashMap<String, String> destination_settings = new HashMap<String, String>();
+                destination_settings.put("type", "galaxy");
+                destination_settings.put("URL", "http://localhost:8090");
+                destination_settings.put("key", "2b059e2a17f03406c65e5a7e429958f1");
+
+                String experiment_id;
+                if (request.getParameter("experiment_id") != null) {
+                    experiment_id = requestData.get("experiment_id").getAsString();
+                } else {
+                    experiment_id = cookies.get("currentExperimentID").getValue();
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 3 Check that the user is a valid owner for the experiment.
+                 * *******************************************************
+                 */
+                daoInstance = DAOProvider.getDAOByName("Experiment");
+                Experiment experiment = (Experiment) daoInstance.findByID(experiment_id, null);
+
+                if (!experiment.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
+                    throw new AccessControlException("Cannot get files for selected Experiment. Current useris not a valid member for this Experiment.");
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 3 SEND THE FILES IN THE SERVER. IF ERROR --> throws
+                 * exception if not valid session, GO TO STEP 6b ELSE --> GO TO STEP
+                 * 3 *******************************************************
+                 */
+                String tmpfile;
+                for (String file : files) {
+                    try {
+                        tmpfile = this.retrieveFileFromDataDir(file, experiment);
+                        this.sendFileToExternalApplication(tmpfile, destination_settings);
+                    } catch (Exception e) {
+                        errors += "Failed while sending file " + file + "\n";
+                    }
+                }
+            } catch (Exception e) {
+                ServerErrorManager.handleException(e, File_servlets.class.getName(), "send_file_handler", e.getMessage());
+            } finally {
+                /**
+                 * *******************************************************
+                 * STEP 5b CATCH ERROR, CLEAN CHANGES. throws SQLException
+                 * *******************************************************
+                 */
+                if (ServerErrorManager.errorStatus()) {
+                    response.setStatus(400);
+                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+                } else {
+                    JsonObject obj = new JsonObject();
+                    obj.add("success", new JsonPrimitive(true));
+                    obj.add("errors", new JsonPrimitive(errors));
+                    response.getWriter().print(obj.toString());
+                }
+            }
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, File_servlets.class.getName(), "send_file_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -620,6 +750,63 @@ public class File_servlets extends Servlet {
             ServerErrorManager.handleException(e, File_servlets.class.getName(), "delete_message_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
+        }
+    }
+
+    /*------------------------------------------------------------------------------------------*
+     *                                                                                          *
+     * AUXILIAR FUNCTIONS                                                                       *
+     *                                                                                          *
+     *------------------------------------------------------------------------------------------*/
+    private String retrieveFileFromDataDir(String filename, Experiment experiment) throws Exception {
+        if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+            filename = filename.substring(filename.indexOf("/") + 1);
+            return experiment.getDataDirectoryPath() + filename;
+        } else if ("ftp_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+            throw new Exception("Not implemented");
+        } else if ("irods_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+            throw new Exception("Not implemented");
+        } else if ("seeddms_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+            throw new Exception("Not implemented");
+        }
+        return null;
+    }
+
+    private void sendFileToExternalApplication(String file_path, HashMap<String, String> destination_settings) throws Exception {
+        if ("galaxy".equalsIgnoreCase(destination_settings.get("type"))) {
+            this.sendFileToGalaxy(file_path, destination_settings);
+        } else {
+            throw new Exception("Destination type unknown.");
+        }
+    }
+
+    private void sendFileToGalaxy(String file_path, HashMap<String, String> destination_settings) throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        URI uri = new URIBuilder(destination_settings.get("URL") + "/api/histories/most_recently_used").addParameter("key", destination_settings.get("key")).build();
+
+        HttpGet get = new HttpGet(uri);
+        HttpResponse response = httpclient.execute(get);
+        JsonElement jelement = new JsonParser().parse(org.apache.http.util.EntityUtils.toString(response.getEntity()));
+
+        String historyID = jelement.getAsJsonObject().get("id").getAsString();
+        
+        uri = new URIBuilder(destination_settings.get("URL") + "/api/tools/").addParameter("key", destination_settings.get("key")).build();
+        HttpPost post = new HttpPost(uri);
+        FileBody fileBody = new FileBody(new File(file_path));
+
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+        builder.addPart("files_0|file_data", fileBody);
+//        builder.addPart("inputs", new StringBody("{\"dbkey\":\"?\",\"file_type\":\"txt\",\"files_0|type\":\"upload_dataset\",\"files_0|space_to_tab\":null,\"files_0|to_posix_lines\":\"Yes\"}"));
+        builder.addPart("tool_id", new StringBody("upload1"));
+        builder.addPart("history_id", new StringBody(historyID));
+        post.setEntity(builder.build());
+
+        response = httpclient.execute(post);
+
+        httpclient.close();
+        
+        if(response.getStatusLine().getStatusCode() != 200){
+            throw new Exception();
         }
     }
 

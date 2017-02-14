@@ -261,7 +261,7 @@
                 case "message-rest":
                     return myAppConfig.EMS_SERVER + "rest/messages" + extra;
                 case "file-rest":
-                    return myAppConfig.EMS_SERVER + "rest/files";
+                    return myAppConfig.EMS_SERVER + "rest/files" + extra;
                 case "check-install":
                     return myAppConfig.EMS_SERVER + "is_valid_installation";
                 default:

@@ -1,40 +1,21 @@
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import javax.net.ssl.HttpsURLConnection;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.util.EntityUtils;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -49,27 +30,29 @@ public class test {
 
     public static void main(String[] args) {
         try {
-            URI uri = new URIBuilder("http://localhost:8084/rest/messages/").addParameter("key", "bf9e1fdf024320fc9f709def87480ca0").build();
-//            URI uri = new URIBuilder("http://localhost:8090/api/tools/").addParameter("key", "bf9e1fdf024320fc9f709def87480ca0").build();
+            CloseableHttpClient httpclient = HttpClients.createDefault();
+
+            URI uri = new URIBuilder("http://localhost:8090/api/histories/most_recently_used").addParameter("key", "2b059e2a17f03406c65e5a7e429958f1").build();
+            HttpGet get = new HttpGet(uri);
+            HttpResponse response = httpclient.execute(get);
+            JsonElement jelement = new JsonParser().parse(org.apache.http.util.EntityUtils.toString(response.getEntity()));
+            
+            String historyID = jelement.getAsJsonObject().get("id").getAsString();
+            
+            uri = new URIBuilder("http://localhost:8090/api/tools/").addParameter("key", "2b059e2a17f03406c65e5a7e429958f1").build();
             HttpPost post = new HttpPost(uri);
-            FileBody fileBody = new FileBody(new File("/home/rhernandez/Desktop/caca/unnamed.jpg"));
+            FileBody fileBody = new FileBody(new File("/home/rhernandez/Desktop/caca/2.png"));
 
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+            builder.addPart("files_0|file_data", fileBody);
+//            builder.addPart("inputs", new StringBody("{\"dbkey\":\"?\",\"file_type\":\"txt\",\"files_0|type\":\"upload_dataset\",\"files_0|space_to_tab\":null,\"files_0|to_posix_lines\":\"Yes\"}"));
             builder.addPart("tool_id", new StringBody("upload1"));
-            builder.addPart("history_id", new StringBody("f597429621d6eb2b"));
-            builder.addPart("files_0|file_data'", fileBody);
+            builder.addPart("history_id", new StringBody(historyID));
             post.setEntity(builder.build());
 
-            CloseableHttpClient httpclient = HttpClients.createDefault();
-            HttpResponse response = httpclient.execute(post);
+            response = httpclient.execute(post);
             String caca = org.apache.http.util.EntityUtils.toString(response.getEntity());
-
-            HttpGet get = new HttpGet(uri);
-
-            httpclient = HttpClients.createDefault();
-            response = httpclient.execute(get);
-
-            caca = org.apache.http.util.EntityUtils.toString(response.getEntity());
+            
             httpclient.close();
 
             System.out.println("test.main()");
