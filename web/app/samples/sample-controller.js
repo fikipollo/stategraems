@@ -933,6 +933,7 @@
             $scope.model.submission_date = new Date();
             $scope.model.last_edition_date = new Date();
             $scope.model.associatedBioreplicates = [];
+            $scope.model.files_location = [];
         }
     });
 
@@ -948,8 +949,19 @@
          *                                                        
          ******************************************************************************/
 
-        $scope.getProtocolName = function (protocol_id) {
-            return ProtocolList.getProtocol(protocol_id).protocol_name;
+        $scope.getProtocolName = function (protocol_id, ntries) {
+            ntries = (ntries || 0) + 1;
+            var protocol = ProtocolList.getProtocol(protocol_id);
+            if (protocol === null && ntries < 4) {
+                console.log("Protocol information not ready, waiting 3 seconds...");
+                setTimeout(function () {
+                    $scope.getProtocolName(protocol_id, ntries);
+                }, 3000);
+            } else {
+                $scope.protocol_name = (protocol !== null ? protocol.protocol_name : "Unknown");
+                return $scope.protocol_name;
+            }
+
         };
         $scope.getTotalExtractionProcotols = function () {
             return Object.keys($scope.model.extractionProtocols || {}).length;
@@ -999,8 +1011,8 @@
                 size: "lg",
                 scope: $scope
             });
-            
-            $scope.changeSelectedProtocol = function(protocol_id){
+
+            $scope.changeSelectedProtocol = function (protocol_id) {
                 $scope.protocol_id = protocol_id;
             };
 

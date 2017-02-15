@@ -29,10 +29,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import common.BlockedElementsManager;
 import common.ServerErrorManager;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.security.AccessControlException;
 import java.util.ArrayList;
 import javax.servlet.ServletException;
@@ -44,7 +41,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class Protocols_servlets extends Servlet {
 
-    String SOP_FILES_LOCATION = File.separator + "SOP_documents" + File.separator;
+//    String SOP_FILES_LOCATION = File.separator + "SOP_documents" + File.separator;
 
     /**
      * Handles the HTTP <code>POST</code> method.
@@ -117,19 +114,6 @@ public class Protocols_servlets extends Servlet {
                 boolean loadRecursive = true;
                 Object[] params = {loadRecursive};
                 protocolList = dao_instance.findAll(params);
-
-                /**
-                 * *******************************************************
-                 * STEP 3 Get ALL THE Object from DB. ELSE --> GO TO STEP 4
-                 * *******************************************************
-                 */
-                for (Object protocol : protocolList) {
-                    File file = new File(DATA_LOCATION + SOP_FILES_LOCATION + ((Protocol) protocol).getProtocolID() + "_SOP.pdf");
-                    if (file.exists()) {
-                        ((Protocol) protocol).setHasSOPFile(true);
-                    }
-                }
-
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "get_all_protocols_handler", e.getMessage());
             } finally {
@@ -207,17 +191,6 @@ public class Protocols_servlets extends Servlet {
                 Object[] params = {loadRecursive};
                 String protocol_id = requestData.get("protocol_id").getAsString();
                 protocol = (Protocol) dao_instance.findByID(protocol_id, params);
-
-                /**
-                 * *******************************************************
-                 * STEP 3 Get ALL THE Object from DB. ELSE --> GO TO STEP 4
-                 * *******************************************************
-                 */
-                File file = new File(DATA_LOCATION + SOP_FILES_LOCATION + protocol.getProtocolID() + "_SOP.pdf");
-                if (file.exists()) {
-                    protocol.setHasSOPFile(true);
-                }
-
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "get_protocol_handler", e.getMessage());
             } finally {
@@ -664,16 +637,6 @@ public class Protocols_servlets extends Servlet {
                     if (protocol.getOwners().length == 1 || "admin".equals(loggedUserID)) {
                         //If is the last owner or the admin, remove the entire experiment
                         dao_instance.remove(protocol_id);
-                        /**
-                         * *******************************************************
-                         * STEP 3 REMOVE THE SOP DOCUMENT ERROR --> throws ioSQL
-                         * , GO TO STEP 4b ELSE --> GO TO STEP 7
-                         * ******************************************************
-                         */
-                        File file = new File(DATA_LOCATION + SOP_FILES_LOCATION + protocol_id + "_SOP.pdf");
-                        if (file.exists()) {
-                            file.delete();
-                        }
                     } else {
                         //else just remove the entry in the table of ownerships
                         ((Protocol_JDBCDAO) dao_instance).removeOwnership(loggedUserID, protocol_id);
@@ -810,56 +773,6 @@ public class Protocols_servlets extends Servlet {
             }
         } catch (Exception e) {
             ServerErrorManager.addErrorMessage(4, Protocols_servlets.class.getName(), "check_removable", e.getMessage());
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
-        }
-    }
-
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.addHeader("Access-Control-Allow-Origin", "*");
-
-        if (request.getServletPath().equals("/get_sop_file")) {
-            get_SOP_file_handler(request, response);
-        } else {
-            common.ServerErrorManager.addErrorMessage(3, Protocols_servlets.class.getName(), "doGet", "What are you doing here?.");
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
-        }
-    }
-
-    private void get_SOP_file_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String protocol_id = request.getParameter("protocol_id");
-
-        try {
-            File file = new File(DATA_LOCATION + SOP_FILES_LOCATION + protocol_id + "_SOP.pdf");
-
-            if (file.exists()) {
-                response.reset();
-                response.addHeader("Access-Control-Allow-Origin", "*");
-
-                response.setContentType("application/pdf");
-                response.addHeader("Content-Disposition", "attachment; filename=" + protocol_id + "_SOP.pdf");
-                response.setContentLength((int) file.length());
-
-                FileInputStream fileInputStream = new FileInputStream(file);
-                OutputStream responseOutputStream = response.getOutputStream();
-                int bytes;
-                while ((bytes = fileInputStream.read()) != -1) {
-                    responseOutputStream.write(bytes);
-                }
-                responseOutputStream.close();
-            }
-        } catch (Exception e) {
-            ServerErrorManager.addErrorMessage(4, Protocols_servlets.class.getName(), "get_SOP_file_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }

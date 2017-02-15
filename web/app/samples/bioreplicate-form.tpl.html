@@ -29,7 +29,8 @@
             </div>
         </div>
         <div style="margin: 30px;" ng-repeat="(protocol_id, analyticalReplicates) in model.extractionProtocols"  >
-            <h3 class="section_subtitle">Aliquots for protocol {{getProtocolName(protocol_id)}}</h3>
+            <h3 class="section_subtitle">Aliquots for protocol {{protocol_name || getProtocolName(protocol_id)}}</h3>
+            <div ng-controller="ProtocolListController as controller"></div>
             <table class="table" style="width:100%" >
                 <tr><th>Aliquot ID</th><th>Aliquot name</th><th ng-if="viewMode !== 'view'" style="width:85px;"></th></tr>
                 <tr ng-repeat="model in analyticalReplicates" ng-controller="AnalyticalReplicateDetailController as controller" ng-class="(model.status)?model.status.replace('_', ' '):''">

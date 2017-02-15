@@ -47,6 +47,7 @@ public class BioCondition {
     private String time;
     private String other_exp_cond;
     private String protocol_description;
+    protected String[] files_location;
     //DATES AND USERS
     private String submission_date;
     private String last_edition_date;
@@ -54,12 +55,11 @@ public class BioCondition {
     private String external_links;
     private Bioreplicate[] associatedBioreplicates;
     private Experiment[] associatedExperiments;
-    private boolean hasTreatmentDocument = false;
     //OTHER
     String[] tags;
     boolean isPublic = true;
     boolean isExternal = false;
-    
+
     public BioCondition() {
     }
 
@@ -213,6 +213,14 @@ public class BioCondition {
         this.protocol_description = protocol_description;
     }
 
+    public String[] getFilesLocation() {
+        return files_location;
+    }
+
+    public void setFilesLocation(String[] files_location) {
+        this.files_location = files_location;
+    }
+
     public String getOtherExpCond() {
         return other_exp_cond;
     }
@@ -247,7 +255,7 @@ public class BioCondition {
             this.last_edition_date = aux[0].replaceAll("-", "");
         }
     }
-    
+
     public User[] getOwners() {
         return owners;
     }
@@ -309,15 +317,6 @@ public class BioCondition {
         }
     }
 
-    public boolean hasTreatmentDocument() {
-        return hasTreatmentDocument;
-    }
-
-    public void setHasTreatmentDocument(boolean hasTreatmentDocument) {
-        this.hasTreatmentDocument = hasTreatmentDocument;
-    }
-
-    
     public String[] getTags() {
         return tags;
     }
@@ -339,7 +338,7 @@ public class BioCondition {
     public void setPublic(boolean isPublic) {
         this.isPublic = isPublic;
     }
-    
+
     public boolean isExternal() {
         return isExternal;
     }
@@ -347,7 +346,7 @@ public class BioCondition {
     public void setExternal(boolean isExternal) {
         this.isExternal = isExternal;
     }
-    
+
     //***********************************************************************
     //* OTHER FUNCTIONS *****************************************************
     //***********************************************************************

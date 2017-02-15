@@ -78,7 +78,6 @@
     <servlet-mapping>
         <servlet-name>Protocols_servlets</servlet-name>
         <url-pattern>/get_all_protocols</url-pattern>
-        <url-pattern>/get_sop_file</url-pattern>
         <url-pattern>/add_protocol</url-pattern>
         <url-pattern>/get_protocol</url-pattern>
         <url-pattern>/update_protocol</url-pattern>
@@ -106,8 +105,6 @@
         <url-pattern>/add_biocondition</url-pattern>
         <url-pattern>/remove_biocondition</url-pattern>
         <url-pattern>/update_biocondition</url-pattern>
-        <url-pattern>/get_treatment_document</url-pattern>
-        <url-pattern>/send_treatment_document</url-pattern>
         <url-pattern>/send_biocondition_template_document</url-pattern>
         <url-pattern>/lock_biocondition</url-pattern>
         <url-pattern>/unlock_biocondition</url-pattern>

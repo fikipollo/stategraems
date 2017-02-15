@@ -201,7 +201,7 @@ public class File_servlets extends Servlet {
                 experiment = (Experiment) daoInstance.findByID(experiment_id, null);
 
                 if (!experiment.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
-                    throw new AccessControlException("Cannot get files for selected Experiment. Current useris not a valid member for this Experiment.");
+                    throw new AccessControlException("Cannot add files to selected study. Current useris not a valid member for study " + experiment_id + ".");
                 }
 
                 /**
@@ -293,6 +293,13 @@ public class File_servlets extends Servlet {
         }
     }
 
+    /**
+    This function sends a file to an external application (e.g. a Galaxy server).
+    
+    @param request
+    @param response
+    @throws IOException 
+    */
     private void send_file_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             DAO daoInstance = null;
@@ -355,7 +362,7 @@ public class File_servlets extends Servlet {
                 Experiment experiment = (Experiment) daoInstance.findByID(experiment_id, null);
 
                 if (!experiment.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
-                    throw new AccessControlException("Cannot get files for selected Experiment. Current useris not a valid member for this Experiment.");
+                    throw new AccessControlException("Cannot get files for selected study. Current user is not a valid member for study " + experiment_id + ".");
                 }
 
                 /**

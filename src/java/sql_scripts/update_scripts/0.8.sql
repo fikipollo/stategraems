@@ -53,8 +53,11 @@ ALTER TABLE biocondition ADD COLUMN tags TEXT;
 ALTER TABLE biocondition ADD COLUMN public BOOLEAN DEFAULT TRUE;
 ALTER TABLE biocondition ADD COLUMN external BOOLEAN DEFAULT FALSE;
 ALTER TABLE biocondition MODIFY COLUMN external_links TEXT;
+ALTER TABLE biocondition ADD COLUMN files_location TEXT NULL;
 
 ALTER TABLE analyticalReplicate MODIFY COLUMN treatment_id VARCHAR(50);
+
+ALTER TABLE treatment ADD COLUMN files_location TEXT NULL;
 
 ALTER TABLE analysis CHANGE analysisType analysis_type varchar(200);
 ALTER TABLE analysis CHANGE analysisName analysis_name varchar(200);

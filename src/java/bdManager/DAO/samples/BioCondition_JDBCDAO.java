@@ -50,7 +50,7 @@ public class BioCondition_JDBCDAO extends DAO {
                 + "INSERT INTO biocondition SET "
                 + "  biocondition_id = ?, organism = ?, title = ?, name = ?, cell_type = ?, "
                 + "  tissue_type = ?, cell_line = ?, gender = ?, genotype = ?, other_biomaterial = ?, "
-                + "  treatment = ?, dosis = ?, time = ?, other_exp_cond = ?, protocol_description = ?, "
+                + "  treatment = ?, dosis = ?, time = ?, other_exp_cond = ?, protocol_description = ?, files_location = ?, "
                 + "  submission_date = ?, last_edition_date = ?, external_links = ?, tags = ?, public = ?, external = ? ");
 
         ps.setString(1, biocondition.getBioConditionID());
@@ -68,12 +68,13 @@ public class BioCondition_JDBCDAO extends DAO {
         ps.setString(13, biocondition.getTime());
         ps.setString(14, biocondition.getOtherExpCond());
         ps.setString(15, biocondition.getProtocolDescription());
-        ps.setString(16, biocondition.getSubmissionDate().replaceAll("/", ""));
-        ps.setString(17, biocondition.getLastEditionDate().replaceAll("/", ""));
-        ps.setString(18, biocondition.getExternalLinks());
-        ps.setString(19, concatString(", ", biocondition.getTags()));
-        ps.setBoolean(20, biocondition.isPublic());
-        ps.setBoolean(21, biocondition.isExternal());
+        ps.setString(16, concatString("$$", biocondition.getFilesLocation()));
+        ps.setString(17, biocondition.getSubmissionDate().replaceAll("/", ""));
+        ps.setString(18, biocondition.getLastEditionDate().replaceAll("/", ""));
+        ps.setString(19, biocondition.getExternalLinks());
+        ps.setString(20, concatString(", ", biocondition.getTags()));
+        ps.setBoolean(21, biocondition.isPublic());
+        ps.setBoolean(22, biocondition.isExternal());
         ps.execute();
 
         if (biocondition.getAssociatedBioreplicates() != null) {
@@ -170,7 +171,7 @@ public class BioCondition_JDBCDAO extends DAO {
                 + "UPDATE biocondition SET "
                 + "  organism = ?, title = ?, name = ?, cell_type = ?, tissue_type = ?, cell_line = ?, gender = ?, "
                 + "  genotype = ?, other_biomaterial = ?, treatment = ?, dosis = ?, time = ?, other_exp_cond = ?, "
-                + "  protocol_description = ?, last_edition_date = ?, external_links = ?, tags = ?, public = ?, external = ? "
+                + "  protocol_description = ?, files_location = ?, last_edition_date = ?, external_links = ?, tags = ?, public = ?, external = ? "
                 + "WHERE biocondition_id = ?");
 
         ps.setString(1, biocondition.getOrganism());
@@ -187,12 +188,13 @@ public class BioCondition_JDBCDAO extends DAO {
         ps.setString(12, biocondition.getTime());
         ps.setString(13, biocondition.getOtherExpCond());
         ps.setString(14, biocondition.getProtocolDescription());
-        ps.setString(15, biocondition.getLastEditionDate().replaceAll("/", ""));
-        ps.setString(16, biocondition.getExternalLinks());
-        ps.setString(17, concatString(", ", biocondition.getTags()).replace(", ,", ", "));
-        ps.setBoolean(18, biocondition.isPublic());
-        ps.setBoolean(19, biocondition.isExternal());
-        ps.setString(20, biocondition.getBioConditionID());
+        ps.setString(15, concatString("$$", biocondition.getFilesLocation()));
+        ps.setString(16, biocondition.getLastEditionDate().replaceAll("/", ""));
+        ps.setString(17, biocondition.getExternalLinks());
+        ps.setString(18, concatString(", ", biocondition.getTags()).replace(", ,", ", "));
+        ps.setBoolean(19, biocondition.isPublic());
+        ps.setBoolean(20, biocondition.isExternal());
+        ps.setString(21, biocondition.getBioConditionID());
         ps.execute();
 
         //Remove all the previous entries in the experiment_owners table
@@ -256,6 +258,7 @@ public class BioCondition_JDBCDAO extends DAO {
             biocondition.setTime(rs.getString("time"));
             biocondition.setOtherExpCond(rs.getString("other_exp_cond"));
             biocondition.setProtocolDescription(rs.getString("protocol_description"));
+            biocondition.setFilesLocation(rs.getString("files_location").split("\\$\\$"));
             biocondition.setLastEditionDate(rs.getString("last_edition_date"));
             biocondition.setSubmissionDate(rs.getString("submission_date"));
             biocondition.setExternalLinks(rs.getString("external_links"));
@@ -323,6 +326,7 @@ public class BioCondition_JDBCDAO extends DAO {
             biocondition.setTime(rs.getString("time"));
             biocondition.setOtherExpCond(rs.getString("other_exp_cond"));
             biocondition.setProtocolDescription(rs.getString("protocol_description"));
+            biocondition.setFilesLocation(rs.getString("files_location").split("\\$\\$"));
             biocondition.setLastEditionDate(rs.getString("last_edition_date"));
             biocondition.setSubmissionDate(rs.getString("submission_date"));
             biocondition.setExternalLinks(rs.getString("external_links"));

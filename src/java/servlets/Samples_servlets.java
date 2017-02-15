@@ -83,8 +83,6 @@ import servlets.servlets_resources.BioCondition_XLS_parser;
  */
 public class Samples_servlets extends Servlet {
 
-    String TREATMENT_DOCUMENTS_LOCATION = File.separator + "treatment_documents" + File.separator;
-
     /**
      * Handles the HTTP <code>POST</code> method.
      *
@@ -111,8 +109,6 @@ public class Samples_servlets extends Servlet {
             add_biocondition_handler(request, response);
         } else if (request.getServletPath().equals("/update_biocondition")) {
             update_biocondition_handler(request, response);
-        } else if (request.getServletPath().equals("/send_treatment_document")) {
-            send_treatment_document_handler(request, response);
         } else if (request.getServletPath().equals("/send_biocondition_template_document")) {
             send_biocondition_template_document_handler(request, response);
         } else if (request.getServletPath().equals("/lock_biocondition")) {
@@ -621,119 +617,6 @@ public class Samples_servlets extends Servlet {
         }
     }
 
-    private void send_treatment_document_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        //TODO: A PROBLEM WITH SENCHA MAKES THAT THE RESPONSE DOESN'T RETURN THE REPONSE_TEXT AND SENCHA ALWAYS GET A SUCCESSFUL STATUS... FIX IT!!
-        //TODO: FILE SIZE LIMITATIONS??
-        String filePath = "";
-        boolean REMOVE_FILE_NEEDED = false;
-        try {
-
-            if (!ServletFileUpload.isMultipartContent(request)) {
-                throw new Exception("Erroneus request.");
-            }
-
-            //Get the data as a JSON format string
-            String biocondition_id = "";
-            String user_id = "";
-            String sessionToken = "";
-            FileItem pdfFile = null;
-            /**
-             * *******************************************************
-             * STEP 1 Get the request params: read the params and the PDF file.
-             * IF ERROR --> throws SQL Exception, GO TO STEP ? ELSE --> GO TO
-             * STEP 9 *******************************************************
-             */
-            final String CACHE_PATH = "/tmp/";
-            final int CACHE_SIZE = 100 * (int) Math.pow(10, 6);
-            final int MAX_REQUEST_SIZE = 50 * (int) Math.pow(10, 6);
-            final int MAX_FILE_SIZE = 20 * (int) Math.pow(10, 6);
-
-            // Create a factory for disk-based file items
-            DiskFileItemFactory factory = new DiskFileItemFactory();
-            // Set factory constraints
-            factory.setRepository(new File(CACHE_PATH));
-            factory.setSizeThreshold(CACHE_SIZE);
-
-            // Create a new file upload handler
-            ServletFileUpload upload = new ServletFileUpload(factory);
-            // Set overall request size constraint
-            upload.setSizeMax(MAX_REQUEST_SIZE);
-            upload.setFileSizeMax(MAX_FILE_SIZE);
-
-            // Parse the request
-            List<FileItem> items = upload.parseRequest(request);
-            for (FileItem item : items) {
-                if (!item.isFormField()) {
-                    if (!item.getName().equals("")) {
-                        pdfFile = item;
-                    }
-                } else {
-                    String name = item.getFieldName();
-                    String value = item.getString();
-                    if ("biocondition_id".equals(name)) {
-                        biocondition_id = value;
-                    } else if ("loggedUser".equals(name)) {
-                        user_id = value;
-                    } else if ("sessionToken".equals(name)) {
-                        sessionToken = value;
-                    }
-                }
-            }
-            /**
-             * *******************************************************
-             * STEP 2 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP AND IF
-             * FILE IS CORRECTLY UPDATED. IF ERROR --> throws exception if not
-             * valid session, GO TO STEP 6b ELSE --> GO TO STEP 3
-             * *******************************************************
-             */
-            if (!checkAccessPermissions(user_id, sessionToken)) {
-                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-            }
-            if (pdfFile == null) {
-                throw new Exception("PDF file was not uploaded correctly.");
-            }
-            /**
-             * *******************************************************
-             * STEP 3 SAVE THE PEF FILE IN THE SERVER. IF ERROR --> throws
-             * exception if not valid session, GO TO STEP 6b ELSE --> GO TO STEP
-             * 3 *******************************************************
-             */
-            filePath = DATA_LOCATION + TREATMENT_DOCUMENTS_LOCATION + biocondition_id + "_treatment.pdf";
-            //First check if the file already exists -> error, probably a previous treatmente exists with the same treatment_id
-            File file = new File(filePath);
-            try {
-                pdfFile.write(file);
-                REMOVE_FILE_NEEDED = true;
-            } catch (IOException e) {
-                // Directory creation failed
-                throw new Exception("Unable to save the uploded file. Please check if the Tomcat user has read/write permissions over the data application directory.");
-            }
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "send_treatment_document_handler", e.getMessage());
-        } finally {
-            /**
-             * *******************************************************
-             * STEP 5b CATCH ERROR, CLEAN CHANGES. throws SQLException
-             * *******************************************************
-             */
-            if (ServerErrorManager.errorStatus()) {
-                response.setContentType("text/html");
-                response.setStatus(400);
-                response.getWriter().print(ServerErrorManager.getErrorResponse());
-
-                if (REMOVE_FILE_NEEDED) {
-                    File file = new File(filePath);
-                    if (file.exists()) {
-                        file.delete();
-                    }
-                }
-            } else {
-                response.setContentType("text/html");
-                response.getWriter().print("{success: " + true + "}");
-            }
-        }
-    }
-
     /**
      *
      * @param request
@@ -860,18 +743,6 @@ public class Samples_servlets extends Servlet {
 
                 String biocondition_id = requestData.get("biocondition_id").getAsString();
                 biocondition = (BioCondition) dao_instance.findByID(biocondition_id, params);
-
-                /**
-                 * *******************************************************
-                 * STEP 3 Check if exists an associated treatment file. IF ERROR
-                 * --> throws MySQL exception, GO TO STEP 4b ELSE --> GO TO STEP
-                 * 5 *******************************************************
-                 */
-                File file = new File(DATA_LOCATION + TREATMENT_DOCUMENTS_LOCATION + biocondition_id + "_treatment.pdf");
-                if (file.exists()) {
-                    biocondition.setHasTreatmentDocument(true);
-                }
-
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "get_biocondition_handler", e.getMessage());
             } finally {
@@ -1385,9 +1256,7 @@ public class Samples_servlets extends Servlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.addHeader("Access-Control-Allow-Origin", "*");
 
-        if (request.getServletPath().equals("/get_treatment_document")) {
-            get_treatment_document_handler(request, response);
-        } else if (request.getServletPath().equals("/get_sample_service_host_list")) {
+        if (request.getServletPath().equals("/get_sample_service_host_list")) {
             get_sample_service_host_list(request, response);
         } else if (request.getServletPath().equals("/get_sample_service_list")) {
             get_sample_service_list(request, response);
@@ -1395,35 +1264,6 @@ public class Samples_servlets extends Servlet {
             redirect_to_external_sample_service(request, response);
         } else {
             ServerErrorManager.addErrorMessage(3, Samples_servlets.class.getName(), "doGet", "What are you doing here?.");
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
-        }
-    }
-
-    private void get_treatment_document_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String biocondition_id = request.getParameter("biocondition_id");
-
-        try {
-            File file = new File(DATA_LOCATION + TREATMENT_DOCUMENTS_LOCATION + biocondition_id + "_treatment.pdf");
-
-            if (file.exists()) {
-                response.reset();
-                response.addHeader("Access-Control-Allow-Origin", "*");
-                response.setContentType("application/pdf");
-                response.addHeader("Content-Disposition", "attachment; filename=" + biocondition_id + "_treatment.pdf");
-                response.setContentLength((int) file.length());
-
-                FileInputStream fileInputStream = new FileInputStream(file);
-                OutputStream responseOutputStream = response.getOutputStream();
-                int bytes;
-                while ((bytes = fileInputStream.read()) != -1) {
-                    responseOutputStream.write(bytes);
-                }
-                responseOutputStream.close();
-
-            }
-        } catch (Exception e) {
-            ServerErrorManager.addErrorMessage(4, Samples_servlets.class.getName(), "get_treatment_document_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }

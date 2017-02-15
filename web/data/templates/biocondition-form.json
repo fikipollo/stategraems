@@ -120,11 +120,11 @@
                     "label": "Protocol Description",
                     "type": "textarea",
                     "help": "Free text describing the used treatment for grow or maintain organisms or cells."
-                }, {
-                    "name": "treatment_document",
-                    "label": "Treatment Document",
-                    "type": "display",
-                    "help": "A complete description of the followed protocol or treatment. <b>Only PDF files are supported. Max size 20Mb.</b>."
+                },{
+                    "name": "files_location",
+                    "label": "SOP documents",
+                    "type": "output_files_selector",
+                    "help": "A Standard Operating Procedure (SOP) is a document consisting of step-by-step information on how the samples were produced. <b>We recommend to use PDF files.</b>."
                 }
             ]
         },

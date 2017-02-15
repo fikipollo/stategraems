@@ -860,6 +860,7 @@
          * @return {AnalysisDetailController} the controller
          ******************************************************************************/
         $scope.$on(APP_EVENTS.stepChanged, function () {
+            debugger;
             if (!$scope.isModal) {
                 AnalysisList.updateStepIndexes($scope.model);
                 $scope.diagram = me.generateWorkflowDiagram($scope.model, $scope.diagram);
@@ -933,7 +934,7 @@
                         delete $scope.typesInfo;
                         delete $scope.isModal;
 
-                        $rootScope.$emit(APP_EVENTS.stepChanged);
+                        $rootScope.$broadcast(APP_EVENTS.stepChanged);
 
                         me.showStepDetails(step);
                     },
@@ -1255,7 +1256,7 @@
         this.removeStepHandler = function () {
             //TODO: CHECK IF CONTAINS NOT REMOVABLE AS
             AnalysisList.updateModelStatus($scope.model, "deleted");
-            $rootScope.$emit(APP_EVENTS.stepChanged);
+            $rootScope.$broadcast(APP_EVENTS.stepChanged);
         };
 
         /******************************************************************************
@@ -1264,7 +1265,7 @@
          ******************************************************************************/
         this.unremoveStepHandler = function () {
             AnalysisList.updateModelStatus($scope.model, "undo");
-            $rootScope.$emit(APP_EVENTS.stepChanged);
+            $rootScope.$broadcast(APP_EVENTS.stepChanged);
         };
 
         this.sendStepToGalaxyHandler = function (model) {
@@ -1347,7 +1348,7 @@
             var hasChanged = AnalysisList.hasChangedStep(newValues, oldValues);
             if (hasChanged) {
                 AnalysisList.updateModelStatus($scope.model, "edited");
-                $rootScope.$emit(APP_EVENTS.stepChanged);
+                $rootScope.$broadcast(APP_EVENTS.stepChanged);
                 return true;
             }
             return false;

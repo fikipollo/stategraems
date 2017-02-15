@@ -33,8 +33,8 @@ public class Protocol {
     private String protocol_id;
     private String protocol_name;
     private String description = "";
+    protected String[] files_location;
     private String biomolecule = "";
-    private boolean hasSOPFile = false;
     private User[] owners;
 
     /**
@@ -106,7 +106,7 @@ public class Protocol {
     public void setBiomolecule(String biomolecule) {
         this.biomolecule = biomolecule;
     }
-    
+
     public String getDescription() {
         return description;
     }
@@ -115,12 +115,12 @@ public class Protocol {
         this.description = description;
     }
 
-    public boolean isHasSOPFile() {
-        return hasSOPFile;
+    public String[] getFilesLocation() {
+        return files_location;
     }
 
-    public void setHasSOPFile(boolean hasSOPFile) {
-        this.hasSOPFile = hasSOPFile;
+    public void setFilesLocation(String[] files_location) {
+        this.files_location = files_location;
     }
 
     public User[] getOwners() {
@@ -134,13 +134,12 @@ public class Protocol {
     public void setOwners(String[] owner_ids) {
         ArrayList<User> owners_aux = new ArrayList<User>();
 
-        for(String owner_id : owner_ids){
+        for (String owner_id : owner_ids) {
             owners_aux.add(new User(owner_id, ""));
         }
         this.owners = owners_aux.toArray(new User[]{});
     }
-    
-    
+
     public boolean isOwner(String userName) {
         for (int i = 0; i < this.owners.length; i++) {
             if (this.owners[i].getUserID().equals(userName)) {
@@ -163,7 +162,6 @@ public class Protocol {
     //***********************************************************************
     //* OTHER FUNCTIONS *****************************************************
     //***********************************************************************
-
     @Override
     public String toString() {
         return this.toJSON();
