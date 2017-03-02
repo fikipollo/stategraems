@@ -78,7 +78,12 @@
             "name": "section_5",
             "title": "GC - Mobile phases",
             "fields": [
-
+              {
+                    "name": "extractionMethod.separationMethod.mobile_phases",
+                    "label": "Mobile phases",
+                    "type": "box_list",
+                    "help": ""
+                }  
             ]
         },
         {

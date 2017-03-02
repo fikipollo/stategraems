@@ -177,8 +177,8 @@
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
                                     '<input class="col-sm-9" type="text" disabled' +
-                                    (model.name?' ng-model="model.' + model.name + '"':'') +
-                                    (model.value?' value="' + model.value + '"':'') +
+                                    (model.name ? ' ng-model="model.' + model.name + '"' : '') +
+                                    (model.value ? ' value="' + model.value + '"' : '') +
                                     '       ng-readonly="viewMode === \'view\'">' +
                                     '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "user_selector") {
@@ -235,6 +235,17 @@
                                     '                      ng-readonly="viewMode === \'view\'">' +
                                     '</protocol-selector-field>' +
                                     '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                        } else if (model.type === "box_list") {
+                            template +=
+                                    '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
+                                    '<box-list-field class="col-sm-9" ' +
+                                    '                      name="{{field.name}}" ' +
+                                    '                      ng-model="model.' + model.name + '" ' +
+                                    '                      ' + (model.required ? "required" : "") +
+                                    '                      editable="viewMode !== \'view\'">' +
+                                    '</box-list-field>' +
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+
                         } else {
                             throw 'Unknown input type ' + model.type + ' : ' + JSON.stringify(model);
                         }
@@ -251,6 +262,62 @@
                     }
 
                     $compile($(template).appendTo(element))($scope);
+                }
+            };
+        }]);
+
+    app.directive("boxListField", ['$compile', function ($compile) {
+            return {
+                restrict: 'E',
+                require: 'ngModel',
+                scope: {
+                    editable: "="
+                },
+                template:
+                        '<div class="">' +
+                        '  <div class="" ng-repeat="box in boxes">' +
+                        '     <div class="field-group row">' +
+                        '         <label class="col-sm-2> Name: </label>' +
+                        '         <input class="col-sm-9" type="text" placeholder="Not specified" ng-model="box.name" ng-readonly="viewMode === \'view\'">' +
+                        '     </div>' +
+                        '  </div>' +
+			'  <a class="btn btn-sm btn-success" ng-show="editable" ng-click="addBox()" style="padding:2px 5px;">+ Add</a>'+
+                        '</div>',
+                link: function ($scope, element, attrs, ngModel) {
+                    if (!ngModel) {
+                        return
+                    }
+
+                    ngModel.$render = function () {
+                        $scope.boxes = ngModel.$modelValue || [];
+                    };
+
+                    function updateModel() {
+                        ngModel.$setViewValue($scope.boxes);
+                        ngModel.$render();
+                    }
+
+                    $scope.addBox = function () {
+                        $scope.boxes = $scope.boxes.concat({name: "", description: ""});
+                        updateModel();
+                    };
+
+                    $scope.removeBox = function (box) {
+                        var pos = $scope.boxes.indexOf(box);
+                        if (pos !== -1) {
+                            $scope.boxes.splice(pos, 1);
+                            $scope.boxes = $scope.boxes.concat(); //force input updating
+                            updateModel();
+                        }
+                    };
+
+                    try {
+                        $scope.options = JSON.parse(attrs.options.replace(/\'/g, "\"")) || [];
+                    } catch (e) {
+                        $scope.options = [];
+                    }
+                    $scope.editable = $scope.editable || (attrs.editable === "true");
+                    $scope.optionsID = Math.random().toString(36).substr(2, 16);
                 }
             };
         }]);
