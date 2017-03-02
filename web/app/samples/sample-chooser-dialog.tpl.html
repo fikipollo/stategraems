@@ -69,7 +69,7 @@
                             <h2 class="iu-card-name">{{biocondition.title}}</h2>
                             <div class="iu-card-description">
                                 <b ng-show="biocondition.isExternal">External sample</b>
-                                <span>{{(biocondition.biocondition_description !== ""?biocondition.biocondition_description:"No description provided")}}</span>
+                                <span>{{(biocondition.sample_description !== ""?biocondition.sample_description:"No description provided")}}</span>
                             </div>
                             <div class="iu-card-tags-list">
                                 <i class="tag {{getTagColor(tag)}}" ng-repeat="tag in biocondition.tags| orderBy">{{tag}}</i>

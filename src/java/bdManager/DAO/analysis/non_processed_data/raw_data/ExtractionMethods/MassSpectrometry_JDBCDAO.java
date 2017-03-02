@@ -211,10 +211,11 @@ public class MassSpectrometry_JDBCDAO extends DAO {
         }
 
         //GET THE ASSOCIATED EXTRACTION METHOD
-        if (!"None".equals(massSpectrometry.getSeparationMethodType())) {
-            SeparationMethod separationMethod = (SeparationMethod) DAOProvider.getDAOByName(massSpectrometry.getSeparationMethodType()).findByID(massSpectrometry.getRAWdataID(), null);
-            massSpectrometry.setSeparationMethod(separationMethod);
+        SeparationMethod separationMethod = (SeparationMethod) DAOProvider.getDAOByName("ColumnChromatography").findByID(massSpectrometry.getRAWdataID(), null);
+        if (separationMethod == null) {
+            separationMethod = (SeparationMethod) DAOProvider.getDAOByName("CapillaryElectrophoresis").findByID(massSpectrometry.getRAWdataID(), null);
         }
+        massSpectrometry.setSeparationMethod(separationMethod);
         return massSpectrometry;
     }
 

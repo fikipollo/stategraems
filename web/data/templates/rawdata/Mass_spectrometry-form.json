@@ -1,0 +1,240 @@
+{
+    "id": "Mass_spectrometry-form",
+    "content": [
+        {
+            "name": "section_10",
+            "title": "MS - Equipment details",
+            "fields": [
+                {
+                    "name": "extractionMethod.mass_spectrometer_manufacturer",
+                    "label": "Mass spectrometer manufacturer",
+                    "type": "select",
+                    "source": "data/mass_spectrometer_manufacturer.json",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.mass_spectrometer_model",
+                    "label": "Mass spectrometer model",
+                    "type": "select",
+                    "source": "data/mass_spectrometer_model.json",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.customizations",
+                    "label": "Customizations (summary)",
+                    "type": "textarea",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.ionization_source",
+                    "label": "Ionization source",
+                    "type": "select",
+                    "free": false,
+                    "options": [{
+                            "label": "Electrospray Ionisation (ESI)",
+                            "value": "Electrospray Ionisation (ESI)"
+                        }, {
+                            "label": "MALDI",
+                            "value": "MALDI"
+                        }, {
+                            "label": "Other ion source",
+                            "value": "Other ion source"
+                        }],
+                    "help": ""
+                },
+                {
+                    "label": "Electrospray Ionisation (ESI) details",
+                    "type": "subtitle",
+                    "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'"
+                },
+                {
+                    "name": "extractionMethod.supply_type",
+                    "label": "Supply type",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.interface_manufacturer_and_model",
+                    "label": "Interface details",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.sprayer_type_manufacturer_and_model",
+                    "label": "Spayer details",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.other_electrospray_ionisation",
+                    "label": "Other details",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'",
+                    "help": ""
+                },
+                {
+                    "label": "MALDI details",
+                    "type": "subtitle",
+                    "dependency": "extractionMethod.ionization_source === 'MALDI'"
+                },
+                {
+                    "name": "extractionMethod.plate_composition",
+                    "label": "Plate composition",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'MALDI'",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.matrix_composition",
+                    "label": "Matrix composition",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'MALDI'",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.psd_summary",
+                    "label": "PSD summary",
+                    "type": "textarea",
+                    "dependency": "extractionMethod.ionization_source === 'MALDI'",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.laser_type_and_wavelength",
+                    "label": "Laser details",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'MALDI'",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.other_maldi",
+                    "label": "Other details",
+                    "type": "textarea",
+                    "dependency": "extractionMethod.ionization_source === 'MALDI'",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.other_ionization_description",
+                    "label": "Ion source description",
+                    "type": "textarea",
+                    "dependency": "extractionMethod.ionization_source === 'Other ion source'",
+                    "help": ""
+                }
+            ]
+        },
+        {
+            "name": "section_11",
+            "title": "MS - Post source component details",
+            "fields": [
+                {
+                    "name": "extractionMethod.mass_analyzer_type",
+                    "label": "Analyzer description",
+                    "type": "textarea",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.reflectron_status",
+                    "label": "Time-of-Flight drift tube: Reflectron status",
+                    "type": "select",
+                    "free": false,
+                    "options": [{
+                            "label": "on",
+                            "value": "on"
+                        }, {
+                            "label": "off",
+                            "value": "off"
+                        }, {
+                            "label": "none",
+                            "value": "none"
+                        }],
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.activation_location",
+                    "label": "Instrument component where the activation / dissociation occurs",
+                    "type": "text",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.gas_type",
+                    "label": "Gas type",
+                    "type": "text",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.activation_type",
+                    "label": "Activation / dissociation type",
+                    "type": "text",
+                    "help": ""
+                }
+            ]
+        },
+        {
+            "name": "section_12",
+            "title": "MS - Spectrum and peak list generation and annotation (data acquisition)",
+            "fields": [
+                {
+                    "name": "extractionMethod.acquisition_software",
+                    "label": "Software and version",
+                    "type": "text",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.acquisition_parameters",
+                    "label": "Acquisition parameters",
+                    "type": "textarea",
+                    "help": ""
+                }
+            ]
+        },
+        {
+            "name": "section_13",
+            "title": "MS - Spectrum and peak list generation and annotation (resulting data)",
+            "fields": [
+                {
+                    "label": "Location of source (‘raw’) and processed files",
+                    "value": "See above (File location field)",
+                    "type": "display",
+                    "help": "The technology used to produce the raw data (e.g. RNA-seq)."
+                },
+                {
+                    "name": "extractionMethod.intensity_values",
+                    "label": "m/z and intensity values",
+                    "type": "text",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.ms_level",
+                    "label": "MS level",
+                    "type": "text",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.ion_mode",
+                    "label": "Ion mode",
+                    "type": "select",
+                    "free": false,
+                    "options": [{
+                            "label": "positive",
+                            "value": "positive"
+                        }, {
+                            "label": "negative",
+                            "value": "negative"
+                        }, {
+                            "label": "none",
+                            "value": "none"
+                        }],
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.additional_info",
+                    "label": "Additional information for MS level 2",
+                    "type": "text",
+                    "help": ""
+                }
+            ]
+        }
+    ]
+}

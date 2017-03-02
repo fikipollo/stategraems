@@ -173,6 +173,15 @@
                         _bioconditions[i].tags.push(_bioconditions[i].cell_type);
                         _bioconditions[i].tags = arrayUnique(_bioconditions[i].tags, [""]);
 
+                        _bioconditions[i].sample_description = 
+                                "Organism: " + _bioconditions[i].organism +
+                                ", Material type: " + _bioconditions[i].tissue_type +
+                                ", Cell type: " + _bioconditions[i].cell_type +
+                                ", Cell line: " + _bioconditions[i].cell_line +
+                                ", Gender: " + _bioconditions[i].gender +
+                                ", Genotype/Variation: " + _bioconditions[i].genotype + 
+                                ", Creation date: " + _bioconditions[i].submission_date.toISOString().split("T")[0];
+
                         //Create the table for protocols -> list(AS)
                         this.adaptBioreplicatesInformation(_bioconditions[i].associatedBioreplicates);
                     }

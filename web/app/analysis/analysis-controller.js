@@ -860,7 +860,6 @@
          * @return {AnalysisDetailController} the controller
          ******************************************************************************/
         $scope.$on(APP_EVENTS.stepChanged, function () {
-            debugger;
             if (!$scope.isModal) {
                 AnalysisList.updateStepIndexes($scope.model);
                 $scope.diagram = me.generateWorkflowDiagram($scope.model, $scope.diagram);
@@ -906,9 +905,26 @@
                         if ($scope.typesInfo.step_type === "rawdata") {
                             step.type = "rawdata";
                             step.raw_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
-                            step.extractionMethod = {extraction_method_type: $scope.typesInfo.step_subtype.replace(/ /g, "_")};
                             step.step_name = "Unnamed " + step.raw_data_type + " step";
                             step.analyticalReplicate_id = null;
+                            step.extractionMethod = {extraction_method_type: $scope.typesInfo.step_subtype.replace(/ /g, "_"), separationMethod : {}};
+                            if($scope.typesInfo.step_subtype === "GC-MS"){                                
+                                step.extractionMethod.separationMethod.column_chromatography_type = "Gas chromatography";
+                                step.extractionMethod.separationMethod.separation_method_type = "ColumnChromatography";
+                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
+                            } else if($scope.typesInfo.step_subtype === "LC-MS"){                                
+                                step.extractionMethod.separationMethod.column_chromatography_type = "Liquid chromatography";
+                                step.extractionMethod.separationMethod.separation_method_type = "ColumnChromatography";
+                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
+                            } else if($scope.typesInfo.step_subtype === "CE-MS"){
+                                step.extractionMethod.separationMethod.separation_method_type = "CapillaryElectrophoresis";
+                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
+                            } else if($scope.typesInfo.step_subtype === "Mass spectrometry"){
+                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
+                            } else if($scope.typesInfo.step_subtype === "Nuclear Magnetic Resonance"){
+                                step.extractionMethod.extraction_method_type = "NuclearMagneticResonance";
+                            }
+                            
                             $scope.model.non_processed_data.push(step);
                             $scope.model.nextStepID++;
                         } else if ($scope.typesInfo.step_type === "intermediate_data") {
@@ -1212,30 +1228,31 @@
          * 
          * @param {String} added_step_id the identifier for the new input step
          * @param {Boolean} doDigest force the digest that updates the model
-         * @returns {StepDetailController} the controller
-         * @chainable
+         * @returns {Boolean} true if step is added successfully.
          ******************************************************************************/
         this.addSelectedInputFileHandler = function (added_step_id, doDigest) {
             var propertyName = $scope.propertyName || 'used_data';
-
+            
             var pos = $scope.model[propertyName].indexOf(added_step_id);
-            if (pos === -1) {
+            var isLoop = AnalysisList.checkLoop(added_step_id, $scope.model.step_id, propertyName);
+            if (!isLoop && pos === -1) {
                 $scope.model[propertyName].push(added_step_id);
                 if (doDigest === true) {
                     $scope.$digest();
                 }
+            }else {
+                console.log("Loop detected, ignoring...");
             }
-            return this;
+            return true;
         };
 
         /******************************************************************************
          * This function handles the event fired when an input file for a step is
          * removed from the list.
          * 
-         * @param {String} added_step_id the identifier for the new input step
+         * @param {String} removed_step_id the identifier for the input step
          * @param {Boolean} doDigest force the digest that updates the model
-         * @returns {StepDetailController} the controller
-         * @chainable
+         * @returns {Boolean} true if step is removed successfully.
          ******************************************************************************/
         this.removeSelectedInputFileHandler = function (removed_step_id, doDigest) {
             var propertyName = $scope.propertyName || 'used_data';
@@ -1247,7 +1264,7 @@
                     $scope.$digest();
                 }
             }
-            return this;
+            return true;
         };
 
         /******************************************************************************

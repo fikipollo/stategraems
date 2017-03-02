@@ -102,26 +102,30 @@ public class ColumnChromatography_JDBCDAO extends DAO {
         i++;
         ps.execute();
 
-        for (ColumnChromatography.MobilePhase mobilePhase : columnChromatography.getMobilePhases()) {
-            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                    + "INSERT INTO mobile_phase SET "
-                    + "rawdata_id= ?, name = ?, description= ?");
+        if (columnChromatography.getMobilePhases() != null) {
+            for (ColumnChromatography.MobilePhase mobilePhase : columnChromatography.getMobilePhases()) {
+                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                        + "INSERT INTO mobile_phase SET "
+                        + "rawdata_id= ?, name = ?, description= ?");
 
-            ps.setString(1, columnChromatography.getRAWdataID());
-            ps.setString(2, mobilePhase.getName());
-            ps.setString(3, mobilePhase.getDescription());
-            ps.execute();
+                ps.setString(1, columnChromatography.getRAWdataID());
+                ps.setString(2, mobilePhase.getName());
+                ps.setString(3, mobilePhase.getDescription());
+                ps.execute();
+            }
         }
 
-        for (ColumnChromatography.Fraction fraction : columnChromatography.getFractions()) {
-            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                    + "INSERT INTO fraction SET "
-                    + "rawdata_id= ?, name = ?, description= ?");
+        if (columnChromatography.getFractions() != null) {
+            for (ColumnChromatography.Fraction fraction : columnChromatography.getFractions()) {
+                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                        + "INSERT INTO fraction SET "
+                        + "rawdata_id= ?, name = ?, description= ?");
 
-            ps.setString(1, columnChromatography.getRAWdataID());
-            ps.setString(2, fraction.getName());
-            ps.setString(3, fraction.getDescription());
-            ps.execute();
+                ps.setString(1, columnChromatography.getRAWdataID());
+                ps.setString(2, fraction.getName());
+                ps.setString(3, fraction.getDescription());
+                ps.execute();
+            }
         }
 
         return true;
@@ -204,15 +208,17 @@ public class ColumnChromatography_JDBCDAO extends DAO {
         ps.setString(1, columnChromatography.getRAWdataID());
         ps.execute();
 
-        for (ColumnChromatography.MobilePhase mobilePhase : columnChromatography.getMobilePhases()) {
-            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                    + "INSERT INTO mobile_phase SET "
-                    + "rawdata_id= ?, name = ?, description= ?");
+        if (columnChromatography.getMobilePhases() != null) {
+            for (ColumnChromatography.MobilePhase mobilePhase : columnChromatography.getMobilePhases()) {
+                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                        + "INSERT INTO mobile_phase SET "
+                        + "rawdata_id= ?, name = ?, description= ?");
 
-            ps.setString(1, columnChromatography.getRAWdataID());
-            ps.setString(2, mobilePhase.getName());
-            ps.setString(3, mobilePhase.getDescription());
-            ps.execute();
+                ps.setString(1, columnChromatography.getRAWdataID());
+                ps.setString(2, mobilePhase.getName());
+                ps.setString(3, mobilePhase.getDescription());
+                ps.execute();
+            }
         }
 
         //TODO: OTHER WWAY TO DO THIS?
@@ -221,15 +227,17 @@ public class ColumnChromatography_JDBCDAO extends DAO {
         ps.setString(1, columnChromatography.getRAWdataID());
         ps.execute();
 
-        for (ColumnChromatography.Fraction fraction : columnChromatography.getFractions()) {
-            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                    + "INSERT INTO fraction SET "
-                    + "rawdata_id= ?, name = ?, description= ?");
+        if (columnChromatography.getFractions() != null) {
+            for (ColumnChromatography.Fraction fraction : columnChromatography.getFractions()) {
+                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                        + "INSERT INTO fraction SET "
+                        + "rawdata_id= ?, name = ?, description= ?");
 
-            ps.setString(1, columnChromatography.getRAWdataID());
-            ps.setString(2, fraction.getName());
-            ps.setString(3, fraction.getDescription());
-            ps.execute();
+                ps.setString(1, columnChromatography.getRAWdataID());
+                ps.setString(2, fraction.getName());
+                ps.setString(3, fraction.getDescription());
+                ps.execute();
+            }
         }
 
         return true;
@@ -335,7 +343,7 @@ public class ColumnChromatography_JDBCDAO extends DAO {
         ps.execute();
         return true;
     }
-        
+
     @Override
     public boolean remove(String[] object_id_list) throws SQLException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
