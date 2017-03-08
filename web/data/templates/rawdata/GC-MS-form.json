@@ -6,6 +6,10 @@
             "title": "GC Equipment - Column: Product details",
             "fields": [
                 {
+                    "name": "extractionMethod.separationMethod.separation_method_type",
+                    "type": "hidden",
+                    "value": "ColumnChromatography"
+                }, {
                     "name": "extractionMethod.separationMethod.column_manufacturer",
                     "label": "Column manufacturer",
                     "type": "select",
@@ -78,9 +82,9 @@
             "name": "section_5",
             "title": "GC - Mobile phases",
             "fields": [
-              {
+                {
                     "name": "extractionMethod.separationMethod.mobile_phases",
-                    "label": "Mobile phases",
+                    "label": "Mobile phase",
                     "type": "box_list",
                     "help": ""
                 }  
@@ -186,13 +190,23 @@
             "name": "section_9",
             "title": "GC Column outputs - Fractions",
             "fields": [
-
+                {
+                    "name": "extractionMethod.separationMethod.mobile_phases",
+                    "label": "Fraction",
+                    "type": "box_list",
+                    "help": ""
+                }  
             ]
         },
         {
             "name": "section_10",
             "title": "MS - Equipment details",
             "fields": [
+                {
+                    "name": "extractionMethod.extraction_method_type",
+                    "type": "hidden",
+                    "value": "MassSpectrometry"
+                },
                 {
                     "name": "extractionMethod.mass_spectrometer_manufacturer",
                     "label": "Mass spectrometer manufacturer",

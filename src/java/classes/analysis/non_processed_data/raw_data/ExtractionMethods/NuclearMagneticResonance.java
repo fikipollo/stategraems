@@ -65,6 +65,7 @@ public class NuclearMagneticResonance extends ExtractionMethod {
 
     public NuclearMagneticResonance() {
         super();
+        this.extraction_method_type = "NuclearMagneticResonance";
     }
 
     /**

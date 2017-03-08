@@ -181,6 +181,13 @@
                                     (model.value ? ' value="' + model.value + '"' : '') +
                                     '       ng-readonly="viewMode === \'view\'">' +
                                     '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                        }  else if (model.type === "hidden") {
+                            template +=
+                                    '<input class="col-sm-9" type="text" disabled' +
+                                    (model.name ? ' ng-model="model.' + model.name + '"' : '') +
+                                    (model.value ? ' value="' + model.value + '"' : '') +
+                                    '       ng-show="false">' +
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "user_selector") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -242,6 +249,7 @@
                                     '                      name="{{field.name}}" ' +
                                     '                      ng-model="model.' + model.name + '" ' +
                                     '                      ' + (model.required ? "required" : "") +
+                                    '                      label="' + model.label + '"' +
                                     '                      editable="viewMode !== \'view\'">' +
                                     '</box-list-field>' +
                                     '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
@@ -271,17 +279,23 @@
                 restrict: 'E',
                 require: 'ngModel',
                 scope: {
-                    editable: "="
+                    editable: "=",
+                    label : "="
                 },
                 template:
                         '<div class="">' +
                         '  <div class="" ng-repeat="box in boxes">' +
+                        '     <b>{{label}}</b>'+ 
                         '     <div class="field-group row">' +
-                        '         <label class="col-sm-2> Name: </label>' +
-                        '         <input class="col-sm-9" type="text" placeholder="Not specified" ng-model="box.name" ng-readonly="viewMode === \'view\'">' +
+                        '         <label class="col-sm-2"> Name: </label>' +
+                        '         <input class="col-sm-9" type="text" placeholder="Not specified" ng-model="box.name" ng-readonly="editable===false">' +
+                        '     </div>' +
+                        '     <div class="field-group row">' +
+                        '         <label class="col-sm-2"> Description: </label>' +
+                        '         <textarea class="col-sm-9" rows="8" cols="50" ng-model="box.description" ng-readonly="editable===false"></textarea>' +
                         '     </div>' +
                         '  </div>' +
-			'  <a class="btn btn-sm btn-success" ng-show="editable" ng-click="addBox()" style="padding:2px 5px;">+ Add</a>'+
+                        '  <a class="btn btn-sm btn-success" ng-show="editable" ng-click="addBox()" style="padding:2px 5px;">+ Add</a>' +
                         '</div>',
                 link: function ($scope, element, attrs, ngModel) {
                     if (!ngModel) {

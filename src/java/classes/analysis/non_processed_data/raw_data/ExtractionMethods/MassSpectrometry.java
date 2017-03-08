@@ -36,7 +36,6 @@ import java.lang.reflect.Type;
  * @author Rafa Hernández de Diego
  */
 public class MassSpectrometry extends ExtractionMethod {
-
     String separation_method_type;
     String mass_spectrometer_manufacturer;
     String customizations;
@@ -68,6 +67,7 @@ public class MassSpectrometry extends ExtractionMethod {
 
     public MassSpectrometry() {
         super();
+        this.extraction_method_type = "MassSpectrometry";
     }
 
     /**

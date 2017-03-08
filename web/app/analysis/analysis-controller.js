@@ -908,22 +908,22 @@
                             step.step_name = "Unnamed " + step.raw_data_type + " step";
                             step.analyticalReplicate_id = null;
                             step.extractionMethod = {extraction_method_type: $scope.typesInfo.step_subtype.replace(/ /g, "_"), separationMethod : {}};
-                            if($scope.typesInfo.step_subtype === "GC-MS"){                                
-                                step.extractionMethod.separationMethod.column_chromatography_type = "Gas chromatography";
-                                step.extractionMethod.separationMethod.separation_method_type = "ColumnChromatography";
-                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
-                            } else if($scope.typesInfo.step_subtype === "LC-MS"){                                
-                                step.extractionMethod.separationMethod.column_chromatography_type = "Liquid chromatography";
-                                step.extractionMethod.separationMethod.separation_method_type = "ColumnChromatography";
-                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
-                            } else if($scope.typesInfo.step_subtype === "CE-MS"){
-                                step.extractionMethod.separationMethod.separation_method_type = "CapillaryElectrophoresis";
-                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
-                            } else if($scope.typesInfo.step_subtype === "Mass spectrometry"){
-                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
-                            } else if($scope.typesInfo.step_subtype === "Nuclear Magnetic Resonance"){
-                                step.extractionMethod.extraction_method_type = "NuclearMagneticResonance";
-                            }
+//                            if($scope.typesInfo.step_subtype === "GC-MS"){                                
+//                                step.extractionMethod.separationMethod.column_chromatography_type = "Gas chromatography";
+//                                step.extractionMethod.separationMethod.separation_method_type = "ColumnChromatography";
+//                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
+//                            } else if($scope.typesInfo.step_subtype === "LC-MS"){                                
+//                                step.extractionMethod.separationMethod.column_chromatography_type = "Liquid chromatography";
+//                                step.extractionMethod.separationMethod.separation_method_type = "ColumnChromatography";
+//                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
+//                            } else if($scope.typesInfo.step_subtype === "CE-MS"){
+//                                step.extractionMethod.separationMethod.separation_method_type = "CapillaryElectrophoresis";
+//                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
+//                            } else if($scope.typesInfo.step_subtype === "Mass spectrometry"){
+//                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
+//                            } else if($scope.typesInfo.step_subtype === "Nuclear Magnetic Resonance"){
+//                                step.extractionMethod.extraction_method_type = "NuclearMagneticResonance";
+//                            }
                             
                             $scope.model.non_processed_data.push(step);
                             $scope.model.nextStepID++;
