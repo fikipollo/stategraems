@@ -29,7 +29,8 @@
         'users.directives.user-list',
         'samples.directives.sample-views',
         'protocols.directives.protocol-views',
-        'files.directives.file-list'
+        'files.directives.file-list',
+        'ngSanitize'
     ]);
 
     /***************************************************************************/
@@ -54,7 +55,7 @@
                                     '       ng-model="model.' + model.name + '"' +
                                     '       ' + (model.required ? 'ng-required="' + model.required + '"' : "") +
                                     '       ng-readonly="viewMode === \'view\'">' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "password") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -63,7 +64,7 @@
                                     '       ng-model="model.' + model.name + '"' +
                                     '       ' + (model.required ? 'ng-required="' + model.required + '"' : "") +
                                     '       ng-readonly="viewMode === \'view\'">' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "number") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -75,7 +76,7 @@
                                     '       ' + (model.step ? 'step="' + model.step + '"' : '') +
                                     '       ' + (model.required ? 'ng-required="' + model.required + '"' : "") +
                                     '       ng-readonly="viewMode === \'view\'">' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "textarea") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -85,7 +86,7 @@
                                     '          ' + (model.required ? "required" : "") +
                                     '          ng-readonly="viewMode === \'view\'">' +
                                     '</textarea>' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "select") {
                             if (model.free === false) {
                                 template +=
@@ -97,16 +98,16 @@
                                         '        ng-options="option.value as option.label for option in options.' + model.name.replace(/\./g, "_") + '"' +
                                         '        ' + (model.required ? "required" : "") + '>' +
                                         '</select>' +
-                                        '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                        '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                             } else {
                                 template +=
                                         '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
                                         '<input class="col-sm-9" type="text" placeholder="Not specified" name="{{field.name}}" ' +
                                         '       ng-model="model.' + model.name + '"' +
-                                        '       uib-typeahead="option.label for option in options.' + model.name.replace(/\./g, "_") + ' | filter:$viewValue:startsWith"' +
+                                        '       typeahead-min-length=0 uib-typeahead="option.label for option in options.' + model.name.replace(/\./g, "_") + ' | filter:$viewValue:startsWith"' +
                                         '       ' + (model.required ? "required" : "") +
                                         '       ng-readonly="viewMode === \'view\'">' +
-                                        '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                        '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                             }
 
                             if (model.source) {
@@ -145,7 +146,7 @@
                                     '            ng-click="' + model.name + '_popup.opened = true;"><i class="glyphicon glyphicon-calendar"></i>' +
                                     '    </button>' +
                                     '  </span>' +
-                                    '<i style="margin-top:-20px;" ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i style="margin-top:-20px; position: absolute; top: 30px;" ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                             '</div>';
                         } else if (model.type === "tag") {
                             if (model.source) {
@@ -171,7 +172,7 @@
                                     '                      ' + (model.popular ? "popular=\'" + JSON.stringify(model.popular) + "\'" : "") +
                                     '                      editable="viewMode !== \'view\'">' +
                                     '</tag-field>' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
 
                         } else if (model.type === "display") {
                             template +=
@@ -180,14 +181,15 @@
                                     (model.name ? ' ng-model="model.' + model.name + '"' : '') +
                                     (model.value ? ' value="' + model.value + '"' : '') +
                                     '       ng-readonly="viewMode === \'view\'">' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         }  else if (model.type === "hidden") {
                             template +=
-                                    '<input class="col-sm-9" type="text" disabled' +
+                                    '<input class="col-sm-9" type="text" ' +
                                     (model.name ? ' ng-model="model.' + model.name + '"' : '') +
-                                    (model.value ? ' value="' + model.value + '"' : '') +
+                                    (model.value ? ' ng-value="\'' + model.value + '\'"' : '') +
+                                    (model.force ? ' ng-init="model.' + model.name + ' = \'' + model.value + '\'"' : '') +
                                     '       ng-show="false">' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "user_selector") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -197,7 +199,7 @@
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
                                     '</user-selector-field>' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "output_files_selector") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -207,7 +209,7 @@
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
                                     '</output-files-selector-field>' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "input_files_selector") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -217,7 +219,7 @@
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
                                     '</input-files-selector-field>' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "reference_files_selector") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -227,21 +229,21 @@
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
                                     '</reference-files-selector-field>' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "sample_selector") {
                             template +=
                                     '<sample-selector-field name="{{field.name}}" ' +
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
                                     '</sample-selector-field>' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "protocol_selector") {
                             template +=
                                     '<protocol-selector-field name="{{field.name}}" ' +
                                     '                      ' + (model.required ? "required" : "") +
                                     '                      ng-readonly="viewMode === \'view\'">' +
                                     '</protocol-selector-field>' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
                         } else if (model.type === "box_list") {
                             template +=
                                     '<label class="col-sm-2" for="{{field.name}}"> {{field.label}}</label>' +
@@ -252,7 +254,7 @@
                                     '                      label="' + model.label + '"' +
                                     '                      editable="viewMode !== \'view\'">' +
                                     '</box-list-field>' +
-                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip="' + model.help + '" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
+                                    '<i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>';
 
                         } else {
                             throw 'Unknown input type ' + model.type + ' : ' + JSON.stringify(model);
@@ -280,19 +282,21 @@
                 require: 'ngModel',
                 scope: {
                     editable: "=",
-                    label : "="
+//                    label : "="
                 },
                 template:
                         '<div class="">' +
-                        '  <div class="" ng-repeat="box in boxes">' +
+                        '  <input class="col-sm-9" type="text" placeholder="Not specified" readonly ng-show="boxes=== undefined || boxes.length === 0">' +
+                        '  <div ng-repeat="box in boxes">' +
                         '     <b>{{label}}</b>'+ 
                         '     <div class="field-group row">' +
                         '         <label class="col-sm-2"> Name: </label>' +
-                        '         <input class="col-sm-9" type="text" placeholder="Not specified" ng-model="box.name" ng-readonly="editable===false">' +
+                        '         <input class="col-sm-8" type="text" placeholder="Not specified" ng-model="box.name" ng-readonly="editable===false">' +
+                        '         <a class="col-sm-1 text-danger clickable" ng-click="removeBox(box)"><i class="fa fa-trash" ng-show="editable" aria-hidden="true"></i></a>' +
                         '     </div>' +
                         '     <div class="field-group row">' +
                         '         <label class="col-sm-2"> Description: </label>' +
-                        '         <textarea class="col-sm-9" rows="8" cols="50" ng-model="box.description" ng-readonly="editable===false"></textarea>' +
+                        '         <textarea class="col-sm-8" rows="8" cols="50" ng-model="box.description" ng-readonly="editable===false"></textarea>' +
                         '     </div>' +
                         '  </div>' +
                         '  <a class="btn btn-sm btn-success" ng-show="editable" ng-click="addBox()" style="padding:2px 5px;">+ Add</a>' +

@@ -30,7 +30,6 @@ public class ColumnChromatography extends Chromatography {
     ////  Herited from SeparationMethod     
     //    protected String rawdata_id;
 
-    String separation_method_type = "ColumnChromatography";
     String column_chromatography_type;
     String column_manufacturer;
     String column_model;
@@ -58,6 +57,7 @@ public class ColumnChromatography extends Chromatography {
     
     public ColumnChromatography() {
         super();
+        separation_method_type = "ColumnChromatography";
     }
 
     /**
@@ -74,14 +74,6 @@ public class ColumnChromatography extends Chromatography {
         return columnChromatography;
     }
     
-    public String getSeparation_method_type() {
-        return separation_method_type;
-    }
-
-    public void setSeparation_method_type(String separation_method_type) {
-        this.separation_method_type = separation_method_type;
-    }
-
     public String getColumnChromatographyType() {
         return column_chromatography_type;
     }

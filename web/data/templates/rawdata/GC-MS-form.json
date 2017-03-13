@@ -3,24 +3,30 @@
     "content": [
         {
             "name": "section_3",
-            "title": "GC Equipment - Column: Product details",
+            "title": "Gas chromatography (GC) Equipment - Column: Product details",
             "fields": [
                 {
                     "name": "extractionMethod.separationMethod.separation_method_type",
                     "type": "hidden",
-                    "value": "ColumnChromatography"
+                    "value": "ColumnChromatography",
+                    "force": true
+                }, {
+                    "name": "extractionMethod.separationMethod.column_chromatography_type",
+                    "type": "hidden",
+                    "value": "Gas chromatography",
+                    "force": true
                 }, {
                     "name": "extractionMethod.separationMethod.column_manufacturer",
                     "label": "Column manufacturer",
                     "type": "select",
                     "source": "data/column_manufacturer.json",
-                    "help": ""
+                    "help": "The name of the column manufacturer."
                 }, {
                     "name": "extractionMethod.separationMethod.column_model",
                     "label": "Column model",
                     "type": "select",
                     "source": "data/column_model.json",
-                    "help": ""
+                    "help": "The model of the column."
                 }, {
                     "name": "extractionMethod.separationMethod.separation_mode",
                     "label": "Separation mode",
@@ -42,22 +48,22 @@
                             "label": "Hydrodynamic Volume",
                             "value": "Hydrodynamic Volume"
                         }],
-                    "help": ""
+                    "help": "A description of the type of column being used. (e.g., Separation mechanism: Affinity, Anion Exchange, Cation Exchange, Reverse Phase, Hydrodynamic Volume)."
                 }, {
                     "name": "extractionMethod.separationMethod.dimensions",
                     "label": "Dimensions",
                     "type": "text",
-                    "help": ""
+                    "help": "The dimensions of the column in terms of length and inner diameter or the total volume of the column where this value is appropriate, for example to describe gel filtration experiments."
                 }, {
                     "name": "extractionMethod.separationMethod.description_of_stationary_phase",
                     "label": "Description of stationary phase",
                     "type": "textarea",
-                    "help": ""
+                    "help": "A description of the constituents of the stationary phase, including the name of the packing material and the particle size, or describe packing materials in the case of monoliths including their manufacturer if stationary phase obtained separately from column."
                 }, {
                     "name": "extractionMethod.separationMethod.additional_accessories",
                     "label": "Additional accessories",
                     "type": "textarea",
-                    "help": ""
+                    "help": "Details of any guards or traps used in conjunction with the column."
                 }
             ]
         },
@@ -69,12 +75,12 @@
                     "name": "extractionMethod.separationMethod.combined_unit_manufacturer",
                     "label": "Manufacturer of combined unit and software",
                     "type": "textarea",
-                    "help": ""
+                    "help": "The name of the manufacturer of combined unit or component parts including software used to operate."
                 }, {
                     "name": "extractionMethod.separationMethod.combined_unit_model",
                     "label": "Model (of combined unit)",
                     "type": "textarea",
-                    "help": ""
+                    "help": "The model name provided by the manufacturer."
                 }
             ]
         },
@@ -86,7 +92,7 @@
                     "name": "extractionMethod.separationMethod.mobile_phases",
                     "label": "Mobile phase",
                     "type": "box_list",
-                    "help": ""
+                    "help": "Describe all the mobile phases of the run. Including the name used to refer the mobile phase in the Column Run properties and, for each constituent, a description, the concentration, pH (and how adjusted) and date of preparation."
                 }  
             ]
         },
@@ -98,25 +104,25 @@
                     "name": "extractionMethod.separationMethod.time",
                     "label": "Time",
                     "type": "text",
-                    "help": ""
+                    "help": "The total time of the Column Run with appropriate units."
                 },
                 {
                     "name": "extractionMethod.separationMethod.gradient",
                     "label": "Gradient",
                     "type": "text",
-                    "help": ""
+                    "help": "The proportion of each of the mobile phases, relative to time , for the function describing the gradient, including its overall duration. There may be several steps that together make up the gradient"
                 },
                 {
                     "name": "extractionMethod.separationMethod.flow_rate",
                     "label": "Flow rate",
                     "type": "text",
-                    "help": ""
+                    "help": "The flow rate at which the mobile phase is applied to the column, including the time period for which this holds if it varies during the experiment."
                 },
                 {
                     "name": "extractionMethod.separationMethod.temperature",
                     "label": "Temperature",
                     "type": "text",
-                    "help": ""
+                    "help": "The temperature at which the column is run, including the time period for which this holds if it varies during the experiment."
                 }
             ]
         },
@@ -128,25 +134,25 @@
                     "name": "extractionMethod.separationMethod.pre_run_process_type",
                     "label": "Type",
                     "type": "textarea",
-                    "help": ""
+                    "help": "A description of the purpose of the process, such as equilibration, calibration or washing (this may be part of the column run, as one step or as a preconditioning of the column prior to use)."
                 },
                 {
                     "name": "extractionMethod.separationMethod.pre_run_process_substance",
                     "label": "Substance",
                     "type": "text",
-                    "help": ""
+                    "help": "A description of the reagent used in the process."
                 },
                 {
                     "name": "extractionMethod.separationMethod.pre_run_process_time",
                     "label": "Time",
                     "type": "text",
-                    "help": ""
+                    "help": "The duration of the process."
                 },
                 {
                     "name": "extractionMethod.separationMethod.pre_run_process_flowrate",
                     "label": "Flow rate",
                     "type": "text",
-                    "help": ""
+                    "help": "The rate at which the mobile phase is applied to the column."
                 }
             ]
         },
@@ -158,31 +164,31 @@
                     "name": "extractionMethod.separationMethod.detection_equipment",
                     "label": "Equipment used for detection",
                     "type": "textarea",
-                    "help": ""
+                    "help": "Manufacturer and model, or description."
                 },
                 {
                     "name": "extractionMethod.separationMethod.detection_type",
                     "label": "Type",
                     "type": "text",
-                    "help": ""
+                    "help": "A description of the kind of detector (e.g. UV, MS)."
                 },
                 {
                     "name": "extractionMethod.separationMethod.detection_equipment_settings",
                     "label": "Equipment settings",
                     "type": "textarea",
-                    "help": ""
+                    "help": "A description of control properties of the detector, such as the wavelength that is being detected."
                 },
                 {
                     "name": "extractionMethod.separationMethod.detection_timescale",
                     "label": "Timescale over which data was collected",
                     "type": "textarea",
-                    "help": ""
+                    "help": "The time range covered by the trace produced by the detector."
                 },
                 {
                     "name": "extractionMethod.separationMethod.detection_trace",
                     "label": "Trace",
                     "type": "textarea",
-                    "help": ""
+                    "help": "The location and format of the trace if appropriate."
                 }
             ]
         },
@@ -191,41 +197,42 @@
             "title": "GC Column outputs - Fractions",
             "fields": [
                 {
-                    "name": "extractionMethod.separationMethod.mobile_phases",
+                    "name": "extractionMethod.separationMethod.fractions",
                     "label": "Fraction",
                     "type": "box_list",
-                    "help": ""
+                    "help": "Describe all the fractions of the run (if separation purpose is preparative). Include a name, unique within a run, by which a fraction can be referenced, and ither a description of the procedure by which the fractions were collected i.e. start/end time, size (time or volume), mode (fixed or peak directed), or a description of the individual fractions (e.g. time of collection, volume)."
                 }  
             ]
         },
         {
             "name": "section_10",
-            "title": "MS - Equipment details",
+            "title": "Mass spectrometry (MS) - Equipment details",
             "fields": [
                 {
                     "name": "extractionMethod.extraction_method_type",
                     "type": "hidden",
-                    "value": "MassSpectrometry"
+                    "value": "MassSpectrometry",
+                    "force": true
                 },
                 {
                     "name": "extractionMethod.mass_spectrometer_manufacturer",
                     "label": "Mass spectrometer manufacturer",
                     "type": "select",
                     "source": "data/mass_spectrometer_manufacturer.json",
-                    "help": ""
+                    "help": "The manufacturing company for the mass spectrometer."
                 },
                 {
                     "name": "extractionMethod.mass_spectrometer_model",
                     "label": "Mass spectrometer model",
                     "type": "select",
                     "source": "data/mass_spectrometer_model.json",
-                    "help": ""
+                    "help": "The manufacturing model name for the mass spectrometer."
                 },
                 {
                     "name": "extractionMethod.customizations",
                     "label": "Customizations (summary)",
                     "type": "textarea",
-                    "help": ""
+                    "help": "Any significant (i.e. affecting behaviour) deviations from the manufacturer’s specification for the mass spectrometer."
                 },
                 {
                     "name": "extractionMethod.ionization_source",
@@ -242,7 +249,7 @@
                             "label": "Other ion source",
                             "value": "Other ion source"
                         }],
-                    "help": ""
+                    "help": "Choose the Ion source"
                 },
                 {
                     "label": "Electrospray Ionisation (ESI) details",
@@ -254,28 +261,28 @@
                     "label": "Supply type",
                     "type": "text",
                     "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'",
-                    "help": ""
+                    "help": "Whether the sprayer is fed by, for example, chromatography or CE or is loaded with sample once before spraying, such as in static infusion"
                 },
                 {
                     "name": "extractionMethod.interface_manufacturer_and_model",
                     "label": "Interface details",
                     "type": "text",
                     "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'",
-                    "help": ""
+                    "help": "The manufacturing company and model name for the interface; list any modifications made to the standard specification. If the interface is entirely custom-built, describe it or provide a reference if available."
                 },
                 {
                     "name": "extractionMethod.sprayer_type_manufacturer_and_model",
                     "label": "Spayer details",
                     "type": "text",
                     "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'",
-                    "help": ""
+                    "help": "The manufacturing company and model name for the sprayer; list any modifications made to the standard specification. If the sprayer is entirely custom-built, describe it briefly or provide a reference if available."
                 },
                 {
                     "name": "extractionMethod.other_electrospray_ionisation",
                     "label": "Other details",
                     "type": "text",
                     "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'",
-                    "help": ""
+                    "help": "Where appropriate, and if considered as discriminating elements of the source parameters, describe these values."
                 },
                 {
                     "label": "MALDI details",
@@ -287,42 +294,42 @@
                     "label": "Plate composition",
                     "type": "text",
                     "dependency": "extractionMethod.ionization_source === 'MALDI'",
-                    "help": ""
+                    "help": "The material of which the target plate is made (usually stainless steel, or coated glass); if the plate has a special construction then that should be briefly described and catalogue and lot numbers given where available."
                 },
                 {
                     "name": "extractionMethod.matrix_composition",
                     "label": "Matrix composition",
                     "type": "text",
                     "dependency": "extractionMethod.ionization_source === 'MALDI'",
-                    "help": ""
+                    "help": "The material in which the sample is embedded on the target (e.g. alpha-cyano-4-hydroxycinnamic acid)."
                 },
                 {
                     "name": "extractionMethod.psd_summary",
                     "label": "PSD summary",
                     "type": "textarea",
                     "dependency": "extractionMethod.ionization_source === 'MALDI'",
-                    "help": ""
+                    "help": "Confirm whether post-source decay, laser-induced decomposition, or in-source dissociation was performed; if so provide a brief description of the process (for example, summarize the stepwise reduction of reflector voltage)."
                 },
                 {
                     "name": "extractionMethod.laser_type_and_wavelength",
                     "label": "Laser details",
                     "type": "text",
                     "dependency": "extractionMethod.ionization_source === 'MALDI'",
-                    "help": ""
+                    "help": "The type of laser and the wavelength (nm) of the generated pulse. For instance nitrogen, 337 nm."
                 },
                 {
                     "name": "extractionMethod.other_maldi",
                     "label": "Other details",
                     "type": "textarea",
                     "dependency": "extractionMethod.ionization_source === 'MALDI'",
-                    "help": ""
+                    "help": "Other details of the laser used to shoot at the matrix-embedded sample if considered important for the interpretation of data; this might include the pulse energy, focus diameter, attenuation details, pulse duration at full-width half maximum, frequency of shots in Hertz and average number of shots fired to generate each combined mass spectrum."
                 },
                 {
                     "name": "extractionMethod.other_ionization_description",
                     "label": "Ion source description",
                     "type": "textarea",
                     "dependency": "extractionMethod.ionization_source === 'Other ion source'",
-                    "help": ""
+                    "help": "Describe the ion source and provide relevant and discriminating parameters for its use."
                 }
             ]
         },
@@ -334,7 +341,7 @@
                     "name": "extractionMethod.mass_analyzer_type",
                     "label": "Analyzer description",
                     "type": "textarea",
-                    "help": ""
+                    "help": "Describe the analyzer(s) used in the MS experiment. Example might be MS1 survey scans in an Orbitrap and MSn analysed in a linear trap"
                 },
                 {
                     "name": "extractionMethod.reflectron_status",
@@ -351,25 +358,25 @@
                             "label": "none",
                             "value": "none"
                         }],
-                    "help": ""
+                    "help": "Time-of-Flight drift tube: Reflectron status (on, off, none) when status can be set."
                 },
                 {
                     "name": "extractionMethod.activation_location",
                     "label": "Instrument component where the activation / dissociation occurs",
                     "type": "text",
-                    "help": ""
+                    "help": "The hardware element where activation and/or dissociation occurs. For instance a quadrupole collision cell, a 3D ion trap, the ion source (for ISD, PSD, LID, isCID)"
                 },
                 {
                     "name": "extractionMethod.gas_type",
                     "label": "Gas type",
                     "type": "text",
-                    "help": ""
+                    "help": "The composition and pressure of the gas used to fragment ions, for instance in the collision cell."
                 },
                 {
                     "name": "extractionMethod.activation_type",
                     "label": "Activation / dissociation type",
                     "type": "text",
-                    "help": ""
+                    "help": "The type of activation and/or dissociation used in the fragmentation process. Examples might include Collision Induced Dissociation (CID) with a static or spread collision energy, Electron Transfer Dissociaton (ETD) with provided activator molecules."
                 }
             ]
         },
@@ -381,13 +388,13 @@
                     "name": "extractionMethod.acquisition_software",
                     "label": "Software and version",
                     "type": "text",
-                    "help": ""
+                    "help": "The instrument management and data analysis package name and version; where there are several pieces of software involved, give name, version and role for each of them. Mention also upgrades not reflected in the version number."
                 },
                 {
                     "name": "extractionMethod.acquisition_parameters",
                     "label": "Acquisition parameters",
                     "type": "textarea",
-                    "help": ""
+                    "help": "The information on how the MS data have been generated. It describes the instrument’s parameter settings / acquisition method file or information describing the acquisition conditions and settings of the MS run. Ideally this should be a URI+filename, for example an export of the acquisition method (and Tune page or other relevant information where appropriate). This includes for instance if the data are acquired and primarily stored in a profile or centroid mode. An explicit text description of the acquisition process is also desirable. This includes the acquisition sequence (for instance as simplified as top-five method with a cycle made of one full MS1 scan in the Orbitrap, followed by a precursor selection of 5 most intense ions applying an exclusion window of 30 seconds and followed by the acquisition of 5 product ion scans generated in the LTQ analyzer, and detected in the LTQ). This allows to differentiate between the use of a selected precursor window vs unselected fragmentation (MS`E/bbCID/AIF). This also allows to explicitly describe pre-defined the acquisition method of a SRM experiment where all transitions and detection windows are specified."
                 }
             ]
         },
@@ -405,13 +412,13 @@
                     "name": "extractionMethod.intensity_values",
                     "label": "m/z and intensity values",
                     "type": "text",
-                    "help": ""
+                    "help": "The actual data (m/z and intensity) for each spectrum. This is most often provided in the spectra and/or peaklist file."
                 },
                 {
                     "name": "extractionMethod.ms_level",
                     "label": "MS level",
                     "type": "text",
-                    "help": ""
+                    "help": "The MS level (e.g. MS^2) at which each spectrum was acquired. This is most often provided in the spectra or peaklist file."
                 },
                 {
                     "name": "extractionMethod.ion_mode",
@@ -428,13 +435,13 @@
                             "label": "none",
                             "value": "none"
                         }],
-                    "help": ""
+                    "help": "The ion mode (positive or negative). This is most often provided in the spectra or peaklist file."
                 },
                 {
                     "name": "extractionMethod.additional_info",
                     "label": "Additional information for MS level 2",
                     "type": "text",
-                    "help": ""
+                    "help": "For tandem spectra; in addition to the preceding information,the precursor m/z value and the charge state of the precursor ion should be given; the mass spectrum used to deduce the precursor information should also be provided."
                 }
             ]
         }

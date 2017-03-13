@@ -30,7 +30,6 @@ public class CapillaryElectrophoresis extends SeparationMethod{
 
     ////  Herited from SeparationMethod     
     //    protected String rawdata_id;
-    String separation_method_type = "CapillaryElectrophoresis";
     String experiment_type;
     String experiment_aim;
     String ce_sample_description;
@@ -46,6 +45,7 @@ public class CapillaryElectrophoresis extends SeparationMethod{
 
     public CapillaryElectrophoresis() {
         super();
+        separation_method_type = "CapillaryElectrophoresis";
     }
 
     /**
@@ -60,14 +60,6 @@ public class CapillaryElectrophoresis extends SeparationMethod{
         CapillaryElectrophoresis capillaryElectrophoresis = gson.fromJson(jsonString, CapillaryElectrophoresis.class);
 
         return capillaryElectrophoresis;
-    }
-
-    public String getSeparation_method_type() {
-        return separation_method_type;
-    }
-
-    public void setSeparation_method_type(String separation_method_type) {
-        this.separation_method_type = separation_method_type;
     }
 
     public String getExperimentType() {

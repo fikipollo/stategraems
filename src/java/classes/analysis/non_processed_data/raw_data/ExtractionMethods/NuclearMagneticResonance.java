@@ -17,8 +17,6 @@
  *  More info http://bioinfo.cipf.es/stategraems
  *  Technical contact stategraemsdev@gmail.com
  *  *************************************************************** */
-
-
 package classes.analysis.non_processed_data.raw_data.ExtractionMethods;
 
 import classes.analysis.non_processed_data.raw_data.ExtractionMethod;
@@ -80,6 +78,10 @@ public class NuclearMagneticResonance extends ExtractionMethod {
         gsonBuilder.registerTypeAdapter(SeparationMethod.class, getSeparationMethodDeserializerInstance());
         Gson gson = gsonBuilder.create();
         NuclearMagneticResonance nuclearMagneticResonance = gson.fromJson(jsonString, NuclearMagneticResonance.class);
+
+        if (nuclearMagneticResonance.getSeparationMethod() != null) {
+            nuclearMagneticResonance.setSeparationMethodType(nuclearMagneticResonance.getSeparationMethod().getSeparationMethodType());
+        }
 
         return nuclearMagneticResonance;
     }

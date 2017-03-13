@@ -290,39 +290,39 @@ public class ColumnChromatography_JDBCDAO extends DAO {
             columnChromatography.setDetectionEquipmentSettings(rs.getString("detection_equipment_settings"));
             columnChromatography.setDetectionTimescale(rs.getString("detection_timescale"));
             columnChromatography.setDetectionTrace(rs.getString("detection_trace"));
+
+            // FIND ALL MOBILE PHASES
+            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                    + "SELECT * FROM mobile_phase WHERE rawdata_id= ?");
+            ps.setString(1, objectID);
+            rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
+
+            ArrayList<ColumnChromatography.MobilePhase> mobilePhases = new ArrayList<ColumnChromatography.MobilePhase>();
+            ColumnChromatography.MobilePhase mobilePhase = null;
+            while (rs.next()) {
+                mobilePhase = columnChromatography.getNewMobilePhase();
+                mobilePhase.setName(rs.getString("name"));
+                mobilePhase.setDescription(rs.getString("description"));
+                mobilePhases.add(mobilePhase);
+            }
+            columnChromatography.setMobilePhases(mobilePhases.toArray(new ColumnChromatography.MobilePhase[mobilePhases.size()]));
+
+            // FIND ALL FRACTIONS
+            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                    + "SELECT * FROM fraction WHERE rawdata_id= ?");
+            ps.setString(1, objectID);
+            rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
+
+            ArrayList<ColumnChromatography.Fraction> fractions = new ArrayList<ColumnChromatography.Fraction>();
+            ColumnChromatography.Fraction fraction = null;
+            while (rs.next()) {
+                fraction = columnChromatography.getNewFraction();
+                fraction.setName(rs.getString("name"));
+                fraction.setDescription(rs.getString("description"));
+                fractions.add(fraction);
+            }
+            columnChromatography.setFractions(fractions.toArray(new ColumnChromatography.Fraction[fractions.size()]));
         }
-
-        // FIND ALL MOBILE PHASES
-        ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                + "SELECT * FROM mobile_phase WHERE rawdata_id= ?");
-        ps.setString(1, objectID);
-        rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
-
-        ArrayList<ColumnChromatography.MobilePhase> mobilePhases = new ArrayList<ColumnChromatography.MobilePhase>();
-        ColumnChromatography.MobilePhase mobilePhase = null;
-        while (rs.next()) {
-            mobilePhase = columnChromatography.getNewMobilePhase();
-            mobilePhase.setName(rs.getString("name"));
-            mobilePhase.setDescription(rs.getString("description"));
-            mobilePhases.add(mobilePhase);
-        }
-        columnChromatography.setMobilePhases(mobilePhases.toArray(new ColumnChromatography.MobilePhase[mobilePhases.size()]));
-
-        // FIND ALL FRACTIONS
-        ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                + "SELECT * FROM fraction WHERE rawdata_id= ?");
-        ps.setString(1, objectID);
-        rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
-
-        ArrayList<ColumnChromatography.Fraction> fractions = new ArrayList<ColumnChromatography.Fraction>();
-        ColumnChromatography.Fraction fraction = null;
-        while (rs.next()) {
-            fraction = columnChromatography.getNewFraction();
-            fraction.setName(rs.getString("name"));
-            fraction.setDescription(rs.getString("description"));
-            fractions.add(fraction);
-        }
-        columnChromatography.setFractions(fractions.toArray(new ColumnChromatography.Fraction[fractions.size()]));
 
         return columnChromatography;
     }

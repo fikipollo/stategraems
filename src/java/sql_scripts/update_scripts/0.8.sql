@@ -100,6 +100,8 @@ ALTER TABLE processed_data MODIFY COLUMN software VARCHAR(200);
 
 ALTER TABLE step_use_step ADD COLUMN type VARCHAR(50) DEFAULT 'input';
 
+ALTER TABLE mass_spectrometry_rawdata ADD COLUMN mass_spectrometer_model varchar(200) NULL;
+
 CREATE FUNCTION SPLIT_STR(
   x VARCHAR(255),
   delim VARCHAR(12),
