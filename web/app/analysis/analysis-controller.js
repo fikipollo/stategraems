@@ -907,24 +907,8 @@
                             step.raw_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
                             step.step_name = "Unnamed " + step.raw_data_type + " step";
                             step.analyticalReplicate_id = null;
-                            step.extractionMethod = {extraction_method_type: $scope.typesInfo.step_subtype.replace(/ /g, "_"), separationMethod : {}};
-//                            if($scope.typesInfo.step_subtype === "GC-MS"){                                
-//                                step.extractionMethod.separationMethod.column_chromatography_type = "Gas chromatography";
-//                                step.extractionMethod.separationMethod.separation_method_type = "ColumnChromatography";
-//                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
-//                            } else if($scope.typesInfo.step_subtype === "LC-MS"){                                
-//                                step.extractionMethod.separationMethod.column_chromatography_type = "Liquid chromatography";
-//                                step.extractionMethod.separationMethod.separation_method_type = "ColumnChromatography";
-//                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
-//                            } else if($scope.typesInfo.step_subtype === "CE-MS"){
-//                                step.extractionMethod.separationMethod.separation_method_type = "CapillaryElectrophoresis";
-//                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
-//                            } else if($scope.typesInfo.step_subtype === "Mass spectrometry"){
-//                                step.extractionMethod.extraction_method_type = "MassSpectrometry";
-//                            } else if($scope.typesInfo.step_subtype === "Nuclear Magnetic Resonance"){
-//                                step.extractionMethod.extraction_method_type = "NuclearMagneticResonance";
-//                            }
-                            
+                            step.extractionMethod = {extraction_method_type: $scope.typesInfo.step_subtype.replace(/ /g, "_"), separationMethod: {}};
+
                             $scope.model.non_processed_data.push(step);
                             $scope.model.nextStepID++;
                         } else if ($scope.typesInfo.step_type === "intermediate_data") {
@@ -975,21 +959,23 @@
          *
          ******************************************************************************/
         this.updateStepSubtypes = function () {
-            $http($rootScope.getHttpRequestConfig("GET", "analysis-step-subtypes", {
-                params: {'step_type': $scope.typesInfo.step_type}
-            })).then(
-                    function successCallback(response) {
-                        $scope.typesInfo.step_subtypes = response.data.subtypes;
-                    },
-                    function errorCallback(response) {
-                        var message = "Failed while retrieving the step subtypes.";
-                        $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at AnalysisDetailController:updateStepSubtypes."
-                        });
-                        console.error(response.data);
-                        debugger
-                    }
-            );
+            if ($scope.typesInfo.step_type) {
+                $http($rootScope.getHttpRequestConfig("GET", "analysis-step-subtypes", {
+                    params: {'step_type': $scope.typesInfo.step_type}
+                })).then(
+                        function successCallback(response) {
+                            $scope.typesInfo.step_subtypes = response.data.subtypes;
+                        },
+                        function errorCallback(response) {
+                            var message = "Failed while retrieving the step subtypes.";
+                            $dialogs.showErrorDialog(message, {
+                                logMessage: message + " at AnalysisDetailController:updateStepSubtypes."
+                            });
+                            console.error(response.data);
+                            debugger
+                        }
+                );
+            }
         };
 
         /******************************************************************************
@@ -1232,7 +1218,7 @@
          ******************************************************************************/
         this.addSelectedInputFileHandler = function (added_step_id, doDigest) {
             var propertyName = $scope.propertyName || 'used_data';
-            
+
             var pos = $scope.model[propertyName].indexOf(added_step_id);
             var isLoop = AnalysisList.checkLoop(added_step_id, $scope.model.step_id, propertyName);
             if (!isLoop && pos === -1) {
@@ -1240,7 +1226,7 @@
                 if (doDigest === true) {
                     $scope.$digest();
                 }
-            }else {
+            } else {
                 console.log("Loop detected, ignoring...");
             }
             return true;
@@ -1316,14 +1302,14 @@
                 if ($scope.files_selection.selection === "all") {
                     $scope.files_selection.files = $scope.model.files_location;
                 }
-              
+
                 $http($rootScope.getHttpRequestConfig("POST", "file-rest", {
                     headers: {'Content-Type': 'application/json; charset=utf-8'},
                     data: {
-                        files : $scope.files_selection.files,
-                        destination : $scope.files_selection.destination
+                        files: $scope.files_selection.files,
+                        destination: $scope.files_selection.destination
                     },
-                    extra : "send"
+                    extra: "send"
                 })).then(
                         function successCallback(response) {
                             $scope.setLoading(false);

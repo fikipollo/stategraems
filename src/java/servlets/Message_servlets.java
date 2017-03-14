@@ -40,13 +40,11 @@ import javax.servlet.http.Cookie;
  *
  * SERVLET FOR MESSAGES:
  * +----------------------+-----------------------+---------------+------------------------------------------------------+---------------------+
- * | Resource | POST | GET | PUT | DELETE |
+ * | Resource             |       POST            |     GET       |                       PUT                            |      DELETE         |
  * +----------------------+-----------------------+---------------+------------------------------------------------------+---------------------+
- * | /rest/messages | Create a new message | List messages | Replace messages
- * list with new messages(Bulk update) | Delete all messages |
+ * | /rest/messages       | Create a new message  | List messages | Replace messages list with new messages(Bulk update) | Delete all messages |
  * +----------------------+-----------------------+---------------+------------------------------------------------------+---------------------+
- * | /rest/messages/1234 | Error | Show message | If exist update message else
- * ERROR | Delete message |
+ * | /rest/messages/1234  |       Error           | Show message  |        If exist update message else ERROR            | Delete message      |
  * +----------------------+-----------------------+---------------+------------------------------------------------------+---------------------+
  *
  */
@@ -378,7 +376,7 @@ public class Message_servlets extends Servlet {
                 Map<String, Cookie> cookies = this.getCookies(request);
                 String loggedUser = cookies.get("loggedUser").getValue();
                 String sessionToken = cookies.get("sessionToken").getValue();
-                
+
                 String messageID = request.getPathInfo().replaceAll("/", "");
 
                 if (!checkAccessPermissions(loggedUser, sessionToken)) {
@@ -393,7 +391,7 @@ public class Message_servlets extends Servlet {
                  */
                 Message message = Message.fromJSON(requestData.get("message_json_data"));
                 message.setMessageID(messageID);
-                
+
                 /**
                  * *******************************************************
                  * STEP 3 UPDATE the message in DATABASE. IF ERROR --> throws
@@ -484,7 +482,7 @@ public class Message_servlets extends Servlet {
                 Map<String, Cookie> cookies = this.getCookies(request);
                 String loggedUser = cookies.get("loggedUser").getValue();
                 String sessionToken = cookies.get("sessionToken").getValue();
-                
+
                 String messageID = request.getPathInfo().replaceAll("/", "");
 
                 if (!checkAccessPermissions(loggedUser, sessionToken)) {

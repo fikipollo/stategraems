@@ -201,10 +201,11 @@ public class DBConnectionManager {
 //                + " --password=" + properties.getProperty("password")
 //                + " " + properties.getProperty("databasename");
         String dumpCommand = "mysqldump  "
+                + " --host " + properties.getProperty("host")
                 + " --complete-insert --insert-ignore --force"
                 + " --single-transaction --add-drop-table --skip-comments"
                 + " --user=" + properties.getProperty("username")
-                + " --password=" + properties.getProperty("password")
+                + " --password=" + new String(Base64.decodeBase64(properties.getProperty("password")))
                 + " " + properties.getProperty("databasename");
         Runtime rt = Runtime.getRuntime();
 //        dumpCommand+= " >> " + filePath;

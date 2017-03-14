@@ -17,9 +17,12 @@
  *  More info http://bioinfo.cipf.es/stategraems
  *  Technical contact stategraemsdev@gmail.com
  *  *************************************************************** */
-
 package common;
 
+import bdManager.DAO.DAO;
+import bdManager.DAO.DAOProvider;
+import bdManager.DAO.User_JDBCDAO;
+import classes.User;
 import java.util.HashMap;
 
 /**
@@ -67,7 +70,6 @@ public class UserSessionManager {
 //        if(INSTANCE.logged_users.containsKey(user_id)){
 //           INSTANCE.logged_users.put(user_id, sessionToken);
 //        }
-
         String sessionToken = Long.toHexString(Double.doubleToLongBits(Math.random()));
         INSTANCE.logged_users.put(email, sessionToken);
         return sessionToken;
@@ -99,6 +101,18 @@ public class UserSessionManager {
         }
 
         return sessionToken.equals(getUserSessionManager().logged_users.get(user));
+    }
+
+    public boolean isValidAdminUser(String username) {
+
+        try {
+            DAO dao_instance = DAOProvider.getDAOByName("User");
+            Object[] params = {null, false, true};
+            User user = (User) ((User_JDBCDAO) dao_instance).findByID(username, params);
+            return "admin".equals(user.getRole()) || "admin".equals(user.getUserID());
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public int getLoggedUsersCount() {

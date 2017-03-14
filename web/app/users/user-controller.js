@@ -29,23 +29,23 @@
         'ui.bootstrap'
     ]);
 
-    app.controller('UserSessionController', function ($state, $rootScope, $scope, $http, $dialogs, APP_EVENTS) {
+    app.controller('UserSessionController', function ($state, $rootScope, $scope, $http, $uibModal, $dialogs, APP_EVENTS) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
         this.getCurrentUserDetails = function () {
-            if (!Cookies.get("sessionToken")) {
+            if (!Cookies.get("session")) {
                 return;
             }
 
-            $http($rootScope.getHttpRequestConfig("POST", "user-info", {
+            $http($rootScope.getHttpRequestConfig("GET", "user-rest", {
                 headers: {'Content-Type': 'application/json'},
-                data: $rootScope.getCredentialsParams({email: 'current'})
+                extra: $rootScope.getCredentialsParams()["loggedUserID"]
             })).then(
                     function successCallback(response) {
                         $scope.userInfo.email = response.data.email;
                         $scope.userInfo.user_id = response.data.user_id;
-                        $scope.userInfo.apicode = btoa(response.data.email + ":" + Cookies.get("sessionToken"));
+                        $scope.userInfo.role = response.data.role;
                     },
                     function errorCallback(response) {
                         var message = "Failed while getting user's details at UserSessionController:getCurrentUserDetails";
@@ -59,8 +59,7 @@
         // EVENT HANDLERS
         //--------------------------------------------------------------------
         $scope.$on(APP_EVENTS.loginSuccess, function (event, args) {
-            debugger
-            $scope.userInfo.email = Cookies.get("loggedUser");
+            $scope.userInfo.email = $rootScope.getCredentialsParams()["loggedUser"];
         });
 
         $scope.$on(APP_EVENTS.logoutSuccess, function (event, args) {
@@ -78,8 +77,9 @@
 
         this.signInButtonHandler = function () {
             if ($scope.userInfo.email !== '' && $scope.userInfo.password !== '') {
-                $http($rootScope.getHttpRequestConfig("POST", "user-sign-in", {
+                $http($rootScope.getHttpRequestConfig("POST", "user-rest", {
                     headers: {'Content-Type': 'application/json'},
+                    extra: "session",
                     data: {
                         email: $scope.userInfo.email,
                         password: $scope.userInfo.password
@@ -87,18 +87,17 @@
                 })).then(
                         function successCallback(response) {
                             //CLEAN PREVIOUS COOKIES
-                            Cookies.remove("loggedUser", {path: window.location.pathname});
+                            Cookies.remove("session", {path: window.location.pathname});
                             Cookies.remove("loggedUserID", {path: window.location.pathname});
-                            Cookies.remove("sessionToken", {path: window.location.pathname});
 
                             $scope.userInfo.email = response.data.email;
                             $scope.userInfo.user_id = response.data.user_id;
                             $scope.userInfo.apicode = btoa(response.data.email + ":" + response.data.sessionToken);
+                            $scope.userInfo.role = response.data.role;
 
                             //SET THE COOKIES
-                            Cookies.set("loggedUser", $scope.userInfo.email, {expires: 1, path: window.location.pathname});
+                            Cookies.set("session", $scope.userInfo.apicode, {expires: 1, path: window.location.pathname});
                             Cookies.set("loggedUserID", $scope.userInfo.user_id, {expires: 1, path: window.location.pathname});
-                            Cookies.set("sessionToken", response.data.sessionToken, {expires: 1, path: window.location.pathname});
                             if (response.data.last_experiment_id !== undefined) {
                                 Cookies.set("currentExperimentID", response.data.last_experiment_id, {expires: 1, path: window.location.pathname});
                             }
@@ -107,7 +106,7 @@
                             delete $scope.signForm;
 
                             //Notify all the other controllers that user has signed in
-                            $rootScope.$emit(APP_EVENTS.loginSuccess);
+                            $rootScope.$broadcast(APP_EVENTS.loginSuccess);
 
                             $state.go('home');
                         },
@@ -130,7 +129,7 @@
 
         this.signUpButtonHandler = function () {
             if ($scope.userInfo.email !== '' && $scope.userInfo.user_id !== '' && $scope.userInfo.password !== '' && $scope.userInfo.password === $scope.userInfo.passconfirm) {
-                $http($rootScope.getHttpRequestConfig("POST", "user-sign-up", {
+                $http($rootScope.getHttpRequestConfig("POST", "user-rest", {
                     headers: {'Content-Type': 'application/json'},
                     data: {
                         email: $scope.userInfo.email,
@@ -150,8 +149,7 @@
                             delete $scope.userInfo.passconfirm;
                             delete $scope.signForm;
 
-                            Cookies.remove("loggedUser", {path: window.location.pathname});
-                            Cookies.remove("sessionToken", {path: window.location.pathname});
+                            Cookies.remove("session", {path: window.location.pathname});
                             Cookies.remove("loggedUserID", {path: window.location.pathname});
                             Cookies.remove("currentExperimentID", {path: window.location.pathname});
 
@@ -169,35 +167,166 @@
         };
 
         this.signOutButtonHandler = function () {
-            $http($rootScope.getHttpRequestConfig("POST", "user-sign-out", {
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                data: $rootScope.getCredentialsParams()
+            var cleanSessionData = function () {
+                console.log("Cleaning all local session data.");
+                Cookies.remove("session", {path: window.location.pathname});
+                Cookies.remove("loggedUserID", {path: window.location.pathname});
+                Cookies.remove("currentExperimentID", {path: window.location.pathname});
+
+                delete $scope.userInfo.email;
+                delete $scope.userInfo.user_id;
+
+                $state.go('signin');
+                $rootScope.$broadcast(APP_EVENTS.logoutSuccess); //Notify all the other controllers that user has signed in
+            };
+            $http($rootScope.getHttpRequestConfig("DELETE", "user-rest", {
+                headers: {'Content-Type': 'application/json'},
+                extra: "session"
             })).then(
                     function successCallback(response) {
+                        cleanSessionData();
                     },
                     function errorCallback(response) {
                         debugger;
-                        console.error("Failed during sign-out process at UserSessionController:signUpButtonHandler.");
+                        var message = "Failed during logout process.";
+                        $dialogs.showErrorDialog(message, {
+                            logMessage: message + " at UserSessionController:signOutButtonHandler."
+                        });
+                        console.error(response.data);
+
+                        cleanSessionData();
                     }
             );
-            console.log("Cleaning all local session data.");
-            Cookies.remove("loggedUser", {path: window.location.pathname});
-            Cookies.remove("sessionToken", {path: window.location.pathname});
-            Cookies.remove("loggedUserID", {path: window.location.pathname});
-            Cookies.remove("currentExperimentID", {path: window.location.pathname});
-
-            delete $scope.userInfo.email;
-            delete $scope.userInfo.user_id;
-
-            $state.go('signin');
-            $rootScope.$emit(APP_EVENTS.logoutSuccess); //Notify all the other controllers that user has signed in
         };
 
+        this.changePasswordButtonHandler = function () {
+            $scope.checkPasswords = function () {
+                if ($scope.newpass.newpass.length < 6) {
+                    $scope.newpass.error = "Password must be at least 6 characters.";
+                } else if ($scope.newpass.newpass === $scope.newpass.repeatpass) {
+                    delete $scope.newpass.error;
+                    return true;
+                } else {
+                    $scope.newpass.error = "Passwords do not match.";
+                }
+                return false;
+            };
+            $scope.closeDialog = function (option) {
+                if (option === 'ok') {
+                    if ($scope.checkPasswords()) {
+                        modalInstance.close();
+                    }
+                } else {
+                    modalInstance.dismiss();
+                }
+            };
+            $scope.newpass = {
+                newpass: "",
+                repeatpass: ""
+            };
+
+            var modalInstance = $uibModal.open({
+                template: '' +
+                        '<div class="modal-header">' +
+                        '   <h3 class="modal-title" id="modal-title">Change password</h3>' +
+                        '</div>' +
+                        '<div class="modal-body" id="modal-body">' +
+                        '<form class="form-inline">' +
+                        '  <div class="form-group">' +
+                        '    <label  for="newpass">New password:</label>' +
+                        '    <input type="password" ng-model="newpass.newpass" ng-change="checkPasswords()" class="form-control" id="newpass">' +
+                        '  </div>' +
+                        '  <div class="form-group">' +
+                        '    <label for="newpass">Repeat:</label>' +
+                        '    <input type="password" ng-model="newpass.repeatpass" ng-change="checkPasswords()" class="form-control" id="repeatpass">' +
+                        '  </div>' +
+                        '  <p class="text-danger" ng-show="newpass.error">{{newpass.error}}</p>' +
+                        '</form>' +
+                        '</div>' +
+                        '<div class="modal-footer">' +
+                        '   <a class="btn btn-success" ng-click="closeDialog(\'ok\');">Change password</a>' +
+                        '   <a class="btn btn-danger" ng-click="closeDialog();">Cancel</a>' +
+                        '</div>',
+                scope: $scope
+            });
+
+
+            modalInstance.result.then(function () {
+                $http($rootScope.getHttpRequestConfig("PUT", "user-rest", {
+                    headers: {'Content-Type': 'application/json'},
+                    extra: $rootScope.getCredentialsParams()["loggedUserID"],
+                    data: {newpass: btoa($scope.newpass.newpass)}
+                })).then(
+                        function successCallback(response) {
+                            $dialogs.showSuccessDialog("Password successfully updated!");
+                        },
+                        function errorCallback(response) {
+                            debugger;
+                            var message = "Failed while changing the password.";
+                            $dialogs.showErrorDialog(message, {
+                                logMessage: message + " at UserSessionController:changePasswordButtonHandler."
+                            });
+                            console.error(response.data);
+                        }
+                );
+
+                delete $scope.checkPasswords;
+                delete $scope.closeDialog;
+                delete $scope.newpass;
+            }, function () {
+                delete $scope.checkPasswords;
+                delete $scope.closeDialog;
+                delete $scope.newpass;
+            });
+
+
+        };
+
+        this.getAPICodeHandler = function () {
+            $dialogs.showInfoDialog("Your API code is " + Cookies.get("session"), {title: "API code"});
+        };
+
+        this.sendBackupRequestHandler = function () {
+            $http($rootScope.getHttpRequestConfig("POST", "admin-rest", {
+                headers: {'Content-Type': 'application/json'},
+                extra: 'backup'
+            })).then(
+                    function successCallback(response) {
+                        $dialogs.showSuccessDialog("Backup successfully created!");
+                        var file_content = response.data;
+
+                        var saveByteArray = (function () {
+                            var a = document.createElement("a");
+                            document.body.appendChild(a);
+                            a.style = "display: none";
+                            return function (data, name) {
+                                var blob = new Blob(data, {type: "octet/stream"}),
+                                        url = window.URL.createObjectURL(blob);
+                                a.href = url;
+                                a.download = name;
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                            };
+                        }());
+                        var filename = response.headers("content-disposition").replace("filename=","").replace(/\"/g,"");
+                        saveByteArray([file_content], filename);
+
+                    },
+                    function errorCallback(response) {
+                        debugger;
+                        var message = "Failed while creating the backup for databases.";
+                        $dialogs.showErrorDialog(message, {
+                            logMessage: message + " at UserSessionController:sendBackupRequestHandler."
+                        });
+                        console.error(response.data);
+                    }
+            );
+        };
         //--------------------------------------------------------------------
         // INITIALIZATION
         //--------------------------------------------------------------------
         $scope.userInfo = {
-            email: Cookies.get("loggedUser")
+            email: $rootScope.getCredentialsParams()["loggedUser"]
         };
         this.getCurrentUserDetails();
     });
@@ -217,9 +346,8 @@
             $scope.isLoading = true;
 
             if (UserList.getOld() > 1 || force) { //Max age for data 5min.
-                $http($rootScope.getHttpRequestConfig("POST", "user-list", {
-                    headers: {'Content-Type': 'application/json'},
-                    data: $rootScope.getCredentialsParams()
+                $http($rootScope.getHttpRequestConfig("GET", "user-rest", {
+                    headers: {'Content-Type': 'application/json'}
                 })).then(
                         function successCallback(response) {
                             $scope.isLoading = false;
@@ -257,7 +385,7 @@
          */
         $scope.filterUsers = function () {
             $scope.filteredUsers = 0;
-            $scope.username = $scope.username || Cookies.get("loggedUser");
+            $scope.username = $scope.username || $rootScope.getCredentialsParams()["loggedUser"];
             return function (item) {
                 if ($scope.show === "my_users") {
 

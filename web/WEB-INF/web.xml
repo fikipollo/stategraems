@@ -36,6 +36,10 @@
         <servlet-name>File_servlets</servlet-name>
         <servlet-class>servlets.File_servlets</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>Admin_servlets</servlet-name>
+        <servlet-class>servlets.Admin_servlets</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>Analysis_servlets</servlet-name>
         <url-pattern>/rest/analysis/*</url-pattern>
@@ -71,7 +75,6 @@
         <url-pattern>/unlock_experiment</url-pattern>
         <url-pattern>/remove_experiment</url-pattern>
         <url-pattern>/change_current_experiment</url-pattern>
-        <url-pattern>/dump_database</url-pattern>
         <url-pattern>/get_experiment_directory_content</url-pattern>
         <url-pattern>/experiment_member_request</url-pattern>
     </servlet-mapping>
@@ -88,14 +91,7 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>User_servlets</servlet-name>
-        <url-pattern>/update_user</url-pattern>
-        <url-pattern>/remove_user</url-pattern>
-        <url-pattern>/get_user</url-pattern>
-        <url-pattern>/login</url-pattern>
-        <url-pattern>/sign_up</url-pattern>
-        <url-pattern>/get_user_list</url-pattern>
-        <url-pattern>/logout</url-pattern>
-        <url-pattern>/validate_session</url-pattern>
+        <url-pattern>/rest/users/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Samples_servlets</servlet-name>
@@ -127,6 +123,10 @@
     <servlet-mapping>
         <servlet-name>File_servlets</servlet-name>
         <url-pattern>/rest/files/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Admin_servlets</servlet-name>
+        <url-pattern>/rest/admin/*</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

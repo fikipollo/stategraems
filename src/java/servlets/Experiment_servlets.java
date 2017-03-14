@@ -22,7 +22,6 @@ package servlets;
 import bdManager.DAO.DAO;
 import bdManager.DAO.DAOProvider;
 import bdManager.DAO.Experiment_JDBCDAO;
-import bdManager.DBConnectionManager;
 import classes.Experiment;
 import classes.Message;
 import classes.User;
@@ -34,9 +33,7 @@ import common.ServerErrorManager;
 import java.io.File;
 import java.io.IOException;
 import java.security.AccessControlException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -79,8 +76,6 @@ public class Experiment_servlets extends Servlet {
             remove_experiment_handler(request, response);
         } else if (request.getServletPath().equals("/change_current_experiment")) {
             change_current_experiment_handler(request, response);
-        } else if (request.getServletPath().equals("/dump_database")) {
-            dump_database_handler(request, response);
         } else if (request.getServletPath().equals("/get_experiment_directory_content")) {
             get_experiment_directory_content_handler(request, response);
         } else if (request.getServletPath().equals("/experiment_member_request")) {
@@ -839,59 +834,6 @@ public class Experiment_servlets extends Servlet {
             ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
-        }
-    }
-
-    private void dump_database_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String backup_file_location = DATA_LOCATION + "/STATegraDB_content_backup_" + new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date()) + ".sql";
-
-        try {
-            /**
-             * *******************************************************
-             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
-             * --> throws exception if not valid session, GO TO STEP 4b ELSE -->
-             * GO TO STEP 2
-             * *******************************************************
-             */
-            if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
-                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-            }
-
-            if (!"admin".equals(request.getParameter("loggedUser"))) {
-                throw new AccessControlException(request.getParameter("loggedUser") + " is no allowed for this operation.");
-            }
-
-            /**
-             * *******************************************************
-             * STEP 2 EXECUTE THE DUMP SCRIPT. IF ERROR --> throws exception if
-             * failed dump, GO TO STEP 3b ELSE --> GO TO STEP 3
-             * *******************************************************
-             */
-            DBConnectionManager.getConnectionManager().doDatabaseDump(backup_file_location);
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "dump_database_handler", e.getMessage());
-        } finally {
-            /**
-             * *******************************************************
-             * STEP 3b CATCH ERROR. GO TO STEP 5
-             * *******************************************************
-             */
-            if (ServerErrorManager.errorStatus()) {
-                response.setStatus(400);
-                response.getWriter().print(ServerErrorManager.getErrorResponse());
-
-                File file = new File(backup_file_location);
-                if (file.exists()) {
-                    file.delete();
-                }
-            } else {
-                /**
-                 * *******************************************************
-                 * STEP 3A WRITE RESPONSE ERROR.
-                 * *******************************************************
-                 */
-                response.getWriter().print("{success: " + true + ", location: '" + backup_file_location + "' }");
-            }
         }
     }
 
