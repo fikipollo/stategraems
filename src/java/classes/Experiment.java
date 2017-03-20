@@ -326,7 +326,10 @@ public class Experiment {
     }
 
     public String getDataDirectoryPath() {
-        return (data_dir_path.lastIndexOf("/") == data_dir_path.length()-1)? data_dir_path : data_dir_path + "/";
+        if(data_dir_path != null){
+            return (data_dir_path.lastIndexOf("/") == data_dir_path.length()-1)? data_dir_path : data_dir_path + "/";
+        }
+        return null;
     }
 
     public void setDataDirectoryPath(String data_dir_path) {

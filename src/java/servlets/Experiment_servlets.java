@@ -100,6 +100,7 @@ public class Experiment_servlets extends Servlet {
             String LOCKED_ID = null;
             boolean ROLLBACK_NEEDED = false;
             DAO dao_instance = null;
+            String warning_message = "";
 
             try {
                 JsonParser parser = new JsonParser();
@@ -146,6 +147,20 @@ public class Experiment_servlets extends Servlet {
                  */
                 experiment.setExperimentID(newID);
 
+                if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType()) || "none".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+                    experiment.setDataDirectoryHost("");
+                    experiment.setDataDirectoryPort("");
+                    experiment.setDataDirectoryUser("");
+                    experiment.setDataDirectoryPass("");
+
+                    if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+                        File f = new File(experiment.getDataDirectoryPath() + File.separator + ".stategraems_dir");
+                        if (!f.exists()) {
+                            warning_message = "Invalid directory. To enable the selected directory, please create a new file called '.stategraems_dir' in the selected path.";
+                        }
+                    }
+                }
+
                 /**
                  * *******************************************************
                  * STEP 5 Add the new Object in the DATABASE. IF ERROR -->
@@ -162,17 +177,18 @@ public class Experiment_servlets extends Servlet {
                  * ERROR --> throws SQL Exception, GO TO STEP 6b ELSE --> GO TO
                  * STEP 7 ******************************************************
                  */
-                boolean success = (new File(DATA_LOCATION + File.separator + newID + File.separator + "analysis_images")).mkdirs();
-                if (!success) {
-                    // Directory creation failed
-                    throw new Exception("Unable to create the new Experiment folder. Please check if the Tomcat user has read/write permissions over the data application directory.");
-                }
-                success = (new File(DATA_LOCATION + File.separator + newID + File.separator + "experimentDataDirectoryContent.txt")).createNewFile();
-                if (!success) {
-                    // Directory creation failed
-                    throw new Exception("Unable to create the new Experiment folder. Please check if the Tomcat user has read/write permissions over the data application directory.");
-                }
-
+                // DEPRECATED
+                //boolean success = (new File(DATA_LOCATION + File.separator + newID + File.separator + "analysis_images")).mkdirs();
+                //if (!success) {
+                //    // Directory creation failed
+                //    throw new Exception("Unable to create the new Experiment folder. Please check if the Tomcat user has read/write permissions over the data application directory.");
+                //}
+                //success = (new File(DATA_LOCATION + File.separator + newID + File.separator + "experimentDataDirectoryContent.txt")).createNewFile();
+                //if (!success) {
+                //    // Directory creation failed
+                //    throw new Exception("Unable to create the new Experiment folder. Please check if the Tomcat user has read/write permissions over the data application directory.");
+                //}
+                //UPDATE THE INFORMATION FOR DATA DIR (REMOVE UNNECESARY DATA)
                 /**
                  * *******************************************************
                  * STEp 7 COMMIT CHANGES TO DATABASE. throws SQLException IF
@@ -200,6 +216,7 @@ public class Experiment_servlets extends Servlet {
                 } else {
                     JsonObject obj = new JsonObject();
                     obj.add("newID", new JsonPrimitive(LOCKED_ID));
+                    obj.add("warning_message", new JsonPrimitive(warning_message));
                     response.getWriter().print(obj.toString());
                 }
 
@@ -228,6 +245,7 @@ public class Experiment_servlets extends Servlet {
 
             boolean ROLLBACK_NEEDED = false;
             DAO dao_instance = null;
+            String warning_message = "";
 
             try {
                 /**
@@ -284,7 +302,15 @@ public class Experiment_servlets extends Servlet {
                     experiment.setDataDirectoryPort("");
                     experiment.setDataDirectoryUser("");
                     experiment.setDataDirectoryPass("");
-                } else if ("".equalsIgnoreCase(experiment.getDataDirectoryPass()) || "dummypassword".equalsIgnoreCase(experiment.getDataDirectoryPass())) {
+                    
+                    if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+                        File f = new File(experiment.getDataDirectoryPath() + File.separator + ".stategraems_dir");
+                        if (!f.exists()) {
+                            warning_message = "Invalid directory. To enable the selected directory, please create a new file called '.stategraems_dir' in the selected path.";
+                        }
+                    }
+
+                } else if (!"".equalsIgnoreCase(experiment.getDataDirectoryPass()) && !"dummypassword".equalsIgnoreCase(experiment.getDataDirectoryPass())) {
                     //KEEP PREVIOUS PASS
                     experiment.setDataDirectoryPass(experimentAux.getDataDirectoryPass());
                 }
@@ -320,6 +346,7 @@ public class Experiment_servlets extends Servlet {
                 } else {
                     JsonObject obj = new JsonObject();
                     obj.add("success", new JsonPrimitive(true));
+                    obj.add("warning_message", new JsonPrimitive(warning_message));
                     response.getWriter().print(obj.toString());
                 }
                 /**

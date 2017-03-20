@@ -26,6 +26,7 @@
 
     app.factory("AnalysisList", ['$rootScope', function ($rootScope) {
             var analysis = [];
+            var newAnalysis = null;
             var tags = [];
             var analysisTypes = [];
             var filters = [];
@@ -41,17 +42,20 @@
                     old = new Date();
                     return this;
                 },
+                setNewAnalysis: function (_analysis) {
+                    newAnalysis = _analysis;
+                    return this;
+                },
                 findAnalysis: function (analysis_id) {
                     for (var i in analysis) {
                         if (analysis[i].analysis_id === analysis_id) {
                             return analysis[i];
                         }
                     }
-                    return null;
+                    return newAnalysis;
                 },
                 findStep: function (step_id) {
                     var analysis = this.findAnalysis(step_id.split(".")[0].replace("ST", "AN"));
-
                     if (analysis) {
                         var steps = analysis.non_processed_data.concat(analysis.processed_data); // Merges both arrays
                         for (var i in steps) {

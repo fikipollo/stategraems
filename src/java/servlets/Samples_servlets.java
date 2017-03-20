@@ -189,11 +189,28 @@ public class Samples_servlets extends Servlet {
                 biocondition.setBioConditionID(newID);
 
                 if (biocondition.getAssociatedBioreplicates() != null) {
+                    ArrayList<Bioreplicate> bioreplicates = new ArrayList<Bioreplicate>();
                     int nBioReplicate = 1;
+
                     for (Bioreplicate bioreplicate : biocondition.getAssociatedBioreplicates()) {
-                        bioreplicate.setBioreplicateID(newID, nBioReplicate);
-                        nBioReplicate++;
+                        if (!"new_deleted".equals(bioreplicate.getStatus())) {
+                            bioreplicates.add(bioreplicate);
+
+                            if (bioreplicate.getAssociatedAnalyticalReplicates() != null) {
+                                ArrayList<AnalyticalReplicate> analyticalReplicates = new ArrayList<AnalyticalReplicate>();
+                                for (AnalyticalReplicate analyticalReplicate : bioreplicate.getAssociatedAnalyticalReplicates()) {
+                                    if (!"new_deleted".equals(analyticalReplicate.getStatus())) {
+                                        analyticalReplicates.add(analyticalReplicate);
+                                    }
+                                }
+                                bioreplicate.setAssociatedAnalyticalReplicates(analyticalReplicates.toArray(new AnalyticalReplicate[]{}));
+                            }
+
+                            bioreplicate.setBioreplicateID(newID, nBioReplicate);
+                            nBioReplicate++;
+                        }
                     }
+                    biocondition.setAssociatedBioreplicates(bioreplicates.toArray(new Bioreplicate[]{}));
                 }
 
                 /**

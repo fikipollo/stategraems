@@ -24,6 +24,8 @@ ENGINE = InnoDB;
 UPDATE users SET email = 'emsadminuser@email.com' WHERE email IS NULL AND user_id = 'admin';
 ALTER TABLE users ADD COLUMN apicode varchar(200);
 ALTER TABLE users ADD COLUMN apicode_date VARCHAR(8) NOT NULL DEFAULT "19870729";
+ALTER TABLE users ADD COLUMN role VARCHAR(50);
+UPDATE users SET role = 'admin' WHERE user_id = 'admin';
 
 ALTER TABLE experiments CHANGE sample_tags tags TEXT;
 UPDATE experiments SET tags = CONCAT("Case-Control, ", tags) WHERE is_case_control_type = TRUE;

@@ -8,7 +8,7 @@
                 <uib-tab-heading>
                     <i class="fa fa-heart-o"></i> Biological conditions
                 </uib-tab-heading>
-                <h2 class="form_subtitle">Biological conditions</h2>
+                <h2 class="form_subtitle">Biological conditions details</h2>
                 <div ng-if="template === undefined">
                     <p>Generating the form...</p>
                 </div>
@@ -34,6 +34,9 @@
                     <i class="fa fa-tint"></i> Samples
                 </uib-tab-heading>
                 <h2 class="form_subtitle">Biological samples grown in these conditions.</h2>
+                <div ng-if="model.associatedBioreplicates === undefined || model.associatedBioreplicates.length === 0">
+                    <div class="well well-lg">There are no samples registered for this biological conditions.</div>
+                </div>
                 <div ng-if="viewMode !== 'view'" class="navbar-form">
                     <div style="margin: auto;display: block;max-width: 625px;text-align: center;margin-top: 34px;">
                         <a class="btn btn-lg btn-primary" type="button" ng-click="controller.addNewBioreplicateButtonHandler()">

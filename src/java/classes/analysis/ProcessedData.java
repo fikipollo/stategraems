@@ -26,7 +26,6 @@ import com.google.gson.JsonObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Map;
 
 /**
  *
@@ -150,6 +149,12 @@ public class ProcessedData extends Step {
         if (this.used_data != null) {
             for (int i = 0; i < this.used_data.length; i++) {
                 this.used_data[i] = this.used_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN", "ST");
+            }
+        }
+        
+        if (this.reference_data != null) {
+            for (int i = 0; i < this.reference_data.length; i++) {
+                this.reference_data[i] = this.reference_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN", "ST");
             }
         }
     }

@@ -6,6 +6,12 @@
             "title": "Equipment details",
             "fields": [
                 {
+                    "name": "extractionMethod.extraction_method_type",
+                    "type": "hidden",
+                    "value": "Sequencing",
+                    "force": true
+                },
+                {
                     "name": "extractionMethod.platform_family",
                     "label": "Platform Family",
                     "type": "select",

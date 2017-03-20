@@ -59,7 +59,7 @@
                     "type": "text",
                     "required": "model.data_dir_type.search('none|local_dir') < 0",
                     "dependency": "data_dir_type.search('none|local_dir') < 0",
-                    "help": "The URL for the remote storage system (i.e. FTP server, iRODS server or SeedDMS system). E.g. 'ftp://myserver.com'"
+                    "help": "The URL for the remote storage system (i.e. FTP server, iRODS server or SeedDMS system). E.g. <i>ftp://myserver.com</i>"
                 },
                 {
                     "name": "data_dir_port",
@@ -67,7 +67,7 @@
                     "type": "text",
                     "required": "model.data_dir_type.search('none|local_dir') < 0",
                     "dependency": "data_dir_type.search('none|local_dir') < 0",
-                    "help": "The port for the remote storage system. E.g. '22'"
+                    "help": "The port for the remote storage system. E.g. <i>22</i>"
                 },
                 {
                     "name": "data_dir_user",

@@ -51,10 +51,12 @@ public class SmallRNAseq extends Sequencing {
 
     public SmallRNAseq() {
         super();
+        this.extraction_method_type = "smallRNA-seq";
     }
 
     public SmallRNAseq(String rawdata_id) {
         super(rawdata_id);
+        this.extraction_method_type = "smallRNA-seq";
     }
 
     /**

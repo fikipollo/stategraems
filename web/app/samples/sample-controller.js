@@ -45,7 +45,8 @@
      *                                                                                  
      *                                                                                  
      ******************************************************************************/
-    app.controller('SampleListController', function ($rootScope, $scope, $http, $stateParams, $uibModal, $dialogs, APP_EVENTS, SampleList) {
+    app.controller('SampleListController', function ($state, $rootScope, $scope, $http, $stateParams, $uibModal, $dialogs, APP_EVENTS, SampleList) {
+
         /******************************************************************************      
          *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
          *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
@@ -184,7 +185,10 @@
             debugger;
             this.retrieveSamplesData('', true);
         });
-
+        $scope.$on(APP_EVENTS.sampleCreated, function () {
+            debugger;
+            this.retrieveSamplesData('', true);
+        });
         /******************************************************************************
          * This function...
          *
@@ -246,6 +250,12 @@
         this.name = "SampleListController";
         var me = this;
 
+        if (!Cookies.get("currentExperimentID")) {
+            $dialogs.showInfoDialog("Please, choose first an study at the \"Browse studies\" section.");
+            $state.go('experiments');
+            return;
+        }
+
         //This controller uses the SampleList, which defines a Singleton instance of
         //a list of samples + list of tags + list of filters. Hence, the application will not
         //request the data everytime that the sample list panel is displayed (data persistance).
@@ -272,6 +282,7 @@
     });
 
     app.controller('BioconditionDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $uibModal, $dialogs, APP_EVENTS, SampleList, TemplateList) {
+
         /******************************************************************************      
          *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
          *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
@@ -351,7 +362,6 @@
          * @return   
          ******************************************************************************/
         this.send_create_sample = function (callback_caller, callback_function) {
-            debugger;
             $scope.setLoading(true);
 
             $http($rootScope.getHttpRequestConfig("POST", "sample-create", {
@@ -365,7 +375,7 @@
                         SampleList.addBiocondition($scope.model);
 
                         //Notify all the other controllers that a new sample exists
-                        //$rootScope.$emit(APP_EVENTS.sampleCreated);
+                        $rootScope.$broadcast(APP_EVENTS.sampleCreated);
                         $scope.setLoading(false);
 
                         callback_caller[callback_function](true);
@@ -422,6 +432,8 @@
             })).then(
                     function successCallback(response) {
                         console.info((new Date()).toLocaleString() + "Sample " + $scope.model.biocondition_id + " successfully updated in server");
+                        $rootScope.$broadcast(APP_EVENTS.sampleCreated);
+
                         $scope.setLoading(false);
                         callback_caller[callback_function](true);
                     },
@@ -702,7 +714,7 @@
                         function successCallback(response) {
                             $scope.setLoading(false);
                             //Notify all the other controllers that samples has been deleted
-                            $rootScope.$emit(APP_EVENTS.sampleDeleted);
+                            $rootScope.$broadcast(APP_EVENTS.sampleDeleted);
                             $dialogs.showSuccessDialog("All the samples were successfully deleted.");
                             $state.go('samples', {force: true});
                         },
@@ -899,6 +911,12 @@
          ******************************************************************************/
         this.name = "BioconditionDetailController";
         var me = this;
+
+        if (!Cookies.get("currentExperimentID")) {
+            $dialogs.showInfoDialog("Please, choose first an study at the \"Browse studies\" section.");
+            $state.go('experiments');
+            return;
+        }
 
         //The corresponding view will be watching to this variable
         //and update its content after the http response

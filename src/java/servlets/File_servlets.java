@@ -200,8 +200,8 @@ public class File_servlets extends Servlet {
                 daoInstance = DAOProvider.getDAOByName("Experiment");
                 experiment = (Experiment) daoInstance.findByID(experiment_id, null);
 
-                if (!experiment.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
-                    throw new AccessControlException("Cannot add files to selected study. Current useris not a valid member for study " + experiment_id + ".");
+                if (!experiment.isOwner(loggedUserID) && !experiment.isMember(loggedUserID) && !isValidAdminUser(loggedUser)) {
+                    throw new AccessControlException("Cannot add files to selected study. Current user is not a valid member for study " + experiment_id + ".");
                 }
 
                 /**
@@ -361,7 +361,7 @@ public class File_servlets extends Servlet {
                 daoInstance = DAOProvider.getDAOByName("Experiment");
                 Experiment experiment = (Experiment) daoInstance.findByID(experiment_id, null);
 
-                if (!experiment.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
+                if (!experiment.isOwner(loggedUserID) && !experiment.isMember(loggedUserID) && !loggedUserID.equals("admin")) {
                     throw new AccessControlException("Cannot get files for selected study. Current user is not a valid member for study " + experiment_id + ".");
                 }
 
@@ -452,7 +452,7 @@ public class File_servlets extends Servlet {
                 dao_instance = DAOProvider.getDAOByName("Experiment");
                 Experiment experiment = (Experiment) dao_instance.findByID(experiment_id, null);
 
-                if (!experiment.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
+                if (!experiment.isOwner(loggedUserID) && !experiment.isMember(loggedUserID) && !loggedUserID.equals("admin")) {
                     throw new AccessControlException("Cannot get files for selected Experiment. Current useris not a valid member for this Experiment.");
                 }
 

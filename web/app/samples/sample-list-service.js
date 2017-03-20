@@ -78,7 +78,14 @@
                     var previous = this.getBiocondition(_biocondition.biocondition_id);
                     if (previous !== null) {
                         for (var i in _biocondition) {
-                            previous[i] = _biocondition[i];
+                            if (i === "owners") {
+                                previous[i].length = 0;
+                                for (var j in _biocondition[i]) {
+                                    previous[i].push(_biocondition[i][j]);
+                                }
+                            } else {
+                                previous[i] = _biocondition[i];
+                            }
                         }
                     }
                     this.updateTags();
@@ -173,13 +180,14 @@
                         _bioconditions[i].tags.push(_bioconditions[i].cell_type);
                         _bioconditions[i].tags = arrayUnique(_bioconditions[i].tags, [""]);
 
-                        _bioconditions[i].sample_description = 
-                                "Organism: " + _bioconditions[i].organism +
+                        _bioconditions[i].sample_description =
+                                "Sample ID: " + _bioconditions[i].biocondition_id +
+                                ", Organism: " + _bioconditions[i].organism +
                                 ", Material type: " + _bioconditions[i].tissue_type +
                                 ", Cell type: " + _bioconditions[i].cell_type +
                                 ", Cell line: " + _bioconditions[i].cell_line +
                                 ", Gender: " + _bioconditions[i].gender +
-                                ", Genotype/Variation: " + _bioconditions[i].genotype + 
+                                ", Genotype/Variation: " + _bioconditions[i].genotype +
                                 ", Creation date: " + _bioconditions[i].submission_date.toISOString().split("T")[0];
 
                         //Create the table for protocols -> list(AS)

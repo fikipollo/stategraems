@@ -76,12 +76,6 @@
          * @returns this
          ******************************************************************************/
         this.retrieveAnalysisData = function (group, force) {
-            if (!Cookies.get("currentExperimentID")) {
-                $dialogs.showInfoDialog("Please, choose first an study at the \"Browse studies\" section.");
-                $state.go('experiments');
-                return;
-            }
-
             $scope.setLoading(true);
             if (AnalysisList.getOld() > 1 || force) { //Max age for data 5min.
                 $http($rootScope.getHttpRequestConfig("POST", "analysis-list", {
@@ -280,6 +274,12 @@
          ******************************************************************************/
         this.name = "AnalysisListController";
         var me = this;
+
+        if (!Cookies.get("currentExperimentID")) {
+            $dialogs.showInfoDialog("Please, choose first an study at the \"Browse studies\" section.");
+            $state.go('experiments');
+            return;
+        }
 
         //This controller uses the AnalysisList, which defines a Singleton instance of
         //a list of analysis + list of tags + list of filters. Hence, the application will not
@@ -1077,6 +1077,7 @@
         this.cancelButtonHandler = function () {
             //TODO: REMOVE COUNTERS AND UNLOCK EXPERIMENT
             $scope.clearTaskQueue();
+            AnalysisList.setNewAnalysis(null);
 
             if ($scope.viewMode === 'view') {
                 $state.go('analysis');
@@ -1108,6 +1109,12 @@
         this.name = "AnalysisDetailController";
         var me = this;
 
+        if (!Cookies.get("currentExperimentID")) {
+            $dialogs.showInfoDialog("Please, choose first an study at the \"Browse studies\" section.");
+            $state.go('experiments');
+            return;
+        }
+
         if (!$scope.isModal) {
             //The corresponding view will be watching to this variable
             //and update its content after the http response
@@ -1118,6 +1125,7 @@
             $scope.getFormTemplate('analysis-form');
 
             if ($stateParams.analysis_id !== null) {
+                AnalysisList.setNewAnalysis(null);
                 this.retrieveAnalysisDetails($stateParams.analysis_id);
             } else {
                 $scope.model.analysis_id = "ANxxxx";
@@ -1129,6 +1137,7 @@
                 $scope.model.non_processed_data = [];
                 $scope.model.processed_data = [];
                 $scope.model.nextStepID = 1;
+                AnalysisList.setNewAnalysis($scope.model);
             }
         }
     });
