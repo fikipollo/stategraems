@@ -1,0 +1,192 @@
+{
+    "id": "Nuclear_magnetic_resonance-form",
+    "content": [
+        {
+            "name": "section_1",
+            "title": "Instrument details<",
+            "fields": [
+                {
+                    "name": "extractionMethod.extraction_method_type",
+                    "type": "hidden",
+                    "value": "NuclearMagneticResonance",
+                    "force": true
+                },
+                {
+                    "name": "extractionMethod.instrument_manufacturer",
+                    "label": "Instrument manufacturer",
+                    "type": "select",
+                    "source": "data/nmr_manufacturer.json",
+                    "help": "The manufacturing company for the instrument."
+                },
+                {
+                    "name": "extractionMethod.instrument_model",
+                    "label": "Instrument model",
+                    "type": "select",
+                    "source": "data/nmr_model.json",
+                    "help": "The model for the instrument."
+                },
+                {
+                    "name": "extractionMethod.strength",
+                    "label": "Magnetic field strength / proton resonance freq.",
+                    "type": "text",
+                    "help": "Magnetic field strength in Tesla or proton resonance frequency."
+                },
+                {
+                    "name": "extractionMethod.console_description",
+                    "label": "Console description",
+                    "type": "textarea",
+                    "help": ""
+                }
+            ]
+        },
+        {
+            "name": "section_2",
+            "title": "Instrument configuration",
+            "fields": [
+                {
+                    "name": "extractionMethod.vt_control",
+                    "label": "VT Control",
+                    "type": "text",
+                    "help": ""
+                }, {
+                    "name": "extractionMethod.pulsed_field_strength",
+                    "label": "Pulsed field gradients",
+                    "type": "text",
+                    "help": "Describe the pulsed field gradients (z or x,y,z)."
+                },
+                {
+                    "name": "extractionMethod.max_gradient_strength",
+                    "label": "Maximum gradient strength",
+                    "type": "text",
+                    "help": "Describe the maximum gradient strength (if used)"
+                },
+                {
+                    "name": "extractionMethod.n_shims",
+                    "label": "Number of shims",
+                    "type": "number",
+                    "min" : 0,
+                    "step" : 1,
+                    "help": "Number of shims."
+                },
+                {
+                    "name": "extractionMethod.n_channels",
+                    "label": "Number of channels",
+                    "type": "number",
+                    "min" : 0,
+                    "step" : 1,
+                    "help": "Number of Channels."
+                },
+                {
+                    "name": "extractionMethod.probe_type",
+                    "label": "Probe type",
+                    "type": "text",
+                    "help": "Describe the probe type. E.g. 10mm 31^P, 5 mm HCN cold probe, 3 mm flow-probe etc."
+                },
+                {
+                    "name": "extractionMethod.sample_state",
+                    "label": "Sample state",
+                    "type": "select",
+                    "options": [{
+                            "label": "Solution",
+                            "value": "Solution"
+                        }, {
+                            "label": "Solid-state",
+                            "value": "Solid-state"
+                        }],
+                    "help": "Solution or solid-state."
+                },
+                {
+                    "name": "extractionMethod.operation_mode",
+                    "label": "Operation mode",
+                    "type": "select",
+                    "options": [{
+                            "label": "Automated operation",
+                            "value": "Automated operation"
+                        }, {
+                            "label": "Manual operation",
+                            "value": "Manual operation"
+                        }],
+                    "help": "Automated or manual operation."
+                },
+                {
+                    "name": "extractionMethod.tune_mode",
+                    "label": "Tune mode",
+                    "type": "select",
+                    "options": [{
+                            "label": "Auto-tune",
+                            "value": "Auto-tune"
+                        }, {
+                            "label": "Manual tune",
+                            "value": "Manual tune"
+                        }],
+                    "help": "Auto-tune or manual tune."
+                },
+                {
+                    "name": "extractionMethod.probe_gas",
+                    "label": "Probe gas",
+                    "type": "text",
+                    "help": "Volume of prepared sample."
+                }
+            ]
+        },
+        {
+            "name": "section_12",
+            "title": "Instrument-specific sample preparation",
+            "fields": [
+                {
+                    "name": "extractionMethod.volume",
+                    "label": "Volume",
+                    "type": "text",
+                    "help": ""
+                }, {
+                    "name": "extractionMethod.final_sample_status",
+                    "label": "Final sample status",
+                    "type": "text",
+                    "help": "State of the sample after preparation."
+                },
+                {
+                    "name": "extractionMethod.nmr_tube_type",
+                    "label": "NMR tube type",
+                    "type": "text",
+                    "help": "Type of NMR tube (e.g. conventional, Shigemi, mircrocell etc.)"
+                },
+                {
+                    "name": "extractionMethod.pH",
+                    "label": "pH",
+                    "type": "text",
+                    "help": "Value of pH for the sample."
+                },
+                {
+                    "name": "extractionMethod.solvent",
+                    "label": "Solvent",
+                    "type": "text",
+                    "help": "Solvent (if any). E.g. D20, CD3OD, CDCl3 etc.)"
+                },
+                {
+                    "name": "extractionMethod.buffer",
+                    "label": "Buffer",
+                    "type": "text",
+                    "help": ""
+                },
+                {
+                    "name": "extractionMethod.resonant_frequency",
+                    "label": "Resonant frequency",
+                    "type": "text",
+                    "help": ""
+                }
+            ]
+        },
+        {
+            "name": "section_3",
+            "title": "Data acquisiton",
+            "fields": [
+                {
+                    "name": "extractionMethod.acquisition_description",
+                    "label": "Acquisition description",
+                    "type": "textarea",
+                    "help": "Description for the data acquisition step (acquisition parameters)."
+                }
+            ]
+        }
+    ]
+}

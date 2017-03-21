@@ -19,23 +19,21 @@
  *  *************************************************************** */
 package classes.analysis.non_processed_data;
 
+import classes.User;
 import classes.analysis.NonProcessedData;
-import classes.analysis.non_processed_data.intermediate_data.Extract_relevant_features_step;
-import classes.analysis.non_processed_data.intermediate_data.Mapping_step;
-import classes.analysis.non_processed_data.intermediate_data.Maxquant_step;
-import classes.analysis.non_processed_data.intermediate_data.Preprocessing_step;
-import classes.analysis.non_processed_data.intermediate_data.Smoothing_step;
-import classes.analysis.non_processed_data.intermediate_data.Union_step;
+import classes.analysis.Step;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 /**
  *
  * @author Rafa Hernández de Diego
  */
-public abstract class IntermediateData extends NonProcessedData {
-//  Herited from Non_process_data     
-//    private String step_id;
-//    private String type;
+public class IntermediateData extends NonProcessedData {
 
     protected String intermediate_data_type;//ENUM('preprocessing_step','mapping_step','union_step','smoothing_step', 'max_quant','extract_relevant_features_step')
     protected String software;
@@ -62,20 +60,8 @@ public abstract class IntermediateData extends NonProcessedData {
      * @return the new Object.
      */
     public static IntermediateData fromJSON(String jsonString) {
-        IntermediateData intermediate_data = null;
-        if (jsonString.contains("\"intermediate_data_type\":\"preprocessing_step\"")) {
-            intermediate_data = Preprocessing_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"intermediate_data_type\":\"mapping_step\"")) {
-            intermediate_data = Mapping_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"intermediate_data_type\":\"union_step\"")) {
-            intermediate_data = Union_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"intermediate_data_type\":\"smoothing_step\"")) {
-            intermediate_data = Smoothing_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"intermediate_data_type\":\"extract_relevant_features_step\"")) {
-            intermediate_data = Extract_relevant_features_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"intermediate_data_type\":\"max_quant\"")) {
-            intermediate_data = Maxquant_step.fromJSON(jsonString);
-        }
+        Gson gson = new Gson();
+        IntermediateData intermediate_data = gson.fromJson(jsonString, IntermediateData.class);
 
         return intermediate_data;
     }
@@ -95,7 +81,7 @@ public abstract class IntermediateData extends NonProcessedData {
         return intermediate_data_type;
     }
 
-    public void setIntermediate_data_type(String intermediate_data_type) {
+    public void setIntermediateDataType(String intermediate_data_type) {
         this.intermediate_data_type = intermediate_data_type;
     }
 
@@ -146,42 +132,14 @@ public abstract class IntermediateData extends NonProcessedData {
     public void setUsedData(String[] used_data) {
         this.used_data = used_data;
     }
-    //    public void addUsed_data(String used_data_id) {
-//        if (this.used_data == null) {
-//            this.used_data = new String[1];
-//            this.used_data[0] = used_data_id;
-//        }else{
-//            this.used_data = java.util.Arrays.copyOf(this.used_data, this.used_data.length+1);
-//            this.used_data[this.used_data.length - 1] = used_data_id;
-//        }
-//    }
 
     @Override
     public void updatePreviousStepIDs(String old_analysis_id, String new_analysis_id) {
         if (this.used_data != null) {
             for (int i = 0; i < this.used_data.length; i++) {
-                this.used_data[i] = this.used_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2));
+                this.used_data[i] = this.used_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN", "ST");
             }
         }
-    }
-    
-    
-    @Override
-    public boolean updateAnalysisID(String new_analysis_id) {
-        //IF THE ANALYSIS ID IS DIFFERENT THAT THE TO-BE-CREATED ID, IT MEANS THAT 
-        //THE STEP IS AN IMPORTED STEP.
-        String analysis_id = this.getAnalysisID();
-
-        if (!"ANxxxx".equals(analysis_id)) {
-            return false;
-        }
-
-        this.setStepID(this.step_id.replaceFirst(analysis_id.substring(2), new_analysis_id.substring(2)));
-        this.updatePreviousStepIDs(analysis_id, new_analysis_id);
-        if (this.associatedQualityReport != null) {
-            this.associatedQualityReport.setStudiedStepID(this.step_id);
-        }
-        return true;
     }
 
     //***********************************************************************
@@ -190,5 +148,57 @@ public abstract class IntermediateData extends NonProcessedData {
     @Override
     public String toString() {
         return this.toJSON();
+    }
+
+    public static IntermediateData parseStepGalaxyData(JsonObject step_json_object, JsonObject analysisData, String emsuser) {
+        IntermediateData step = new IntermediateData("STxxxx." + step_json_object.get("id").getAsString());
+        step.setIntermediateDataType("preprocessing_step");
+        step.setSoftware(step_json_object.get("tool_id").getAsString());
+        step.setSoftwareVersion(step_json_object.get("tool_version").getAsString());
+        ArrayList<String> used_data = new ArrayList<String>();
+        if (step_json_object.has("used_data")) {
+            for (JsonElement data : step_json_object.get("used_data").getAsJsonArray()) {
+                used_data.add(data.getAsString());
+            }
+        }
+        step.setUsedData(used_data.toArray(new String[]{}));
+        
+        String prefix = analysisData.get("experiment_id").getAsString() + "/" + analysisData.get("analysis_id").getAsString() + "/";
+        ArrayList<String> outputs = new ArrayList<String>();
+        for(JsonElement output : step_json_object.get("outputs").getAsJsonArray()){
+            outputs.add(prefix + output.getAsJsonObject().get("file").getAsString().replaceAll(" ", "_") + "." + output.getAsJsonObject().get("extension").getAsString());
+        }
+        step.setFilesLocation(outputs.toArray(new String[]{}));
+        
+        String description = "Step " + step_json_object.get("id").getAsString() + " in Galaxy history " + analysisData.get("history_id").getAsString() + ".\n";
+        description += "The tool exited with code " + step_json_object.get("exit_code").getAsString() + "\n";
+        description += "Outputs:\n";
+        for (JsonElement output : step_json_object.get("outputs").getAsJsonArray()) {
+            description += "  - " + output.getAsJsonObject().get("file").getAsString() + " (id:" + output.getAsJsonObject().get("id").getAsString() + ")\n";
+        }
+        step.setResults(description);
+
+        description = "Step inputs:\n";
+        for (JsonElement input : step_json_object.get("inputs").getAsJsonArray()) {
+            description += "  - " + input.getAsJsonObject().get("file").getAsString() + " (id:" + input.getAsJsonObject().get("id").getAsString() + ")\n";
+        }
+        description += "\n";
+        description += "Parameters:\n";
+        for (JsonElement input : step_json_object.get("parameters").getAsJsonArray()) {
+            description += Step.getParameterDescription(input.getAsJsonObject(), 1);
+        }
+
+        step.setSoftwareConfiguration(description);
+
+        Date dateNow = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+        step.setSubmissionDate(dateFormat.format(dateNow));
+        step.setLastEditionDate(dateFormat.format(dateNow));
+        step.addOwner(new User(emsuser, ""));
+        step.setStepName(step_json_object.get("tool_id").getAsString());
+        step.setStepNumber(step_json_object.get("id").getAsInt());
+
+        
+        return step;
     }
 }

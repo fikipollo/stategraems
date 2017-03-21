@@ -17,8 +17,8 @@
         <servlet-class>servlets.Samples_servlets</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>Treatment_servlets</servlet-name>
-        <servlet-class>servlets.Treatment_servlets</servlet-class>
+        <servlet-name>Protocols_servlets</servlet-name>
+        <servlet-class>servlets.Protocols_servlets</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>User_servlets</servlet-name>
@@ -28,8 +28,21 @@
         <servlet-name>Install_servlets</servlet-name>
         <servlet-class>servlets.Install_servlets</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>Message_servlets</servlet-name>
+        <servlet-class>servlets.Message_servlets</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>File_servlets</servlet-name>
+        <servlet-class>servlets.File_servlets</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>Admin_servlets</servlet-name>
+        <servlet-class>servlets.Admin_servlets</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>Analysis_servlets</servlet-name>
+        <url-pattern>/rest/analysis/*</url-pattern>
         <url-pattern>/get_all_analysis</url-pattern>
         <url-pattern>/get_analysis</url-pattern>
         <url-pattern>/get_all_region_steps</url-pattern>
@@ -41,6 +54,7 @@
         <url-pattern>/save_analysis_image</url-pattern>
         <url-pattern>/lock_analysis</url-pattern>
         <url-pattern>/unlock_analysis</url-pattern>
+        <url-pattern>/get_step_subtypes</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Batch_servlets</servlet-name>
@@ -61,29 +75,23 @@
         <url-pattern>/unlock_experiment</url-pattern>
         <url-pattern>/remove_experiment</url-pattern>
         <url-pattern>/change_current_experiment</url-pattern>
-        <url-pattern>/dump_database</url-pattern>
         <url-pattern>/get_experiment_directory_content</url-pattern>
+        <url-pattern>/experiment_member_request</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>Treatment_servlets</servlet-name>
-        <url-pattern>/get_all_treatments</url-pattern>
-        <url-pattern>/get_sop_file</url-pattern>
-        <url-pattern>/add_treatment</url-pattern>
-        <url-pattern>/get_treatment</url-pattern>
-        <url-pattern>/update_treatment</url-pattern>
-        <url-pattern>/remove_treatment</url-pattern>
-        <url-pattern>/check_removable_treatment</url-pattern>
+        <servlet-name>Protocols_servlets</servlet-name>
+        <url-pattern>/get_all_protocols</url-pattern>
+        <url-pattern>/add_protocol</url-pattern>
+        <url-pattern>/get_protocol</url-pattern>
+        <url-pattern>/update_protocol</url-pattern>
+        <url-pattern>/lock_protocol</url-pattern>
+        <url-pattern>/unlock_protocol</url-pattern>
+        <url-pattern>/remove_protocol</url-pattern>
+        <url-pattern>/check_removable_protocol</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>User_servlets</servlet-name>
-        <url-pattern>/update_user</url-pattern>
-        <url-pattern>/remove_user</url-pattern>
-        <url-pattern>/get_user</url-pattern>
-        <url-pattern>/login</url-pattern>
-        <url-pattern>/get_user_list</url-pattern>
-        <url-pattern>/add_user</url-pattern>
-        <url-pattern>/logout</url-pattern>
-        <url-pattern>/validate_session</url-pattern>
+        <url-pattern>/rest/users/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Samples_servlets</servlet-name>
@@ -93,18 +101,33 @@
         <url-pattern>/add_biocondition</url-pattern>
         <url-pattern>/remove_biocondition</url-pattern>
         <url-pattern>/update_biocondition</url-pattern>
-        <url-pattern>/get_treatment_document</url-pattern>
-        <url-pattern>/send_treatment_document</url-pattern>
         <url-pattern>/send_biocondition_template_document</url-pattern>
         <url-pattern>/lock_biocondition</url-pattern>
         <url-pattern>/unlock_biocondition</url-pattern>
         <url-pattern>/associate_biocondition_experiment</url-pattern>
         <url-pattern>/check_removable_sample</url-pattern>
+        <url-pattern>/get_sample_service_host_list</url-pattern>
+        <url-pattern>/get_sample_service_list</url-pattern>
+        <url-pattern>/external-sample</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Install_servlets</servlet-name>
         <url-pattern>/install</url-pattern>
-    </servlet-mapping>    
+        <url-pattern>/autoinstall</url-pattern>
+        <url-pattern>/is_valid_installation</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Message_servlets</servlet-name>
+        <url-pattern>/rest/messages/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>File_servlets</servlet-name>
+        <url-pattern>/rest/files/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Admin_servlets</servlet-name>
+        <url-pattern>/rest/admin/*</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             30

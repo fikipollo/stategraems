@@ -1,0 +1,171 @@
+{
+    "id": "ChIP-seq-form",
+    "content": [
+        {
+            "name": "section_3",
+            "title": "Equipment details",
+            "fields": [
+                {
+                    "name": "extractionMethod.platform_family",
+                    "label": "Platform Family",
+                    "type": "select",
+                    "source": "data/platform_families.json",
+                    "help": "The family of instrument used for sequencing."
+                },
+                {
+                    "name": "extractionMethod.platform_model",
+                    "label": "Platform Model",
+                    "type": "select",
+                    "source": "data/platform_families.json",
+                    "help": "The instrument model used for sequencing."
+                },
+                {
+                    "name": "extractionMethod.base_calls",
+                    "label": "Base calls",
+                    "type": "select",
+                    "free": false,
+                    "options": [{
+                            "label": "Base space",
+                            "value": "Base space"
+                        }, {
+                            "label": "Color space",
+                            "value": "Color space"
+                        }],
+                    "help": "Specify the Base encoding for the sequencing. Eg. <i>Base Color in Illumina, Color space in SOLiD</i>."
+                },
+                {
+                    "name": "extractionMethod.avg_sequencing_depth",
+                    "label": "Avg. sequencing depth (Million of Spots)",
+                    "type": "number",
+                    "help": "Approximate  number of Spots in Millions. In Paired end, each spot has 2 reads."
+                },
+                {
+                    "name": "extractionMethod.slide_id",
+                    "label": "Slide ID",
+                    "type": "text",
+                    "help": "The plate name (454) / slide name (SOLiD) / flowcell name (Illumina and Helicos) used for sequencing."
+                },
+                {
+                    "name": "extractionMethod.lane_number",
+                    "label": "Lane number",
+                    "type": "text",
+                    "help": "Higher level partition of run data to which this data block pertains. Eg. Lane Number in Illumina, Slide in SOLiD, Channel in Helicos"
+                }
+            ]
+        },
+        {
+            "name": "section_2",
+            "title": "Antibody details",
+            "fields": [
+                {
+                    "name": "extractionMethod.antibody_manufacturer",
+                    "label": "Antibody manufacturer",
+                    "type": "select",
+                    "source": "data/chipseq_antibodies.json",
+                    "help": "Specify the antibody manufacturer."
+                },
+                {
+                    "name": "extractionMethod.antibody_target_type",
+                    "label": "Antibody target type",
+                    "type": "select",
+                    "source": "data/chipseq_antibodies.json",
+                    "help": "Specify the antibody target type.Eg. Histone Modification, Transcription factor,..."
+                },
+                {
+                    "name": "extractionMethod.antibody_target",
+                    "label": "Antibody target",
+                    "type": "select",
+                    "source": "data/antibody_target.json",
+                    "help": "Specify the antibody target."
+                }
+            ]
+        },
+        {
+            "name": "section_3",
+            "title": "Library details",
+            "fields": [
+                {
+                    "name": "extractionMethod.avg_sequence_length",
+                    "label": "Avg. sequence length (bp)",
+                    "type": "number",
+                    "help": "The fixed number of bases expected in each raw sequence, including both mate pairs and any technical reads."
+                },
+                {
+                    "name": "extractionMethod.pooling_strategy",
+                    "label": "Pooling stategy",
+                    "type": "select",
+                    "free": false,
+                    "options": [{
+                            "label": "None",
+                            "value": "None"
+                        }, {
+                            "label": "Multiplexed library",
+                            "value": "Multiplexed library"
+                        }, {
+                            "label": "Other",
+                            "value": "Other"
+                        }
+                    ],
+                    "help": "Indicates how the library or libraries are organized if multiple samples are involved.."
+                },
+                {
+                    "name": "extractionMethod.pooling_strategy_description",
+                    "label": "Pooling strategy description",
+                    "type": "textarea",
+                    "dependency": "extractionMethod.pooling_strategy !== 'None'",
+                    "help": "Describes the pooling strategy."
+                },
+                {
+                    "name": "extractionMethod.library_construction_protocol",
+                    "label": "Library construction protocol",
+                    "type": "textarea",
+                    "help": "Free text describing the protocol by which the sequencing library was constructed."
+                },
+                {
+                    "name": "extractionMethod.layout",
+                    "label": "Library layout",
+                    "type": "select",
+                    "free": false,
+                    "options": [{
+                            "label": "Single-end",
+                            "value": "Single-end"
+                        }, {
+                            "label": "Paired-end",
+                            "value": "Paired-end"
+                        }
+                    ],
+                    "help": "Specify whether to expect single, paired, or other configuration of reads. In the case of paired reads, information about the relative distance and orientation should be specified."
+                }, {
+                    "name": "extractionMethod.orientation",
+                    "label": "Paired-end orientation",
+                    "type": "select",
+                    "free": false,
+                    "options": [{
+                            "label": "forward-forward",
+                            "value": "forward-forward"
+                        }, {
+                            "label": "forward-reverse",
+                            "value": "forward-reverse"
+                        }
+                    ],
+                    "dependency": "extractionMethod.layout === 'Paired-end'",
+                    "help": "Relative orientation of the paired reads. When the relative orientation is in the same direction to a reference sequence 5′-3′-5′-3′ (forward-forward), when is in the opposite direction 5′-3′-3′-5′ (forward-reverse)."
+                },
+                {
+                    "name": "extractionMethod.nominal_length",
+                    "label": "Nominal length (bp)",
+                    "type": "number",
+                    "dependency": "extractionMethod.layout === 'Paired-end'",
+                    "help": "Average distance between the paired reads in base pair."
+                },
+                {
+                    "name": "extractionMethod.nominal_length_stdev",
+                    "label": "Nominal length Std dev (bp)",
+                    "type": "number",
+                    "dependency": "extractionMethod.layout === 'Paired-end'",
+                    "help": "Standard deviation for the average distance between the paired reads."
+                }
+            ]
+        }
+    ]
+}

@@ -53,8 +53,7 @@ public class RAWdata_JDBCDAO extends Step_JDBCDAO {
 
         //Inserts a new entry in the rawdata table
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                + "INSERT INTO rawdata SET "
-                + " rawdata_id = ?, analyticalReplicate_id = ?, raw_data_type = ?");
+                + "INSERT INTO rawdata SET rawdata_id = ?, analyticalReplicate_id = ?, raw_data_type = ?");
 
         ps.setString(1, rawdata.getRAWdataID());
         ps.setString(2, rawdata.getAnalyticalReplicate_id());
@@ -130,7 +129,7 @@ public class RAWdata_JDBCDAO extends Step_JDBCDAO {
             rawdata.setRawDataType(rs.getString("raw_data_type"));
 
             //GET THE ASSOCIATED EXTRACTION METHOD
-            ExtractionMethod extractionMethod = (ExtractionMethod) DAOProvider.getDAOByName(rawdata.getRAWdataType().replace("-", "")).findByID(rawdata.getRAWdataID(), null);
+            ExtractionMethod extractionMethod = (ExtractionMethod) DAOProvider.getDAOByName(rawdata.getRAWdataType().replace("-", "").replace("_", "")).findByID(rawdata.getRAWdataID(), null);
             rawdata.setExtractionMethod(extractionMethod);
 
             rawdata_list.add(rawdata);

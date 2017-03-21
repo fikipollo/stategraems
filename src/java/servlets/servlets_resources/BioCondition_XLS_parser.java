@@ -24,7 +24,7 @@ import classes.samples.AnalyticalReplicate;
 import classes.samples.Batch;
 import classes.samples.Bioreplicate;
 import classes.samples.BioCondition;
-import classes.samples.Treatment;
+import classes.samples.Protocol;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,7 +47,7 @@ public class BioCondition_XLS_parser {
     public static Object[] parseXLSfile(File file, String owner) throws Exception {
 
         HashMap<String, Batch> batchesTable = new HashMap<String, Batch>();
-        HashMap<String, Treatment> treatmentTable = new HashMap<String, Treatment>();
+        HashMap<String, Protocol> protocolTable = new HashMap<String, Protocol>();
         HashMap<String, Bioreplicate> bioreplicatesTable = new HashMap<String, Bioreplicate>();
         ArrayList<BioCondition> biocondition_list = new ArrayList<BioCondition>();
 
@@ -139,23 +139,23 @@ public class BioCondition_XLS_parser {
             rows.next();
         }
 
-        Treatment treatment;
+        Protocol protocol;
         while (rows.hasNext()) {
             HSSFRow row = (HSSFRow) rows.next();
-            String treatment_id = row.getCell(0).getStringCellValue();
+            String protocol_id = row.getCell(0).getStringCellValue();
             String protocol_name = row.getCell(1).getStringCellValue();
             if (protocol_name.isEmpty()) {
                 break;
             }
             String extracted_molecule = row.getCell(2).getStringCellValue();
-            String treatment_description = row.getCell(3).getStringCellValue();
-            treatment = new Treatment();
-            treatment.setTreatmentID(treatment_id);
-            treatment.setTreatment_name(protocol_name);
-            treatment.setBiomolecule(extracted_molecule);
-            treatment.setDescription(treatment_description);
-            treatment.addOwner(new User(owner, ""));
-            treatmentTable.put(treatment_id, treatment);
+            String protocol_description = row.getCell(3).getStringCellValue();
+            protocol = new Protocol();
+            protocol.setProtocolID(protocol_id);
+            protocol.setProtocolName(protocol_name);
+            protocol.setBiomolecule(extracted_molecule);
+            protocol.setDescription(protocol_description);
+            protocol.addOwner(new User(owner, ""));
+            protocolTable.put(protocol_id, protocol);
         }
 
         //PARSE THE BIOLOGICAL CONDITION INFORMATION
@@ -279,7 +279,7 @@ public class BioCondition_XLS_parser {
         while (rows.hasNext()) {
             HSSFRow row = (HSSFRow) rows.next();
             String bioreplicateID = row.getCell(0).getStringCellValue();
-            String treatmentID = row.getCell(1).getStringCellValue();
+            String protocolID = row.getCell(1).getStringCellValue();
             String analyticalSampleName = row.getCell(2).getStringCellValue();
             if (analyticalSampleName.isEmpty()) {
                 break;
@@ -287,8 +287,8 @@ public class BioCondition_XLS_parser {
             bioreplicateInstance = bioreplicatesTable.get(bioreplicateID);
 
             analyticalSampleInstance = new AnalyticalReplicate();
-            analyticalSampleInstance.setBioreplicate_id(bioreplicateInstance.getBioreplicateID());
-            analyticalSampleInstance.setTreatment_id(treatmentID);
+            analyticalSampleInstance.setBioreplicateID(bioreplicateInstance.getBioreplicateID());
+            analyticalSampleInstance.setProtocolID(protocolID);
             analyticalSampleInstance.setAnalyticalReplicateName(analyticalSampleName);
 
             bioreplicateInstance.addAssociatedAnalyticalReplicate(analyticalSampleInstance);
@@ -297,7 +297,7 @@ public class BioCondition_XLS_parser {
         Object[] data = new Object[3];
         data[0] = biocondition_list;
         data[1] = batchesTable;
-        data[2] = treatmentTable;
+        data[2] = protocolTable;
         return data;
     }
 }

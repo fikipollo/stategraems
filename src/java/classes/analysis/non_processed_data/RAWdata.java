@@ -65,9 +65,13 @@ public class RAWdata extends NonProcessedData {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(ExtractionMethod.class, getExtractionMethodDeserializerInstance());
         Gson gson = gsonBuilder.create();
-        RAWdata rawdata = gson.fromJson(jsonString, RAWdata.class);
-
-        return rawdata;
+        RAWdata step = gson.fromJson(jsonString, RAWdata.class);
+        
+        if(step.extractionMethod != null){
+            step.extractionMethod.setRawdataID(step.getStepID());
+        }
+        
+        return step;
     }
 
     @Override
@@ -85,31 +89,42 @@ public class RAWdata extends NonProcessedData {
         return super.getStepID();
     }
 
-    public void setRAWdata_id(String rawdata_id) {
+    public void setRAWdataID(String rawdata_id) {
         super.setStepID(rawdata_id);
-    }
-
-    @Override
-    public boolean updateAnalysisID(String new_analysis_id) {
-        //IF THE ANALYSIS ID IS DIFFERENT THAT THE TO-BE-CREATED ID, IT MEANS THAT 
-        //THE STEP IS AN IMPORTED STEP.
-        String analysis_id = this.getAnalysisID();
-
-        if (!"ANxxxx".equals(analysis_id)) {
-            return false;
-        }
-
-        this.setStepID(this.step_id.replaceFirst(analysis_id.substring(2), new_analysis_id.substring(2)));
-        this.updatePreviousStepIDs(analysis_id, new_analysis_id);
-        if (this.associatedQualityReport != null) {
-            this.associatedQualityReport.setStudiedStepID(this.step_id);
-        }
-
         if (this.extractionMethod != null) {
             this.extractionMethod.setRawdataID(this.step_id);
         }
-        return true;
     }
+
+    @Override
+    public void setStepID(String step_id) {
+        super.setStepID(step_id);
+        if (this.extractionMethod != null) {
+            this.extractionMethod.setRawdataID(this.step_id);
+        }
+    }
+// 
+//    @Override
+//    public boolean updateAnalysisID(String new_analysis_id) {
+//        //IF THE ANALYSIS ID IS DIFFERENT THAT THE TO-BE-CREATED ID, IT MEANS THAT 
+//        //THE STEP IS AN IMPORTED STEP.
+//        String analysis_id = this.getAnalysisID();
+//
+//        if (!"ANxxxx".equals(analysis_id)) {
+//            return false;
+//        }
+//
+//        this.setStepID(this.step_id.replaceFirst(analysis_id.substring(2), new_analysis_id.substring(2)));
+//        this.updatePreviousStepIDs(analysis_id, new_analysis_id);
+//        if (this.associatedQualityReport != null) {
+//            this.associatedQualityReport.setStudiedStepID(this.step_id);
+//        }
+//
+//        if (this.extractionMethod != null) {
+//            this.extractionMethod.setRawdataID(this.step_id);
+//        }
+//        return true;
+//    }
 
     public String getAnalyticalReplicate_id() {
         return analyticalReplicate_id;

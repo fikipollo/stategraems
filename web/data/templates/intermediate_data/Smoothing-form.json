@@ -1,0 +1,22 @@
+{
+    "id": "Smoothing-form",
+    "content": [
+        {
+            "name": "section_1",
+            "title": "Peaks smoothing details",
+            "fields": [
+                {
+                    "name": "other_fields.sliding_window_length",
+                    "label": "Sliding window length (bp)",
+                    "type": "number",
+                    "help": "Specify the length (in bp) of the window used for smoothing."
+                }, {
+                    "name": "other_fields.steps_length",
+                    "label": "Step length (bp)",
+                    "type": "number",
+                    "help": "Specify the offset (in bp) for each step during the process."
+                }
+            ]
+        }
+    ]
+}

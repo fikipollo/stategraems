@@ -17,9 +17,12 @@
  *  More info http://bioinfo.cipf.es/stategraems
  *  Technical contact stategraemsdev@gmail.com
  *  *************************************************************** */
-
 package common;
 
+import bdManager.DAO.DAO;
+import bdManager.DAO.DAOProvider;
+import bdManager.DAO.User_JDBCDAO;
+import classes.User;
 import java.util.HashMap;
 
 /**
@@ -60,20 +63,19 @@ public class UserSessionManager {
         return INSTANCE;
     }
 
-    public String registerNewUser(String user_id) {
+    public String registerNewUser(String email) {
 
         //IF USER IS ALREADY LOGGED (MAYBE BECAUSE LAST TIME HE USED THE APP HE DIDN'T LOG OUT) UPDATE SESSION TOKEN
         //TODO: MAYBE WARNING THE USER?
 //        if(INSTANCE.logged_users.containsKey(user_id)){
 //           INSTANCE.logged_users.put(user_id, sessionToken);
 //        }
-
         String sessionToken = Long.toHexString(Double.doubleToLongBits(Math.random()));
-        INSTANCE.logged_users.put(user_id, sessionToken);
+        INSTANCE.logged_users.put(email, sessionToken);
         return sessionToken;
     }
 
-    public boolean removeUser(String user_id, String sessionToken) {
+    public boolean removeUser(String email, String sessionToken) {
 //        if (INSTANCE == null) {
 //        IMPOSSIBLE CASE
 //            ServerErrorManager.addErrorMessage(3, UserSessionManager.class.getName(), "removeUser", "Your session is not initialized");
@@ -81,10 +83,10 @@ public class UserSessionManager {
 //            return false;
 //        }
 
-        String assignedSessionToken = INSTANCE.logged_users.get(user_id);
+        String assignedSessionToken = INSTANCE.logged_users.get(email);
 
         if (assignedSessionToken != null && assignedSessionToken.equals(sessionToken)) {
-            INSTANCE.logged_users.remove(user_id);
+            INSTANCE.logged_users.remove(email);
             return true;
         }
 
@@ -99,6 +101,18 @@ public class UserSessionManager {
         }
 
         return sessionToken.equals(getUserSessionManager().logged_users.get(user));
+    }
+
+    public boolean isValidAdminUser(String username) {
+
+        try {
+            DAO dao_instance = DAOProvider.getDAOByName("User");
+            Object[] params = {null, false, true};
+            User user = (User) ((User_JDBCDAO) dao_instance).findByID(username, params);
+            return "admin".equals(user.getRole()) || "admin".equals(user.getUserID());
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public int getLoggedUsersCount() {

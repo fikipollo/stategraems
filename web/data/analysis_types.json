@@ -1,0 +1,405 @@
+{
+    "success": true,
+    "analysis_type": [
+        {
+            "label": "AHT-ChIP-Seq data",
+            "value": "AHT-ChIP-Seq data"
+        },
+        {
+            "label": "ARS-Seq data",
+            "value": "ARS-Seq data"
+        },
+        {
+            "label": "ATAC-Seq data",
+            "value": "ATAC-Seq data"
+        },
+        {
+            "label": "Bar-Seq data",
+            "value": "Bar-Seq data"
+        },
+        {
+            "label": "BisChIP-Seq data",
+            "value": "BisChIP-Seq data"
+        },
+        {
+            "label": "BOINC-Seq data",
+            "value": "BOINC-Seq data"
+        },
+        {
+            "label": "Bru-Seq data",
+            "value": "Bru-Seq data"
+        },
+        {
+            "label": "BS-Seq data",
+            "value": "BS-Seq data"
+        },
+        {
+            "label": "Bubble-Seq data",
+            "value": "Bubble-Seq data"
+        },
+        {
+            "label": "CAB-Seq data",
+            "value": "CAB-Seq data"
+        },
+        {
+            "label": "CAGE-Seq data",
+            "value": "CAGE-Seq data"
+        },
+        {
+            "label": "Capture-C-Seq data",
+            "value": "Capture-C-Seq data"
+        },
+        {
+            "label": "Cel-Seq data",
+            "value": "Cel-Seq data"
+        },
+        {
+            "label": "CHART-Seq data",
+            "value": "CHART-Seq data"
+        },
+        {
+            "label": "Chem-Seq data",
+            "value": "Chem-Seq data"
+        },
+        {
+            "label": "ChIA-PET-Seq data",
+            "value": "ChIA-PET-Seq data"
+        },
+        {
+            "label": "Chip-exo-Seq data",
+            "value": "Chip-exo-Seq data"
+        },
+        {
+            "label": "ChIP-Seq data",
+            "value": "ChIP-Seq data"
+        },
+        {
+            "label": "ChIRP-Seq data",
+            "value": "ChIRP-Seq data"
+        },
+        {
+            "label": "Cir-Seq data",
+            "value": "Cir-Seq data"
+        },
+        {
+            "label": "CLASH-Seq data",
+            "value": "CLASH-Seq data"
+        },
+        {
+            "label": "CNV-Seq data",
+            "value": "CNV-Seq data"
+        },
+        {
+            "label": "CRE-Seq data",
+            "value": "CRE-Seq data"
+        },
+        {
+            "label": "DMS-Seqf data",
+            "value": "DMS-Seqf data"
+        },
+        {
+            "label": "DNAseI-Seq data",
+            "value": "DNAseI-Seq data"
+        },
+        {
+            "label": "DNAse-Seq data",
+            "value": "DNAse-Seq data"
+        },
+        {
+            "label": "dsRNA-Seq data",
+            "value": "dsRNA-Seq data"
+        },
+        {
+            "label": "Dup-Seq data",
+            "value": "Dup-Seq data"
+        },
+        {
+            "label": "FAIRE-Seq data",
+            "value": "FAIRE-Seq data"
+        },
+        {
+            "label": "fCAB-Seq data",
+            "value": "fCAB-Seq data"
+        },
+        {
+            "label": "Frac-Seq data",
+            "value": "Frac-Seq data"
+        },
+        {
+            "label": "FRAG-Seq data",
+            "value": "FRAG-Seq data"
+        },
+        {
+            "label": "Freq-Seq data",
+            "value": "Freq-Seq data"
+        },
+        {
+            "label": "FRT-Seq data",
+            "value": "FRT-Seq data"
+        },
+        {
+            "label": "Gene expression",
+            "value": "Gene expression"
+        },
+        {
+            "label": "GRO-Seq data",
+            "value": "GRO-Seq data"
+        },
+        {
+            "label": "GTI-Seq data",
+            "value": "GTI-Seq data"
+        },
+        {
+            "label": "HELP-Seq data",
+            "value": "HELP-Seq data"
+        },
+        {
+            "label": "Hi-C-Seq data",
+            "value": "Hi-C-Seq data"
+        },
+        {
+            "label": "HiTS-Flip-Seq data",
+            "value": "HiTS-Flip-Seq data"
+        },
+        {
+            "label": "HITS-KIN-Seq data",
+            "value": "HITS-KIN-Seq data"
+        },
+        {
+            "label": "iCLIP-Seq data",
+            "value": "iCLIP-Seq data"
+        },
+        {
+            "label": "Ig-Seq data",
+            "value": "Ig-Seq data"
+        },
+        {
+            "label": "Immuno-Seq data",
+            "value": "Immuno-Seq data"
+        },
+        {
+            "label": "IMS-MDA-Seq data",
+            "value": "IMS-MDA-Seq data"
+        },
+        {
+            "label": "IN-Seq data",
+            "value": "IN-Seq data"
+        },
+        {
+            "label": "MeDIP-Seq data",
+            "value": "MeDIP-Seq data"
+        },
+        {
+            "label": "Metabolomics",
+            "value": "Metabolomics"
+        },
+        {
+            "label": "Methyl-Seq data",
+            "value": "Methyl-Seq data"
+        },
+        {
+            "label": "miRNA-Seq data",
+            "value": "miRNA-Seq data"
+        },
+        {
+            "label": "mRNA-Seq data",
+            "value": "mRNA-Seq data"
+        },
+        {
+            "label": "Mu-Seq data",
+            "value": "Mu-Seq data"
+        },
+        {
+            "label": "mutARS-Seq data",
+            "value": "mutARS-Seq data"
+        },
+        {
+            "label": "Nascent-Seq data",
+            "value": "Nascent-Seq data"
+        },
+        {
+            "label": "NET-Seq data",
+            "value": "NET-Seq data"
+        },
+        {
+            "label": "NOMe-Seq data",
+            "value": "NOMe-Seq data"
+        },
+        {
+            "label": "Novel-Seq data",
+            "value": "Novel-Seq data"
+        },
+        {
+            "label": "Nucleo-Seq data",
+            "value": "Nucleo-Seq data"
+        },
+        {
+            "label": "oxBS-Seq data",
+            "value": "oxBS-Seq data"
+        },
+        {
+            "label": "PAL-Seq data",
+            "value": "PAL-Seq data"
+        },
+        {
+            "label": "PAR-Clip-Seq data",
+            "value": "PAR-Clip-Seq data"
+        },
+        {
+            "label": "PARS-Seq data",
+            "value": "PARS-Seq data"
+        },
+        {
+            "label": "PARTE-Seq data",
+            "value": "PARTE-Seq data"
+        },
+        {
+            "label": "PAS-Seq data",
+            "value": "PAS-Seq data"
+        },
+        {
+            "label": "PB-Seq data",
+            "value": "PB-Seq data"
+        },
+        {
+            "label": "PD-Seq data",
+            "value": "PD-Seq data"
+        },
+        {
+            "label": "PDZ-Seq data",
+            "value": "PDZ-Seq data"
+        },
+        {
+            "label": "Pool-Seq data",
+            "value": "Pool-Seq data"
+        },
+        {
+            "label": "Precapture RNA-Seq data",
+            "value": "Precapture RNA-Seq data"
+        },
+        {
+            "label": "Proteomics",
+            "value": "Proteomics"
+        },
+        {
+            "label": "PRO-Seq data",
+            "value": "PRO-Seq data"
+        },
+        {
+            "label": "PTB-Seq data",
+            "value": "PTB-Seq data"
+        },
+        {
+            "label": "Quartz-Seq data",
+            "value": "Quartz-Seq data"
+        },
+        {
+            "label": "RAD-Seq data",
+            "value": "RAD-Seq data"
+        },
+        {
+            "label": "RAP-Seq data",
+            "value": "RAP-Seq data"
+        },
+        {
+            "label": "RBBS-Seq data",
+            "value": "RBBS-Seq data"
+        },
+        {
+            "label": "Ren-Seq data",
+            "value": "Ren-Seq data"
+        },
+        {
+            "label": "Repli-Seq data",
+            "value": "Repli-Seq data"
+        },
+        {
+            "label": "Ribo-Seq data",
+            "value": "Ribo-Seq data"
+        },
+        {
+            "label": "RIP-Seq data",
+            "value": "RIP-Seq data"
+        },
+        {
+            "label": "RNA-Seq data",
+            "value": "RNA-Seq data"
+        },
+        {
+            "label": "SELEX-Seq data",
+            "value": "SELEX-Seq data"
+        },
+        {
+            "label": "SHAPE-Seq data",
+            "value": "SHAPE-Seq data"
+        },
+        {
+            "label": "Smart-Seq data",
+            "value": "Smart-Seq data"
+        },
+        {
+            "label": "Sono-Seq data",
+            "value": "Sono-Seq data"
+        },
+        {
+            "label": "Sort-Seq data",
+            "value": "Sort-Seq data"
+        },
+        {
+            "label": "SRE-Seq data",
+            "value": "SRE-Seq data"
+        },
+        {
+            "label": "SS3-Seq data",
+            "value": "SS3-Seq data"
+        },
+        {
+            "label": "Stable-Seq data",
+            "value": "Stable-Seq data"
+        },
+        {
+            "label": "STARR-Seq data",
+            "value": "STARR-Seq data"
+        },
+        {
+            "label": "Structure-Seq data",
+            "value": "Structure-Seq data"
+        },
+        {
+            "label": "TAB-Seq data",
+            "value": "TAB-Seq data"
+        },
+        {
+            "label": "TAmC-Seq data",
+            "value": "TAmC-Seq data"
+        },
+        {
+            "label": "TAm-Seq data",
+            "value": "TAm-Seq data"
+        },
+        {
+            "label": "TIF-Seq data",
+            "value": "TIF-Seq data"
+        },
+        {
+            "label": "TIVA-Seq data",
+            "value": "TIVA-Seq data"
+        },
+        {
+            "label": "Tn-Seq data",
+            "value": "Tn-Seq data"
+        },
+        {
+            "label": "TraDI-Seq data",
+            "value": "TraDI-Seq data"
+        },
+        {
+            "label": "Transcriptomics data",
+            "value": "Transcriptomics data"
+        },
+        {
+            "label" : "WIMP-Seq",
+            "value" : "WIMP-Seq"
+        }
+    ]
+}

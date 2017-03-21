@@ -313,8 +313,7 @@ public class Analysis_XLS_parser {
         //Spectrum and peak list generation and annotation (resulting data
         i += 2;
         String fileLocations = sheet.getRow(i).getCell(1).getStringCellValue();
-        fileLocations = fileLocations.replaceAll("\n", "\\$\\$");
-        rawDataInstance.setFilesLocation(fileLocations);
+        rawDataInstance.setFilesLocation(fileLocations.split("\n"));
         i++;
         massSpectrometry.setIntensityValues(sheet.getRow(i).getCell(1).getStringCellValue());
         i++;
@@ -330,7 +329,12 @@ public class Analysis_XLS_parser {
     public static void main(String[] args) {
         try {
             //TODO: INDICAR TIPO ANALYSIS EN LA VENTANA DE IMPORTAR XLS
-            Analysis analysisInstance = new Analysis("ANxxxxx", "Proteomics", "open");
+            Analysis analysisInstance = new Analysis();
+            analysisInstance.setAnalysisID("ANxxxxx");
+            analysisInstance.setAnalysisType("Proteomics");
+            analysisInstance.setAnalysisName("test");
+            analysisInstance.setStatus("open");
+
             String[] owners = new String[]{"rafa"};
             RAWdata rawdata = parse_GCMS_XLSfile(new File("/home/rhernandez/Dropbox/CIPF/Proyectos/Proyecto STATegra/LIMS Documentation/STATegraEMS - Tutorials/STATegra_EMS_tutorials/Proteomics/MIAPE-LCMS_example.xls"), owners);
 

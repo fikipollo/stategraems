@@ -37,7 +37,6 @@
         return this;
       },
       addTemplate: function(_template) {
-        debugger
         templates.push(_template);
         return this;
       },

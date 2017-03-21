@@ -1,0 +1,22 @@
+<div class="panel panel-container" style="padding: 20px;">
+    <h1 class="form_title">Workflow overview</h1>
+    <analysis-diagram container-id="selectorDiagramContainer" style="height:450px;" selectable></analysis-diagram>
+</div>
+<div style="margin: 20px;">
+    <table class="table" >
+        <thead>
+            <tr>
+                <th>Input file name</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="input in model[propertyName]">
+                <td style="text-align: left; ">Output files for step {{input}}</td>
+                <td style=" width: 30px; text-align: center; ">
+                    <a class="clickable" ng-click="controller.removeSelectedInputFileHandler(input);"><i class="fa fa-trash text-danger"></i></a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

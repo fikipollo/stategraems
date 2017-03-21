@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 import javax.sql.DataSource;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.dbcp.BasicDataSourceFactory;
 
 /**
@@ -46,7 +47,8 @@ public class DBConnectionManager {
     private HashMap<Long, Connection> connections = null;
     private DataSource connectionPool;
     private static String data_location;
-
+    Properties properties;
+    
     private DBConnectionManager() throws SQLException {
         initConnectionManager();
     }
@@ -54,8 +56,9 @@ public class DBConnectionManager {
     private void initConnectionManager() throws SQLException {
         try {
             connections = new HashMap<Long, Connection>();
-            Properties properties = new Properties();
+            properties = new Properties();
             properties.load(new FileReader(this.data_location + "/db_config.properties"));
+            properties.setProperty("password", new String(Base64.decodeBase64(properties.getProperty("password"))));
             connectionPool = BasicDataSourceFactory.createDataSource(properties);
         } catch (Exception ex) {
             System.err.println(String.format("%tc", new Date()) + " STATEGRAEMS LOG > FAILED TRYING TO OPEN A NEW CONNECTIONS POOL");
@@ -94,6 +97,10 @@ public class DBConnectionManager {
 
     public static void setDataLocation(String data_location) {
         DBConnectionManager.data_location = data_location;
+    }
+
+    public Properties getProperties() {
+        return properties;
     }
 
     private synchronized static void createConnectionManager() throws SQLException {
@@ -194,10 +201,11 @@ public class DBConnectionManager {
 //                + " --password=" + properties.getProperty("password")
 //                + " " + properties.getProperty("databasename");
         String dumpCommand = "mysqldump  "
+                + " --host " + properties.getProperty("host")
                 + " --complete-insert --insert-ignore --force"
                 + " --single-transaction --add-drop-table --skip-comments"
                 + " --user=" + properties.getProperty("username")
-                + " --password=" + properties.getProperty("password")
+                + " --password=" + new String(Base64.decodeBase64(properties.getProperty("password")))
                 + " " + properties.getProperty("databasename");
         Runtime rt = Runtime.getRuntime();
 //        dumpCommand+= " >> " + filePath;

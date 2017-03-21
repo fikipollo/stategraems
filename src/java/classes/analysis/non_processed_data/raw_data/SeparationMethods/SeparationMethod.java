@@ -28,6 +28,7 @@ import com.google.gson.Gson;
  */
 public abstract class SeparationMethod {
 
+    protected String separation_method_type;
     protected String rawdata_id;
 
     public static SeparationMethod fromJSON(String jsonString) {
@@ -38,6 +39,14 @@ public abstract class SeparationMethod {
             separationMethod = CapillaryElectrophoresis.fromJSON(jsonString);
         }
         return separationMethod;
+    }
+    
+    public String getSeparationMethodType() {
+        return separation_method_type;
+    }
+
+    public void setSeparationMethodType(String separation_method_type) {
+        this.separation_method_type = separation_method_type;
     }
 
     /**

@@ -25,6 +25,7 @@ import bdManager.DBConnectionManager;
 import classes.analysis.NonProcessedData;
 import classes.analysis.ProcessedData;
 import classes.analysis.Analysis;
+import classes.analysis.Step;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import common.BlockedElementsManager;
@@ -54,11 +55,13 @@ public class Analysis_JDBCDAO extends DAO {
         //Insert the Analysis in the analysis table
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "INSERT INTO analysis SET "
-                + "analysis_id = ?, analysisType= ?, status = ?");
+                + "analysis_id = ?, analysis_type= ?, status = ?, analysis_name = ?, tags= ?");
 
         ps.setString(1, analysis.getAnalysisID());
         ps.setString(2, analysis.getAnalysisType());
         ps.setString(3, analysis.getStatus());
+        ps.setString(4, analysis.getAnalysisName());
+        ps.setString(5, concatString(", ", analysis.getTags()));
         ps.execute();
 
         //Add ALL THE NON PROCESSED DATA
@@ -102,8 +105,21 @@ public class Analysis_JDBCDAO extends DAO {
     @Override
     public boolean update(Object object) throws SQLException {
         Analysis analysis = (Analysis) object;
-        //(1) ADD THE ANALYSIS OBJECT
-        //TODO: UPDATE STATUS? REMOVE THE FIELD (NOT USED)?
+
+        //Insert the Experiment in the experiments table
+        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                + "UPDATE analysis SET "
+                + "  analysis_type= ?, status = ?, analysis_name = ?, tags= ? "
+                + "WHERE analysis_id = ?");
+
+        ps.setString(1, analysis.getAnalysisType());
+        ps.setString(2, analysis.getStatus());
+        ps.setString(3, analysis.getAnalysisName());
+        ps.setString(4, concatString(", ", analysis.getTags()));
+        ps.setString(5, analysis.getAnalysisID());
+
+        ps.execute();
+
         return true;
     }
 
@@ -130,7 +146,13 @@ public class Analysis_JDBCDAO extends DAO {
 
         Analysis analysis = null;
         if (rs.first()) {
-            analysis = new Analysis(rs.getString(1), rs.getString(2), rs.getString(3));
+            analysis = new Analysis();
+            analysis.setAnalysisID(rs.getString("analysis_id"));
+            analysis.setAnalysisType(rs.getString("analysis_type"));
+            analysis.setAnalysisName(rs.getString("analysis_name"));
+            analysis.setStatus(rs.getString("status"));
+            analysis.setTags(rs.getString("tags"));
+            analysis.setRemoveRequests(rs.getString("remove_requests"));
 
             if (loadRecursive) {
                 Object[] params = {analysis.getAnalysisID(), analysis.getAnalysisType()};
@@ -182,13 +204,17 @@ public class Analysis_JDBCDAO extends DAO {
         ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
 
         ArrayList<Object> analysisList = new ArrayList<Object>();
-        Analysis analysis = null;
-
-        DAO processed_data_dao_instance = DAOProvider.getDAOByName("ProcessedData");
-        DAO non_processed_data_dao_instance = DAOProvider.getDAOByName("NonProcessedData");
+        Analysis analysis;
 
         while (rs.next()) {
-            analysis = new Analysis(rs.getString(1), rs.getString(2), rs.getString(3));
+            analysis = new Analysis();
+            analysis.setAnalysisID(rs.getString("analysis_id"));
+            analysis.setAnalysisType(rs.getString("analysis_type"));
+            analysis.setAnalysisName(rs.getString("analysis_name"));
+            analysis.setStatus(rs.getString("status"));
+            analysis.setTags(rs.getString("tags"));
+            analysis.setRemoveRequests(rs.getString("remove_requests"));
+
             if (loadRecursive) {
                 Object[] params = {analysis.getAnalysisID(), analysis.getAnalysisType()};
                 ArrayList<Object> stepList = DAOProvider.getDAOByName("Step").findAll(params);
@@ -230,7 +256,6 @@ public class Analysis_JDBCDAO extends DAO {
             previousID = rs.getString(1);
         }
 
-
         //IF NO ENTRIES WERE FOUND IN THE DB, THEN WE RETURN THE FIRST ID 		
         String newID = "";
         if (previousID == null) {
@@ -251,32 +276,58 @@ public class Analysis_JDBCDAO extends DAO {
     //******************************************************************************************************************************************/
     //*** REMOVE FUNCTIONS *********************************************************************************************************************/
     //******************************************************************************************************************************************/
-    @Override
-    public boolean remove(String object_id) throws SQLException {
-        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                + "SELECT step_id FROM analysis_has_steps WHERE analysis_id = ? ORDER BY step_id DESC");
-        ps.setString(1, object_id);
-        ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
-        String stepId;
-        ResultSet rs1;
-        while (rs.next()) {
-            stepId = rs.getString("step_id");
-            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                    + "DELETE FROM step WHERE step_id = ?");
-            ps.setString(1, stepId);
-            ps.execute();
+    public boolean remove(Analysis analysis) throws SQLException {
+        //STEP 1. FOR EACH STEP: CHECK IF STEP IS BEING USED BY OTHER ANALYSIS
+        // IF SO, JUST UNLINK STEP
+        // OTHERWISE, REMOVE THE STEP
+        Step_JDBCDAO daoInstance = new Step_JDBCDAO();
+        for (Step step : analysis.getNonProcessedData()) {
+            if (step.getAnalysisID().equalsIgnoreCase(analysis.getAnalysisID())) {
+                ((Step_JDBCDAO) daoInstance).remove(step.getStepID());
+            } else {
+                ((Step_JDBCDAO) daoInstance).removeStepAssociation(step.getStepID(), analysis.getAnalysisID());
+            }
         }
 
-        ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+        for (Step step : analysis.getProcessedData()) {
+            if (step.getAnalysisID().equalsIgnoreCase(analysis.getAnalysisID())) {
+                ((Step_JDBCDAO) daoInstance).remove(step.getStepID());
+            } else {
+                ((Step_JDBCDAO) daoInstance).removeStepAssociation(step.getStepID(), analysis.getAnalysisID());
+            }
+        }
+
+        //STEP 2. REMOVE THE ANALYSIS
+        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "DELETE FROM analysis WHERE analysis_id = ?");
-        ps.setString(1, object_id);
+        ps.setString(1, analysis.getAnalysisID());
         ps.execute();
 
         return true;
     }
-    
+
+    @Override
+    public boolean remove(String object_id) throws SQLException {
+        Analysis analysis = this.findByID(object_id, null);
+        return this.remove(analysis);
+    }
+
     @Override
     public boolean remove(String[] object_id_list) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        for(String object_id : object_id_list){
+            this.remove(object_id);
+        }
+        return true;
+    }
+
+    public boolean updateRemoveRequests(String object_id, String[] remove_requests) throws SQLException {
+        //Insert the Experiment in the experiments table
+        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                + "UPDATE analysis SET remove_requests= ? WHERE analysis_id = ?");
+
+        ps.setString(1, concatString(", ", remove_requests));
+        ps.setString(2, object_id);
+        ps.execute();
+        return true;
     }
 }

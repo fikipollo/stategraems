@@ -22,6 +22,7 @@ package bdManager.DAO.analysis;
 import bdManager.DAO.DAO;
 import bdManager.DAO.DAOProvider;
 import bdManager.DBConnectionManager;
+import classes.ExtraField;
 import classes.User;
 //import classes.analysis.NonProcessedData;
 import classes.analysis.QualityReport;
@@ -31,6 +32,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  *
@@ -62,7 +66,7 @@ public class Step_JDBCDAO extends DAO {
         ps.setString(4, step.getType());
         ps.setString(5, step.getSubmissionDate().replaceAll("/", ""));
         ps.setString(6, step.getLastEditionDate().replaceAll("/", ""));
-        ps.setString(7, step.getFilesLocation());
+        ps.setString(7, concatString("$$", step.getFilesLocation()));
         ps.execute();
 
         //ADD THE ASSOCIATION analysis <--> non_processed_data
@@ -91,6 +95,38 @@ public class Step_JDBCDAO extends DAO {
         if (quality_report != null) {
             DAOProvider.getDAOByName("QualityReport").insert(quality_report);
         }
+
+        if (step.getOtherFields() != null) {
+
+            Iterator it = step.getOtherFields().entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pair = (Map.Entry) it.next();
+                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                        + "INSERT INTO other_fields SET "
+                        + " step_id = ?, field_name = ?, value = ?");
+
+                ps.setString(1, step.getStepID());
+                ps.setString(2, ((String) pair.getKey()));
+                ps.setString(3, ((String) pair.getValue()));
+                ps.execute();
+            }
+        }
+
+        if (step.getExtra() != null) {
+            for (ExtraField extraField : step.getExtra()) {
+                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                        + "INSERT INTO other_fields SET "
+                        + " step_id = ?, field_name = ?, value = ?, label = ?, section = ?");
+
+                ps.setString(1, step.getStepID());
+                ps.setString(2, extraField.getName());
+                ps.setString(3, extraField.getValue());
+                ps.setString(4, extraField.getLabel());
+                ps.setString(5, extraField.getSection());
+                ps.execute();
+            }
+        }
+
         return true;
     }
 
@@ -120,49 +156,82 @@ public class Step_JDBCDAO extends DAO {
      */
     @Override
     public boolean update(Object object) throws SQLException {
-        Step stepModel = (Step) object;
+        Step step = (Step) object;
 
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "UPDATE step SET "
                 + " step_name = ?, step_number = ?, last_edition_date = ?, files_location = ? "
                 + "WHERE step_id = ?");
 
-        ps.setString(1, stepModel.getStepName());
-        ps.setInt(2, stepModel.getStepNumber());
-        ps.setString(3, stepModel.getLastEditionDate().replaceAll("/", ""));
-        ps.setString(4, stepModel.getFilesLocation());
-        ps.setString(5, stepModel.getStepID());
+        ps.setString(1, step.getStepName());
+        ps.setInt(2, step.getStepNumber());
+        ps.setString(3, step.getLastEditionDate().replaceAll("/", ""));
+        ps.setString(4, concatString("$$", step.getFilesLocation()));
+        ps.setString(5, step.getStepID());
         ps.execute();
 
         //TODO: UPDATE DE QUALITUY REPORt?
-
         //2.   REMOVE THE PREVIOUS USERS
         ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "DELETE FROM step_owners WHERE "
                 + "step_id = ?");
 
-        ps.setString(1, stepModel.getStepID());
+        ps.setString(1, step.getStepID());
         ps.execute();
         //Add new entries into the experiment_owners table.
-        for (User owner : stepModel.getStepOwners()) {
+        for (User owner : step.getStepOwners()) {
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                     + "INSERT INTO step_owners SET "
                     + " user_id = ?, step_id = ?");
 
             ps.setString(1, owner.getUserID());
-            ps.setString(2, stepModel.getStepID());
+            ps.setString(2, step.getStepID());
             ps.execute();
         }
 
         //3.   UPDATE QUALITY REPORT
         DAO daoInstance = DAOProvider.getDAOByName("QualityReport");
-        daoInstance.remove(stepModel.getStepID());
-        QualityReport quality_report = stepModel.getAssociatedQualityReport();
+        daoInstance.remove(step.getStepID());
+        QualityReport quality_report = step.getAssociatedQualityReport();
         //Add a new entry into the quality report table if the raw data has an associated quality report.
         if (quality_report != null) {
             DAOProvider.getDAOByName("QualityReport").insert(quality_report);
         }
 
+        ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                + "DELETE FROM other_fields WHERE "
+                + "step_id = ?");
+        ps.setString(1, step.getStepID());
+        ps.execute();
+
+        if (step.getOtherFields() != null) {
+            Iterator it = step.getOtherFields().entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pair = (Map.Entry) it.next();
+                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                        + "INSERT INTO other_fields SET "
+                        + " step_id = ?, field_name = ?, value = ?");
+
+                ps.setString(1, step.getStepID());
+                ps.setString(2, ((String) pair.getKey()));
+                ps.setString(3, ((String) pair.getValue()));
+                ps.execute();
+            }
+        }
+        if (step.getExtra() != null) {
+            for (ExtraField extraField : step.getExtra()) {
+                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                        + "INSERT INTO other_fields SET "
+                        + " step_id = ?, field_name = ?, value = ?, label = ?, section = ?");
+
+                ps.setString(1, step.getStepID());
+                ps.setString(2, extraField.getName());
+                ps.setString(3, extraField.getValue());
+                ps.setString(4, extraField.getLabel());
+                ps.setString(5, extraField.getSection());
+                ps.execute();
+            }
+        }
         return true;
     }
 
@@ -218,6 +287,7 @@ public class Step_JDBCDAO extends DAO {
         ArrayList<Object> stepsList = new ArrayList<Object>();
 
         stepsList.addAll(DAOProvider.getDAOByName("RAWData").findAll(otherParams));
+        stepsList.addAll(DAOProvider.getDAOByName("ExternalData").findAll(otherParams));
         stepsList.addAll(DAOProvider.getDAOByName("IntermediateData").findAll(otherParams));
         stepsList.addAll(DAOProvider.getDAOByName("ProcessedData").findAll(otherParams));
 
@@ -254,15 +324,15 @@ public class Step_JDBCDAO extends DAO {
         //IF NO ENTRIES WERE FOUND IN THE DB, THEN WE RETURN THE FIRST ID 		
         String newID = "";
         if (previousID == null) {
-            newID = "ST" + analysis_id.substring(2) + ".001";
+            newID = "ST" + analysis_id.substring(2) + ".1";
         } else {
-            newID = previousID.substring(previousID.length() - 3);
-            newID = String.format("%03d", Integer.parseInt(newID) + 1);
+            newID = previousID.split("\\.")[1];
+            newID = String.format("%0" + newID.length() + "d", Integer.parseInt(newID) + 1);
             newID = "ST" + analysis_id.substring(2) + "." + newID;
         }
         while (!BlockedElementsManager.getBlockedElementsManager().lockID(newID)) {
-            newID = newID.substring(newID.length() - 3);
-            newID = String.format("%03d", Integer.parseInt(newID) + 1);
+            newID = newID.split("\\.")[1];
+            newID = String.format("%0" + newID.length() + "d", Integer.parseInt(newID) + 1);
             newID = "ST" + analysis_id.substring(2) + "." + newID;
         }
         return newID;
@@ -278,11 +348,12 @@ public class Step_JDBCDAO extends DAO {
      */
     @Override
     public Step findByID(String objectID, Object[] otherParams) throws SQLException {
-        Step non_processed_data_instance = null;
+        Step step = null;
         if (otherParams != null) {
-            non_processed_data_instance = (Step) otherParams[0];
+            step = (Step) otherParams[0];
         }
 
+        //STEP 1. GET ALL THE DETAILS FOR THE GIVEN STEP
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "SELECT * FROM step "
                 + "WHERE step_id = ?");
@@ -290,19 +361,20 @@ public class Step_JDBCDAO extends DAO {
         ps.setString(1, objectID);
         ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
 
-        if (rs.first()) {         //SET SEQUENCING RAW DATA FIELDS
-            non_processed_data_instance.setStepID(objectID);
-            non_processed_data_instance.setStepName(rs.getString("step_name"));
-            non_processed_data_instance.setStepNumber(rs.getInt("step_number"));
-            non_processed_data_instance.setType(rs.getString("type"));
-            non_processed_data_instance.setSubmissionDate(rs.getString("submission_date"));
-            non_processed_data_instance.setLastEditionDate(rs.getString("last_edition_date"));
-            non_processed_data_instance.setFilesLocation(rs.getString("files_location"));
+        if (rs.first()) {
+            //STEP 2. SET THE DETAILS FOR THE STEP INSTANCE
+            step.setStepID(objectID);
+            step.setStepName(rs.getString("step_name"));
+            step.setStepNumber(rs.getInt("step_number"));
+            step.setType(rs.getString("type"));
+            step.setSubmissionDate(rs.getString("submission_date"));
+            step.setLastEditionDate(rs.getString("last_edition_date"));
+            step.setFilesLocation(rs.getString("files_location").split("\\$\\$"));
 
+            //STEP 3. GET THE INFORMATION FOR THE STEP OWNERS
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                     + "SELECT user_id FROM step_owners "
                     + "WHERE step_id = ?");
-
             ps.setString(1, objectID);
             rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
 
@@ -311,12 +383,32 @@ public class Step_JDBCDAO extends DAO {
             while (rs.next()) {
                 owners.add(new User(rs.getString("user_id"), ""));
             }
-            non_processed_data_instance.setStepOwners(owners.toArray(new User[]{}));
+            step.setStepOwners(owners.toArray(new User[]{}));
 
+            //STEP 4. SET THE INFORMATION FOR THE QUALITY REPORT 
             QualityReport qualityReport = (QualityReport) DAOProvider.getDAOByName("QualityReport").findByID(objectID, null);
-            non_processed_data_instance.setAssociatedQualityReport(qualityReport);
+            step.setAssociatedQualityReport(qualityReport);
 
-            return non_processed_data_instance;
+            //STEP 5. FILL THE OTHER_FIELDS AND THE EXTRA FIELDS FOR THE STEP
+            ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                    + "SELECT * FROM other_fields WHERE step_id = ?");
+            ps.setString(1, objectID);
+            rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
+
+            Map<String, String> other_fields = new HashMap<String, String>();
+            ArrayList<ExtraField> extra = new ArrayList<ExtraField>();
+            while (rs.next()) {
+                if (rs.getString("label") == null || "".equals(rs.getString("label"))) {
+                    other_fields.put(rs.getString("field_name"), rs.getString("value"));
+                } else {
+                    extra.add(new ExtraField(rs.getString("field_name"), rs.getString("value"), rs.getString("label"), rs.getString("section")));
+                }
+            }
+
+            step.setOtherFields(other_fields);
+            step.setExtra(extra.toArray(new ExtraField[]{}));
+
+            return step;
         }
         return null;
     }
@@ -326,7 +418,7 @@ public class Step_JDBCDAO extends DAO {
     //******************************************************************************************************************************************/
     /**
      *
-     * @param non_processed_data
+     * @param object_id
      * @return
      * @throws SQLException
      */
@@ -363,15 +455,15 @@ public class Step_JDBCDAO extends DAO {
                         ps.execute();
                     } catch (SQLException e) {
                         //Unlock analysis
-                        BlockedElementsManager.getBlockedElementsManager().unlockObject(other_analysis);
+                        BlockedElementsManager.getBlockedElementsManager().unlockObject(other_analysis, null);
                         throw e;
                     }
                     //All entries in in the database that use this step will automatically update the step_id because of the 
                     //foreign key.
                     //Unlock analysis
-                    BlockedElementsManager.getBlockedElementsManager().unlockObject(other_analysis);
+                    BlockedElementsManager.getBlockedElementsManager().unlockObject(other_analysis, null);
                     //Unlock the new id
-                    BlockedElementsManager.getBlockedElementsManager().unlockObject(step_id);
+                    BlockedElementsManager.getBlockedElementsManager().unlockObject(step_id, null);
                     break;
                 } else {
                     continue;
@@ -413,7 +505,7 @@ public class Step_JDBCDAO extends DAO {
 
         ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "DELETE FROM step_use_step WHERE "
-                + "used_data_id = ? AND step_id IN " 
+                + "used_data_id = ? AND step_id IN "
                 + "(SELECT step_id FROM analysis_has_steps WHERE analysis_id = ?)");
         ps.setString(1, step_id);
         ps.setString(2, analysis_id);

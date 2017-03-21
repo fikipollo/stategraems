@@ -22,6 +22,7 @@ package classes.samples;
 import classes.Experiment;
 import classes.User;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 
 /**
  *
@@ -46,6 +47,7 @@ public class BioCondition {
     private String time;
     private String other_exp_cond;
     private String protocol_description;
+    protected String[] files_location;
     //DATES AND USERS
     private String submission_date;
     private String last_edition_date;
@@ -53,7 +55,10 @@ public class BioCondition {
     private String external_links;
     private Bioreplicate[] associatedBioreplicates;
     private Experiment[] associatedExperiments;
-    private boolean hasTreatmentDocument = false;
+    //OTHER
+    String[] tags;
+    boolean isPublic = true;
+    boolean isExternal = false;
 
     public BioCondition() {
     }
@@ -65,9 +70,10 @@ public class BioCondition {
      * @param jsonString the JSON object
      * @return the new Object.
      */
-    public static BioCondition fromJSON(String jsonString) {
+    public static BioCondition fromJSON(JsonElement jsonString) {
         Gson gson = new Gson();
         BioCondition biocondition = gson.fromJson(jsonString, BioCondition.class);
+        biocondition.adaptDates();
 
         return biocondition;
     }
@@ -207,6 +213,14 @@ public class BioCondition {
         this.protocol_description = protocol_description;
     }
 
+    public String[] getFilesLocation() {
+        return files_location;
+    }
+
+    public void setFilesLocation(String[] files_location) {
+        this.files_location = files_location;
+    }
+
     public String getOtherExpCond() {
         return other_exp_cond;
     }
@@ -229,6 +243,17 @@ public class BioCondition {
 
     public void setLastEditionDate(String last_edition_date) {
         this.last_edition_date = last_edition_date;
+    }
+
+    public void adaptDates() {
+        if (this.submission_date.contains("-")) {
+            String[] aux = this.submission_date.split("T");
+            this.submission_date = aux[0].replaceAll("-", "");
+        }
+        if (this.last_edition_date.contains("-")) {
+            String[] aux = this.last_edition_date.split("T");
+            this.last_edition_date = aux[0].replaceAll("-", "");
+        }
     }
 
     public User[] getOwners() {
@@ -292,12 +317,34 @@ public class BioCondition {
         }
     }
 
-    public boolean hasTreatmentDocument() {
-        return hasTreatmentDocument;
+    public String[] getTags() {
+        return tags;
     }
 
-    public void setHasTreatmentDocument(boolean hasTreatmentDocument) {
-        this.hasTreatmentDocument = hasTreatmentDocument;
+    public void setTags(String[] tags) {
+        this.tags = tags;
+    }
+
+    public void setTags(String tags) {
+        if (tags != null) {
+            this.tags = tags.split(", ");
+        }
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+
+    public boolean isExternal() {
+        return isExternal;
+    }
+
+    public void setExternal(boolean isExternal) {
+        this.isExternal = isExternal;
     }
 
     //***********************************************************************

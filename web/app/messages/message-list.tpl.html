@@ -1,0 +1,44 @@
+<div ng-controller="MessageListController as controller">
+    <nav class="navbar navbar-default navbar-top title-bar">
+        <h1 class="form_title">Message browser</h1>
+    </nav>
+    <div class="navbar-form navbar-default top-toolbar" role="search">
+        <h2 class="form_subtitle">Search and filter</h2>
+        <div class="row">
+            <div class="form-group col-sm-4">
+                <label for="sortBySelector">Show:</label>
+                <select style="display:inline-block;" class="form-control" id="sortBySelector"
+                        ng-model="show"
+                        ng-init="show = 'all'"
+                        ng-change="controller.showMessageChooserChangeHandler(value);"
+                        >
+                    <option value="all">All messages</option>
+                    <option value="unread">Unread messages</option>
+                    <option value="message">User messages</option>
+                    <option value="info">Information messages</option>
+                    <option value="warning">Alerts</option>
+                    <option value="sent">Sent messages</option>
+                </select>
+            </div>
+            <div class="input-group col-sm-6">
+                <input type="text" class="form-control" placeholder="Search for..." ng-model="searchFor" ng-enter="controller.applySearchHandler()">
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="button" ng-click="controller.applySearchHandler()">
+                        <span class="glyphicon glyphicon-search"></span>
+                    </button>
+                </span>
+            </div>
+            <div class="currentSearchTagContainer">
+                <i class="tag" ng-repeat="item in filters">
+                    <span class="tag-name">
+                        <i class="fa fa-times" ng-click="controller.removeFilterHandler(item);"></i>{{item}}
+                    </span>
+                </i>
+            </div>
+        </div>
+    </div>
+    <message-inbox></message-inbox>
+    <nav class=" navbar-fixed-bottom" style="left: initial;">
+        <back-top scroll-speed=600 button-theme="btn btn-default btn-sm navbar-right"></back-top>
+    </nav>
+</div>

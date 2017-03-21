@@ -36,9 +36,9 @@ import java.lang.reflect.Type;
  * @author Rafa Hernández de Diego
  */
 public class MassSpectrometry extends ExtractionMethod {
-
     String separation_method_type;
     String mass_spectrometer_manufacturer;
+    String mass_spectrometer_model;
     String customizations;
     String ionization_source;
     String supply_type;
@@ -68,6 +68,7 @@ public class MassSpectrometry extends ExtractionMethod {
 
     public MassSpectrometry() {
         super();
+        this.extraction_method_type = "MassSpectrometry";
     }
 
     /**
@@ -82,6 +83,10 @@ public class MassSpectrometry extends ExtractionMethod {
         gsonBuilder.registerTypeAdapter(SeparationMethod.class, getSeparationMethodDeserializerInstance());
         Gson gson = gsonBuilder.create();
         MassSpectrometry massSpectrometry = gson.fromJson(jsonString, MassSpectrometry.class);
+        
+        if(massSpectrometry.getSeparationMethod() != null){
+            massSpectrometry.setSeparationMethodType(massSpectrometry.getSeparationMethod().getSeparationMethodType());
+        }
 
         return massSpectrometry;
     }
@@ -100,6 +105,14 @@ public class MassSpectrometry extends ExtractionMethod {
 
     public void setMassSpectrometerManufacturer(String mass_spectrometer_manufacturer) {
         this.mass_spectrometer_manufacturer = mass_spectrometer_manufacturer;
+    }
+    
+    public String getMassSpectrometerModel() {
+        return mass_spectrometer_model;
+    }
+
+    public void setMassSpectrometerModel(String mass_spectrometer_model) {
+        this.mass_spectrometer_model = mass_spectrometer_model;
     }
 
     public String getCustomizations() {
@@ -301,7 +314,6 @@ public class MassSpectrometry extends ExtractionMethod {
     public void setAdditionalInfo(String additional_info) {
         this.additional_info = additional_info;
     }
-    
     
     public String getSeparationMethodType() {
         return separation_method_type;

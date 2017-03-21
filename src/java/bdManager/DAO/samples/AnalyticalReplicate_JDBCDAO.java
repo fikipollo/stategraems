@@ -47,6 +47,7 @@ public class AnalyticalReplicate_JDBCDAO extends DAO {
     @Override
     public boolean insert(Object object) throws SQLException {
         AnalyticalReplicate analyticalReplicate = (AnalyticalReplicate) object;
+        analyticalReplicate.setProtocolID("Unknown".equalsIgnoreCase(analyticalReplicate.getProtocolID()) ? null : analyticalReplicate.getProtocolID());
 
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "INSERT INTO analyticalReplicate "
@@ -55,10 +56,9 @@ public class AnalyticalReplicate_JDBCDAO extends DAO {
 
         ps.setString(1, analyticalReplicate.getAnalytical_rep_id());
         ps.setString(2, analyticalReplicate.getAnalyticalReplicateName());
-        ps.setString(3, analyticalReplicate.getBioreplicate_id());
-        ps.setString(4, analyticalReplicate.getTreatment_id());
+        ps.setString(3, analyticalReplicate.getBioreplicateID());
+        ps.setString(4, analyticalReplicate.getProtocolID());
         ps.execute();
-
 
         return true;
     }
@@ -85,7 +85,7 @@ public class AnalyticalReplicate_JDBCDAO extends DAO {
                 + "WHERE analytical_rep_id = ?");
 
         ps.setString(1, analyticalReplicate.getAnalyticalReplicateName());
-        ps.setString(2, analyticalReplicate.getTreatment_id());
+        ps.setString(2, analyticalReplicate.getProtocolID());
         ps.setString(3, analyticalReplicate.getAnalytical_rep_id());
         ps.execute();
 

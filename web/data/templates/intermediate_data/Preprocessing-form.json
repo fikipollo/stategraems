@@ -1,0 +1,38 @@
+{
+    "id": "Preprocessing-form",
+    "content": [
+        {
+            "name": "section_1",
+            "title": "Preprocessing details",
+            "fields": [
+                {
+                    "name": "other_fields.preprocessing_type",
+                    "label": "Preprocessing type",
+                    "type": "select",
+                    "help": "<b>[required]</b> Specify the type of preprocessing performed to the data.",
+                    "options": [
+                        {
+                            "label": "File format conversion",
+                            "value": "File format conversion"
+                        }, {
+                            "label": "Filtering",
+                            "value": "Filtering"
+                        }, {
+                            "label": "Normalization",
+                            "value": "Normalization"
+                        }, {
+                            "label": "Sorting",
+                            "value": "Sorting"
+                        }, {
+                            "label": "Trimming",
+                            "value": "Trimming"
+                        }, {
+                            "label": "Other",
+                            "value": "Other"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

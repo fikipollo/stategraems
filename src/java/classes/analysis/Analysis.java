@@ -19,14 +19,23 @@
  *  *************************************************************** */
 package classes.analysis;
 
+import classes.analysis.non_processed_data.ExternalData;
+import classes.analysis.non_processed_data.IntermediateData;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 
 /**
  *
@@ -35,19 +44,16 @@ import java.util.Arrays;
 public class Analysis {
 
     private String analysis_id;
+    private String analysis_name;
     private String analysis_type;
-    private String status;
+    private String status = "open";
     private String associated_experiment; //ONLY LOCAL INSTANCES, NOT IN DATABASE
     private NonProcessedData[] non_processed_data;
     private ProcessedData[] processed_data;
+    private String[] tags;
+    private String[] remove_requests;
 
     public Analysis() {
-    }
-
-    public Analysis(String analysis_id, String analysisType, String status) {
-        this.analysis_id = analysis_id;
-        this.analysis_type = analysisType;
-        this.status = status;
     }
 
     /**
@@ -57,7 +63,7 @@ public class Analysis {
      * @param jsonString the JSON object
      * @return the new Object.
      */
-    public static Analysis fromJSON(String jsonString) {
+    public static Analysis fromJSON(JsonElement jsonString) {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(NonProcessedData.class, getNonProcessedDataDeserializerInstance());
         gsonBuilder.registerTypeAdapter(ProcessedData.class, getProcessedDataDeserializerInstance());
@@ -90,15 +96,15 @@ public class Analysis {
         return analysis_id;
     }
 
-    public void setAnalysisss_id(String new_analysis_id) {
-        this.analysis_id = new_analysis_id;
+    public void setAnalysisID(String analysis_id) {
+        this.analysis_id = analysis_id;
     }
 
     public void updateAnalysisID(String newAnalysisID) {
         Step step;
         for (int i = 0; i < this.getNonProcessedData().length; i++) {
             step = this.getNonProcessedData()[i];
-                //Update all the step_id for all the steps created in this analysis
+            //Update all the step_id for all the steps created in this analysis
             //If some step belongs to another analysis previously created, no changed will be done
             //This function should be only called during new analysis/step creation
             //because the ANALYSIS AND STEP ID MUST NOT be editables.
@@ -126,6 +132,14 @@ public class Analysis {
         this.analysis_type = analysisType;
     }
 
+    public String getAnalysisName() {
+        return analysis_name;
+    }
+
+    public void setAnalysisName(String analysis_name) {
+        this.analysis_name = analysis_name;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -134,10 +148,24 @@ public class Analysis {
         this.status = status;
     }
 
+    public String[] getTags() {
+        return tags;
+    }
+
+    public void setTags(String[] tags) {
+        this.tags = tags;
+    }
+
+    public void setTags(String tags) {
+        if (tags != null) {
+            this.tags = tags.split(", ");
+        }
+    }
+
     public NonProcessedData[] getNonProcessedData() {
         //TODO: REPLACE ARRAYS BY ARRAYLIST
-        if(this.non_processed_data == null){
-            this.non_processed_data = new  NonProcessedData[]{};
+        if (this.non_processed_data == null) {
+            this.non_processed_data = new NonProcessedData[]{};
         }
         return non_processed_data;
     }
@@ -148,8 +176,8 @@ public class Analysis {
 
     public ProcessedData[] getProcessedData() {
         //TODO: REPLACE ARRAYS BY ARRAYLIST
-        if(this.processed_data == null){
-            this.processed_data = new  ProcessedData[]{};
+        if (this.processed_data == null) {
+            this.processed_data = new ProcessedData[]{};
         }
         return processed_data;
     }
@@ -167,6 +195,36 @@ public class Analysis {
 
     public void setAssociated_experiment(String associated_experiment) {
         this.associated_experiment = associated_experiment;
+    }
+
+    public boolean isOwner(String userName) {
+        for (Step step : this.getNonProcessedData()) {
+            if (step.isOwner(userName)) {
+                return true;
+            }
+        }
+        for (Step step : this.getProcessedData()) {
+            if (step.isOwner(userName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String[] getRemoveRequests() {
+        return this.remove_requests;
+    }
+
+    public void setRemoveRequests(String[] remove_requests) {
+        this.remove_requests = remove_requests;
+    }
+
+    public void setRemoveRequests(String remove_requests) {
+        if (remove_requests != null) {
+            this.remove_requests = remove_requests.split(", ");
+        } else {
+            this.remove_requests = new String[]{};
+        }
     }
 
     //***********************************************************************
@@ -201,5 +259,82 @@ public class Analysis {
             String jsonString = json.toString();
             return (jsonString.equals("[]")) ? null : ProcessedData.fromJSON(jsonString);
         }
+    }
+    
+       public static Analysis parseAnalysisData(String origin, String emsuser, JsonObject analysisData) throws Exception {
+        if ("galaxy".equalsIgnoreCase(origin)) {
+            return Analysis.parseAnalysisGalaxyData(origin, emsuser, analysisData);
+        } else {
+            throw new Exception("Origin not valid.");
+        }
+    }
+
+    private static Analysis parseAnalysisGalaxyData(String origin, String emsuser, JsonObject analysisData) {
+        JsonParser parser = new JsonParser();
+        JsonArray provenance = (JsonArray) parser.parse(analysisData.get("provenance").getAsString());
+
+        //STEP 1. Find the associations between the steps (inputs and outputs)
+        HashMap<String, JsonElement> outputs = new HashMap<String, JsonElement>();
+        JsonObject stepJSONobject;
+        for (JsonElement step_json : provenance) {
+            stepJSONobject = step_json.getAsJsonObject();
+            for (JsonElement output : stepJSONobject.getAsJsonArray("outputs")) {
+                outputs.put(output.getAsJsonObject().get("id").getAsString(), step_json);
+            }
+
+            if ("upload1".equalsIgnoreCase(stepJSONobject.get("tool_id").getAsString())) {
+                stepJSONobject.remove("step_type");
+                stepJSONobject.add("step_type", new JsonPrimitive("external_source"));
+            } else {
+                stepJSONobject.add("step_type", new JsonPrimitive("processed_data"));
+            }
+        }
+        for (JsonElement step_json : provenance) {
+            stepJSONobject = step_json.getAsJsonObject();
+            for (JsonElement input : stepJSONobject.getAsJsonArray("inputs")) {
+                String id = input.getAsJsonObject().get("id").getAsString();
+                if (outputs.containsKey(id)) {
+                    if (!"external_source".equalsIgnoreCase(outputs.get(id).getAsJsonObject().get("step_type").getAsString())) {
+                        outputs.get(id).getAsJsonObject().remove("step_type");
+                        outputs.get(id).getAsJsonObject().add("step_type", new JsonPrimitive("intermediate_data"));
+                    }
+
+                    if (!stepJSONobject.has("used_data")) {
+                        stepJSONobject.add("used_data", new JsonArray());
+                    }
+                    ((JsonArray) stepJSONobject.get("used_data")).add(new JsonPrimitive("STxxxx." + outputs.get(id).getAsJsonObject().get("id").getAsString()));
+                }
+            }
+        }
+
+        //STEP 2. Create the instances for the steps
+        ArrayList<NonProcessedData> nonProcessedDataList = new ArrayList<NonProcessedData>();
+        ArrayList<ProcessedData> processedDataList = new ArrayList<ProcessedData>();
+        for (JsonElement step_json : provenance) {
+            stepJSONobject = step_json.getAsJsonObject();
+            if ("external_source".equalsIgnoreCase(stepJSONobject.get("step_type").getAsString())) {
+                nonProcessedDataList.add(ExternalData.parseStepGalaxyData(stepJSONobject, analysisData, emsuser));
+            } else if ("intermediate_data".equalsIgnoreCase(stepJSONobject.get("step_type").getAsString())) {
+                nonProcessedDataList.add(IntermediateData.parseStepGalaxyData(stepJSONobject, analysisData, emsuser));
+            } else if ("processed_data".equalsIgnoreCase(stepJSONobject.get("step_type").getAsString())) {
+                processedDataList.add(ProcessedData.parseStepGalaxyData(stepJSONobject, analysisData, emsuser));
+            } else {
+                throw new InstantiationError("Unknown step type");
+            }
+        }
+
+        Collections.sort(nonProcessedDataList);
+        Collections.sort(processedDataList);
+
+        //STEP 3. Create the instance of analysis
+        Analysis analysis = new Analysis();
+        analysis.setAnalysisName(analysisData.get("ems_analysis_name").getAsString());
+        analysis.setAnalysisType("Galaxy workflow");
+        analysis.setNonProcessedData(nonProcessedDataList.toArray(new NonProcessedData[]{}));
+        analysis.setProcessedData(processedDataList.toArray(new ProcessedData[]{}));
+        analysis.setTags(new String[]{"imported"});
+        analysis.setStatus("pending");
+
+        return analysis;
     }
 }

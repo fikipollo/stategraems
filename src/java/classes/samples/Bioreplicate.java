@@ -32,6 +32,7 @@ public class Bioreplicate {
     private String bioreplicate_name;
     private AnalyticalReplicate[] associatedAnalyticalReplicates;
     private Batch associatedBatch;
+    String status = null;
 
     public Bioreplicate() {
     }
@@ -146,6 +147,13 @@ public class Bioreplicate {
         this.associatedBatch = associatedBatch;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
     //***********************************************************************
     //* OTHER FUNCTIONS *****************************************************
     //***********************************************************************

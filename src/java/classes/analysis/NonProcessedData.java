@@ -19,6 +19,7 @@
  *  *************************************************************** */
 package classes.analysis;
 
+import classes.analysis.non_processed_data.ExternalData;
 import classes.analysis.non_processed_data.IntermediateData;
 import classes.analysis.non_processed_data.RAWdata;
 
@@ -26,7 +27,7 @@ import classes.analysis.non_processed_data.RAWdata;
  *
  * @author Rafa Hernández de Diego
  */
-public abstract class NonProcessedData extends Step implements Comparable<NonProcessedData> {
+public abstract class NonProcessedData extends Step {
 
     public NonProcessedData() {
     }
@@ -44,18 +45,28 @@ public abstract class NonProcessedData extends Step implements Comparable<NonPro
      * @return the new Object.
      */
     public static NonProcessedData fromJSON(String jsonString) {
-        NonProcessedData non_process_data = null;
+        NonProcessedData step = null;
         if (jsonString.contains("\"type\":\"rawdata\"")) {
-            non_process_data = RAWdata.fromJSON(jsonString);
+            step = RAWdata.fromJSON(jsonString);
         } else if (jsonString.contains("\"type\":\"intermediate_data\"")) {
-            non_process_data = IntermediateData.fromJSON(jsonString);
-        }
+            step = IntermediateData.fromJSON(jsonString);
+        } else if (jsonString.contains("\"type\":\"external_source\"")) {
+            step = ExternalData.fromJSON(jsonString);
+        } 
 
-        return non_process_data;
-    }
+        step.adaptDates();
 
-    @Override
-    public int compareTo(NonProcessedData anotherInstance) {
-        return this.step_number - anotherInstance.step_number;
+        return step;
     }
+    
+//        public static NonProcessedData fromJSON(JsonObject jsonString) {
+//        NonProcessedData non_process_data = null;
+//        if ("rawdata".equalsIgnoreCase(jsonString.get("type").getAsString())) {
+//            non_process_data = RAWdata.fromJSON(jsonString);
+//        } else if ("intermediate_data".equalsIgnoreCase(jsonString.get("type").getAsString())) {
+//            non_process_data = IntermediateData.fromJSON(jsonString);
+//        }
+//
+//        return non_process_data;
+//    }
 }

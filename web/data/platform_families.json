@@ -1,46 +1,163 @@
 {
     "success": true,
-    "platform_families": [
-        {"name": "Solexa Illumina"},
-        {"name": "454"},
-        {"name": "SOLiD"},
-        {"name": "Helicos"},
-        {"name": "Ion Torrent"},
-        {"name": "Pacific Biosciences"}
+    "extractionMethod.platform_family": [
+        {
+            "label": "Solexa Illumina",
+            "value": "Solexa Illumina"
+        },
+        {
+            "label": "454",
+            "value": "454"
+        },
+        {
+            "label": "SOLiD",
+            "value": "SOLiD"
+        },
+        {
+            "label": "Helicos",
+            "value": "Helicos"
+        },
+        {
+            "label": "Ion Torrent",
+            "value": "Ion Torrent"
+        },
+        {
+            "label": "Pacific Biosciences",
+            "value": "Pacific Biosciences"
+        }
     ],
-    "platform_models": [
-        {"family": "Solexa Illumina", "model": "Solexa Illumina Genome Analyzer"},
-        {"family": "Solexa Illumina", "model": "Solexa Illumina Genome Analyzer II"},
-        {"family": "Solexa Illumina", "model": "Solexa Illumina Genome Analyzer IIx"},
-        {"family": "Solexa Illumina", "model": "Solexa Illumina HiSeq 1000"},
-        {"family": "Solexa Illumina", "model": "Solexa Illumina HiSeq 1500"},
-        {"family": "Solexa Illumina", "model": "Solexa Illumina HiSeq 2000"},
-        {"family": "Solexa Illumina", "model": "Solexa Illumina HiSeq 2500"},
-        {"family": "Solexa Illumina", "model": "Solexa Illumina MiSeq"},
-        {"family": "Solexa Illumina", "model": "Solexa Illumina HiScanSQ"},
-        {"family": "454", "model": "454 GS"},
-        {"family": "454", "model": "454 GS 20"},
-        {"family": "454", "model": "454 GS FLX"},
-        {"family": "454", "model": "454 GS FLX+"},
-        {"family": "454", "model": "454 GS FLX Titanium"},
-        {"family": "454", "model": "454 GS Junior"},
-        {"family": "SOLiD", "model": "AB SOLiD System"},
-        {"family": "SOLiD", "model": "AB SOLiD System 2.0"},
-        {"family": "SOLiD", "model": "AB SOLiD System 3.0"},
-        {"family": "SOLiD", "model": "AB SOLiD 3 Plus System"},
-        {"family": "SOLiD", "model": "AB SOLiD 4 System"},
-        {"family": "SOLiD", "model": "AB SOLiD 4hq System"},
-        {"family": "SOLiD", "model": "AB SOLiD PI System"},
-        {"family": "SOLiD", "model": "AB 5500 Genetic Analyzer"},
-        {"family": "SOLiD", "model": "AB 5500xl Genetic Analyzer"},
-        {"family": "Helicos", "model": "Helicos HeliScope"},
-        {"family": "Ion Torrent", "model": "Ion PGM System"},
-        {"family": "Ion Torrent", "model": "Ion Proton System"},
-        {"family": "Ion Torrent", "model": "5500"},
-        {"family": "Ion Torrent", "model": "5500xl"},
-        {"family": "Ion Torrent", "model": "5500 W"},
-        {"family": "Ion Torrent", "model": "5500xl W"},
-        {"family": "Pacific Biosciences", "model": "PACBIO RS"},
-        {"family": "Pacific Biosciences", "model": "PACBIO RS II"}
+    "extractionMethod.platform_model": [
+        {
+            "label": "Solexa Illumina Genome Analyzer",
+            "value": "Solexa Illumina Genome Analyzer"
+        },
+        {
+            "label": "Solexa Illumina Genome Analyzer II",
+            "value": "Solexa Illumina Genome Analyzer II"
+        },
+        {
+            "label": "Solexa Illumina Genome Analyzer IIx",
+            "value": "Solexa Illumina Genome Analyzer IIx"
+        },
+        {
+            "label": "Solexa Illumina HiSeq 1000",
+            "value": "Solexa Illumina HiSeq 1000"
+        },
+        {
+            "label": "Solexa Illumina HiSeq 1500",
+            "value": "Solexa Illumina HiSeq 1500"
+        },
+        {
+            "label": "Solexa Illumina HiSeq 2000",
+            "value": "Solexa Illumina HiSeq 2000"
+        },
+        {
+            "label": "Solexa Illumina HiSeq 2500",
+            "value": "Solexa Illumina HiSeq 2500"
+        },
+        {
+            "label": "Solexa Illumina MiSeq",
+            "value": "Solexa Illumina MiSeq"
+        },
+        {
+            "label": "Solexa Illumina HiScanSQ",
+            "value": "Solexa Illumina HiScanSQ"
+        },
+        {
+            "label": "454 GS",
+            "value": "454 GS"
+        },
+        {
+            "label": "454 GS 20",
+            "value": "454 GS 20"
+        },
+        {
+            "label": "454 GS FLX",
+            "value": "454 GS FLX"
+        },
+        {
+            "label": "454 GS FLX+",
+            "value": "454 GS FLX+"
+        },
+        {
+            "label": "454 GS FLX Titanium",
+            "value": "454 GS FLX Titanium"
+        },
+        {
+            "label": "454 GS Junior",
+            "value": "454 GS Junior"
+        },
+        {
+            "label": "AB SOLiD System",
+            "value": "AB SOLiD System"
+        },
+        {
+            "label": "AB SOLiD System 2.0",
+            "value": "AB SOLiD System 2.0"
+        },
+        {
+            "label": "AB SOLiD System 3.0",
+            "value": "AB SOLiD System 3.0"
+        },
+        {
+            "label": "AB SOLiD 3 Plus System",
+            "value": "AB SOLiD 3 Plus System"
+        },
+        {
+            "label": "AB SOLiD 4 System",
+            "value": "AB SOLiD 4 System"
+        },
+        {
+            "label": "AB SOLiD 4hq System",
+            "value": "AB SOLiD 4hq System"
+        },
+        {
+            "label": "AB SOLiD PI System",
+            "value": "AB SOLiD PI System"
+        },
+        {
+            "label": "AB 5500 Genetic Analyzer",
+            "value": "AB 5500 Genetic Analyzer"
+        },
+        {
+            "label": "AB 5500xl Genetic Analyzer",
+            "value": "AB 5500xl Genetic Analyzer"
+        },
+        {
+            "label": "Helicos HeliScope",
+            "value": "Helicos HeliScope"
+        },
+        {
+            "label": "Ion PGM System",
+            "value": "Ion PGM System"
+        },
+        {
+            "label": "Ion Proton System",
+            "value": "Ion Proton System"
+        },
+        {
+            "label": "5500",
+            "value": "5500"
+        },
+        {
+            "label": "5500xl",
+            "value": "5500xl"
+        },
+        {
+            "label": "5500 W",
+            "value": "5500 W"
+        },
+        {
+            "label": "5500xl W",
+            "value": "5500xl W"
+        },
+        {
+            "label": "PACBIO RS",
+            "value": "PACBIO RS"
+        },
+        {
+            "label": "PACBIO RS II",
+            "value": "PACBIO RS II"
+        }
     ]
 }

@@ -30,7 +30,9 @@ public abstract class ExtractionMethod {
 
     public static ExtractionMethod fromJSON(String jsonString) {
         ExtractionMethod raw_data = null;
-        if (jsonString.contains("\"extraction_method_type\":\"mRNA-seq\"")) {
+        if (jsonString.contains("\"extraction_method_type\":\"Sequencing\"")) {
+            raw_data = Sequencing.fromJSON(jsonString);
+        }else if (jsonString.contains("\"extraction_method_type\":\"mRNA-seq\"")) {
             raw_data = MRNAseq.fromJSON(jsonString);
         } else if (jsonString.contains("\"extraction_method_type\":\"smallRNA-seq\"")) {
             raw_data = SmallRNAseq.fromJSON(jsonString);
@@ -72,7 +74,7 @@ public abstract class ExtractionMethod {
         return extraction_method_type;
     }
 
-    public void setExtraction_method_type(String extraction_method_type) {
+    public void setExtractionMethodType(String extraction_method_type) {
         this.extraction_method_type = extraction_method_type;
     }
 

@@ -1,0 +1,71 @@
+<div ng-controller="UserListController as controller">
+    <nav  ng-class="(isDialog === true)?'modal-body':''" class="navbar navbar-default navbar-top title-bar">
+        <h1 class="form_title">User browser</h1>
+    </nav>
+    <div ng-class="(isDialog === true)?'modal-body':''">
+        <div class="navbar-form navbar-default top-toolbar" role="search">
+            <h2 class="form_subtitle">Search and filter</h2>
+            <div class="row">
+                <div class="col-sm-8">
+                    <div class="input-group" style="width: 100%;margin-bottom: 4px;">
+                        <input type="text" class="form-control" placeholder="Search for..." ng-model="searchFor" ng-enter="controller.applySearchHandler()">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button" ng-click="controller.applySearchHandler()">
+                                <span class="glyphicon glyphicon-search"></span>
+                            </button>
+                        </span>
+                    </div><!-- /input-group -->
+                    <div class="currentSearchTagContainer">
+                        <i class="tag" ng-repeat="item in filters">
+                            <span class="tag-name ">
+                                <i class="fa fa-times" ng-click="controller.removeFilterHandler(item);"></i>{{item}}
+                            </span>
+                        </i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="navbar-form">
+            <div style="margin: auto;display: block;max-width: 625px;">
+                <i ng-show="isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
+                    <i class="fa fa-spinner fa-pulse fa-fw"></i> Loading users...
+                </i>
+                <i ng-show="!isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
+                    Found {{filteredUsers}} users
+                    <a ng-click="controller.retrieveUsersData(true);" style="margin-left:10px; font-size: 10px;"><i class="fa fa-refresh"></i>Refresh list</a>
+                </i>
+            </div>
+        </div>
+        <div style="margin: 20px;">
+            <table class="table" >
+                <thead>
+                    <tr>
+                        <th ng-if="models !== undefined;"></th>
+                        <th>User name</th>
+                        <th>Email</th>
+                        <th ng-if="models !== undefined;"></th>
+                        <th ng-if="isAdmin;">Logged in</th>
+                    </tr>
+
+                </thead>
+                <tbody>
+                    <tr ng-repeat="user in users">
+                        <td ng-if="models !== undefined;" style=" width: 30px; text-align: center; ">
+                            <i ng-if="isSelectedUser(user);" class="fa fa-check-circle text-success"></i>
+                        </td>
+                        <td style="text-align: left; ">{{user.user_id}}</td>
+                        <td>{{user.email}}</td>
+                        <td ng-if="models !== undefined;" style=" width: 30px; text-align: center; ">
+                            <a ng-if="isSelectedUser(user);"  style="cursor:pointer;" ng-click="controller.removeSelectedUser(user);"><i class="fa fa-trash text-danger"></i></a>
+                            <a ng-if="!isSelectedUser(user);"  style="cursor:pointer;" ng-click="controller.addSelectedUser(user);"><i class="fa fa-plus-circle text-primary"></i></a>
+                        </td>
+                        <td ng-if="isAdmin;">{{user.email}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div  ng-if="isDialog === true"  class="modal-footer">
+        <button class="btn btn-primary" type="button" ng-click="controller.closeBrowseDialogHandler();">Close</button>
+    </div>
+</div>

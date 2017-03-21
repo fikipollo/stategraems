@@ -1,29 +1,17 @@
-/*@font-face {
-font-family: 'Open Sans';
-src: url('fonts/OpenSans-Light.ttf');
-}*/
+@font-face {
+    font-family: 'Open Sans';
+    src: url('fonts/OpenSans-Light.ttf');
+}
+
 html{background-color: #fff;}
 body{font-family: 'Open Sans', sans-serif; font-weight: lighter;  }
 
-/*header {
-margin-bottom: 10px;
-background-color: #2B3143;
-height: 55px;
-}
-header .navbar-default{
-background: #2B3143;
-}
-header .navbar-default .navbar-nav>li>a {
-line-height: 40px;
-font-size: 25px;
-color: #AFAFAF;
-}
-header .navbar-default .navbar-nav>li>a:hover {
-color: #FFFFFF;
-}*/
 .navbar-default{border-radius: 0;}
 
 #header .navbar-header{background-image: url('stategraems_logo_250x50.png'); width: 250px; margin: 0px 10px; background-size: cover; height: 50px;}
+
+.clickable{cursor: pointer;}
+a.clickable{text-decoration: none; }
 
 #sidebar-wrapper {
     z-index: 1000;
@@ -59,7 +47,7 @@ color: #FFFFFF;
     padding: 15px;
     background-color: #fff;
     max-width: 1024px;
-    margin: auto;
+    margin: 80px auto;
 }
 
 #wrapper.toggled #page-content-wrapper {
@@ -87,12 +75,14 @@ color: #FFFFFF;
     border-right: 0;
     text-decoration: none;
     cursor: pointer;
+    background: #FDFDFD;
 }
 .sidebar-nav li a i.fa {margin-right: 5px;}
 
 .sidebar-nav li a.parentOption {
     padding-left: 7px;
     font-size: 13px;
+    background: #f8f8f8;
 }
 
 .sidebar-nav li:hover a, .sidebar-nav li.currentPage a {
@@ -130,11 +120,14 @@ color: #FFFFFF;
 #alt_menu .menuIcon{margin-right: 10px; color: #d9534f;}
 #alt_menu li:nth-child(2) .menuIcon{color: #3498DB;}
 #alt_menu li:nth-child(3) .menuIcon{color: #dcb30e;}
+#alt_menu .dropdown-menu>li>a{font-size: 15px;}
+#alt_menu .dropdown-menu>li>a.parentOption{font-size: 18px;}
 
 @media screen and (min-width: 1024px) {
-    #alt_menu {
+    #alt_menu_bar {
         display: none;
     }
+
     #wrapper {
         padding-left: 200px;
     }
@@ -154,6 +147,7 @@ color: #FFFFFF;
     #page-content-wrapper {
         padding: 20px;
         position: relative;
+        margin-top: 0px;
     }
 
     #wrapper.toggled #page-content-wrapper {
@@ -163,7 +157,7 @@ color: #FFFFFF;
 }
 
 #page-content-wrapper .title-bar {
-    margin: 20px -35px 0 -35px;
+    margin: 30px -35px 20px -35px;
     padding: 0px 10px;
     background: none;
     position: relative;
@@ -245,15 +239,18 @@ table.table td:nth-child(1) {text-align: left;}
 /******************************************************************************************/
 /* STYLES FOR FORMS                                                                       */
 /******************************************************************************************/
+.form-help-tip{margin-left: 5px; vertical-align: middle; color: #bbbbbb}
+.form-help-tip:hover{color: #668B9C}
+
 .form_title {
-    font-size: 34px;
+    /*font-size: 34px;*/
     margin-bottom: 5px;
     font-weight: lighter;
     color: rgb(95, 95, 95);
 }
 
 .form_subtitle {
-    font-size: 23px;
+    /*font-size: 23px;*/
     margin: 10px 0px 10px 0px;
     color: rgb(0, 133, 185);
     padding: 3px;
@@ -262,33 +259,102 @@ table.table td:nth-child(1) {text-align: left;}
 }
 
 .section_title{
-    font-size: 18px;
-    margin: 10px 0px 5px 10px;
-    color: rgb(143, 143, 143);
+    font-size: 20px;
+    background: rgba(245, 245, 245, 0.94);
+    padding: 15px 10px;
+    margin: 0;
+}
+
+.section_subtitle {
+    font-size: 19px;
+    margin: 15px;
+    color: #949494;
 }
 
 .section_box {
     background-color: #fff;
-    box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1), inset 0 -1px 0 rgba(0, 0, 0, .07);
     margin-bottom: 20px;
-    border-bottom: 1px solid #ccc;
+    border: 1px solid #eaeaea;
     border-top: 4px #FFB0B0 solid !important;
 }
 
+.step-classification-title{
+    color: #ea8f60; font-weight: lighter; margin-left: 5px; margin-bottom: 20px; margin-top: 40px;
+}
 
 .section_box:nth-child(2n){border-top: 4px #F1D460 solid !important;}
 
 .section_box:nth-child(3n){border-top: 4px #C6E05C solid !important;}
 
+.section_box.edited {border-top: 4px #ff9800 solid !important;}
+.section_box.new {border-top: 4px #62c2e4 solid !important;}
+.section_box.deleted {
+    border-top: 4px #bdbdbd solid !important;
+    text-decoration: line-through !important;
+    background-color: #fbfbfb;
+}
+.section_box tr.deleted{
+    background-color: #fbfbfb;
+}
+.section_box.deleted input, .section_box tr.deleted input {
+    text-decoration: line-through;
+    background: #fbfbfb;
+    border-color: #bdbdbd;
+    font-style: italic;
+}
+.section_box tr.edited td input {
+    border: 1px solid #ffd882;
+}
+.section_box.summary  {
+    border-top: 1px solid #eaeaea !important;
+}
 
+.field-group {
+    margin: 10px 0px;
+}
 
+.field-group label {
+    max-width: 150px;
+    width: 150px;
+    text-align: right;
+    margin-right: 10px;
+}
+.field-group .radio label {
+    max-width: none;
+    width: auto;
+    text-align: left;
+}
+.bootstrap-tagsinput{margin-left: -15px;}
 
+input:read-only, input:disabled {background: none;}
+input:read-only {border: none !important;}
+textarea:read-only {border-color: #e4e4e4;}
+select:disabled {
+    background: none;
+    border: none !important;;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+.nav-tabs>li>a {
+    border: 1px solid rgb(230, 230, 230);
+}
 
+.regionSelectedItem, .stepSelectedItem, .fileLocationItem, .softwareConfigurationItem {
+    font-size: 12px;
+    padding: 10px;
+    background-color: rgb(255, 255, 255);
+    border: 1px solid rgb(192, 192, 192) !important;
+    border-left: 8px solid rgb(139, 204, 216) !important;
+    overflow: hidden;
+}
 
-
-
-
-
+textarea.ng-invalid-required:read-write {
+    border: 1px solid #E88080;
+}
+textarea.ng-valid-required:read-write {
+    border: 1px solid #54BF78
+}
 /******************************************************************************************/
 /* STYLES FOR progress INDICATOR                                                          */
 /******************************************************************************************/
@@ -351,8 +417,10 @@ table.table td:nth-child(1) {text-align: left;}
     z-index: 999;
 }
 .progressNavigator > div.container{
-    max-width: 900px;
     margin: auto;
+}
+.progressNavigator > div.container > a.btn {
+    margin-right: 10px;
 }
 .progressStep .description {
     margin-bottom: 15px;
@@ -362,6 +430,30 @@ table.table td:nth-child(1) {text-align: left;}
 /* STYLES FOR HOME AND LOGIN FORM                                                         */
 /******************************************************************************************/
 
+.homeMainButton{
+    width: 200px;
+    display: inline-block;
+    height: 200px;
+    margin: 15px;
+    text-align: center;
+    font-size: 25px;
+    font-weight: lighter;
+    font-family: 'Open Sans';
+}
+
+.homeMainButton > img{
+    display: block;
+    margin: 7px auto;
+}
+
+.homeMainButton  i.fa{
+    font-size: 95px;
+    margin: 20px;
+}
+
+.homeMainButton:nth-child(odd)  i.fa{
+    color:#0CB3DE;
+}
 /*------------------------------------------------------*/
 /*STYLES FOR sessionToolbar                             */
 /*------------------------------------------------------*/
@@ -378,12 +470,10 @@ div.sessionToolbar button, div.sessionToolbar li{
 /*STYLES FOR LOGIN                                      */
 /*------------------------------------------------------*/
 .form-signin {
-    max-width: 420px;
+    max-width: 520px;
     padding: 30px 38px 66px;
     margin: 0 auto;
     margin-top: 90px;
-    background-color: #eee;
-    border: 3px dotted rgba(0,0,0,0.1);
 }
 
 .form-signin-heading {
@@ -410,16 +500,6 @@ div.sessionToolbar button, div.sessionToolbar li{
     border-top-right-radius: 0;
 }
 
-.colorgraph {
-    height: 7px;
-    border-top: 0;
-    background: #c4e17f;
-    border-radius: 5px;
-    background-image: -webkit-linear-gradient(left, #c4e17f, #c4e17f 12.5%, #f7fdca 12.5%, #f7fdca 25%, #fecf71 25%, #fecf71 37.5%, #f0776c 37.5%, #f0776c 50%, #db9dbe 50%, #db9dbe 62.5%, #c49cde 62.5%, #c49cde 75%, #669ae1 75%, #669ae1 87.5%, #62c2e4 87.5%, #62c2e4);
-    background-image: -moz-linear-gradient(left, #c4e17f, #c4e17f 12.5%, #f7fdca 12.5%, #f7fdca 25%, #fecf71 25%, #fecf71 37.5%, #f0776c 37.5%, #f0776c 50%, #db9dbe 50%, #db9dbe 62.5%, #c49cde 62.5%, #c49cde 75%, #669ae1 75%, #669ae1 87.5%, #62c2e4 87.5%, #62c2e4);
-    background-image: -o-linear-gradient(left, #c4e17f, #c4e17f 12.5%, #f7fdca 12.5%, #f7fdca 25%, #fecf71 25%, #fecf71 37.5%, #f0776c 37.5%, #f0776c 50%, #db9dbe 50%, #db9dbe 62.5%, #c49cde 62.5%, #c49cde 75%, #669ae1 75%, #669ae1 87.5%, #62c2e4 87.5%, #62c2e4);
-    background-image: linear-gradient(to right, #c4e17f, #c4e17f 12.5%, #f7fdca 12.5%, #f7fdca 25%, #fecf71 25%, #fecf71 37.5%, #f0776c 37.5%, #f0776c 50%, #db9dbe 50%, #db9dbe 62.5%, #c49cde 62.5%, #c49cde 75%, #669ae1 75%, #669ae1 87.5%, #62c2e4 87.5%, #62c2e4);
-}
 
 /******************************************************************************************/
 /* STYLES FOR WORKFLOW PANELS                                                             */
@@ -434,15 +514,15 @@ div.sessionToolbar button, div.sessionToolbar li{
     max-width: none;
     height: 100px;
 }
-.experiment-card-container, .experiment-run-container, .histories-container, .home-container {
+.experiment-card-container, .sample-card-container, .analysis-card-container, .home-container {
     max-width: 1400px;
     padding: 10px 30px;
     margin: auto;
     margin-top: 15px;
 }
-.experiment-card-container{text-align: center;}
+.experiment-card-container, .sample-card-container, .analysis-card-container{text-align: center;}
 
-.experiment-card {
+.iu-card {
     text-align: left;
     min-height: 180px;
     margin: 12px;
@@ -451,7 +531,7 @@ div.sessionToolbar button, div.sessionToolbar li{
     min-width: 380px;
     box-shadow: 0 5px 12px rgb(202, 202, 202),0 5px 10px rgb(253, 253, 253);
 }
-.experiment-card-body {
+.iu-card-body {
     padding: 10px 5px;
     background: #ffffff;
     border: 1px solid #BFBFBF;
@@ -459,7 +539,7 @@ div.sessionToolbar button, div.sessionToolbar li{
     max-height: 190px;
     overflow: hidden;
 }
-.experiment-card h2.experiment-card-name {
+.iu-card h2.iu-card-name {
     font-size: 18px;
     color: #333;
     max-height: 40px;
@@ -467,25 +547,25 @@ div.sessionToolbar button, div.sessionToolbar li{
     height: 40px;
     margin-top: 10px;
 }
-.experiment-card div.experiment-card-description {
+.iu-card div.iu-card-description {
     font-size: 12px;
     color: #9c9c9c;
     max-height: 70px;
     overflow: hidden;
     height: 70px;
 }
-.experiment-card-author {
+.iu-card-author {
     background: #F7F7F7;
     border: 1px solid #BFBFBF;
     border-top: 0px;
     font-size: 15px;
     padding: 10px;
 }
-.experiment-card-description {
+.iu-card-description {
     font-style: italic;
     color: #8A8A8A;
 }
-.experiment-card-tags-list {
+.iu-card-tags-list {
     padding: 10px 0px;
     max-height: 35px;
     overflow: hidden;
@@ -519,10 +599,35 @@ i.tag.blue2 {background-color: #34495E; color: #fff;}
 i.tag.purple2 {background-color: #8c5d81; color: #fff;}
 i.tag.pink2 {background-color: #db6070; color: #fff;}
 
-.experiment-card a.runExperimentButton {
+.iu-card a.open-iu-button {
     width: 100%;
     border-radius: 0px;
 }
+
+.step-form.edited .section_box{border-left: 4px #ff9800 solid !important;}
+.step-form.new .section_box{border-left: 4px #337ab7 solid !important;}
+.step-form.deleted .section_box {background-color: #f5f5f5; border-left: 4px #D9534F solid !important;}
+.step-form tr.deleted{
+    background-color: #fbfbfb;
+}
+.step-form.deleted input, .step-form tr.deleted input {
+    text-decoration: line-through;
+    background: #fbfbfb;
+    border-color: #bdbdbd;
+    font-style: italic;
+}
+.step-form tr.edited td input {
+    border: 1px solid #ffd882;
+}
+
+.step-form .restoreMessage{
+    text-decoration: none !important;
+    text-align: center;
+    border: none;
+    box-shadow: none;
+    border-bottom: 1px solid #e3e3e3;
+}
+
 /*------------------------------------------------------*/
 /*STYLES FOR WORKFLOW RUN FORM                          */
 /*------------------------------------------------------*/
@@ -671,4 +776,42 @@ tr.deletedDataset {
 }
 tr.selectedDataset {
     background-color: #d9edf7;
+}
+
+
+/*------------------------------------------------------*/
+/*STYLES FOR MESSAGES LIST                             */
+/*------------------------------------------------------*/
+.message-list-container {
+    max-height: 800px;
+    overflow-y: auto;
+}
+.message-preview {
+    padding: 10px 5px;
+    border-top: 1px solid #eaeaea;
+    font-size: 12px;
+}
+.message-preview.unread {
+    border-left: 5px solid #337ab7;
+}
+.message-preview-sender {
+    font-size: 16px;
+}
+.message-preview.unread .message-preview-sender {
+    font-weight: bold;
+}
+.message-preview.unread .message-preview-subject {
+    font-weight: bold;
+    color: #337ab7;
+}
+.message-preview-date {
+    float: right;
+}
+.message-preview-content {
+    color: #717171;
+    display: block;
+    margin-top: 5px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }

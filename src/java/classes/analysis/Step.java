@@ -19,13 +19,17 @@
  *  *************************************************************** */
 package classes.analysis;
 
+import classes.ExtraField;
 import classes.User;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import java.util.Map;
 
 /**
  *
  * @author Rafa Hernández de Diego
  */
-public abstract class Step  {
+public abstract class Step implements Comparable<Step> {
 
     protected String step_id;
     protected int step_number;
@@ -33,9 +37,12 @@ public abstract class Step  {
     protected String type;
     protected String submission_date;
     protected String last_edition_date;
-    protected String files_location;
-    User[] step_owners;
+    protected String[] files_location;
+    protected String status = null;
+    protected User[] step_owners;
     protected QualityReport associatedQualityReport;
+    protected Map<String, String> other_fields;
+    protected ExtraField[] extra;
 
     public Step() {
     }
@@ -70,7 +77,7 @@ public abstract class Step  {
             return false;
         }
 
-        this.setStepID(this.step_id.replaceFirst(analysis_id.substring(2), new_analysis_id.substring(2)));
+        this.setStepID(this.step_id.replaceFirst(analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN", "ST"));
         this.updatePreviousStepIDs(analysis_id, new_analysis_id);
         if (this.associatedQualityReport != null) {
             this.associatedQualityReport.setStudiedStepID(this.step_id);
@@ -126,11 +133,22 @@ public abstract class Step  {
         this.last_edition_date = last_edition_date;
     }
 
-    public String getFilesLocation() {
+    public void adaptDates() {
+        if (this.submission_date.contains("-")) {
+            String[] aux = this.submission_date.split("T");
+            this.submission_date = aux[0].replaceAll("-", "");
+        }
+        if (this.last_edition_date.contains("-")) {
+            String[] aux = this.last_edition_date.split("T");
+            this.last_edition_date = aux[0].replaceAll("-", "");
+        }
+    }
+
+    public String[] getFilesLocation() {
         return files_location;
     }
 
-    public void setFilesLocation(String files_location) {
+    public void setFilesLocation(String[] files_location) {
         this.files_location = files_location;
     }
 
@@ -153,6 +171,7 @@ public abstract class Step  {
             this.step_owners[this.step_owners.length - 1] = owner;
         }
     }
+
     public boolean isOwner(String userName) {
         for (User user : this.getStepOwners()) {
             if (user.getUserID().equals(userName)) {
@@ -170,11 +189,58 @@ public abstract class Step  {
         this.associatedQualityReport = quality_report;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Map<String, String> getOtherFields() {
+        return other_fields;
+    }
+
+    public void setOtherFields(Map<String, String> other_fields) {
+        this.other_fields = other_fields;
+    }
+
+    public ExtraField[] getExtra() {
+        return extra;
+    }
+
+    public void setExtra(ExtraField[] extra) {
+        this.extra = extra;
+    }
+
     //***********************************************************************
     //* OTHER FUNCTIONS *****************************************************
     //***********************************************************************
     @Override
     public String toString() {
         return this.toJSON();
+    }
+
+    @Override
+    public int compareTo(Step anotherInstance) {
+        return this.step_number - anotherInstance.step_number;
+    }
+
+    protected static String getParameterDescription(JsonObject parameter, int level) {
+        String description = "";
+        for (int i = 0; i < level; i++) {
+            description += "  ";
+        }
+
+        for (Map.Entry<String, JsonElement> member : parameter.entrySet()) {
+            description += "- " + member.getKey() + ": ";
+            if (member.getValue().isJsonPrimitive()) {
+                description += member.getValue().getAsString() + "\n";
+            } else {
+                description += "\n" + Step.getParameterDescription(member.getValue().getAsJsonObject(), level + 1);
+            }
+        }
+
+        return description;
     }
 }

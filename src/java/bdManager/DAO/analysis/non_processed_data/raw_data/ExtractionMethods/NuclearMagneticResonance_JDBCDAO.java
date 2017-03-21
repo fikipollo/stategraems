@@ -186,11 +186,17 @@ public class NuclearMagneticResonance_JDBCDAO extends DAO {
             nuclearMagneticResonance.setSeparationMethodType(rs.getString("separation_method_type"));
         }
 
-        //GET THE ASSOCIATED EXTRACTION METHOD
-        if (!"None".equals(nuclearMagneticResonance.getSeparationMethodType())) {
+        if (nuclearMagneticResonance.getSeparationMethodType() != null && !"None".equals(nuclearMagneticResonance.getSeparationMethodType())) {
             SeparationMethod separationMethod = (SeparationMethod) DAOProvider.getDAOByName(nuclearMagneticResonance.getSeparationMethodType()).findByID(nuclearMagneticResonance.getRAWdataID(), null);
             nuclearMagneticResonance.setSeparationMethod(separationMethod);
+        } else {
+            SeparationMethod separationMethod = (SeparationMethod) DAOProvider.getDAOByName("ColumnChromatography").findByID(nuclearMagneticResonance.getRAWdataID(), null);
+            if (separationMethod == null) {
+                separationMethod = (SeparationMethod) DAOProvider.getDAOByName("CapillaryElectrophoresis").findByID(nuclearMagneticResonance.getRAWdataID(), null);
+            }
+            nuclearMagneticResonance.setSeparationMethod(separationMethod);
         }
+
         return nuclearMagneticResonance;
     }
 

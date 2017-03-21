@@ -49,10 +49,12 @@ public class MRNAseq extends Sequencing {
 
     public MRNAseq() {
         super();
+        this.extraction_method_type = "mRNA-seq";
     }
 
     public MRNAseq(String rawdata_id) {
         super(rawdata_id);
+        this.extraction_method_type = "mRNA-seq";
     }
 
     /**

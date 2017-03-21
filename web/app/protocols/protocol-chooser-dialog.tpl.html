@@ -1,0 +1,94 @@
+<div>
+    <nav class="modal-header navbar navbar-default navbar-top title-bar">
+        <h1 class="form_title">Protocol selection</h1>
+    </nav>
+    <div class="modal-body" style=" max-height: 800px; overflow: auto; ">
+        <div class="panel-default" >
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="input-group" style="width: 100%;margin-bottom: 4px;">
+                        <input type="text" class="form-control" placeholder="Search for..." ng-model="searchFor" ng-enter="controller.applySearchHandler()">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button" ng-click="controller.applySearchHandler()">
+                                <span class="glyphicon glyphicon-search"></span>
+                            </button>
+                        </span>
+                    </div><!-- /input-group -->
+                    <div class="currentSearchTagContainer">
+                        <i class="tag" ng-repeat="item in filters">
+                            <span class="tag-name">
+                                <i class="fa fa-times" ng-click="controller.removeFilterHandler(item);"></i>{{item}}
+                            </span>
+                        </i>
+                    </div>
+                </div>
+                <div class="col-sm-6" style="padding-top: 8px;">
+                    Popular tags:
+                    <span ng-repeat="item in tags| orderBy:'-times' | limitTo: 4" style="font-size:10px;">
+                        <i class="tag {{item.color}}">{{item.times}}</i><i> {{item.name}} </i>
+                    </span>
+                </div>
+            </div>
+            <div class="navbar-form">
+                <div style="margin: auto;display: block;max-width: 650px;">
+                    <ul class="nav navbar-nav">
+                        <li class="dropdown">
+                            <label for="sortBySelector">Show:</label>
+                            <select style="display:inline-block;" class="form-control" id="sortBySelector"
+                                    ng-model="show"
+                                    ng-init="show = 'my_protocols'"
+                                    ng-change="controller.showProtocolChooserChangeHandler(value);"
+                                    >
+                                <option value="my_protocols">Only my protocols</option>
+                                <option value="all_protocols">All public protocols</option>
+                            </select>
+                        </li>
+                    </ul>
+                    <ul class="nav navbar-nav" style="margin-left: 15px;">
+                        <li class="dropdown">
+                            <label for="sortBySelector">Sort by:</label>
+                            <select class="form-control" id="sortBySelector" ng-model="sortBy" ng-init="sortBy = 'name'">
+                                <option value="name">Name</option>
+                                <option value="owner">Author</option>
+                            </select>
+                        </li>
+                    </ul>
+                    <i ng-show="isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
+                        <i class="fa fa-spinner fa-pulse fa-fw"></i> Loading protocols...
+                    </i>
+                    <i ng-show="!isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
+                        Found {{filteredProtocols}} protocols
+                        <a ng-click="controller.retrieveProtocolsData('', true);" style="margin-left:10px; font-size: 10px; cursor: pointer;"><i class="fa fa-refresh"></i>Refresh list</a>
+                    </i>
+                </div>
+            </div>
+            <div>
+                <div class="protocol-card iu-card" ng-repeat="protocol in protocols| filter:filterProtocols() | orderBy : sortBy | limitTo : visibleProtocols" style="display: inline-block;">
+                    <div class="iu-card-body">
+                        <h2 class="iu-card-name">{{protocol.protocol_name}}</h2>
+                        <div class="iu-card-description">
+                            <span>{{(protocol.description !== ""?protocol.description:"No description provided")}}</span>
+                        </div>
+                        <div class="iu-card-tags-list">
+                            <i class="tag {{getTagColor(tag)}}" ng-repeat="tag in protocol.tags| orderBy">{{tag}}</i>
+                        </div>
+                    </div>
+                    <div style="text-align: center;" >
+                        <span class="label label-info" ng-show="protocol_id === protocol.protocol_id" style="line-height: 34px; padding: 10px;">Current selection</span>
+                        <a class="btn btn-success" ng-show="protocol_id !== protocol.protocol_id" ng-click="changeSelectedProtocol(protocol.protocol_id);" ><i class="fa fa-question-circle-o"></i> Use this protocol</a>
+                    </div>
+                </div>
+                <div class="row" style="text-align: center;">
+                    <a class="btn btn-lg btn-success" type="button" ng-click="controller.showMoreProtocolsHandler()" ng-show="(filteredProtocols - visibleProtocols) > 0">
+                        Show more protocols ({{filteredProtocols - visibleProtocols}} left)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <span style="float: left;font-size: 20px;"><b>Current selection:</b> {{protocol_id||"No selection"}}</span>
+        <a class="btn btn-lg btn-success" type="button" ng-click="closeSelectionDialog()" >Use selection</a>
+    </div>
+</div>
+

@@ -19,42 +19,35 @@
  *  *************************************************************** */
 package classes.analysis;
 
-import classes.analysis.processed_data.Calling_step;
-import classes.analysis.processed_data.Data_matrix_step;
-import classes.analysis.processed_data.Merging_step;
-import classes.analysis.processed_data.Proteomics_msquantification_step;
-import classes.analysis.processed_data.Quantification_step;
-import classes.analysis.processed_data.Region_step;
+import classes.User;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 /**
  *
  * @author Rafa Hernández de Diego
  */
-public abstract class ProcessedData extends Step {
+public class ProcessedData extends Step {
 
-    protected String analysis_type;
     protected String processed_data_type;//ENUM('data_matrix','region_step','calling_step','quantification_step', 'merging_step', 'protID-Q_quantification')
     protected String software;
     protected String software_version;
     protected String software_configuration;
+    protected String motivation;
     protected String results;
     private String[] used_data;
+    private String[] reference_data;
 
     public ProcessedData() {
         this.type = "processed_data";
     }
 
-    public ProcessedData(String step_id, String processed_data_type, String software, String software_version, String software_configuration, String results, String files_location, String submission_date, String last_edition_date) {
-        this.step_id = step_id;
-        this.type = "processed_data";
-        this.processed_data_type = processed_data_type;
-        this.software = software;
-        this.software_version = software_version;
-        this.software_configuration = software_configuration;
-        this.results = results;
-        this.files_location = files_location;
-        this.submission_date = submission_date;
-        this.last_edition_date = last_edition_date;
+    public ProcessedData(String step_id) {
+        super(step_id, "processed_data");
     }
 
     /**
@@ -65,40 +58,29 @@ public abstract class ProcessedData extends Step {
      * @return the new Object.
      */
     public static ProcessedData fromJSON(String jsonString) {
-        ProcessedData processed_data = null;
-        if (jsonString.contains("\"processed_data_type\":\"data_matrix\"")) {
-            processed_data = Data_matrix_step.fromJSON(jsonString);
-        } else if (jsonString.matches(".*(\"processed_data_type\":\"region_)(.*)(step\")(.*)")) {
-            processed_data = Region_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"processed_data_type\":\"calling_step\"")) {
-            processed_data = Calling_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"processed_data_type\":\"quantification_step\"")) {
-            processed_data = Quantification_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"processed_data_type\":\"merging_step\"")) {
-            processed_data = Merging_step.fromJSON(jsonString);
-        } else if (jsonString.contains("\"processed_data_type\":\"proteomics_msquantification_step\"")) {
-            processed_data = Proteomics_msquantification_step.fromJSON(jsonString);
-        }
+        Gson gson = new Gson();
+        ProcessedData step = gson.fromJson(jsonString, ProcessedData.class);
+        step.adaptDates();
 
-        return processed_data;
+        return step;
+    }
+
+    @Override
+    public String toJSON() {
+        Gson gson = new Gson();
+        String jsonString = gson.toJson(this);
+
+        return jsonString;
     }
 
     //**********************************************************************
     //* GETTERS AND SETTERS ************************************************
     //**********************************************************************
-    public String getAnalysis_type() {
-        return analysis_type;
-    }
-
-    public void setAnalysisType(String analysis_type) {
-        this.analysis_type = analysis_type;
-    }
-
     public String getProcessedDataType() {
         return processed_data_type;
     }
 
-    public void setProcessed_data_type(String processed_data_type) {
+    public void setProcessedDataType(String processed_data_type) {
         this.processed_data_type = processed_data_type;
     }
 
@@ -114,7 +96,7 @@ public abstract class ProcessedData extends Step {
         return software_version;
     }
 
-    public void setSoftware_version(String software_version) {
+    public void setSoftwareVersion(String software_version) {
         this.software_version = software_version;
     }
 
@@ -122,8 +104,16 @@ public abstract class ProcessedData extends Step {
         return software_configuration;
     }
 
-    public void setSoftware_configuration(String software_configuration) {
+    public void setSoftwareConfiguration(String software_configuration) {
         this.software_configuration = software_configuration;
+    }
+
+    public String getMotivation() {
+        return motivation;
+    }
+
+    public void setMotivation(String motivation) {
+        this.motivation = motivation;
     }
 
     public String getResults() {
@@ -134,7 +124,7 @@ public abstract class ProcessedData extends Step {
         this.results = results;
     }
 
-    public void setFiles_location(String files_location) {
+    public void setFiles_location(String[] files_location) {
         this.files_location = files_location;
     }
 
@@ -146,11 +136,25 @@ public abstract class ProcessedData extends Step {
         this.used_data = used_data;
     }
 
+    public String[] getReferenceData() {
+        return reference_data;
+    }
+
+    public void setReferenceData(String[] reference_data) {
+        this.reference_data = reference_data;
+    }
+
     @Override
     public void updatePreviousStepIDs(String old_analysis_id, String new_analysis_id) {
         if (this.used_data != null) {
             for (int i = 0; i < this.used_data.length; i++) {
-                this.used_data[i] = this.used_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2));
+                this.used_data[i] = this.used_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN", "ST");
+            }
+        }
+        
+        if (this.reference_data != null) {
+            for (int i = 0; i < this.reference_data.length; i++) {
+                this.reference_data[i] = this.reference_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN", "ST");
             }
         }
     }
@@ -162,4 +166,56 @@ public abstract class ProcessedData extends Step {
     public String toString() {
         return this.toJSON();
     }
+
+    public static ProcessedData parseStepGalaxyData(JsonObject step_json_object, JsonObject analysisData, String emsuser) {
+        ProcessedData step = new ProcessedData("STxxxx." + step_json_object.get("id").getAsString());
+        step.setProcessedDataType("quantification_step");
+        step.setSoftware(step_json_object.get("tool_id").getAsString());
+        step.setSoftwareVersion(step_json_object.get("tool_version").getAsString());
+        ArrayList<String> used_data = new ArrayList<String>();
+        if (step_json_object.has("used_data")) {
+            for (JsonElement data : step_json_object.get("used_data").getAsJsonArray()) {
+                used_data.add(data.getAsString());
+            }
+        }
+        step.setUsedData(used_data.toArray(new String[]{}));
+        
+        String prefix = analysisData.get("experiment_id").getAsString() + "/" + analysisData.get("analysis_id").getAsString() + "/";
+        ArrayList<String> outputs = new ArrayList<String>();
+        for(JsonElement output : step_json_object.get("outputs").getAsJsonArray()){
+            outputs.add(prefix + output.getAsJsonObject().get("file").getAsString().replaceAll(" ", "_") + "." + output.getAsJsonObject().get("extension").getAsString());
+        }
+        step.setFilesLocation(outputs.toArray(new String[]{}));
+        
+        String description = "Step " + step_json_object.get("id").getAsString() + " in Galaxy history " + analysisData.get("history_id").getAsString() + ".\n";
+        description += "The tool exited with code " + step_json_object.get("exit_code").getAsString() + "\n";
+        description += "Outputs:\n";
+        for (JsonElement output : step_json_object.get("outputs").getAsJsonArray()) {
+            description += "  - " + output.getAsJsonObject().get("file").getAsString() + " (id:" + output.getAsJsonObject().get("id").getAsString() + ")\n";
+        }
+        step.setResults(description);
+
+        description = "Step inputs:\n";
+        for (JsonElement input : step_json_object.get("inputs").getAsJsonArray()) {
+            description += "  - " + input.getAsJsonObject().get("file").getAsString() + " (id:" + input.getAsJsonObject().get("id").getAsString() + ")\n";
+        }
+        description += "\n";
+        description += "Parameters:\n";
+        for (JsonElement input : step_json_object.get("parameters").getAsJsonArray()) {
+            description += Step.getParameterDescription(input.getAsJsonObject(), 1);
+        }
+
+        step.setSoftwareConfiguration(description);
+
+        Date dateNow = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+        step.setSubmissionDate(dateFormat.format(dateNow));
+        step.setLastEditionDate(dateFormat.format(dateNow));
+        step.addOwner(new User(emsuser, ""));
+        step.setStepName(step_json_object.get("tool_id").getAsString());
+        step.setStepNumber(step_json_object.get("id").getAsInt());
+
+        return step;
+    }
+
 }

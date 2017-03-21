@@ -1,0 +1,67 @@
+<div ng-controller="BioconditionDetailController as controller" >
+    <form name="bioconditionForm" class="form-horizontal">
+        <nav class="navbar navbar-default navbar-top title-bar">
+            <h1 class="form_title">{{panel_title}}</h1>
+        </nav>
+        <uib-tabset>
+            <uib-tab index="0">
+                <uib-tab-heading>
+                    <i class="fa fa-heart-o"></i> Biological conditions
+                </uib-tab-heading>
+                <h2 class="form_subtitle">Biological conditions details</h2>
+                <div ng-if="template === undefined">
+                    <p>Generating the form...</p>
+                </div>
+                <div ng-if="template !== undefined">
+                    <div class="section_box " ng-repeat="section in template.content">
+                        <h2 class="section_subtitle">{{section.title}}</h2>
+                        <form-field ng-repeat="field in section.fields"></form-field>
+                        <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+                    </div>
+                </div>
+                <uib-accordion close-others="oneAtATime" ng-show="viewMode === 'edition'">
+                    <div uib-accordion-group class="panel-danger" >
+                        <uib-accordion-heading><i class='fa fa-trash'></i> Delete this samples set</uib-accordion-heading>
+                        <p ng-if="model.owners.length > 1"><b>Delete these samples from your collection?</b><br>You will be removed from the owners list but the samples will not deleted before all the other owners remove the samples.</p>
+                        <p ng-if="model.owners.length < 2"><b>Delete these samples from the system?</b><br>This action will remove all the data for the samples, including biological condition details and aliquots.<br>This action cannot be undone.</p>
+                        <p>Please, to delete all the samples, click the button below</p>
+                        <a class="btn btn-danger" ng-click="controller.deleteBiologicalConditionHandler(model);"><i class='fa fa-trash'></i> Delete</a>
+                    </div>
+                </uib-accordion>
+            </uib-tab>
+            <uib-tab index="1">
+                <uib-tab-heading>
+                    <i class="fa fa-tint"></i> Samples
+                </uib-tab-heading>
+                <h2 class="form_subtitle">Biological samples grown in these conditions.</h2>
+                <div ng-if="model.associatedBioreplicates === undefined || model.associatedBioreplicates.length === 0">
+                    <div class="well well-lg">There are no samples registered for this biological conditions.</div>
+                </div>
+                <div ng-if="viewMode !== 'view'" class="navbar-form">
+                    <div style="margin: auto;display: block;max-width: 625px;text-align: center;margin-top: 34px;">
+                        <a class="btn btn-lg btn-primary" type="button" ng-click="controller.addNewBioreplicateButtonHandler()">
+                            <i class="fa fa-plus-circle"></i> Add new sample
+                        </a>
+                    </div>
+                </div>
+                <bioreplicate-form ng-repeat="model in model.associatedBioreplicates"></bioreplicate-form>
+            </uib-tab>
+        </uib-tabset>
+        <nav class="navbar navbar-default navbar-fixed-bottom progressNavigator" ng-hide="isDialog">
+            <div class="container">
+                <a class="btn btn-danger btn-md navbar-right" ng-click="controller.cancelButtonHandler();">
+                    <i class="fa fa-times"></i> <span ng-if="viewMode === 'view'">Close</span><span ng-if="viewMode !== 'view'">Cancel</span> 
+                </a>
+                <a class="btn btn-warning btn-md navbar-right" ng-show="viewMode === 'view'" ng-click="controller.editButtonHandler();">
+                    <i class="fa fa-pencil-square-o"></i> Edit
+                </a>
+                <a class="btn btn-success btn-md navbar-right" ng-show="viewMode !== 'view'"  ng-click="controller.acceptButtonHandler()" >
+                    <i class="fa fa-check fa-fw" ></i> Accept
+                </a>
+            </div>
+        </nav>
+        <nav class=" navbar-fixed-bottom" style="left: initial;" ng-hide="isDialog">
+            <back-top scroll-speed=600 button-theme="btn btn-default btn-sm navbar-right"></back-top>
+        </nav>
+    </form>
+</div>

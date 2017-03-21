@@ -1,0 +1,126 @@
+<div ng-controller="AnalysisDetailController as controller" ng-init="activeTab = 0; show = {steps:'all'}">
+    <form name="analysisForm" class="form-horizontal">
+        <nav class="navbar navbar-default navbar-top title-bar">
+            <h1 class="form_title">
+                <span ng-show="model.isRemoved === true" class="label label-danger" style="float: right;padding: 10px;">Deleted</span>
+                {{panel_title}}
+            </h1>
+        </nav>
+        <uib-tabset active="activeTab">
+            <uib-tab index="0" select="controller.updateMainDiagramHandler();">
+                <uib-tab-heading>
+                    <i class="fa fa-sitemap"></i> Analysis overview
+                </uib-tab-heading>
+                <h2 class="form_subtitle">Analysis details</h2>
+                <div ng-show="model.isRemoved === true" class="well well-sm text-danger" style="margin: 23px;background: #ffeaed;">
+                    <i class="fa fa-info-circle"></i> You removed this analysis from your collection. The analysis will be completely removed as soon as the other owners confirm this action
+                </div>
+                <div ng-show="!model.isRemoved && model.remove_requests.length > 0" class="well well-sm text-danger" style="margin: 23px;background: #ffeaed;">
+                    <i class="fa fa-info-circle"></i> The following users deleted this analysis and are waiting for your confirmation: {{model.remove_requests.join(", ")}}<br>
+                    Please confirm the deletion using deletion tool (in edition mode).
+                </div>
+                <div ng-if="template === undefined">
+                    <p>Generating the form...</p>
+                </div>
+
+                <div ng-if="template !== undefined">
+                    <div class="section_box" ng-repeat="section in template.content">
+                        <form-field ng-repeat="field in section.fields"></form-field>
+                        <form-field ng-repeat="field in (model.extra[section.name]|| [])"></form-field>
+                    </div>
+                </div>
+                <div class="section_box">
+                    <h4 class="section_subtitle">
+                        Workflow overview
+                        <a class="clickable text-info" style="float: right; margin: 2px 20px;font-size: 14px;" ng-click="controller.updateMainDiagramHandler();"><i class="fa fa-refresh"></i> Refresh diagram</a>            
+                    </h4>
+                    <analysis-diagram container-id="mainDiagramContainer" style="height:400px;"></analysis-diagram>
+                </div>
+                <uib-accordion close-others="oneAtATime" ng-show="viewMode === 'edition'">
+                    <div uib-accordion-group class="panel-danger">
+                        <uib-accordion-heading><i class='fa fa-trash'></i> Delete this analysis</uib-accordion-heading>
+                        <p>Delete this analysis from your collection?<br>You will be removed from the owners list but the analysis will not deleted before all the owners remove the analysis.</p>
+                        <p>Please, to delete this analysis, click the button below</p>
+                        <a class="btn btn-danger" ng-click="controller.deleteAnalysisHandler(model);"><i class='fa fa-trash'></i>  Delete</a>
+                    </div>
+                </uib-accordion>
+            </uib-tab>
+            <uib-tab index="1">
+                <uib-tab-heading><i class="fa fa-sort-numeric-asc"></i> Workflow steps</uib-tab-heading>
+                <div class="navbar-form" style=" float: right; ">
+                    <div style="margin: auto;display: block;max-width: 650px;">
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown">
+                                <label for="sortBySelector">Show:</label>
+                                <select style="display:inline-block;" class="form-control" ng-model="show.steps">
+                                    <option value="all">All step types</option>
+                                    <option value="external_source">External and reference files</option>
+                                    <option value="rawdata">Biological experiment</option>
+                                    <option value="intermediate_data">Intermediate data</option>
+                                    <option value="processed_data">Processed data</option>
+                                </select>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <h2 class="form_subtitle">Steps in the workflow</h2>
+                <div class="well well-sm" ng-if="(!model.non_processed_data || model.non_processed_data.length === 0) && (!model.processed_data || model.processed_data.length === 0)">
+                    <h4 style=" text-align: center; margin-top: 30px; "> This analysis is yet empty, add new steps in the workflow to continue the annotation. </h4>
+                </div>
+                <div ng-if="viewMode !== 'view'" class="navbar-form">
+                    <div style="margin: auto;display: block;max-width: 625px;text-align: center;margin-top: 34px;">
+                        <a class="btn btn-lg btn-primary" type="button" ng-click="controller.addNewStepButtonHandler()">
+                            <i class="fa fa-plus-circle"></i> Add new step
+                        </a>
+                    </div>
+                </div>
+                <div ng-show="show.steps === 'all' || show.steps === 'external_source'">
+                    <h3 class="step-classification-title">External and reference files</h3>
+                    <h4 ng-show="countStepsByClassification('external_source') === 0" style=" margin-left: 10px; ">No external or reference files have been registered.</h4>
+                    <external-source-form ng-repeat="model in model.non_processed_data| filter:filterSteps('external_source') | orderBy:'step_number'" ng-init="summary = true"></external-source-form>
+                </div>
+                <div ng-show="show.steps === 'all' || show.steps === 'rawdata'">
+                    <h3 class="step-classification-title">Biological experiments</h3>
+                    <h4 ng-show="countStepsByClassification('rawdata') === 0" style=" margin-left: 10px; ">No biological experiments have been registered.</h4>
+                    <raw-data-form ng-repeat="model in model.non_processed_data| filter:filterSteps('rawdata') |  orderBy:'step_number'" ng-init="summary = true"></raw-data-form>
+                </div>
+                <div ng-show="show.steps === 'all' || show.steps === 'intermediate_data'">
+                    <h3 class="step-classification-title">Intermediate steps</h3>
+                    <h4 ng-show="countStepsByClassification('intermediate_data') === 0" style=" margin-left: 10px; ">This analysis does not contain any intermediate step.</h4>
+                    <intermediate-data-form ng-repeat="model in model.non_processed_data| filter:filterSteps('intermediate_data') | orderBy:'step_number'" ng-init="summary = true"></intermediate-data-form>
+                </div>
+                <div ng-show="show.steps === 'all' || show.steps === 'processed_data'">
+                    <h3 class="step-classification-title">Processed data</h3>
+                    <h4 ng-show="countStepsByClassification('processed_data') === 0" style=" margin-left: 10px; ">This analysis does not contain any processed data.</h4>
+                    <processed-data-form ng-repeat="model in model.processed_data| filter:filterSteps('processed_data') | orderBy:'step_number'" ng-init="summary = true"></processed-data-form>
+                </div>
+            </uib-tab>
+            <uib-tab ng-repeat="model in displayedSteps">
+                <uib-tab-heading>
+                    <i class="fa fa-sort-numeric-asc"></i> {{model.step_name}} 
+                    <a class="clickable" style="color: #a5a5a5; margin-left: 5px;" ng-click="controller.closeStepDetails(model);"><i class="fa fa-times text-danger" style="color: #d3d3d3;"></i></a>
+                </uib-tab-heading>
+                <raw-data-form ng-if="model.type === 'rawdata'"></raw-data-form>
+                <intermediate-data-form  ng-if="model.type === 'intermediate_data'"></intermediate-data-form>
+                <external-source-form ng-if="model.type === 'external_source'"></external-source-form>
+                <processed-data-form ng-if="model.type === 'processed_data'"></processed-data-form>
+            </uib-tab>
+        </uib-tabset>
+        <nav class="navbar navbar-default navbar-fixed-bottom progressNavigator" >
+            <div class="container">
+                <a class="btn btn-danger btn-md navbar-right" ng-click="controller.cancelButtonHandler();">
+                    <i class="fa fa-times"></i> <span ng-if="viewMode === 'view'">Close</span><span ng-if="viewMode !== 'view'">Cancel</span> 
+                </a>
+                <a class="btn btn-warning btn-md navbar-right" ng-show="viewMode === 'view' && model.isRemoved !== true" ng-click="controller.editButtonHandler();">
+                    <i class="fa fa-pencil-square-o"></i> Edit
+                </a>
+                <a class="btn btn-success btn-md navbar-right" ng-show="viewMode !== 'view'"  ng-click="controller.acceptButtonHandler()" >
+                    <i class="fa fa-check fa-fw" ></i> Accept
+                </a>
+            </div>
+        </nav>
+        <nav class=" navbar-fixed-bottom" style="left: initial;">
+            <back-top scroll-speed=600 button-theme="btn btn-default btn-sm navbar-right"></back-top>
+        </nav>
+    </form>
+</div>

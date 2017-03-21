@@ -1,0 +1,73 @@
+<div ng-controller="FileListController as controller">
+    <nav  ng-class="(isDialog === true) ? 'modal-body' : ''" class="navbar navbar-default navbar-top title-bar">
+        <h1 class="form_title">File browser</h1>
+    </nav>
+    <div ng-class="(isDialog === true) ? 'modal-body' : ''">
+        <uib-tabset type="pills">
+            <uib-tab heading="Browse files" classes="btn-sm">
+                <div class="navbar-form navbar-default top-toolbar" role="search">
+                    <h2 class="form_subtitle">Search and filter</h2>
+                    <div class="row">
+                        <div class="col-sm-8">
+                            <div class="input-group" style="width: 100%;margin-bottom: 4px;">
+                                <input type="text" class="form-control" placeholder="Search for..." ng-model="searchFor.search">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="button" ng-click="controller.applySearchHandler()">
+                                        <span class="glyphicon glyphicon-search"></span>
+                                    </button>
+                                </span>
+                            </div><!-- /input-group -->
+                        </div>
+                    </div>
+                </div>
+                <div class="navbar-form">
+                    <div style="margin: auto;display: block;max-width: 625px;">
+                        <i ng-show="isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
+                            <i class="fa fa-spinner fa-pulse fa-fw"></i> Loading files...
+                        </i>
+                        <i ng-show="!isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
+                            Found {{filteredFiles}} files
+                            <a ng-click="controller.retrieveFilesData(true);" style="margin-left:10px; font-size: 10px;"><i class="fa fa-refresh"></i>Refresh list</a>
+                        </i>
+                    </div>
+                </div>
+                <files-tree></files-tree>
+                <button type="button" class="btn btn-primary" style="float: right;" ng-click="controller.updateFileSelectionHandler();"><i class="fa fa-plus"></i> Add the files</button>
+            </uib-tab>
+            <uib-tab heading="Manual entry" classes="btn-sm" ng-init="manual_entries = '';">
+                <div class="well well-sm text-info"><i class="fa fa-info-circle"></i> Type the location for the files (one file per line). You can use file paths (e.g. /mydata/mydir/this_file.txt), URLs (http://myserver.com/mydata/myfiles), FTP links (ftp://myftpserver.com/mydata/myfiles), or even textual descriptions (in one line).</div>
+                <textarea ng-model="manual_entries" rows="10" cols="30" style="width: 100%;"></textarea>
+                <button type="button" class="btn btn-primary" style="float: right;" ng-click="controller.addManualLocationsHandler(manual_entries); manual_entries = '';"><i class="fa fa-plus"></i> Add the files</button>
+            </uib-tab>
+            <uib-tab heading="Upload files" classes="btn-sm">
+                <nav class="navbar navbar-default navbar-top title-bar">
+                    <h1>Upload new file</h1>
+                </nav>
+                <file-upload-panel></file-upload-panel>
+            </uib-tab>            
+        </uib-tabset>
+        <div style="margin: 20px;">
+            <h2 class="form_subtitle">Selected files</h2>
+            <table class="table" >
+                <thead>
+                    <tr>
+                        <th>File name</th>
+                        <th ng-if="models !== undefined;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="file in models">
+                        <td style="max-width: 0;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">{{file}}</td>
+                        <td ng-if="models !== undefined;" style=" width: 30px; text-align: center; ">
+                            <a ng-if="isSelectedFile(file);"  style="cursor:pointer;" ng-click="controller.removeSelectedFile(file);"><i class="fa fa-trash text-danger"></i></a>
+                            <a ng-if="!isSelectedFile(file);"  style="cursor:pointer;" ng-click="controller.addSelectedFile(file);"><i class="fa fa-plus-circle text-primary"></i></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div  ng-if="isDialog === true"  class="modal-footer">
+        <button class="btn btn-primary" type="button" ng-click="controller.closeBrowseDialogHandler();">Close</button>
+    </div>
+</div>

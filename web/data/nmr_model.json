@@ -1,0 +1,117 @@
+{
+    "success": true,
+    "extractionMethod.instrument_model": [
+        {
+            "label": "Agilent 400-MR NMR Spectrometer ",
+            "value": "Agilent 400-MR NMR Spectrometer "
+        },
+        {
+            "label": "Agilent DD2",
+            "value": "Agilent DD2"
+        },
+        {
+            "label": "Anasazi 60/90 ANASAZI",
+            "value": "Anasazi 60/90 ANASAZI"
+        },
+        {
+            "label": "Bruker AVANCE III HD",
+            "value": "Bruker AVANCE III HD"
+        },
+        {
+            "label": "Bruker AVANCE III HD NanoBay",
+            "value": "Bruker AVANCE III HD NanoBay"
+        },
+        {
+            "label": "Bruker DNP-NMR",
+            "value": "Bruker DNP-NMR"
+        },
+        {
+            "label": "Bruker Fourier 300",
+            "value": "Bruker Fourier 300"
+        },
+        {
+            "label": "JEOL JNM-ECA Series FT NMR",
+            "value": "JEOL JNM-ECA Series FT NMR"
+        },
+        {
+            "label": "JEOL JNM-ECS Series FT NMR",
+            "value": "JEOL JNM-ECS Series FT NMR"
+        },
+        {
+            "label": "JEOL JNM-ECX Series FT NMR",
+            "value": "JEOL JNM-ECX Series FT NMR"
+        },
+        {
+            "label": "Magritek Benchtop MRI Tomograph",
+            "value": "Magritek Benchtop MRI Tomograph"
+        },
+        {
+            "label": "Magritek Kea",
+            "value": "Magritek Kea"
+        },
+        {
+            "label": "Magritek NMR-MOUSE",
+            "value": "Magritek NMR-MOUSE"
+        },
+        {
+            "label": "Magritek Rock Core Analyzer",
+            "value": "Magritek Rock Core Analyzer"
+        },
+        {
+            "label": "Magritek Spinsolve",
+            "value": "Magritek Spinsolve"
+        },
+        {
+            "label": "Magritek Terranova-MRI",
+            "value": "Magritek Terranova-MRI"
+        },
+        {
+            "label": "Nanalysis NMReady 60P",
+            "value": "Nanalysis NMReady 60P"
+        },
+        {
+            "label": "Oxford instruments benchtop NMR MQC",
+            "value": "Oxford instruments benchtop NMR MQC"
+        },
+        {
+            "label": "Oxford instruments HyperSense",
+            "value": "Oxford instruments HyperSense"
+        },
+        {
+            "label": "PNA 60 MHz Benchtop NMR",
+            "value": "PNA 60 MHz Benchtop NMR"
+        },
+        {
+            "label": "PNA 60 MHz Process NMR",
+            "value": "PNA 60 MHz Process NMR"
+        },
+        {
+            "label": "PNA Benchtop Micro-ESR",
+            "value": "PNA Benchtop Micro-ESR"
+        },
+        {
+            "label": "PNA SpinPulse CX-10",
+            "value": "PNA SpinPulse CX-10"
+        },
+        {
+            "label": "PNA SpinPulse CX-20",
+            "value": "PNA SpinPulse CX-20"
+        },
+        {
+            "label": "PNA SpinPulse CX-40",
+            "value": "PNA SpinPulse CX-40"
+        },
+        {
+            "label": "Resonance systems Spin Track 60 FT-NMR",
+            "value": "Resonance systems Spin Track 60 FT-NMR"
+        },
+        {
+            "label": "Resonance systems Spin Track TD-NMR",
+            "value": "Resonance systems Spin Track TD-NMR"
+        },
+        {
+            "label": "Thermo Scientific picoSpin",
+            "value": "Thermo Scientific picoSpin"
+        }
+    ]
+}

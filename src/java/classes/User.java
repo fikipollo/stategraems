@@ -20,6 +20,10 @@
 package classes;
 
 import com.google.gson.Gson;
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  *
@@ -32,6 +36,8 @@ public class User {
     private String sessionToken;
     private String password;
     private String role;
+    private String apicode;
+    private String apicode_date;
     private String last_experiment_id;
     private String last_experiment_name;
     private boolean loggedIn;
@@ -42,7 +48,7 @@ public class User {
     }
 
     /**
-     * This static function returns a new Treatment object using the data
+     * This static function returns a new user object using the data
      * contained in the given JSON object (as String).
      *
      * @param jsonString the JSON object
@@ -71,11 +77,7 @@ public class User {
         return user_id;
     }
 
-    public String getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(String user_id) {
+    public void setUserID(String user_id) {
         this.user_id = user_id;
     }
 
@@ -122,7 +124,7 @@ public class User {
     public void setLast_experiment_id(String last_experiment_id) {
         this.last_experiment_id = last_experiment_id;
     }
-    
+
     public void setLastExperimentID(String last_experiment_id) {
         this.last_experiment_id = last_experiment_id;
     }
@@ -143,8 +145,30 @@ public class User {
         this.loggedIn = loggedIn;
     }
 
+    public String getApiCode() {
+        return apicode;
+    }
+
+    public void setApiCode(String apicode) {
+        this.apicode = apicode;
+    }
+
+    public String getApiCodeDate() {
+        return apicode_date;
+    }
+
+    public void setApiCodeDate(String apicode_date) {
+        this.apicode_date = apicode_date;
+    }
+
     @Override
     public String toString() {
         return this.toJSON();
+    }
+
+    public String setRandomAPICode() {
+        this.apicode = new BigInteger(130, new SecureRandom()).toString(30);
+        this.apicode_date = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        return this.apicode;
     }
 }

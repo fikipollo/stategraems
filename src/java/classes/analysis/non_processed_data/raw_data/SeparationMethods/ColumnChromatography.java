@@ -30,7 +30,6 @@ public class ColumnChromatography extends Chromatography {
     ////  Herited from SeparationMethod     
     //    protected String rawdata_id;
 
-    String separation_method_type = "ColumnChromatography";
     String column_chromatography_type;
     String column_manufacturer;
     String column_model;
@@ -58,6 +57,7 @@ public class ColumnChromatography extends Chromatography {
     
     public ColumnChromatography() {
         super();
+        separation_method_type = "ColumnChromatography";
     }
 
     /**
@@ -74,14 +74,6 @@ public class ColumnChromatography extends Chromatography {
         return columnChromatography;
     }
     
-    public String getSeparation_method_type() {
-        return separation_method_type;
-    }
-
-    public void setSeparation_method_type(String separation_method_type) {
-        this.separation_method_type = separation_method_type;
-    }
-
     public String getColumnChromatographyType() {
         return column_chromatography_type;
     }
@@ -303,59 +295,59 @@ public class ColumnChromatography extends Chromatography {
     }
     
     public class MobilePhase{
-        String mp_name;
-        String mp_description;
+        String name;
+        String description;
 
         public MobilePhase() {
         }
 
         public MobilePhase(String mp_name, String mp_description) {
-            this.mp_name = mp_name;
-            this.mp_description = mp_description;
+            this.name = mp_name;
+            this.description = mp_description;
         }
         
         public String getName() {
-            return mp_name;
+            return name;
         }
 
         public void setName(String name) {
-            this.mp_name = name;
+            this.name = name;
         }
 
         public String getDescription() {
-            return mp_description;
+            return description;
         }
 
         public void setDescription(String description) {
-            this.mp_description = description;
+            this.description = description;
         }
     }
     public class Fraction{
-        String fr_name;
-        String fr_description;
+        String name;
+        String description;
 
         public Fraction() {
         }
 
         public Fraction(String fr_name, String fr_description) {
-            this.fr_name = fr_name;
-            this.fr_description = fr_description;
+            this.name = fr_name;
+            this.description = fr_description;
         }
 
         public String getName() {
-            return fr_name;
+            return name;
         }
 
         public void setName(String name) {
-            this.fr_name = name;
+            this.name = name;
         }
 
         public String getDescription() {
-            return fr_description;
+            return description;
         }
 
         public void setDescription(String description) {
-            this.fr_description = description;
+            this.description = description;
         }
     }
     

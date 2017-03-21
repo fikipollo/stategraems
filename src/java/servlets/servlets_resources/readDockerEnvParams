@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [[ "$EMS_ADMIN_USER" != "" ]]; then echo "EMS_ADMIN_USER:${EMS_ADMIN_USER}"; fi
+if [[ "$EMS_ADMIN_PASSWORD" != "" ]]; then echo "EMS_ADMIN_PASSWORD:${EMS_ADMIN_PASSWORD}"; fi
+if [[ "$MYSQL_ROOT_USER" != "" ]]; then echo "MYSQL_ROOT_USER:${MYSQL_ROOT_USER}"; fi
+if [[ "$MYSQL_ROOT_PASSWORD" != "" ]]; then echo "MYSQL_ROOT_PASSWORD:${MYSQL_ROOT_PASSWORD}"; fi
+if [[ "$MYSQL_DATABASE_NAME" != "" ]]; then echo "MYSQL_DATABASE_NAME:${MYSQL_DATABASE_NAME}"; fi
+if [[ "$MYSQL_HOST" != "" ]]; then echo "MYSQL_HOST:${MYSQL_HOST}"; fi
+if [[ "$MYSQL_EMS_USER" != "" ]]; then echo "MYSQL_EMS_USER:${MYSQL_EMS_USER}"; fi
+if [[ "$MYSQL_EMS_PASS" != "" ]]; then echo "MYSQL_EMS_PASS:${MYSQL_EMS_PASS}"; fi
+
+exit 0

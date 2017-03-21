@@ -1,0 +1,15 @@
+<div class="protocol-card  iu-card">
+    <div class="iu-card-body">
+        <h2 class="iu-card-name">{{protocol.protocol_name}}</h2>
+        <div class="iu-card-description" ng-if="protocol.description !== undefined">
+            <span>{{(protocol.description !== ""?protocol.description:"No description provided")}}</span>
+        </div>
+        <div class="iu-card-tags-list">
+            <i class="tag {{getTagColor(tag)}}" ng-repeat="tag in protocol.tags| orderBy">{{tag}}</i>
+        </div>
+    </div>
+    <div class="iu-card-author">
+    </div>
+    <a ng-if="protocol.public !== false" class="btn btn-info open-iu-button" ui-sref="protocolDetail({viewMode : 'view', protocol_id : protocol.protocol_id})"> <i class="fa fa-info-circle"></i> More details </a>
+    <a ng-if="protocol.public === false" ng-disabled="true" class="btn btn-info open-iu-button"> <i class="fa fa-info-circle"></i> More details </a>
+</div>

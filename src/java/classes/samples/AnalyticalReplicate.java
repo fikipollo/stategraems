@@ -17,7 +17,6 @@
  *  More info http://bioinfo.cipf.es/stategraems
  *  Technical contact stategraemsdev@gmail.com
  *  *************************************************************** */
-
 package classes.samples;
 
 import com.google.gson.Gson;
@@ -31,7 +30,8 @@ public class AnalyticalReplicate {
     private String analytical_rep_id;
     private String analytical_rep_name;
     private String bioreplicate_id;
-    private String treatment_id;
+    private String protocol_id;
+    String status = null;
 
     /**
      *
@@ -42,15 +42,15 @@ public class AnalyticalReplicate {
     /**
      *
      * @param analytical_rep_id
+     * @param analytical_rep_name
      * @param bioreplicate_id
-     * @param biocondition_id
-     * @param treatment_id
+     * @param protocol_id
      */
-    public AnalyticalReplicate(String analytical_rep_id, String analytical_rep_name, String bioreplicate_id, String treatment_id) {
+    public AnalyticalReplicate(String analytical_rep_id, String analytical_rep_name, String bioreplicate_id, String protocol_id) {
         this.analytical_rep_id = analytical_rep_id;
         this.analytical_rep_name = analytical_rep_name;
         this.bioreplicate_id = bioreplicate_id;
-        this.treatment_id = treatment_id;
+        this.protocol_id = protocol_id;
     }
 
     /**
@@ -63,7 +63,6 @@ public class AnalyticalReplicate {
     public static AnalyticalReplicate fromJSON(String jsonString) {
         Gson gson = new Gson();
         AnalyticalReplicate analyticalReplicate = gson.fromJson(jsonString, AnalyticalReplicate.class);
-
         return analyticalReplicate;
     }
 
@@ -102,21 +101,29 @@ public class AnalyticalReplicate {
     public void setAnalyticalReplicateName(String analytical_rep_name) {
         this.analytical_rep_name = analytical_rep_name;
     }
-    
-    public String getBioreplicate_id() {
+
+    public String getBioreplicateID() {
         return bioreplicate_id;
     }
 
-    public void setBioreplicate_id(String bioreplicate_id) {
+    public void setBioreplicateID(String bioreplicate_id) {
         this.bioreplicate_id = bioreplicate_id;
     }
 
-    public String getTreatment_id() {
-        return treatment_id;
+    public String getProtocolID() {
+        return protocol_id;
     }
 
-    public void setTreatment_id(String treatment_id) {
-        this.treatment_id = treatment_id;
+    public void setProtocolID(String protocol_id) {
+        this.protocol_id = protocol_id;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     //***********************************************************************

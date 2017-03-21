@@ -109,13 +109,22 @@ public class User_JDBCDAO extends DAO {
     public User findByID(String user_id, Object[] otherParams) throws SQLException {
         String password = null;
         boolean last_experiment = false;
+        boolean isEmail = false;
 
         if (otherParams != null) {
             password = (String) otherParams[0];
             last_experiment = (Boolean) otherParams[1];
+            isEmail = (Boolean) otherParams[2];
         }
+        String searchBy;
+        if (isEmail) {
+            searchBy = " email = ?";
+        } else {
+            searchBy = " user_id = ?";
+        }
+        
+        String sqlStatement = "SELECT user_id, email FROM users WHERE" + searchBy;
 
-        String sqlStatement = "SELECT user_id, email FROM users WHERE user_id = ?";
         if (password != null) {
             sqlStatement += " AND password = ?";
         }
@@ -133,21 +142,21 @@ public class User_JDBCDAO extends DAO {
             user = new User(rs.getString(1), rs.getString(2));
 
             if (last_experiment) {
-                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT last_experiment_id FROM users WHERE user_id=?");
-                ps.setString(1, user_id);
+                ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT last_experiment_id FROM users WHERE user_id = ?");
+                ps.setString(1, user.getUserID());
                 rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
                 if (rs.first() && rs.getString(1) != null) {
                     user.setLastExperimentID(rs.getString(1));
                 } else {
-                    ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT experiment_id FROM experiment_owners WHERE user_id=? LIMIT 1");
-                    ps.setString(1, user_id);
+                    ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT experiment_id FROM experiment_owners WHERE user_id = ? LIMIT 1");
+                    ps.setString(1, user.getUserID());
                     rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
                     if (rs.first()) {
                         user.setLastExperimentID(rs.getString(1));
                         ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                                + "UPDATE users SET last_experiment_id= ? WHERE user_id=?");
+                                + "UPDATE users SET last_experiment_id= ? WHERE"  + searchBy);
                         ps.setString(1, rs.getString(1));
-                        ps.setString(2, user_id);
+                        ps.setString(2, user.getUserID());
                         ps.execute();
                     }
                 }
@@ -191,8 +200,7 @@ public class User_JDBCDAO extends DAO {
         ps.execute();
         return true;
     }
-    
-    
+
     @Override
     public boolean remove(String[] object_id_list) throws SQLException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
