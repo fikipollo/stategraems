@@ -34,6 +34,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  *
@@ -142,7 +143,7 @@ public abstract class Servlet extends HttpServlet {
             cookies = new HashMap<String, Cookie>();
             for (Cookie cookie : request.getCookies()) {
                 if ("session".equals(cookie.getName())) {
-                    String session = new String(java.util.Base64.getDecoder().decode(cookie.getValue()));
+                    String session = new String(Base64.decodeBase64(cookie.getValue()));
                     cookies.put(cookie.getName(), cookie);
                     cookies.put("loggedUser", new Cookie("loggedUser", session.split(":")[0]));
                     cookies.put("sessionToken", new Cookie("loggedUser", session.split(":")[1]));

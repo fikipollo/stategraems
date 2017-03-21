@@ -61,12 +61,15 @@ public abstract class DAO {
 
     protected static String concatString(String separator, String[] strings) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < strings.length; i++) {
-            sb.append(strings[i]);
-            if (i < strings.length - 1) {
-                sb.append(separator);
+        if (strings != null) {
+            for (int i = 0; i < strings.length; i++) {
+                sb.append(strings[i]);
+                if (i < strings.length - 1) {
+                    sb.append(separator);
+                }
             }
         }
+
         return sb.toString();
     }
 }

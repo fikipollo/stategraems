@@ -312,11 +312,11 @@ public class Install_servlets extends Servlet {
                  * ***********************************************************************************************************************
                  */
 
-                this.testValidAdminUSer(emsadminpass);
-                this.testWritableDirectory(data_location);
                 this.testDatabaseConnection(DBConnectionManager.getConnectionManager().getProperties().getProperty("host"),
                         DBConnectionManager.getConnectionManager().getProperties().getProperty("username"),
                         DBConnectionManager.getConnectionManager().getProperties().getProperty("password"));
+                this.testValidAdminUser(emsadminpass);
+                this.testWritableDirectory(data_location);
 
                 //GET PREVIOUS VERSION FROM DATABASE
                 PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT version FROM appVersion;");
@@ -476,7 +476,7 @@ public class Install_servlets extends Servlet {
 
     }
 
-    private boolean testValidAdminUSer(String adminPassword) throws CredentialException {
+    private boolean testValidAdminUser(String adminPassword) throws CredentialException {
         try {
             //CHECK IF USER IS VALID ADMIN
             String password = SHA1.getHash(adminPassword);
@@ -517,11 +517,11 @@ public class Install_servlets extends Servlet {
             dumpProcess = Runtime.getRuntime().exec(mysqlCommand);
             exitCode = dumpProcess.waitFor();
         } catch (Exception ex) {
-            throw new SQLException("Unable to connect to database</br>Please check that your database engine is running and that the provided settings are valid.");
+            throw new SQLException("Unable to connect to database</br>Please check that your database engine is running and that the provided settings are valid." + user + password + host);
         }
 
         if (exitCode != 0) {
-            throw new SQLException("Unable to connect to database</br>Please check that your database engine is running and that the provided settings are valid.");
+            throw new SQLException("Failed when connecting to database</br>Please check that your database engine is running and that the provided settings are valid.");
         }
         return true;
     }

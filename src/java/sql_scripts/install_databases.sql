@@ -1018,7 +1018,8 @@ INSERT IGNORE INTO `STATegraDB`.`appVersion` (version) VALUES('0.6');
 INSERT IGNORE INTO `STATegraDB`.`users` (user_id, password) VALUES('admin',SHA1('adminpassword'));
 
 use mysql;
-DROP USER IF EXISTS 'emsuser'@'localhost';
+GRANT USAGE ON *.* TO 'emsuser'@'localhost' IDENTIFIED BY 'emsuser#123';
+DROP USER 'emsuser'@'localhost';
 FLUSH PRIVILEGES;
 
 CREATE USER 'emsuser'@'localhost' IDENTIFIED BY 'emsuser#123';

@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import javax.servlet.http.Cookie;
 import resources.SHA1;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  *
@@ -525,7 +526,7 @@ public class User_servlets extends Servlet {
                  */
                 String newpass = requestData.get("newpass").getAsString();
                 if (newpass != null) {
-                    newpass = new String(java.util.Base64.getDecoder().decode(newpass));
+                    newpass = new String(Base64.decodeBase64(newpass));
                     newpass = SHA1.getHash(newpass);
                 }
 

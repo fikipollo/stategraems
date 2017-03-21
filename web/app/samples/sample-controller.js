@@ -423,7 +423,6 @@
          * @return    
          ******************************************************************************/
         this.send_update_sample = function (callback_caller, callback_function) {
-            debugger;
             $scope.setLoading(true);
 
             $http($rootScope.getHttpRequestConfig("POST", "sample-update", {

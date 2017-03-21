@@ -52,6 +52,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.Cookie;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  *
@@ -311,7 +312,7 @@ public class Analysis_servlets extends Servlet {
                     loggedUserID = cookies.get("loggedUserID").getValue();
                 } else{
                     String apicode = requestData.get("apicode").getAsString() ;
-                    apicode = new String(java.util.Base64.getDecoder().decode(apicode));
+                    apicode = new String(Base64.decodeBase64(apicode));
                     
                     loggedUser = apicode.split(":")[0];
                     sessionToken = apicode.split(":")[1];

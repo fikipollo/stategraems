@@ -39,7 +39,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.AccessControlException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -58,6 +57,7 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  *
@@ -155,7 +155,7 @@ public class File_servlets extends Servlet {
                     loggedUserID = cookies.get("loggedUserID").getValue();
                 } else {
                     String apicode = request.getParameter("apicode");
-                    apicode = new String(Base64.getDecoder().decode(apicode));
+                    apicode = new String(Base64.decodeBase64(apicode));
 
                     loggedUser = apicode.split(":")[0];
                     sessionToken = apicode.split(":")[1];

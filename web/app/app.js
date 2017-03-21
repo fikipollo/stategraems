@@ -13,10 +13,16 @@
         'files.controllers',
         'templates.services.template-list'
     ]);
-
+    
+    var pathname = window.location.pathname.split("/");
+    if(pathname.length > 1 && pathname[1] !== ""){
+        pathname = pathname[1] + "/";
+    }else{
+        pathname = "";
+    }
     app.constant('myAppConfig', {
         VERSION: '0.8',
-        EMS_SERVER: "/"
+        EMS_SERVER: "/" + pathname
     });
     //Define the events that are fired when an user login, log out etc.
     app.constant('APP_EVENTS', {
