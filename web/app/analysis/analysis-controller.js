@@ -842,6 +842,21 @@
                 return true;
             };
         };
+        
+        $scope.countStepsByClassification = function(classification){
+            var count = 0;
+            for(var i in $scope.model.non_processed_data){
+                if($scope.model.non_processed_data[i].type === classification){
+                    count++;
+                }
+            }  
+            for(var i in $scope.model.processed_data){
+                if($scope.model.processed_data[i].type === classification){
+                    count++;
+                }
+            }
+            return count;
+        };
 
         /******************************************************************************      
          *            _____   _____ _  _ _____         

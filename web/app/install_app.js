@@ -70,9 +70,9 @@
                         if (response.data.success) {
                             document.location = "/";
                         }
+                        $scope.config.installation_type = response.data.installation_type;
 
                         if (response.data.is_docker) {
-                            $scope.config.installation_type = response.data.installation_type;
                             $scope.installing = true;
                             me.sendAutoInstallDataHandler();
                         }

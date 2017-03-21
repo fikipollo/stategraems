@@ -7,7 +7,7 @@
                 <span class="label label-danger" ng-if="model.status && model.status.indexOf('deleted') !== - 1">Deleted</span>
                 {{model.step_name}}
                 <a class="btn btn-default" style="float: right;margin-top: -6px;" ng-click="controller.showStepDetailsHandler();"><i class="fa fa-search-plus"></i> View details</a>
-                <div class="btn-group" uib-dropdown is-open="status.isopen" style="float: right;margin-top: -6px;margin-right: 10px;">
+<!--                <div class="btn-group" uib-dropdown is-open="status.isopen" style="float: right;margin-top: -6px;margin-right: 10px;">
                     <button id="single-button" type="button" class="btn btn-primary" uib-dropdown-toggle ng-disabled="disabled">
                         Use results <span class="caret"></span>
                     </button>
@@ -16,7 +16,7 @@
                         <li class="divider"></li>
                         <li role="menuitem"><a ng-click="controller.downloadStepFilesHandler(model);" ><i class="fa fa-download" aria-hidden="true"></i> Download files</a></li>
                     </ul>
-                </div>
+                </div>-->
                 <a class="clickable text-danger" style="float: right; margin: 2px 20px;font-size: 14px;" ng-click="controller.removeStepHandler();" ng-show="controller.removableModel()"><i class="fa fa-trash-o"></i> Delete this step</a>            
                 <a class="clickable text-info" style="float: right; margin: 2px 20px;font-size: 14px;" ng-click="controller.unremoveStepHandler();" ng-show="controller.unremovableModel()"><i class="fa fa-undo"></i> Restore this step</a>
             </div>
