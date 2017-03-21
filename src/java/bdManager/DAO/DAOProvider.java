@@ -28,6 +28,7 @@ import bdManager.DAO.analysis.Step_JDBCDAO;
 import bdManager.DAO.analysis.non_processed_data.raw_data.ExtractionMethods.*;
 import bdManager.DAO.analysis.non_processed_data.raw_data.RAWdata_JDBCDAO;
 import bdManager.DAO.analysis.non_processed_data.raw_data.SeparationMethods.*;
+import bdManager.DAO.analysis.non_processed_data.raw_data.SequencingJDBCDAO;
 import bdManager.DAO.samples.*;
 import classes.Message;
 import classes.analysis.Analysis;
@@ -55,7 +56,9 @@ public class DAOProvider {
             // EXTRACTION METHOD DAOS 
             //************************
         } else if (object instanceof ExtractionMethod) {
-            if (object instanceof ChIPseq) {
+            if (object instanceof Sequencing) {
+                return new SequencingJDBCDAO();
+            }else if (object instanceof ChIPseq) {
                 return new ChIPseq_JDBCDAO();
             } else if (object instanceof DNaseseq) {
                 return new DNaseseq_JDBCDAO();
@@ -121,6 +124,8 @@ public class DAOProvider {
             //RAW DATA
         } else if ("RAWData".equalsIgnoreCase(className)) {
             return new RAWdata_JDBCDAO();
+        } else if ("Sequencing".equalsIgnoreCase(className)) {
+            return new SequencingJDBCDAO();
         } else if ("ChIPseq".equalsIgnoreCase(className)) {
             return new ChIPseq_JDBCDAO();
         } else if ("DNaseseq".equalsIgnoreCase(className)) {

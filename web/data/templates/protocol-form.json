@@ -6,31 +6,41 @@
             "title": "General details",
             "fields": [
                 {
-                    "name": "protocol_id",
-                    "label": "Protocol ID",
-                    "type": "display"
-                },
-                {
                     "name": "protocol_name",
                     "label": "Title",
                     "type": "text",
-                    "required" : true
+                    "required" : true,
+                    "help": "<b>[required]</b> A <i>human readable</i> short name for the protocol.</br>E.g. <i>ChIP-seq_Pol2-4H8<i></b>."
+                },
+                {
+                    "name": "protocol_id",
+                    "label": "Protocol ID",
+                    "type": "display",
+                    "help": "<b>[required]</b> Identify uniquely each treatment or protocol for sample isolation."
                 },
                 {
                     "name": "description",
                     "label": "Description",
                     "type": "textarea",
-                    "required" : true
+                    "required" : true,
+                    "help": "Brief description for the followed steps for isolating a samples (i.e. sampling in Metabolomics, RNA Library extraction in RNA-Seq, Prefractionation treatment in Proteomics,...)."
                 },
                 {
                     "name": "biomolecule",
                     "label": "Extracted biomolecule",
-                    "type": "text"
+                    "type": "text",
+                    "help": "Specify the type of molecule that was extracted following this protocol. Eg. total RNA, cytoplasmic RNA, nuclear RNA, proteins,..."
+                },{
+                    "name": "files_location",
+                    "label": "SOP documents",
+                    "type": "output_files_selector",
+                    "help": "A Standard Operating Procedure (SOP) is a document consisting of step-by-step information on how the samples were produced. <b>We recommend to use PDF files.</b>."
                 },
                 {
                     "name": "tags",
                     "label": "Protocol tags",
-                    "type": "tag"
+                    "type": "tag",
+                    "help": "Add tags to provide an overall description for the protocol."
                 }
             ]
         },
@@ -41,7 +51,8 @@
                 {
                     "name": "owners",
                     "label": "Owners",
-                    "type": "user_selector"
+                    "type": "user_selector",
+                    "help": "<b>[required]</b> Only owners can edit the information of the protocol."
                 }
             ]
         }

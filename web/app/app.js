@@ -13,10 +13,16 @@
         'files.controllers',
         'templates.services.template-list'
     ]);
-
+    
+    var pathname = window.location.pathname.split("/");
+    if(pathname.length > 1 && pathname[1] !== ""){
+        pathname = pathname[1] + "/";
+    }else{
+        pathname = "";
+    }
     app.constant('myAppConfig', {
         VERSION: '0.8',
-        EMS_SERVER: "/"
+        EMS_SERVER: "/" + pathname
     });
     //Define the events that are fired when an user login, log out etc.
     app.constant('APP_EVENTS', {
@@ -182,16 +188,14 @@
         $rootScope.getRequestPath = function (service, extra) {
             extra = (extra !== undefined ? "/" + extra : "");
             switch (service) {
-                case "user-sign-in":
-                    return myAppConfig.EMS_SERVER + "login";
-                case "user-sign-out":
-                    return myAppConfig.EMS_SERVER + "logout";
-                case "user-sign-up":
-                    return myAppConfig.EMS_SERVER + "sign_up";
-                case "user-info":
-                    return myAppConfig.EMS_SERVER + "get_user";
-                case "user-list":
-                    return myAppConfig.EMS_SERVER + "get_user_list";
+                /*
+                 * USER REQUESTS
+                 */
+                case "user-rest":
+                    return myAppConfig.EMS_SERVER + "rest/users" + extra;
+                    /*
+                     * EXPERIMENT REQUESTS
+                     */
                 case "experiment-list":
                     return myAppConfig.EMS_SERVER + "get_all_experiments";
                 case "experiment-info":
@@ -210,6 +214,9 @@
                     return myAppConfig.EMS_SERVER + "unlock_experiment";
                 case "experiment-selection":
                     return myAppConfig.EMS_SERVER + "change_current_experiment";
+                    /*
+                     * SAMPLE REQUESTS
+                     */
                 case "sample-list":
                     return myAppConfig.EMS_SERVER + "get_all_bioconditions";
                 case "sample-info":
@@ -228,6 +235,9 @@
                     return myAppConfig.EMS_SERVER + "get_sample_service_host_list";
                 case "sample-service-list":
                     return myAppConfig.EMS_SERVER + "get_sample_service_list";
+                    /*
+                     * ANALYSIS REQUESTS
+                     */
                 case "analysis-list":
                     return myAppConfig.EMS_SERVER + "get_all_analysis";
                 case "analysis-info":
@@ -244,6 +254,9 @@
                     return myAppConfig.EMS_SERVER + "unlock_analysis";
                 case "analysis-step-subtypes":
                     return myAppConfig.EMS_SERVER + "get_step_subtypes";
+                    /*
+                     * PROTOCOL REQUESTS
+                     */
                 case "protocol-list":
                     return myAppConfig.EMS_SERVER + "get_all_protocols";
                 case "protocol-info":
@@ -258,10 +271,21 @@
                     return myAppConfig.EMS_SERVER + "lock_protocol";
                 case "protocol-unlock":
                     return myAppConfig.EMS_SERVER + "unlock_protocol";
+                    /*
+                     * MESSAGE REQUESTS
+                     */
                 case "message-rest":
                     return myAppConfig.EMS_SERVER + "rest/messages" + extra;
-                case "file-list":
-                    return myAppConfig.EMS_SERVER + "get_experiment_directory_content";
+                    /*
+                     * FILE REQUESTS
+                     */
+                case "file-rest":
+                    return myAppConfig.EMS_SERVER + "rest/files" + extra;
+                    /*
+                     * ADMIN REQUESTS
+                     */
+                case "admin-rest":
+                    return myAppConfig.EMS_SERVER + "rest/admin" + extra;
                 case "check-install":
                     return myAppConfig.EMS_SERVER + "is_valid_installation";
                 default:
@@ -287,7 +311,8 @@
                 headers: options.headers,
                 url: this.getRequestPath(service, options.extra),
                 params: options.params,
-                data: options.data
+                data: options.data,
+                config: options.config
             };
             if (options.transformRequest !== undefined) {
                 requestData.transformRequest = options.transformRequest;
@@ -345,13 +370,18 @@
             return  null;
         };
         $rootScope.getCredentialsParams = function (request_params) {
-            var credentials = {};
+            var credentials = {
+            };
+
             if (request_params != null) {
                 credentials = request_params;
             }
-
-            credentials['sessionToken'] = Cookies.get("sessionToken");
-            credentials['loggedUser'] = Cookies.get("loggedUser");
+            if (!Cookies.get("session")) {
+                return  credentials;
+            }
+            var apiCode = atob(Cookies.get("session"));
+            credentials['sessionToken'] = apiCode.substring(apiCode.indexOf(":") + 1);
+            credentials['loggedUser'] = apiCode.substring(0, apiCode.indexOf(":"));
             credentials['loggedUserID'] = Cookies.get("loggedUserID");
             credentials['currentExperimentID'] = Cookies.get('currentExperimentID');
             return credentials;
@@ -387,13 +417,12 @@
         $rootScope.$on('$stateChangeStart', function (event, toState, toParams) {
             var requireLogin = toState.data.requireLogin;
 
-            var loggedUser = Cookies.get("loggedUser");
-            var sessionToken = Cookies.get("sessionToken");
+            var session = Cookies.get("session");
 
             //Check if the user is logged in, redirect to signin panel
-            if (requireLogin && (loggedUser === undefined || sessionToken === undefined)) {
+            if (requireLogin && session === undefined) {
                 event.preventDefault();
-                Cookies.remove("sessionToken");
+                Cookies.remove("session");
                 $state.go('signin');
             }
         });

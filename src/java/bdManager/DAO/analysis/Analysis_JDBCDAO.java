@@ -308,12 +308,16 @@ public class Analysis_JDBCDAO extends DAO {
 
     @Override
     public boolean remove(String object_id) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Analysis analysis = this.findByID(object_id, null);
+        return this.remove(analysis);
     }
 
     @Override
     public boolean remove(String[] object_id_list) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        for(String object_id : object_id_list){
+            this.remove(object_id);
+        }
+        return true;
     }
 
     public boolean updateRemoveRequests(String object_id, String[] remove_requests) throws SQLException {

@@ -42,9 +42,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import common.BlockedElementsManager;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
@@ -54,7 +51,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import org.apache.commons.codec.binary.Base64;
 
@@ -91,8 +87,6 @@ public class Analysis_servlets extends Servlet {
 //            get_all_region_steps_handler(request, response);
             } else if (request.getServletPath().equals("/add_analysis")) {
                 add_analysis_handler(request, response);
-            } else if (request.getServletPath().equals("/save_analysis_image")) {
-                save_analysis_image_handler(request, response);
             } else if (request.getServletPath().equals("/update_analysis")) {
                 update_analysis_handler(request, response);
             } else if (request.getServletPath().equals("/lock_analysis")) {
@@ -299,10 +293,41 @@ public class Analysis_servlets extends Servlet {
             DAO daoInstance = null;
             Analysis analysis = null;
             try {
+                
+                /**
+                 * *******************************************************
+                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
+                 * ERROR --> throws exception if not valid session, GO TO STEP
+                 * 5b ELSE --> GO TO STEP 2
+                 * *******************************************************
+                 */
+                Map<String, Cookie> cookies = this.getCookies(request);
                 JsonParser parser = new JsonParser();
                 JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+                
+                String loggedUser, loggedUserID = null, sessionToken;
+                if (cookies != null) {
+                    loggedUser = cookies.get("loggedUser").getValue();
+                    sessionToken = cookies.get("sessionToken").getValue();
+                    loggedUserID = cookies.get("loggedUserID").getValue();
+                } else{
+                    String apicode = requestData.get("apicode").getAsString() ;
+                    apicode = new String(Base64.decodeBase64(apicode));
+                    
+                    loggedUser = apicode.split(":")[0];
+                    sessionToken = apicode.split(":")[1];
+                }
+                
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+                }
+                                
+                if(loggedUserID == null){
+                    daoInstance = DAOProvider.getDAOByName("User");
+                    loggedUserID = ((User) daoInstance.findByID(loggedUser, new Object[]{null, false, true})).getUserID();
+                }
 
-                String emsuser = requestData.get("username").getAsString();
+
                 String experimentID = requestData.get("experiment_id").getAsString();
                 String origin = requestData.get("origin").getAsString();
 
@@ -311,21 +336,13 @@ public class Analysis_servlets extends Servlet {
                  * STEP 1 CHECK IF THE USER EXISTS AND IF EXPERIMENT IS VALID
                  * *******************************************************
                  */
-                daoInstance = DAOProvider.getDAOByName("User");
-                User user = (User) daoInstance.findByID(emsuser, null);
-                if (user == null) {
-                    user = (User) daoInstance.findByID(emsuser, new Object[]{null, false, true});
-                    if (user == null) {
-                        throw new AccessControlException("User or email not found.");
-                    }
-                }
 
                 daoInstance = DAOProvider.getDAOByName("Experiment");
                 Experiment experiment = (Experiment) daoInstance.findByID(experimentID, null);
                 if (experiment == null) {
                     throw new AccessControlException(experimentID + " is not a valid experiment identifier.");
-                } else if (!experiment.isOwner(emsuser) && !experiment.isMember(emsuser)) {
-                    throw new AccessControlException("User " + emsuser + " is not a valid member of the experiment " + experimentID + ".");
+                } else if (!experiment.isOwner(loggedUserID) && !experiment.isMember(loggedUserID)) {
+                    throw new AccessControlException("User " + loggedUserID + " is not a valid member of the experiment " + experimentID + ".");
                 }
 
                 /**
@@ -336,7 +353,8 @@ public class Analysis_servlets extends Servlet {
                  */
                 daoInstance = DAOProvider.getDAOByName("Analysis");
                 lockedID = daoInstance.getNextObjectID(null);
-
+                requestData.add("analysis_id", new JsonPrimitive(lockedID));
+                
                 /**
                  * *******************************************************
                  * STEP 3 Get the ANALYSIS Object by parsing the JSON data. IF
@@ -344,7 +362,7 @@ public class Analysis_servlets extends Servlet {
                  * GO TO STEP 4
                  * *******************************************************
                  */
-                analysis = Analysis.parseAnalysisData(origin, emsuser, requestData);
+                analysis = Analysis.parseAnalysisData(origin, loggedUserID, requestData);
                 analysis.updateAnalysisID(lockedID);
                 analysis.setAssociated_experiment(experimentID);
 
@@ -365,10 +383,10 @@ public class Analysis_servlets extends Servlet {
                  * *******************************************************
                  */
                 Message message = new Message();
-                message.setUserID(user.getUserID());
+                message.setUserID(loggedUserID);
                 message.setType("info");
                 message.setSender("STATegraEMS notifications");
-                message.setTo(user.getUserID());
+                message.setTo(loggedUserID);
                 message.setSubject("New analysis imported from " + origin);
                 message.setContent(
                         "A new analysis called \"" + analysis.getAnalysisName() + "\" has been created for experiment " + experimentID
@@ -984,86 +1002,6 @@ public class Analysis_servlets extends Servlet {
     //*****OTHER SERVLET HANDLERS ****************************************************
     //************************************************************************************
     //************************************************************************************
-    private void save_analysis_image_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        boolean REMOVE_FILE_NEEDED = false;
-        String filePath = "";
-        String filePath2 = "";
-        try {
-
-            /**
-             * *******************************************************
-             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
-             * --> throws exception if not valid session, GO TO STEP 5b ELSE -->
-             * GO TO STEP 2
-             * *******************************************************
-             */
-            if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
-                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-            }
-
-            /**
-             * *******************************************************
-             * STEP 2 GET THE REQUEST PARAMETERS. IF ERROR --> throws exception
-             * if not valid session, GO TO STEP 5b ELSE --> GO TO STEP 2 ***
-             */
-            String analysis_id = request.getParameter("analysis_id");
-            String experiment_id = request.getParameter("currentExperimentID");
-            String analysis_image_code = request.getParameter("analysis_image");
-
-            //WE WILL SAVE 2 IMAGES A SMALL AND LOW QUALITY IMAGE FOR PREVIEW AND A BIGGER IMAGE
-            if (analysis_image_code != null) {
-                REMOVE_FILE_NEEDED = true;
-                filePath = DATA_LOCATION + IMAGE_FILES_LOCATION.replaceAll("<experiment_id>", experiment_id) + analysis_id + ".png";
-                File outputfile = new File(filePath);
-                BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(Base64.decodeBase64(analysis_image_code)));
-                ImageIO.write(bufferedImage, "png", outputfile);
-
-                int height = bufferedImage.getHeight();
-                int width = bufferedImage.getWidth();
-                double proportion = (double) height / (double) width;
-
-                int minWidth = Math.min(500, width);
-                int minHeight = (int) Math.round(minWidth * proportion);
-
-                minHeight = Math.min(200, minHeight);
-                minWidth = (int) Math.round(minHeight / proportion);
-
-                BufferedImage resizedImage = new BufferedImage(minWidth, minHeight, BufferedImage.TYPE_INT_RGB);
-                Graphics2D g = resizedImage.createGraphics();
-                g.drawImage(bufferedImage, 0, 0, minWidth, minHeight, null);
-                g.dispose();
-                filePath2 = DATA_LOCATION + IMAGE_FILES_LOCATION.replaceAll("<experiment_id>", experiment_id) + analysis_id + "_prev.jpg";
-                outputfile = new File(filePath2);
-                ImageIO.write(resizedImage, "jpg", outputfile);
-            }
-
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "save_analysis_image_handler", e.getMessage());
-        } finally {
-            /**
-             * *******************************************************
-             * STEP 5b CATCH ERROR, CLEAN CHANGES. throws SQLException
-             * *******************************************************
-             */
-            if (ServerErrorManager.errorStatus()) {
-                response.setStatus(400);
-                response.getWriter().print(ServerErrorManager.getErrorResponse());
-
-                if (REMOVE_FILE_NEEDED) {
-                    File file = new File(filePath);
-                    if (file.exists()) {
-                        file.delete();
-                    }
-                    file = new File(filePath2);
-                    if (file.exists()) {
-                        file.delete();
-                    }
-                }
-            } else {
-                response.getWriter().print("{success: " + true + "}");
-            }
-        }
-    }
 
     private void lock_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         boolean alreadyLocked = false;

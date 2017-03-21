@@ -67,7 +67,7 @@
             templateUrl: "app/analysis/externalsource-form.tpl.html"
         };
     });
-    
+
     app.directive("analysisDiagram", ['$compile', '$dialogs', '$http', 'AnalysisList', function ($compile, $dialogs, $http, AnalysisList) {
             return {
                 restrict: 'E',
@@ -109,11 +109,13 @@
                                     return;
                                 }
                                 if (node.selected === "false") {
-                                    $scope.controller.addSelectedInputFileHandler(node.id, true);
-                                    node.selected = "true";
+                                    if ($scope.controller.addSelectedInputFileHandler(node.id, true)) {
+                                        node.selected = "true";
+                                    }
                                 } else {
-                                    $scope.controller.removeSelectedInputFileHandler(node.id, true);
-                                    node.selected = "false";
+                                    if ($scope.controller.removeSelectedInputFileHandler(node.id, true)) {
+                                        node.selected = "false";
+                                    }
                                 }
                             });
                         }

@@ -151,6 +151,12 @@ public class ProcessedData extends Step {
                 this.used_data[i] = this.used_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN", "ST");
             }
         }
+        
+        if (this.reference_data != null) {
+            for (int i = 0; i < this.reference_data.length; i++) {
+                this.reference_data[i] = this.reference_data[i].replaceAll(old_analysis_id.substring(2), new_analysis_id.substring(2)).replace("AN", "ST");
+            }
+        }
     }
 
     //***********************************************************************
@@ -173,8 +179,14 @@ public class ProcessedData extends Step {
             }
         }
         step.setUsedData(used_data.toArray(new String[]{}));
-        step.setFilesLocation(new String[]{});
-
+        
+        String prefix = analysisData.get("experiment_id").getAsString() + "/" + analysisData.get("analysis_id").getAsString() + "/";
+        ArrayList<String> outputs = new ArrayList<String>();
+        for(JsonElement output : step_json_object.get("outputs").getAsJsonArray()){
+            outputs.add(prefix + output.getAsJsonObject().get("file").getAsString().replaceAll(" ", "_") + "." + output.getAsJsonObject().get("extension").getAsString());
+        }
+        step.setFilesLocation(outputs.toArray(new String[]{}));
+        
         String description = "Step " + step_json_object.get("id").getAsString() + " in Galaxy history " + analysisData.get("history_id").getAsString() + ".\n";
         description += "The tool exited with code " + step_json_object.get("exit_code").getAsString() + "\n";
         description += "Outputs:\n";
@@ -190,7 +202,7 @@ public class ProcessedData extends Step {
         description += "\n";
         description += "Parameters:\n";
         for (JsonElement input : step_json_object.get("parameters").getAsJsonArray()) {
-            description += "  - " + input.getAsJsonObject().get("name").getAsString() + ": " + input.getAsJsonObject().get("value").getAsString() + "\n";
+            description += Step.getParameterDescription(input.getAsJsonObject(), 1);
         }
 
         step.setSoftwareConfiguration(description);
@@ -205,4 +217,5 @@ public class ProcessedData extends Step {
 
         return step;
     }
+
 }

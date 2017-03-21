@@ -9,6 +9,7 @@
                     "name": "other_fields.preprocessing_type",
                     "label": "Preprocessing type",
                     "type": "select",
+                    "help": "<b>[required]</b> Specify the type of preprocessing performed to the data.",
                     "options": [
                         {
                             "label": "File format conversion",

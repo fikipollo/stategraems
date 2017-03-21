@@ -39,6 +39,12 @@
                 <textarea ng-model="manual_entries" rows="10" cols="30" style="width: 100%;"></textarea>
                 <button type="button" class="btn btn-primary" style="float: right;" ng-click="controller.addManualLocationsHandler(manual_entries); manual_entries = '';"><i class="fa fa-plus"></i> Add the files</button>
             </uib-tab>
+            <uib-tab heading="Upload files" classes="btn-sm">
+                <nav class="navbar navbar-default navbar-top title-bar">
+                    <h1>Upload new file</h1>
+                </nav>
+                <file-upload-panel></file-upload-panel>
+            </uib-tab>            
         </uib-tabset>
         <div style="margin: 20px;">
             <h2 class="form_subtitle">Selected files</h2>

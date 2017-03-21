@@ -1,0 +1,374 @@
+{
+    "id": "CE-MS-form",
+    "content": [
+        {
+            "name": "section_3",
+            "title": "Capillary electrophoresis (CE) - General details",
+            "fields": [
+                {
+                    "name": "extractionMethod.separationMethod.separation_method_type",
+                    "type": "hidden",
+                    "value": "CapillaryElectrophoresis",
+                    "force": true
+                }, {
+                    "name": "extractionMethod.separationMethod.experiment_type",
+                    "label": "Experiment type",
+                    "type": "select",
+                    "options": [{
+                            "label": "Capillary Zone Electrophoresis (CZE)",
+                            "value": "Capillary Zone Electrophoresis (CZE)"
+                        },{
+                            "label": "Capillary Gel Electrophoresis (CGE)",
+                            "value": "Capillary Gel Electrophoresis (CGE)"
+                        },{
+                            "label": "Micellar Electrokinetic Capillary Chromatography (MEKC)",
+                            "value": "Micellar Electrokinetic Capillary Chromatography (MEKC)"
+                        },{
+                            "label": "Capillary Electrochromatography (CEC)",
+                            "value": "Capillary Electrochromatography (CEC)"
+                        },{
+                            "label": "Capillary Electrochromatography (CEC)",
+                            "value": "Capillary Electrochromatography (CEC)"
+                        },{
+                            "label": "Capillary Isotachorphoresis (CITP)",
+                            "value": "Capillary Isotachorphoresis (CITP)"
+                        }],
+                    "help": "The CE mode e.g. CZE, MEKC, CGE CIEF, CEC, ITP and mixed mode (e.g. transient ITP-CZE), preconcentration, stacking."
+                },{
+                    "name": "extractionMethod.separationMethod.experiment_aim",
+                    "label": "Experiment aim",
+                    "type": "select",
+                    "options": [{
+                            "label": "Quantitation",
+                            "value": "Quantitation"
+                        },{
+                            "label": "Identification",
+                            "value": "Identification"
+                        },{
+                            "label": "Size determination",
+                            "value": "Size determination"
+                        },{
+                            "label": "pI determination",
+                            "value": "pI determination"
+                        },{
+                            "label": "Enantiomeric excess determination",
+                            "value": "Enantiomeric excess determination"
+                        }],
+                    "help": "Quantitation, identification, size determination, pI determination, enantiomeric excess determination, etc."
+                }
+            ]
+        },
+        {
+            "name": "section_4",
+            "title": "CE - Sample features",
+            "fields": [
+                {
+                    "name": "extractionMethod.separationMethod.ce_sample_description",
+                    "label": "Sample description",
+                    "type": "textarea",
+                    "help": "Concentration of sample(s) (if known) including any label, marker or tag applied that will be used for detection, such as fluorescent labels (by name only). Identify and give source to possible controls, system suitability standard, sample related standards, tEOF-marker and test samples. If calibrants, state concentrations of materials"
+                }, {
+                    "name": "extractionMethod.separationMethod.ce_sample_solution",
+                    "label": "Sample solution",
+                    "type": "textarea",
+                    "help": "The components, with concentrations and pH (excluding the sample itself) of the sample solution that is to be injected into the capillary (e.g. background electrolyte). Manufacturer, order and lot numbers used."
+                },{
+                    "name": "extractionMethod.separationMethod.ce_sample_preparation",
+                    "label": "Sample preparation",
+                    "type": "textarea",
+                    "help":  "Has the sample undergone any further processes? e.g. centrifugation, filtration, ultrasonication etc."
+                }
+            ]
+        },
+        {
+            "name": "section_5",
+            "title": "CE - Equipment details",
+            "fields": [
+                {
+                    "name": "extractionMethod.separationMethod.capillary_description",
+                    "label": "Capillary description",
+                    "type": "textarea",
+                    "help": "Type of capillary being used; e.g. fused silica capillary, coated capillary, packed capillary, gel-filled capillary etc."
+                }, {
+                    "name": "extractionMethod.separationMethod.capillary_source",
+                    "label": "Capillary Manufacturer/source",
+                    "type": "textarea",
+                    "help": "If the capillary was purchased pre-made (e.g. coated, with window, or to pre-cut lengths) then include the model name, catalogue number, manufacturer and lot number. If the capillary has been manufactured in house then supplier of silica capillary, catalogue number and lot number should be given. </br>If using a coating, gel filled, packed or monolithic capillary, protocol, the manufacturer, catalogue number and lot number, type, surface modifications, particle and pore size, gels should be given as appropriate. In addition reference should be given to the method and if no published protocol is available a process should be outlined.  </br>If polyimide coating has been removed from the ends of the capillary this should be described.</br>"
+                },{
+                    "name": "extractionMethod.separationMethod.capillary_dimensions",
+                    "label": "Capillary dimensions",
+                    "type": "text",
+                    "help": "The exact dimensions of the capillary employed: From inlet to detection window (effective length, cm); from inlet to outlet (total length, cm); and the inner and outer diameters of the capillary (µm)."
+                }
+            ]
+        },
+        {
+            "name": "section_6",
+            "title": "CE - Run process description",
+            "fields": [
+                {
+                    "name": "extractionMethod.separationMethod.ce_temperature",
+                    "label": "Temperature of capillary",
+                    "type": "text",
+                    "help": "Controlled temperature of capillary (if controllable)."
+                }, {
+                    "name": "extractionMethod.separationMethod.auxiliary_data_channels",
+                    "label": "Auxiliary data channels",
+                    "type": "textarea",
+                    "help": "Descriptions of the auxiliary channels set up to monitor current, power, voltage and pressure applied and values obtained for all steps and state  if this is to be used as  indication of system suitability."
+                },{
+                    "name": "extractionMethod.separationMethod.duration",
+                    "label": "Duration of data collection",
+                    "type": "text",
+                    "help": "Duration of data collection from detector and auxiliary data channels."
+                },{
+                    "name": "extractionMethod.run_description",
+                    "label": "Run description",
+                    "type": "textarea",
+                    "help": "Protocol for the run. Normally follows steps such as (i) preconditioning prior to the first use of a capillary (various flush steps, designed to clean / activate / coat the inner walls of the capillary), (ii) preconditioning (carried on each analysis); (iii) injection; (iv) separation; (v) post-conditioning (again, various flush steps). Each of these steps should be defined as follows:<ul><li>Step name: Descriptor for an individual step in the run. This includes: pre-conditioning, flush, wash, injection, focusing, mobilization and separation steps.</li><li>Step conditions: The conditions applied to the capillary; e.g. pressure or voltages all relative to time and vial locations and contents. This information should include voltage mode (positive/negative, step and hold, or gradient) if applicable. The frequency of vial and/or mobile phase/buffer/gel exchange replenishment intervals should also be detailed. For CIEF mobilization post focusing, state what mode of peak migration used e.g. pressure or vacuum or ionic</li><li>Electrolyte/ampholytes solutions description: for Pre-conditioning, flush, wash and background electrolyte / ampholytes solutions in terms of components with concentrations. pH adjustments made should also be described including temperature. Specify also if solutions have been filtered to remove particulate matter (commonly 0.20-0.45 µm filters used) or ultrasonicated to degas.</li><li>Sample injection description:  Volume of sample solution placed in injection vial (µL), controlled temperature of sample storage (if possible), injection geometry (state whether short or long end injection)…</li></ul>"
+                }
+            ]
+        },
+        {
+            "name": "section_10",
+            "title": "Mass spectrometry (MS) - Equipment details",
+            "fields": [
+                {
+                    "name": "extractionMethod.extraction_method_type",
+                    "type": "hidden",
+                    "value": "MassSpectrometry",
+                    "force": true
+                },
+                {
+                    "name": "extractionMethod.mass_spectrometer_manufacturer",
+                    "label": "Mass spectrometer manufacturer",
+                    "type": "select",
+                    "source": "data/mass_spectrometer_manufacturer.json",
+                    "help": "The manufacturing company for the mass spectrometer."
+                },
+                {
+                    "name": "extractionMethod.mass_spectrometer_model",
+                    "label": "Mass spectrometer model",
+                    "type": "select",
+                    "source": "data/mass_spectrometer_model.json",
+                    "help": "The manufacturing model name for the mass spectrometer."
+                },
+                {
+                    "name": "extractionMethod.customizations",
+                    "label": "Customizations (summary)",
+                    "type": "textarea",
+                    "help": "Any significant (i.e. affecting behaviour) deviations from the manufacturer’s specification for the mass spectrometer."
+                },
+                {
+                    "name": "extractionMethod.ionization_source",
+                    "label": "Ionization source",
+                    "type": "select",
+                    "free": false,
+                    "options": [{
+                            "label": "Electrospray Ionisation (ESI)",
+                            "value": "Electrospray Ionisation (ESI)"
+                        }, {
+                            "label": "MALDI",
+                            "value": "MALDI"
+                        }, {
+                            "label": "Other ion source",
+                            "value": "Other ion source"
+                        }],
+                    "help": "Choose the Ion source"
+                },
+                {
+                    "label": "Electrospray Ionisation (ESI) details",
+                    "type": "subtitle",
+                    "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'"
+                },
+                {
+                    "name": "extractionMethod.supply_type",
+                    "label": "Supply type",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'",
+                    "help": "Whether the sprayer is fed by, for example, chromatography or CE or is loaded with sample once before spraying, such as in static infusion"
+                },
+                {
+                    "name": "extractionMethod.interface_manufacturer_and_model",
+                    "label": "Interface details",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'",
+                    "help": "The manufacturing company and model name for the interface; list any modifications made to the standard specification. If the interface is entirely custom-built, describe it or provide a reference if available."
+                },
+                {
+                    "name": "extractionMethod.sprayer_type_manufacturer_and_model",
+                    "label": "Spayer details",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'",
+                    "help": "The manufacturing company and model name for the sprayer; list any modifications made to the standard specification. If the sprayer is entirely custom-built, describe it briefly or provide a reference if available."
+                },
+                {
+                    "name": "extractionMethod.other_electrospray_ionisation",
+                    "label": "Other details",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'Electrospray Ionisation (ESI)'",
+                    "help": "Where appropriate, and if considered as discriminating elements of the source parameters, describe these values."
+                },
+                {
+                    "label": "MALDI details",
+                    "type": "subtitle",
+                    "dependency": "extractionMethod.ionization_source === 'MALDI'"
+                },
+                {
+                    "name": "extractionMethod.plate_composition",
+                    "label": "Plate composition",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'MALDI'",
+                    "help": "The material of which the target plate is made (usually stainless steel, or coated glass); if the plate has a special construction then that should be briefly described and catalogue and lot numbers given where available."
+                },
+                {
+                    "name": "extractionMethod.matrix_composition",
+                    "label": "Matrix composition",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'MALDI'",
+                    "help": "The material in which the sample is embedded on the target (e.g. alpha-cyano-4-hydroxycinnamic acid)."
+                },
+                {
+                    "name": "extractionMethod.psd_summary",
+                    "label": "PSD summary",
+                    "type": "textarea",
+                    "dependency": "extractionMethod.ionization_source === 'MALDI'",
+                    "help": "Confirm whether post-source decay, laser-induced decomposition, or in-source dissociation was performed; if so provide a brief description of the process (for example, summarize the stepwise reduction of reflector voltage)."
+                },
+                {
+                    "name": "extractionMethod.laser_type_and_wavelength",
+                    "label": "Laser details",
+                    "type": "text",
+                    "dependency": "extractionMethod.ionization_source === 'MALDI'",
+                    "help": "The type of laser and the wavelength (nm) of the generated pulse. For instance nitrogen, 337 nm."
+                },
+                {
+                    "name": "extractionMethod.other_maldi",
+                    "label": "Other details",
+                    "type": "textarea",
+                    "dependency": "extractionMethod.ionization_source === 'MALDI'",
+                    "help": "Other details of the laser used to shoot at the matrix-embedded sample if considered important for the interpretation of data; this might include the pulse energy, focus diameter, attenuation details, pulse duration at full-width half maximum, frequency of shots in Hertz and average number of shots fired to generate each combined mass spectrum."
+                },
+                {
+                    "name": "extractionMethod.other_ionization_description",
+                    "label": "Ion source description",
+                    "type": "textarea",
+                    "dependency": "extractionMethod.ionization_source === 'Other ion source'",
+                    "help": "Describe the ion source and provide relevant and discriminating parameters for its use."
+                }
+            ]
+        },
+        {
+            "name": "section_11",
+            "title": "MS - Post source component details",
+            "fields": [
+                {
+                    "name": "extractionMethod.mass_analyzer_type",
+                    "label": "Analyzer description",
+                    "type": "textarea",
+                    "help": "Describe the analyzer(s) used in the MS experiment. Example might be MS1 survey scans in an Orbitrap and MSn analysed in a linear trap"
+                },
+                {
+                    "name": "extractionMethod.reflectron_status",
+                    "label": "Time-of-Flight drift tube: Reflectron status",
+                    "type": "select",
+                    "free": false,
+                    "options": [{
+                            "label": "on",
+                            "value": "on"
+                        }, {
+                            "label": "off",
+                            "value": "off"
+                        }, {
+                            "label": "none",
+                            "value": "none"
+                        }],
+                    "help": "Time-of-Flight drift tube: Reflectron status (on, off, none) when status can be set."
+                },
+                {
+                    "name": "extractionMethod.activation_location",
+                    "label": "Instrument component where the activation / dissociation occurs",
+                    "type": "text",
+                    "help": "The hardware element where activation and/or dissociation occurs. For instance a quadrupole collision cell, a 3D ion trap, the ion source (for ISD, PSD, LID, isCID)"
+                },
+                {
+                    "name": "extractionMethod.gas_type",
+                    "label": "Gas type",
+                    "type": "text",
+                    "help": "The composition and pressure of the gas used to fragment ions, for instance in the collision cell."
+                },
+                {
+                    "name": "extractionMethod.activation_type",
+                    "label": "Activation / dissociation type",
+                    "type": "text",
+                    "help": "The type of activation and/or dissociation used in the fragmentation process. Examples might include Collision Induced Dissociation (CID) with a static or spread collision energy, Electron Transfer Dissociaton (ETD) with provided activator molecules."
+                }
+            ]
+        },
+        {
+            "name": "section_12",
+            "title": "MS - Spectrum and peak list generation and annotation (data acquisition)",
+            "fields": [
+                {
+                    "name": "extractionMethod.acquisition_software",
+                    "label": "Software and version",
+                    "type": "text",
+                    "help": "The instrument management and data analysis package name and version; where there are several pieces of software involved, give name, version and role for each of them. Mention also upgrades not reflected in the version number."
+                },
+                {
+                    "name": "extractionMethod.acquisition_parameters",
+                    "label": "Acquisition parameters",
+                    "type": "textarea",
+                    "help": "The information on how the MS data have been generated. It describes the instrument’s parameter settings / acquisition method file or information describing the acquisition conditions and settings of the MS run. Ideally this should be a URI+filename, for example an export of the acquisition method (and Tune page or other relevant information where appropriate). This includes for instance if the data are acquired and primarily stored in a profile or centroid mode. An explicit text description of the acquisition process is also desirable. This includes the acquisition sequence (for instance as simplified as top-five method with a cycle made of one full MS1 scan in the Orbitrap, followed by a precursor selection of 5 most intense ions applying an exclusion window of 30 seconds and followed by the acquisition of 5 product ion scans generated in the LTQ analyzer, and detected in the LTQ). This allows to differentiate between the use of a selected precursor window vs unselected fragmentation (MS`E/bbCID/AIF). This also allows to explicitly describe pre-defined the acquisition method of a SRM experiment where all transitions and detection windows are specified."
+                }
+            ]
+        },
+        {
+            "name": "section_13",
+            "title": "MS - Spectrum and peak list generation and annotation (resulting data)",
+            "fields": [
+                {
+                    "label": "Location of source (‘raw’) and processed files",
+                    "value": "See above (File location field)",
+                    "type": "display",
+                    "help": "The technology used to produce the raw data (e.g. RNA-seq)."
+                },
+                {
+                    "name": "extractionMethod.intensity_values",
+                    "label": "m/z and intensity values",
+                    "type": "text",
+                    "help": "The actual data (m/z and intensity) for each spectrum. This is most often provided in the spectra and/or peaklist file."
+                },
+                {
+                    "name": "extractionMethod.ms_level",
+                    "label": "MS level",
+                    "type": "text",
+                    "help": "The MS level (e.g. MS^2) at which each spectrum was acquired. This is most often provided in the spectra or peaklist file."
+                },
+                {
+                    "name": "extractionMethod.ion_mode",
+                    "label": "Ion mode",
+                    "type": "select",
+                    "free": false,
+                    "options": [{
+                            "label": "positive",
+                            "value": "positive"
+                        }, {
+                            "label": "negative",
+                            "value": "negative"
+                        }, {
+                            "label": "none",
+                            "value": "none"
+                        }],
+                    "help": "The ion mode (positive or negative). This is most often provided in the spectra or peaklist file."
+                },
+                {
+                    "name": "extractionMethod.additional_info",
+                    "label": "Additional information for MS level 2",
+                    "type": "text",
+                    "help": "For tandem spectra; in addition to the preceding information,the precursor m/z value and the charge state of the precursor ion should be given; the mass spectrum used to deduce the precursor information should also be provided."
+                }
+            ]
+        }
+    ]
+}

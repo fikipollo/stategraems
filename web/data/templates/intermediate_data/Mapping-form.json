@@ -9,17 +9,20 @@
                     "name": "other_fields.genome_specie",
                     "label": "Reference genome specie",
                     "type": "select",
-                    "source": "data/organisms.json"
+                    "source": "data/organisms.json",
+                    "help": "Identify the organism whose genome was used as reference."
                 },
                 {
                     "name": "other_fields.genome_version",
                     "label": "Genome version",
-                    "type": "text"
+                    "type": "text",
+                    "help": "Identify the version of the genome used as reference."
                 },
                 {
                     "name": "other_fields.genome_source",
                     "label": "Genome source",
-                    "type": "text"
+                    "type": "text",
+                    "help": "Specify the location or external source where the reference genome can be found."
                 }
             ]
         }

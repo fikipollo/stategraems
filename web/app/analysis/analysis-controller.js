@@ -77,12 +77,6 @@
          ******************************************************************************/
         this.retrieveAnalysisData = function (group, force) {
             $scope.setLoading(true);
-            if (!Cookies.get("currentExperimentID")) {
-                $dialogs.showInfoDialog("Please, choose first an study at the \"Browse studies\" section.");
-                $state.go('experiments');
-                return;
-            }
-
             if (AnalysisList.getOld() > 1 || force) { //Max age for data 5min.
                 $http($rootScope.getHttpRequestConfig("POST", "analysis-list", {
                     headers: {'Content-Type': 'application/json'},
@@ -280,6 +274,12 @@
          ******************************************************************************/
         this.name = "AnalysisListController";
         var me = this;
+
+        if (!Cookies.get("currentExperimentID")) {
+            $dialogs.showInfoDialog("Please, choose first an study at the \"Browse studies\" section.");
+            $state.go('experiments');
+            return;
+        }
 
         //This controller uses the AnalysisList, which defines a Singleton instance of
         //a list of analysis + list of tags + list of filters. Hence, the application will not
@@ -842,6 +842,21 @@
                 return true;
             };
         };
+        
+        $scope.countStepsByClassification = function(classification){
+            var count = 0;
+            for(var i in $scope.model.non_processed_data){
+                if($scope.model.non_processed_data[i].type === classification){
+                    count++;
+                }
+            }  
+            for(var i in $scope.model.processed_data){
+                if($scope.model.processed_data[i].type === classification){
+                    count++;
+                }
+            }
+            return count;
+        };
 
         /******************************************************************************      
          *            _____   _____ _  _ _____         
@@ -905,9 +920,10 @@
                         if ($scope.typesInfo.step_type === "rawdata") {
                             step.type = "rawdata";
                             step.raw_data_type = $scope.typesInfo.step_subtype.replace(/ /g, "_");
-                            step.extractionMethod = {extraction_method_type: $scope.typesInfo.step_subtype.replace(/ /g, "_")};
                             step.step_name = "Unnamed " + step.raw_data_type + " step";
                             step.analyticalReplicate_id = null;
+                            step.extractionMethod = {extraction_method_type: $scope.typesInfo.step_subtype.replace(/ /g, "_"), separationMethod: {}};
+
                             $scope.model.non_processed_data.push(step);
                             $scope.model.nextStepID++;
                         } else if ($scope.typesInfo.step_type === "intermediate_data") {
@@ -933,7 +949,7 @@
                         delete $scope.typesInfo;
                         delete $scope.isModal;
 
-                        $rootScope.$emit(APP_EVENTS.stepChanged);
+                        $rootScope.$broadcast(APP_EVENTS.stepChanged);
 
                         me.showStepDetails(step);
                     },
@@ -958,21 +974,23 @@
          *
          ******************************************************************************/
         this.updateStepSubtypes = function () {
-            $http($rootScope.getHttpRequestConfig("GET", "analysis-step-subtypes", {
-                params: {'step_type': $scope.typesInfo.step_type}
-            })).then(
-                    function successCallback(response) {
-                        $scope.typesInfo.step_subtypes = response.data.subtypes;
-                    },
-                    function errorCallback(response) {
-                        var message = "Failed while retrieving the step subtypes.";
-                        $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at AnalysisDetailController:updateStepSubtypes."
-                        });
-                        console.error(response.data);
-                        debugger
-                    }
-            );
+            if ($scope.typesInfo.step_type) {
+                $http($rootScope.getHttpRequestConfig("GET", "analysis-step-subtypes", {
+                    params: {'step_type': $scope.typesInfo.step_type}
+                })).then(
+                        function successCallback(response) {
+                            $scope.typesInfo.step_subtypes = response.data.subtypes;
+                        },
+                        function errorCallback(response) {
+                            var message = "Failed while retrieving the step subtypes.";
+                            $dialogs.showErrorDialog(message, {
+                                logMessage: message + " at AnalysisDetailController:updateStepSubtypes."
+                            });
+                            console.error(response.data);
+                            debugger
+                        }
+                );
+            }
         };
 
         /******************************************************************************
@@ -1074,6 +1092,7 @@
         this.cancelButtonHandler = function () {
             //TODO: REMOVE COUNTERS AND UNLOCK EXPERIMENT
             $scope.clearTaskQueue();
+            AnalysisList.setNewAnalysis(null);
 
             if ($scope.viewMode === 'view') {
                 $state.go('analysis');
@@ -1105,6 +1124,12 @@
         this.name = "AnalysisDetailController";
         var me = this;
 
+        if (!Cookies.get("currentExperimentID")) {
+            $dialogs.showInfoDialog("Please, choose first an study at the \"Browse studies\" section.");
+            $state.go('experiments');
+            return;
+        }
+
         if (!$scope.isModal) {
             //The corresponding view will be watching to this variable
             //and update its content after the http response
@@ -1115,6 +1140,7 @@
             $scope.getFormTemplate('analysis-form');
 
             if ($stateParams.analysis_id !== null) {
+                AnalysisList.setNewAnalysis(null);
                 this.retrieveAnalysisDetails($stateParams.analysis_id);
             } else {
                 $scope.model.analysis_id = "ANxxxx";
@@ -1126,11 +1152,12 @@
                 $scope.model.non_processed_data = [];
                 $scope.model.processed_data = [];
                 $scope.model.nextStepID = 1;
+                AnalysisList.setNewAnalysis($scope.model);
             }
         }
     });
 
-    app.controller('StepDetailController', function ($state, $rootScope, $scope, $http, $uibModal, APP_EVENTS, AnalysisList, SampleList, TemplateList) {
+    app.controller('StepDetailController', function ($state, $rootScope, $scope, $http, $uibModal, $dialogs, APP_EVENTS, AnalysisList, SampleList, TemplateList) {
         /******************************************************************************      
          *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
          *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
@@ -1211,30 +1238,31 @@
          * 
          * @param {String} added_step_id the identifier for the new input step
          * @param {Boolean} doDigest force the digest that updates the model
-         * @returns {StepDetailController} the controller
-         * @chainable
+         * @returns {Boolean} true if step is added successfully.
          ******************************************************************************/
         this.addSelectedInputFileHandler = function (added_step_id, doDigest) {
             var propertyName = $scope.propertyName || 'used_data';
 
             var pos = $scope.model[propertyName].indexOf(added_step_id);
-            if (pos === -1) {
+            var isLoop = AnalysisList.checkLoop(added_step_id, $scope.model.step_id, propertyName);
+            if (!isLoop && pos === -1) {
                 $scope.model[propertyName].push(added_step_id);
                 if (doDigest === true) {
                     $scope.$digest();
                 }
+            } else {
+                console.log("Loop detected, ignoring...");
             }
-            return this;
+            return true;
         };
 
         /******************************************************************************
          * This function handles the event fired when an input file for a step is
          * removed from the list.
          * 
-         * @param {String} added_step_id the identifier for the new input step
+         * @param {String} removed_step_id the identifier for the input step
          * @param {Boolean} doDigest force the digest that updates the model
-         * @returns {StepDetailController} the controller
-         * @chainable
+         * @returns {Boolean} true if step is removed successfully.
          ******************************************************************************/
         this.removeSelectedInputFileHandler = function (removed_step_id, doDigest) {
             var propertyName = $scope.propertyName || 'used_data';
@@ -1246,7 +1274,7 @@
                     $scope.$digest();
                 }
             }
-            return this;
+            return true;
         };
 
         /******************************************************************************
@@ -1255,7 +1283,7 @@
         this.removeStepHandler = function () {
             //TODO: CHECK IF CONTAINS NOT REMOVABLE AS
             AnalysisList.updateModelStatus($scope.model, "deleted");
-            $rootScope.$emit(APP_EVENTS.stepChanged);
+            $rootScope.$broadcast(APP_EVENTS.stepChanged);
         };
 
         /******************************************************************************
@@ -1264,7 +1292,72 @@
          ******************************************************************************/
         this.unremoveStepHandler = function () {
             AnalysisList.updateModelStatus($scope.model, "undo");
-            $rootScope.$emit(APP_EVENTS.stepChanged);
+            $rootScope.$broadcast(APP_EVENTS.stepChanged);
+        };
+
+        this.sendStepToGalaxyHandler = function (model) {
+            $scope.files_selection = {
+                destination: '',
+                selection: 'all',
+                files: []
+            };
+
+            $scope.modalInstance = $uibModal.open({
+                templateUrl: 'app/analysis/send-step-dialog.tpl.html',
+                scope: $scope,
+                backdrop: 'static',
+                size: 'md'
+            });
+
+        };
+
+        this.changeFileSelection = function (file) {
+            var pos = $scope.files_selection.files.indexOf(file);
+            if (pos !== -1) {
+                $scope.files_selection.files.splice(pos, 1);
+            } else {
+                $scope.files_selection.files.push(file);
+            }
+        };
+
+        this.closeSendStepDialogHandler = function (option) {
+            if (option === 'send') {
+                $scope.setLoading(true);
+                if ($scope.files_selection.selection === "all") {
+                    $scope.files_selection.files = $scope.model.files_location;
+                }
+
+                $http($rootScope.getHttpRequestConfig("POST", "file-rest", {
+                    headers: {'Content-Type': 'application/json; charset=utf-8'},
+                    data: {
+                        files: $scope.files_selection.files,
+                        destination: $scope.files_selection.destination
+                    },
+                    extra: "send"
+                })).then(
+                        function successCallback(response) {
+                            $scope.setLoading(false);
+                            if (response.data.errors === "") {
+                                $dialogs.showSuccessDialog("The selected files have being sent successfully.");
+                            } else {
+                                $dialogs.showWarningDialog("Some errors were found while sending the selected files: " + response.data.errors);
+                            }
+                        },
+                        function errorCallback(response) {
+                            $scope.setLoading(false);
+                            var message = "Failed while sending the files.";
+                            $dialogs.showErrorDialog(message, {
+                                logMessage: message + " at AnalysisDetailController:closeSendStepDialogHandler."
+                            });
+                            console.error(response.data);
+                            debugger
+                        }
+                );
+            }
+
+            $scope.modalInstance.close();
+            delete $scope.modalInstance;
+            delete $scope.files_selection;
         };
 
         /******************************************************************************
@@ -1282,7 +1375,7 @@
             var hasChanged = AnalysisList.hasChangedStep(newValues, oldValues);
             if (hasChanged) {
                 AnalysisList.updateModelStatus($scope.model, "edited");
-                $rootScope.$emit(APP_EVENTS.stepChanged);
+                $rootScope.$broadcast(APP_EVENTS.stepChanged);
                 return true;
             }
             return false;

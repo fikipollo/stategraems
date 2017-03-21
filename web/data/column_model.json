@@ -1,0 +1,105 @@
+{
+    "success": true,
+    "extractionMethod.separationMethod.column_model": [
+        {
+            "label": "Agilent 1220 Infinity LC System",
+            "value": "Agilent 1220 Infinity LC System"
+        },
+        {
+            "label": "Agilent 1260 Infinity Binary LC System",
+            "value": "Agilent 1260 Infinity Binary LC System"
+        },
+        {
+            "label": "Agilent 1260 Infinity Isocratic LC System",
+            "value": "Agilent 1260 Infinity Isocratic LC System"
+        },
+        {
+            "label": "Agilent 1260 Infinity Quaternary LC System",
+            "value": "Agilent 1260 Infinity Quaternary LC System"
+        },
+        {
+            "label": "Agilent 1290 Infinity Binary LC System",
+            "value": "Agilent 1290 Infinity Binary LC System"
+        },
+        {
+            "label": "Agilent 1290 Infinity Quaternary LC System",
+            "value": "Agilent 1290 Infinity Quaternary LC System"
+        },
+        {
+            "label": "Agilent 490 Micro GC",
+            "value": "Agilent 490 Micro GC"
+        },
+        {
+            "label": "Agilent 490-PRO Micro GC",
+            "value": "Agilent 490-PRO Micro GC"
+        },
+        {
+            "label": "Agilent 6850 Series II GC",
+            "value": "Agilent 6850 Series II GC"
+        },
+        {
+            "label": "Agilent 7696A GC",
+            "value": "Agilent 7696A GC"
+        },
+        {
+            "label": "Agilent 7820A GC",
+            "value": "Agilent 7820A GC"
+        },
+        {
+            "label": "Agilent 7890A GC",
+            "value": "Agilent 7890A GC"
+        },
+        {
+            "label": "Agilent 7890B GC",
+            "value": "Agilent 7890B GC"
+        },
+        {
+            "label": "Bruker Easy-nLC I",
+            "value": "Bruker Easy-nLC I"
+        },
+        {
+            "label": "Bruker Easy-nLC II",
+            "value": "Bruker Easy-nLC II"
+        },
+        {
+            "label": "Bruker nano-Advance UHPLC",
+            "value": "Bruker nano-Advance UHPLC"
+        },
+        {
+            "label": "Bruker SCION 436-GC",
+            "value": "Bruker SCION 436-GC"
+        },
+        {
+            "label": "Bruker SCION 456-GC",
+            "value": "Bruker SCION 456-GC"
+        },
+        {
+            "label": "Shimadzu GC-2010 Plus",
+            "value": "Shimadzu GC-2010 Plus"
+        },
+        {
+            "label": "Shimadzu GC-2014",
+            "value": "Shimadzu GC-2014"
+        },
+        {
+            "label": "Shimadzu GC 8A",
+            "value": "Shimadzu GC 8A"
+        },
+        {
+            "label": "Shimadzu LC-2010HT",
+            "value": "Shimadzu LC-2010HT"
+        },
+        {
+            "label": "Shimadzu MDGC/GCMS-2010",
+            "value": "Shimadzu MDGC/GCMS-2010"
+        },
+        {
+            "label": "Shimadzu Nexera X2 SR LC",
+            "value": "Shimadzu Nexera X2 SR LC"
+        },
+        {
+            "label": "Shimadzu Tracera  GC",
+            "value": "Shimadzu Tracera  GC"
+        }
+    ]
+}

@@ -50,12 +50,13 @@ public class Protocol_JDBCDAO extends DAO {
 
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "INSERT INTO treatment SET "
-                + "treatment_id = ?, treatment_name = ?, description = ?, biomolecule = ?");
+                + "treatment_id = ?, treatment_name = ?, description = ?, biomolecule = ?, files_location = ?");
 
         ps.setString(1, protocol.getProtocolID());
         ps.setString(2, protocol.getProtocolName());
         ps.setString(3, protocol.getDescription());
         ps.setString(4, protocol.getBiomolecule());
+        ps.setString(5, concatString("$$", protocol.getFilesLocation()));
         ps.execute();
 
         //Add new entries into the treatment_owners table.
@@ -83,13 +84,14 @@ public class Protocol_JDBCDAO extends DAO {
 
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "UPDATE treatment SET "
-                + " treatment_name = ?, description = ?, biomolecule = ? "
+                + " treatment_name = ?, description = ?, biomolecule = ?, files_location = ? "
                 + "WHERE treatment_id = ?");
 
         ps.setString(1, protocol.getProtocolName());
         ps.setString(2, protocol.getDescription());
         ps.setString(3, protocol.getBiomolecule());
-        ps.setString(4, protocol.getProtocolID());
+        ps.setString(4, concatString("$$", protocol.getFilesLocation()));
+        ps.setString(5, protocol.getProtocolID());
 
         ps.execute();
 
@@ -132,6 +134,7 @@ public class Protocol_JDBCDAO extends DAO {
             protocol.setProtocolName(rs.getString("treatment_name"));
             protocol.setBiomolecule(rs.getString("biomolecule"));
             protocol.setDescription(rs.getString("description"));
+            protocol.setFilesLocation(rs.getString("files_location").split("\\$\\$"));
 
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT user_id FROM treatment_owners WHERE treatment_id = ?");
             ps.setString(1, protocol.getProtocolID());
@@ -168,6 +171,7 @@ public class Protocol_JDBCDAO extends DAO {
             protocol.setProtocolName(rs.getString("treatment_name"));
             protocol.setBiomolecule(rs.getString("biomolecule"));
             protocol.setDescription(rs.getString("description"));
+            protocol.setFilesLocation(rs.getString("files_location").split("\\$\\$"));
 
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT user_id FROM treatment_owners WHERE treatment_id = ?");
             ps.setString(1, protocol.getProtocolID());

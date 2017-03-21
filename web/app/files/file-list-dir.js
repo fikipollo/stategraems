@@ -59,23 +59,23 @@
                             }
                         }
                     });
-                    
-                    
+
+
                     if ($scope.models !== null) {
-                        var checkNode = function(search, node){
-                            if(search[0] === node.text){
-                                if(search.length > 1){
+                        var checkNode = function (search, node) {
+                            if (node && search[0] === node.text) {
+                                if (search.length > 1) {
                                     search.shift();
-                                    for(var i in node.nodes){
+                                    for (var i in node.nodes) {
                                         checkNode(search, node.nodes[i]);
                                     }
-                                }else{
+                                } else {
                                     $('#files-tree-container').treeview('checkNode', [node.nodeId]);
                                 }
                             }
                         };
-                        
-                        for(var i in $scope.models){
+
+                        for (var i in $scope.models) {
                             checkNode($scope.models[i].split("/"), $('#files-tree-container').data('treeview').getNode(0));
                         }
                     }
@@ -182,4 +182,53 @@
         };
     });
 
+    app.directive("fileListPanel", function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'app/files/file-list.tpl.html'
+        };
+    });
+
+    app.directive("fileListInput", function () {
+        return {
+            restrict: 'E',
+            replace: true,
+            controller: 'DatasetListController',
+            template:
+                    '<select class="form-control" name="input_{{step.id}}" style=" max-width: 350px; display: inline-block; margin-left: 10px; "' +
+                    '        ng-model="step.inputs[0].value" ng-init="step.inputs[0].value = null"' +
+                    '        ng-options="file.id as file.name for file in filtered = (displayedHistory.content | filter:filterDatasets) "' +
+                    '        required>' +
+                    '  <option disabled value=""> -- Choose a file </option>' +
+                    '</select>'
+        };
+    });
+
+    app.directive("fileUploadPanel", function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'app/files/file-upload.tpl.html'
+        };
+    });
+
+    app.directive('fileModel', ['$parse', function ($parse) {
+            return {
+                restrict: 'A',
+                link: function ($scope, element, attrs) {
+                    element.bind('change', function () {
+                        $scope.$apply(function () {
+                            element[0].files[0].state = "pending"
+                            $scope.uploadFiles.push(element[0].files[0]);
+                        });
+                    });
+                }
+            };
+        }]);
+
+    app.directive("fileIrodsPullPanel", function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'app/files/file-irods-pull.tpl.html'
+        };
+    });
 })();

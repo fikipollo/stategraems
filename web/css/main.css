@@ -278,6 +278,10 @@ table.table td:nth-child(1) {text-align: left;}
     border-top: 4px #FFB0B0 solid !important;
 }
 
+.step-classification-title{
+    color: #ea8f60; font-weight: lighter; margin-left: 5px; margin-bottom: 20px; margin-top: 40px;
+}
+
 .section_box:nth-child(2n){border-top: 4px #F1D460 solid !important;}
 
 .section_box:nth-child(3n){border-top: 4px #C6E05C solid !important;}
@@ -442,6 +446,14 @@ textarea.ng-valid-required:read-write {
     margin: 7px auto;
 }
 
+.homeMainButton  i.fa{
+    font-size: 95px;
+    margin: 20px;
+}
+
+.homeMainButton:nth-child(odd)  i.fa{
+    color:#0CB3DE;
+}
 /*------------------------------------------------------*/
 /*STYLES FOR sessionToolbar                             */
 /*------------------------------------------------------*/

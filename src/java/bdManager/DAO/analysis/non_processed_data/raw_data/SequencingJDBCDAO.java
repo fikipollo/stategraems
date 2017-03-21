@@ -122,6 +122,8 @@ public class SequencingJDBCDAO extends DAO {
         Sequencing sequencing_instance = null;
         if(otherParams != null){
             sequencing_instance = (Sequencing) otherParams[0];
+        }else{
+            sequencing_instance = new Sequencing();
         }
         
          PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""

@@ -163,8 +163,8 @@
                     }
             );
         };
-        
-                /******************************************************************************      
+
+        /******************************************************************************      
          * This function send a membership requests to the administrators of the 
          * experiment. 
          * @return   
@@ -447,12 +447,16 @@
                 data: $rootScope.getCredentialsParams({'experiment_json_data': $scope.model}),
             })).then(
                     function successCallback(response) {
-                        console.info((new Date()).toLocaleString() + "Study " + $scope.model.experiment_id + " successfully saved in server");
                         $scope.model.experiment_id = response.data.newID;
                         ExperimentList.addExperiment($scope.model);
-//                        //Notify all the other controllers that a new experiment exists
-//                        $rootScope.$emit(APP_EVENTS.experimentCreated);
+                        //Notify all the other controllers that a new experiment exists
+                        $rootScope.$broadcast(APP_EVENTS.experimentCreated);
                         $scope.setLoading(false);
+                        if (response.data.warning_message !== "") {
+                            $dialogs.showWarningDialog("Study " + $scope.model.experiment_id + " successfully saved in server, but some problems were detected: " + response.data.warning_message, {title: "Study " + $scope.model.experiment_id + " saved in server"});
+                        } else {
+                            console.info((new Date()).toLocaleString() + "Study " + $scope.model.experiment_id + " successfully saved in server");
+                        }
 
                         callback_caller[callback_function](true);
                     },
@@ -508,8 +512,13 @@
                 data: $rootScope.getCredentialsParams({'experiment_json_data': $scope.model}),
             })).then(
                     function successCallback(response) {
-                        console.info((new Date()).toLocaleString() + "Study " + $scope.model.experiment_id + " successfully updated in server");
                         $scope.setLoading(false);
+                        if (response.data.warning_message !== "") {
+                            $dialogs.showWarningDialog("Study " + $scope.model.experiment_id + " successfully saved in server, but some problems were detected: " + response.data.warning_message, {title: "Study " + $scope.model.experiment_id + " saved in server"});
+                        } else {
+                            console.info((new Date()).toLocaleString() + "Study " + $scope.model.experiment_id + " successfully saved in server");
+                        }
+                        
                         callback_caller[callback_function](true);
                     },
                     function errorCallback(response) {
@@ -712,16 +721,16 @@
          ******************************************************************************/
         $scope.setViewMode = function (mode, restore) {
             if (mode === 'view') {
-                $scope.panel_title = "Experiment details.";
+                $scope.panel_title = "Study details.";
                 $scope.clearCountdownDialogs();
                 if (restore === true) {
                     me.retrieveExperimentDetails($scope.model.experiment_id, true);
                 }
             } else if (mode === 'creation') {
-                $scope.panel_title = "Experiment creation.";
+                $scope.panel_title = "Study creation.";
                 $scope.addNewTask("create_new_experiment", null);
             } else if (mode === 'edition') {
-                $scope.panel_title = "Experiment edition.";
+                $scope.panel_title = "Study edition.";
                 this.addNewTask("clear_locked_status", null);
             }
             $scope.viewMode = mode;//'view', 'creation', 'edition'
@@ -770,6 +779,10 @@
                     data: $rootScope.getCredentialsParams({'experiment_id': $scope.model.experiment_id, loggedUserID: current_user_id}),
                 })).then(
                         function successCallback(response) {
+                            if ($scope.model.experiment_id === Cookies.get('currentExperimentID')) {
+                                Cookies.remove("currentExperimentID", {path: window.location.pathname});
+                            }
+
                             $scope.setLoading(false);
                             //Notify all the other controllers that user has signed in
                             $rootScope.$emit(APP_EVENTS.experimentDeleted);
@@ -806,7 +819,7 @@
             this.execute_tasks(true);
             return this;
         };
-        
+
         /******************************************************************************
          * This function send a Edition request to the server in order to block the Experiment
          * avoiding that other users edit it before the user saves the changes.

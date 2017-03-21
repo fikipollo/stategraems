@@ -5,13 +5,13 @@
             <h4 class="form_subtitle">The Experiment Management System</h4>
             <div class="panel panel-container">
                 <a class="btn btn-default homeMainButton" ui-sref="experiments()">
-                    <img src="css/experiments_128x128.png"><span>Studies</span>
+                    <i class="fa fa-book fa-5" aria-hidden="true" ></i><p>Studies</p>
                 </a>
                 <a class="btn btn-default homeMainButton" ui-sref="samples()">
-                    <img src="css/samples_128x128.png"><span>Samples</span>
+                    <i class="fa fa-heart-o fa-5" aria-hidden="true" ></i><p>Samples</p>
                 </a>
                 <a class="btn btn-default homeMainButton" ui-sref="analysis()">
-                    <img src="css/analysis_128x128.png"><span>Analysis</span>
+                    <i class="fa fa-sitemap fa-5" aria-hidden="true" ></i><p>Analysis</p>
                 </a>
                 <h4>Please choose an option below to start working</h4>
             </div>
@@ -36,6 +36,8 @@
         <div class="col-md-6" >
             <message-inbox ng-controller="MessageListController as controller" ng-init="show = 'unread'; lite=true; title='Unread messages'; limit=2"></message-inbox>
         </div>
-
+        <div class="col-md-12" >
+            <user-admin-tools-panel style="height: 170px; margin-top: 20px;"></user-admin-tools-panel>
+        </div>
     </div>
 </div>

@@ -22,7 +22,6 @@ package servlets;
 import bdManager.DAO.DAO;
 import bdManager.DAO.DAOProvider;
 import bdManager.DAO.Experiment_JDBCDAO;
-import bdManager.DBConnectionManager;
 import classes.Experiment;
 import classes.Message;
 import classes.User;
@@ -34,16 +33,12 @@ import common.ServerErrorManager;
 import java.io.File;
 import java.io.IOException;
 import java.security.AccessControlException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.codec.binary.StringUtils;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 
 /**
@@ -81,14 +76,12 @@ public class Experiment_servlets extends Servlet {
             remove_experiment_handler(request, response);
         } else if (request.getServletPath().equals("/change_current_experiment")) {
             change_current_experiment_handler(request, response);
-        } else if (request.getServletPath().equals("/dump_database")) {
-            dump_database_handler(request, response);
         } else if (request.getServletPath().equals("/get_experiment_directory_content")) {
             get_experiment_directory_content_handler(request, response);
         } else if (request.getServletPath().equals("/experiment_member_request")) {
             process_new_membership_request(request, response);
         } else {
-            common.ServerErrorManager.addErrorMessage(3, Protocols_servlets.class.getName(), "doPost", "What are you doing here?.");
+            common.ServerErrorManager.addErrorMessage(3, Experiment_servlets.class.getName(), "doPost", "What are you doing here?.");
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -107,6 +100,7 @@ public class Experiment_servlets extends Servlet {
             String LOCKED_ID = null;
             boolean ROLLBACK_NEEDED = false;
             DAO dao_instance = null;
+            String warning_message = "";
 
             try {
                 JsonParser parser = new JsonParser();
@@ -153,6 +147,20 @@ public class Experiment_servlets extends Servlet {
                  */
                 experiment.setExperimentID(newID);
 
+                if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType()) || "none".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+                    experiment.setDataDirectoryHost("");
+                    experiment.setDataDirectoryPort("");
+                    experiment.setDataDirectoryUser("");
+                    experiment.setDataDirectoryPass("");
+
+                    if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+                        File f = new File(experiment.getDataDirectoryPath() + File.separator + ".stategraems_dir");
+                        if (!f.exists()) {
+                            warning_message = "Invalid directory. To enable the selected directory, please create a new file called '.stategraems_dir' in the selected path.";
+                        }
+                    }
+                }
+
                 /**
                  * *******************************************************
                  * STEP 5 Add the new Object in the DATABASE. IF ERROR -->
@@ -169,17 +177,18 @@ public class Experiment_servlets extends Servlet {
                  * ERROR --> throws SQL Exception, GO TO STEP 6b ELSE --> GO TO
                  * STEP 7 ******************************************************
                  */
-                boolean success = (new File(DATA_LOCATION + File.separator + newID + File.separator + "analysis_images")).mkdirs();
-                if (!success) {
-                    // Directory creation failed
-                    throw new Exception("Unable to create the new Experiment folder. Please check if the Tomcat user has read/write permissions over the data application directory.");
-                }
-                success = (new File(DATA_LOCATION + File.separator + newID + File.separator + "experimentDataDirectoryContent.txt")).createNewFile();
-                if (!success) {
-                    // Directory creation failed
-                    throw new Exception("Unable to create the new Experiment folder. Please check if the Tomcat user has read/write permissions over the data application directory.");
-                }
-
+                // DEPRECATED
+                //boolean success = (new File(DATA_LOCATION + File.separator + newID + File.separator + "analysis_images")).mkdirs();
+                //if (!success) {
+                //    // Directory creation failed
+                //    throw new Exception("Unable to create the new Experiment folder. Please check if the Tomcat user has read/write permissions over the data application directory.");
+                //}
+                //success = (new File(DATA_LOCATION + File.separator + newID + File.separator + "experimentDataDirectoryContent.txt")).createNewFile();
+                //if (!success) {
+                //    // Directory creation failed
+                //    throw new Exception("Unable to create the new Experiment folder. Please check if the Tomcat user has read/write permissions over the data application directory.");
+                //}
+                //UPDATE THE INFORMATION FOR DATA DIR (REMOVE UNNECESARY DATA)
                 /**
                  * *******************************************************
                  * STEp 7 COMMIT CHANGES TO DATABASE. throws SQLException IF
@@ -190,7 +199,7 @@ public class Experiment_servlets extends Servlet {
                 dao_instance.doCommit();
 
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "add_experiment_handler", e.getMessage());
+                ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "add_experiment_handler", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -207,6 +216,7 @@ public class Experiment_servlets extends Servlet {
                 } else {
                     JsonObject obj = new JsonObject();
                     obj.add("newID", new JsonPrimitive(LOCKED_ID));
+                    obj.add("warning_message", new JsonPrimitive(warning_message));
                     response.getWriter().print(obj.toString());
                 }
 
@@ -224,7 +234,7 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "add_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "add_experiment_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -235,6 +245,7 @@ public class Experiment_servlets extends Servlet {
 
             boolean ROLLBACK_NEEDED = false;
             DAO dao_instance = null;
+            String warning_message = "";
 
             try {
                 /**
@@ -285,6 +296,25 @@ public class Experiment_servlets extends Servlet {
                     throw new AccessControlException("Cannot update selected Experiment. Current user has not privileges over this Experiment.");
                 }
 
+                //UPDATE THE INFORMATION FOR DATA DIR (REMOVE UNNECESARY DATA)
+                if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType()) || "none".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+                    experiment.setDataDirectoryHost("");
+                    experiment.setDataDirectoryPort("");
+                    experiment.setDataDirectoryUser("");
+                    experiment.setDataDirectoryPass("");
+                    
+                    if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+                        File f = new File(experiment.getDataDirectoryPath() + File.separator + ".stategraems_dir");
+                        if (!f.exists()) {
+                            warning_message = "Invalid directory. To enable the selected directory, please create a new file called '.stategraems_dir' in the selected path.";
+                        }
+                    }
+
+                } else if (!"".equalsIgnoreCase(experiment.getDataDirectoryPass()) && !"dummypassword".equalsIgnoreCase(experiment.getDataDirectoryPass())) {
+                    //KEEP PREVIOUS PASS
+                    experiment.setDataDirectoryPass(experimentAux.getDataDirectoryPass());
+                }
+
                 dao_instance.disableAutocommit();
                 ROLLBACK_NEEDED = true;
                 dao_instance.update(experiment);
@@ -299,7 +329,7 @@ public class Experiment_servlets extends Servlet {
                 dao_instance.doCommit();
 
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "update_experiment_handler", e.getMessage());
+                ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "update_experiment_handler", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -316,6 +346,7 @@ public class Experiment_servlets extends Servlet {
                 } else {
                     JsonObject obj = new JsonObject();
                     obj.add("success", new JsonPrimitive(true));
+                    obj.add("warning_message", new JsonPrimitive(warning_message));
                     response.getWriter().print(obj.toString());
                 }
                 /**
@@ -329,7 +360,7 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "update_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "update_experiment_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -376,7 +407,7 @@ public class Experiment_servlets extends Servlet {
                 Object[] params = {loadRecursive};
                 experimentsList = dao_instance.findAll(params);
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "get_all_experiments_handler", e.getMessage());
+                ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "get_all_experiments_handler", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -395,6 +426,7 @@ public class Experiment_servlets extends Servlet {
                     String experimentsJSON = "[";
 
                     for (int i = 0; i < experimentsList.size(); i++) {
+                        ((Experiment) experimentsList.get(i)).setDataDirectoryPass("dummypassword");
                         experimentsJSON += ((Experiment) experimentsList.get(i)).toJSON() + ((i < experimentsList.size() - 1) ? "," : "");
                     }
                     experimentsJSON += "]";
@@ -412,7 +444,7 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "get_all_experiments_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "get_all_experiments_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -459,9 +491,10 @@ public class Experiment_servlets extends Servlet {
                 Object[] params = {loadRecursive};
                 String experiment_id = requestData.get("experiment_id").getAsString();
                 experiment = (Experiment) dao_instance.findByID(experiment_id, params);
+                experiment.setDataDirectoryPass("dummypassword");
 
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "get_experiment_handler", e.getMessage());
+                ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "get_experiment_handler", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -490,7 +523,7 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "get_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "get_experiment_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -528,7 +561,7 @@ public class Experiment_servlets extends Servlet {
                 locker_id = BlockedElementsManager.getBlockedElementsManager().getLockerID(experimentID);
             }
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "lock_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "lock_experiment_handler", e.getMessage());
         } finally {
             /**
              * *******************************************************
@@ -590,7 +623,7 @@ public class Experiment_servlets extends Servlet {
             String experiment_id = requestData.get("experiment_id").getAsString();
             alreadyLocked = !BlockedElementsManager.getBlockedElementsManager().unlockObject(experiment_id, loggedUser);
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "unlock_analysis_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "unlock_analysis_handler", e.getMessage());
         } finally {
             /**
              * *******************************************************
@@ -713,7 +746,7 @@ public class Experiment_servlets extends Servlet {
                 } else if (e.getClass().getSimpleName().equals("AccessControlException")) {
                     ServerErrorManager.handleException(null, null, null, e.getMessage());
                 } else {
-                    ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "remove_experiment_handler", e.getMessage());
+                    ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "remove_experiment_handler", e.getMessage());
                 }
             } finally {
                 /**
@@ -747,7 +780,7 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "remove_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "remove_experiment_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -794,7 +827,7 @@ public class Experiment_servlets extends Servlet {
                 valid_experiment = ((Experiment_JDBCDAO) dao_instance).checkValidExperiment(experiment_id, user_id);
 
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
+                ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -825,62 +858,9 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
+            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
-        }
-    }
-
-    private void dump_database_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String backup_file_location = DATA_LOCATION + "/STATegraDB_content_backup_" + new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date()) + ".sql";
-
-        try {
-            /**
-             * *******************************************************
-             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
-             * --> throws exception if not valid session, GO TO STEP 4b ELSE -->
-             * GO TO STEP 2
-             * *******************************************************
-             */
-            if (!checkAccessPermissions(request.getParameter("loggedUser"), request.getParameter("sessionToken"))) {
-                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-            }
-
-            if (!"admin".equals(request.getParameter("loggedUser"))) {
-                throw new AccessControlException(request.getParameter("loggedUser") + " is no allowed for this operation.");
-            }
-
-            /**
-             * *******************************************************
-             * STEP 2 EXECUTE THE DUMP SCRIPT. IF ERROR --> throws exception if
-             * failed dump, GO TO STEP 3b ELSE --> GO TO STEP 3
-             * *******************************************************
-             */
-            DBConnectionManager.getConnectionManager().doDatabaseDump(backup_file_location);
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "dump_database_handler", e.getMessage());
-        } finally {
-            /**
-             * *******************************************************
-             * STEP 3b CATCH ERROR. GO TO STEP 5
-             * *******************************************************
-             */
-            if (ServerErrorManager.errorStatus()) {
-                response.setStatus(400);
-                response.getWriter().print(ServerErrorManager.getErrorResponse());
-
-                File file = new File(backup_file_location);
-                if (file.exists()) {
-                    file.delete();
-                }
-            } else {
-                /**
-                 * *******************************************************
-                 * STEP 3A WRITE RESPONSE ERROR.
-                 * *******************************************************
-                 */
-                response.getWriter().print("{success: " + true + ", location: '" + backup_file_location + "' }");
-            }
         }
     }
 
@@ -933,10 +913,10 @@ public class Experiment_servlets extends Servlet {
                     throw new AccessControlException("Cannot get files for selected Experiment. Current useris not a valid member for this Experiment.");
                 }
 
-                directoryContent = experiment.getExperimentDataDirectoryContent(DATA_LOCATION);
+                directoryContent = experiment.getExperimentDataDirectoryContent();
 
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_all_analysis_handler", e.getMessage());
+                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_experiment_directory_content_handler", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -1047,7 +1027,7 @@ public class Experiment_servlets extends Servlet {
                 message.setUserID(loggedUserID);
                 message.setType("sent");
                 daoInstance.insert(message);
-                
+
                 /**
                  * *******************************************************
                  * STEP 4 COMMIT CHANGES TO DATABASE. throws SQLException IF
@@ -1057,7 +1037,7 @@ public class Experiment_servlets extends Servlet {
                  */
                 daoInstance.doCommit();
             } catch (Exception e) {
-                ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "process_new_membership_request", e.getMessage());
+                ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "process_new_membership_request", e.getMessage());
             } finally {
                 /**
                  * *******************************************************
@@ -1092,7 +1072,7 @@ public class Experiment_servlets extends Servlet {
             }
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Protocols_servlets.class.getName(), "process_new_membership_request", e.getMessage());
+            ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "process_new_membership_request", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }

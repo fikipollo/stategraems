@@ -22,12 +22,13 @@
 package classes.analysis.non_processed_data.raw_data.ExtractionMethods;
 
 import classes.analysis.non_processed_data.raw_data.ExtractionMethod;
+import com.google.gson.Gson;
 
 /**
  *
  * @author Rafa Hernández de Diego
  */
-public abstract class Sequencing extends ExtractionMethod {
+public class Sequencing extends ExtractionMethod {
     protected String layout;
     protected String orientation;
     protected int nominal_length;
@@ -44,10 +45,12 @@ public abstract class Sequencing extends ExtractionMethod {
     protected String library_construction_protocol;
 
     public Sequencing() {
+        this.extraction_method_type = "Sequencing";
     }
 
     public Sequencing(String rawdata_id) {
         this.rawdata_id = rawdata_id;
+        this.extraction_method_type = "Sequencing";
     }
 
     public String getRAWdataID() {
@@ -168,5 +171,20 @@ public abstract class Sequencing extends ExtractionMethod {
 
     public void setLibrary_construction_protocol(String library_construction_protocol) {
         this.library_construction_protocol = library_construction_protocol;
+    }
+    
+    
+    /**
+     * This static function returns a new object using the data contained in the
+     * given JSON object (as String).
+     *
+     * @param jsonString the JSON object
+     * @return the new Object.
+     */
+    public static Sequencing fromJSON(String jsonString) {
+        Gson gson = new Gson();
+        Sequencing seq_rawdata = gson.fromJson(jsonString, Sequencing.class);
+
+        return seq_rawdata;
     }
 }

@@ -3,17 +3,23 @@
     var app = angular.module('stategraemsApp', [
         'ang-dialogs',
     ]);
-
+    
+    var pathname = window.location.pathname.split("/");
+    if(pathname.length > 1 && pathname[1] !== ""){
+        pathname = pathname[1] + "/";
+    }else{
+        pathname = "";
+    }
     app.constant('myAppConfig', {
         VERSION: '0.8',
-        EMS_SERVER: "/"
+        EMS_SERVER: "/" + pathname
     });
+    
     //Define the events that are fired when an user login, log out etc.
     app.constant('APP_EVENTS', {
     });
 
     app.controller('InstallController', function ($rootScope, $scope, $http, $dialogs, myAppConfig) {
-
         this.sendInstallDataHandler = function () {
             $scope.installing = true;
             $http($rootScope.getHttpRequestConfig("POST", "send-install", {
@@ -27,6 +33,7 @@
                         }, 3000);
                     },
                     function errorCallback(response) {
+                        $scope.installing = false;
                         var message = "Failed while installing the application.<br><b>Error Message:</b> " + response.data.reason;
                         $dialogs.showErrorDialog(message, {
                             logMessage: message + " at InstallController:sendInstallData."
@@ -50,6 +57,7 @@
                         }, 3000);
                     },
                     function errorCallback(response) {
+                        $scope.installing = false;
                         var message = "Failed while autoinstalling the application.<br><b>Error Message:</b> " + response.data.reason;
                         $dialogs.showErrorDialog(message, {
                             logMessage: message + " at InstallController:sendAutoInstallDataHandler."
@@ -69,9 +77,9 @@
                         if (response.data.success) {
                             document.location = "/";
                         }
+                        $scope.config.installation_type = response.data.installation_type;
 
                         if (response.data.is_docker) {
-                            $scope.config.installation_type = response.data.installation_type;
                             $scope.installing = true;
                             me.sendAutoInstallDataHandler();
                         }

@@ -21,6 +21,8 @@ package classes.analysis;
 
 import classes.ExtraField;
 import classes.User;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.util.Map;
 
 /**
@@ -222,5 +224,23 @@ public abstract class Step implements Comparable<Step> {
     @Override
     public int compareTo(Step anotherInstance) {
         return this.step_number - anotherInstance.step_number;
+    }
+
+    protected static String getParameterDescription(JsonObject parameter, int level) {
+        String description = "";
+        for (int i = 0; i < level; i++) {
+            description += "  ";
+        }
+
+        for (Map.Entry<String, JsonElement> member : parameter.entrySet()) {
+            description += "- " + member.getKey() + ": ";
+            if (member.getValue().isJsonPrimitive()) {
+                description += member.getValue().getAsString() + "\n";
+            } else {
+                description += "\n" + Step.getParameterDescription(member.getValue().getAsJsonObject(), level + 1);
+            }
+        }
+
+        return description;
     }
 }

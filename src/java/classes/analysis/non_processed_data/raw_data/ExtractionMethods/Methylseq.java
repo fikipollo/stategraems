@@ -50,10 +50,12 @@ public class Methylseq extends Sequencing {
 
     public Methylseq() {
         super();
+        this.extraction_method_type = "Methyl-seq";
     }
 
     public Methylseq(String rawdata_id) {
         super(rawdata_id);
+        this.extraction_method_type = "Methyl-seq";
     }
 
     /**

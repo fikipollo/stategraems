@@ -24,6 +24,8 @@ ENGINE = InnoDB;
 UPDATE users SET email = 'emsadminuser@email.com' WHERE email IS NULL AND user_id = 'admin';
 ALTER TABLE users ADD COLUMN apicode varchar(200);
 ALTER TABLE users ADD COLUMN apicode_date VARCHAR(8) NOT NULL DEFAULT "19870729";
+ALTER TABLE users ADD COLUMN role VARCHAR(50);
+UPDATE users SET role = 'admin' WHERE user_id = 'admin';
 
 ALTER TABLE experiments CHANGE sample_tags tags TEXT;
 UPDATE experiments SET tags = CONCAT("Case-Control, ", tags) WHERE is_case_control_type = TRUE;
@@ -31,11 +33,18 @@ UPDATE experiments SET tags = CONCAT("Multiple conditions, ", tags) WHERE is_mul
 UPDATE experiments SET tags = CONCAT("Single condition, ", tags) WHERE is_single_condition = TRUE;
 UPDATE experiments SET tags = CONCAT("Survival, ", tags) WHERE is_survival_type = TRUE;
 UPDATE experiments SET tags = CONCAT("Time course, ", tags) WHERE is_time_course_type = TRUE;
+UPDATE experiments SET tags = CONCAT("Other, ", tags) WHERE is_other_type = TRUE;
 ALTER TABLE experiments DROP COLUMN is_case_control_type;
 ALTER TABLE experiments DROP COLUMN is_multiple_conditions;
 ALTER TABLE experiments DROP COLUMN is_single_condition;
 ALTER TABLE experiments DROP COLUMN is_survival_type;
 ALTER TABLE experiments DROP COLUMN is_time_course_type;
+ALTER TABLE experiments ADD COLUMN data_dir_type VARCHAR(100) NOT NULL DEFAULT 'local_dir';
+ALTER TABLE experiments ADD COLUMN data_dir_host VARCHAR(400);
+ALTER TABLE experiments ADD COLUMN data_dir_port VARCHAR(50);
+ALTER TABLE experiments ADD COLUMN data_dir_user VARCHAR(200);
+ALTER TABLE experiments ADD COLUMN data_dir_pass VARCHAR(200);
+ALTER TABLE experiments CHANGE experimentDataDirectory data_dir_path VARCHAR(500);
 
 UPDATE biocondition SET biocondition_id=REPLACE(biocondition_id, 'BC', 'BC00');
 UPDATE bioreplicate SET bioreplicate_id=REPLACE(bioreplicate_id, 'BR', 'BR00');
@@ -46,8 +55,11 @@ ALTER TABLE biocondition ADD COLUMN tags TEXT;
 ALTER TABLE biocondition ADD COLUMN public BOOLEAN DEFAULT TRUE;
 ALTER TABLE biocondition ADD COLUMN external BOOLEAN DEFAULT FALSE;
 ALTER TABLE biocondition MODIFY COLUMN external_links TEXT;
+ALTER TABLE biocondition ADD COLUMN files_location TEXT NULL;
 
 ALTER TABLE analyticalReplicate MODIFY COLUMN treatment_id VARCHAR(50);
+
+ALTER TABLE treatment ADD COLUMN files_location TEXT NULL;
 
 ALTER TABLE analysis CHANGE analysisType analysis_type varchar(200);
 ALTER TABLE analysis CHANGE analysisName analysis_name varchar(200);
@@ -89,6 +101,8 @@ ALTER TABLE intermediate_data DROP COLUMN preprocessing_type;
 ALTER TABLE processed_data MODIFY COLUMN software VARCHAR(200);
 
 ALTER TABLE step_use_step ADD COLUMN type VARCHAR(50) DEFAULT 'input';
+
+ALTER TABLE mass_spectrometry_rawdata ADD COLUMN mass_spectrometer_model varchar(200) NULL;
 
 CREATE FUNCTION SPLIT_STR(
   x VARCHAR(255),

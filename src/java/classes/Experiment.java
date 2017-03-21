@@ -27,9 +27,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Stack;
+import org.apache.commons.io.FileUtils;
 
 /**
  *
@@ -53,8 +55,13 @@ public class Experiment {
     String public_references;
     String submission_date;
     String last_edition_date;
-    String experimentDataDirectory;
     String[] tags;
+    String data_dir_type; //local_dir, ftp_dir, irods_dir, seeddms_dir
+    String data_dir_host;
+    String data_dir_port;
+    String data_dir_user;
+    String data_dir_pass;
+    String data_dir_path;
 
     User[] experiment_owners;
     User[] experiment_members;
@@ -278,16 +285,95 @@ public class Experiment {
         return false;
     }
 
-    public String getExperimentDataDirectory() {
-        return experimentDataDirectory;
+    public String getDataDirectoryType() {
+        return data_dir_type;
     }
 
-    public void setExperimentDataDirectory(String experimentDataDirectory) {
-        this.experimentDataDirectory = experimentDataDirectory;
+    public void setDataDirectoryType(String data_dir_type) {
+        this.data_dir_type = data_dir_type;
     }
 
-    public String getExperimentDataDirectoryContent(String applicationDataDirectory) throws IOException, InterruptedException, Exception {
-        String dirURL = this.getExperimentDataDirectory();
+    public String getDataDirectoryHost() {
+        return data_dir_host;
+    }
+
+    public void setDataDirectoryHost(String data_dir_host) {
+        this.data_dir_host = data_dir_host;
+    }
+
+    public String getDataDirectoryPort() {
+        return data_dir_port;
+    }
+
+    public void setDataDirectoryPort(String data_dir_port) {
+        this.data_dir_port = data_dir_port;
+    }
+
+    public String getDataDirectoryUser() {
+        return data_dir_user;
+    }
+
+    public void setDataDirectoryUser(String data_dir_user) {
+        this.data_dir_user = data_dir_user;
+    }
+
+    public String getDataDirectoryPass() {
+        return data_dir_pass;
+    }
+
+    public void setDataDirectoryPass(String data_dir_pass) {
+        this.data_dir_pass = data_dir_pass;
+    }
+
+    public String getDataDirectoryPath() {
+        if(data_dir_path != null){
+            return (data_dir_path.lastIndexOf("/") == data_dir_path.length()-1)? data_dir_path : data_dir_path + "/";
+        }
+        return null;
+    }
+
+    public void setDataDirectoryPath(String data_dir_path) {
+        this.data_dir_path = data_dir_path;
+    }
+
+    public String[] getTags() {
+        return tags;
+    }
+
+    public void setTags(String[] tags) {
+        this.tags = tags;
+    }
+
+    public void setTags(String tags) {
+        if (tags != null) {
+            this.tags = tags.split(", ");
+        }
+    }
+
+    //***********************************************************************
+    //* OTHER FUNCTIONS *****************************************************
+    //***********************************************************************
+    @Override
+    public String toString() {
+        return this.toJSON();
+    }
+
+    public String getExperimentDataDirectoryContent() throws Exception {
+        if ("local_dir".equalsIgnoreCase(this.data_dir_type)) {
+            return this.getLocalDirectoryContent();
+        } else if ("ftp_dir".equalsIgnoreCase(this.data_dir_type)) {
+            return this.getFTPDirectoryContent();
+        } else if ("irods_dir".equalsIgnoreCase(this.data_dir_type)) {
+            return this.getIRODSDirectoryContent();
+        } else if ("seeddms_dir".equalsIgnoreCase(this.data_dir_type)) {
+            return this.getSeedDMSDirectoryContent();
+        }
+        return null;
+    }
+
+    public String getLocalDirectoryContent() throws Exception {
+        String dirURL = this.getDataDirectoryPath();
+
         dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/");
         ArrayList<String> lines = new ArrayList<String>();
 
@@ -328,7 +414,7 @@ public class Experiment {
             //IF THE DIRECTORY WAS NOT SPECIFIED, LETS TRY TO READ THE FILE CONTAINING THE DIRECTORY CONTENT
             //WHICH SHOULD BE CREATED BY THE ADMIN AND UPDATED PERIODICALLY
             try {
-                BufferedReader br = new BufferedReader(new FileReader(applicationDataDirectory + "/" + this.getExperimentID() + "/experimentDataDirectoryContent.txt"));
+                BufferedReader br = new BufferedReader(new FileReader(this.getDataDirectoryPath() + "/" + this.getExperimentID() + "/experimentDataDirectoryContent.txt"));
                 try {
                     String line = br.readLine();
                     while (line != null) {
@@ -384,26 +470,92 @@ public class Experiment {
         return null;
     }
 
-    public String[] getTags() {
-        return tags;
+    public String getFTPDirectoryContent() throws Exception {
+        throw new IOException("Invalid data directory");
     }
 
-    public void setTags(String[] tags) {
-        this.tags = tags;
+    public String getIRODSDirectoryContent() throws Exception {
+        throw new IOException("Invalid data directory");
     }
 
-    public void setTags(String tags) {
-        if (tags != null) {
-            this.tags = tags.split(", ");
+    public String getSeedDMSDirectoryContent() throws Exception {
+        throw new IOException("Invalid data directory");
+    }
+
+    public String addExperimentDataDirectoryContent(File[] files, String parent_dir_path) throws Exception {
+        if ("local_dir".equalsIgnoreCase(this.data_dir_type)) {
+            return this.addLocalDirectoryContent(files, parent_dir_path);
+        } else if ("ftp_dir".equalsIgnoreCase(this.data_dir_type)) {
+            return this.addFTPDirectoryContent(files, parent_dir_path);
+        } else if ("irods_dir".equalsIgnoreCase(this.data_dir_type)) {
+            return this.addIRODSDirectoryContent(files, parent_dir_path);
+        } else if ("seeddms_dir".equalsIgnoreCase(this.data_dir_type)) {
+            return this.addSeedDMSDirectoryContent(files, parent_dir_path);
         }
+        return null;
     }
 
-    //***********************************************************************
-    //* OTHER FUNCTIONS *****************************************************
-    //***********************************************************************
-    @Override
-    public String toString() {
-        return this.toJSON();
+    public String addLocalDirectoryContent(File[] files, String parent_dir_path) throws Exception {
+        String dirURL = this.getDataDirectoryPath();
+        dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/") + parent_dir_path;
+        dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/");
+        
+        File parent_dir = new File(dirURL);
+        if(!parent_dir.exists()){
+            parent_dir.mkdirs();
+        }
+        
+        for(File file : files){
+            FileUtils.copyFile(file, new File(dirURL + file.getName()));
+        }
+        
+        return null;
+    }
+
+    public String addFTPDirectoryContent(File[] files, String parent_dir_path) throws Exception {
+        throw new IOException("Invalid data directory");
+    }
+
+    public String addIRODSDirectoryContent(File[] files, String parent_dir_path) throws Exception {
+        throw new IOException("Invalid data directory");
+    }
+
+    public String addSeedDMSDirectoryContent(File[] files, String parent_dir_path) throws Exception {
+        throw new IOException("Invalid data directory");
+    }
+    
+    
+    public String deleteExperimentDataDirectoryContent(File[] files, String parent_dir_path) throws Exception {
+        if ("local_dir".equalsIgnoreCase(this.data_dir_type)) {
+            return this.deleteLocalDirectoryContent(files, parent_dir_path);
+        } else if ("ftp_dir".equalsIgnoreCase(this.data_dir_type)) {
+            return this.deleteFTPDirectoryContent(files, parent_dir_path);
+        } else if ("irods_dir".equalsIgnoreCase(this.data_dir_type)) {
+            return this.deleteIRODSDirectoryContent(files, parent_dir_path);
+        } else if ("seeddms_dir".equalsIgnoreCase(this.data_dir_type)) {
+            return this.deleteSeedDMSDirectoryContent(files, parent_dir_path);
+        }
+        return null;
+    }
+
+    public String deleteLocalDirectoryContent(File[] files, String parent_dir_path) throws Exception {
+        String dirURL = this.getDataDirectoryPath();
+        dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/");
+        
+        
+        return null;
+    }
+
+    public String deleteFTPDirectoryContent(File[] files, String parent_dir_path) throws Exception {
+        throw new IOException("Invalid data directory");
+    }
+
+    public String deleteIRODSDirectoryContent(File[] files, String parent_dir_path) throws Exception {
+        throw new IOException("Invalid data directory");
+    }
+
+    public String deleteSeedDMSDirectoryContent(File[] files, String parent_dir_path) throws Exception {
+        throw new IOException("Invalid data directory");
     }
 }
 

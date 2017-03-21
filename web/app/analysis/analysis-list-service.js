@@ -26,6 +26,7 @@
 
     app.factory("AnalysisList", ['$rootScope', function ($rootScope) {
             var analysis = [];
+            var newAnalysis = null;
             var tags = [];
             var analysisTypes = [];
             var filters = [];
@@ -41,17 +42,20 @@
                     old = new Date();
                     return this;
                 },
+                setNewAnalysis: function (_analysis) {
+                    newAnalysis = _analysis;
+                    return this;
+                },
                 findAnalysis: function (analysis_id) {
                     for (var i in analysis) {
                         if (analysis[i].analysis_id === analysis_id) {
                             return analysis[i];
                         }
                     }
-                    return null;
+                    return newAnalysis;
                 },
                 findStep: function (step_id) {
                     var analysis = this.findAnalysis(step_id.split(".")[0].replace("ST", "AN"));
-
                     if (analysis) {
                         var steps = analysis.non_processed_data.concat(analysis.processed_data); // Merges both arrays
                         for (var i in steps) {
@@ -61,6 +65,18 @@
                         }
                     }
                     return null;
+                },
+                getParents: function (step_id, propertyName) {
+                    propertyName = propertyName || 'used_data';
+                    var parents = [];
+                    var step = this.findStep(step_id);
+                    if (step[propertyName] !== undefined && step[propertyName] instanceof Array) {
+                        var parent_ids = step[propertyName];
+                        for (var i in parent_ids) {
+                            parents.push(this.findStep(parent_ids[i]));
+                        }
+                    }
+                    return parents;
                 },
                 addAnalysis: function (_analysis) {
                     var previous = this.findAnalysis(_analysis.analysis_id);
@@ -396,6 +412,25 @@
                             }
                         }
                     }
+                },
+                checkLoop: function (current_step_id, new_step_id, propertyName) {
+                    propertyName = propertyName || 'used_data';
+
+                    var parents = this.getParents(current_step_id, propertyName);
+
+                    if (parents.length > 0) {
+                        for (var i in parents) {
+                            if (parents[i].step_id === new_step_id) {
+                                return true;
+                            }
+                        }
+                        for (var i in parents) {
+                            if (this.checkLoop(parents[i].step_id, new_step_id, propertyName)) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
                 }
             };
         }]);

@@ -49,10 +49,12 @@ public class DNaseseq extends Sequencing {
 
     public DNaseseq() {
         super();
+        this.extraction_method_type = "DNase-seq";
     }
 
     public DNaseseq(String rawdata_id) {
         super(rawdata_id);
+        this.extraction_method_type = "DNase-seq";
     }
 
     /**

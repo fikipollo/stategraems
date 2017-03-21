@@ -56,7 +56,7 @@
                     '          </button>' +
                     '          <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">' +
                     '            <li class="dropdown-header">Signed in as <b>{{userInfo.email}}</b></li>' +
-                    '            <li><a ng-click="controller.signOutButtonHandler()">Sign out</a></li>' +
+                    '            <li><a ng-click="controller.signOutButtonHandler()" class="clickable">Sign out</a></li>' +
                     // '            <li role="separator" class="divider"></li>' +
                     // '            <li><a href="' + EMS_SERVER_URL + '" target="_blank">Go to Galaxy site</a></li>' +
                     '          </ul>' +
@@ -94,12 +94,31 @@
                     ' <div class="panel panel-container" ng-controller="UserSessionController as controller">' +
                     '   <h4>Your account</h4>' +
                     '   <p><b>Signed in as </b> <i>{{userInfo.email}}</i></p>' +
-                    '  <div style="text-align: center;">' +
-                    '    <a class="btn btn-primary btn-sm" style="display: inline-block;margin: auto;" ng-click="controller.changePasswordButtonHandler()"><i class="fa fa-key fa-fw"></i> Change password</a>' +
+                    '   <a class="clickable" ng-click="controller.changePasswordButtonHandler()"><i class="fa fa-key fa-fw"></i> Change password</a>' +
+                    '  <div style="text-align: center;margin-top:10px;">' +
+                    '    <a class="btn btn-primary btn-sm" style="display: inline-block;margin: auto;" ng-click="controller.getAPICodeHandler()"><i class="fa fa-android fa-fw"></i> Get API code</a>' +
                     '    <a class="btn btn-danger btn-sm" style="display: inline-block; margin: auto;" ng-click="controller.signOutButtonHandler()"><i class="fa fa-sign-out fa-fw"></i> Close session</a>' +
                     '  </div>' +
                     ' </div>'
         };
     });
 
+    app.directive("userAdminToolsPanel", function () {
+        return {
+            restrict: 'E',
+            replace: true,
+            template:
+                    ' <div ng-show="userInfo.role === \'admin\'" ng-controller="UserSessionController as controller">' +
+                    '  <h4>Admin tools</h4>' +
+                    '  <div class="panel panel-container" style="text-align: center;margin-top:10px;">' +
+//                    '   <a class="btn btn-default homeMainButton" ng-click="controller.showUserManagementTool()">' +
+//                    '       <i class="fa fa-users fa-5" aria-hidden="true" ></i><p>Manage users</p>' +
+//                    '   </a>' +
+                    '   <a class="btn btn-default homeMainButton" >' +
+                    '       <i class="fa fa-database fa-5" aria-hidden="true" ng-click="controller.sendBackupRequestHandler()"></i><p>Backup DB</p>' +
+                    '   </a>' +
+                    '  </div>' +
+                    ' </div>'
+        };
+    });
 })();

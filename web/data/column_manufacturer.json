@@ -1,35 +1,17 @@
 {
     "success": true,
-    "column_manufacturer": [
-        {"name": "Agilent Technologies"},
-        {"name": "Bruker"},
-        {"name": "Shimadzu"}
-    ],
-    "column_models": [
-        {"family": "Agilent Technologies", "model": "Agilent 1220 Infinity LC System"},
-        {"family": "Agilent Technologies", "model": "Agilent 1260 Infinity Binary LC System"},
-        {"family": "Agilent Technologies", "model": "Agilent 1260 Infinity Isocratic LC System"},
-        {"family": "Agilent Technologies", "model": "Agilent 1260 Infinity Quaternary LC System"},
-        {"family": "Agilent Technologies", "model": "Agilent 1290 Infinity Binary LC System"},
-        {"family": "Agilent Technologies", "model": "Agilent 1290 Infinity Quaternary LC System"},
-        {"family": "Agilent Technologies", "model": "Agilent 490 Micro GC"},
-        {"family": "Agilent Technologies", "model": "Agilent 490-PRO Micro GC"},
-        {"family": "Agilent Technologies", "model": "Agilent 6850 Series II GC"},
-        {"family": "Agilent Technologies", "model": "Agilent 7696A GC"},
-        {"family": "Agilent Technologies", "model": "Agilent 7820A GC"},
-        {"family": "Agilent Technologies", "model": "Agilent 7890A GC"},
-        {"family": "Agilent Technologies", "model": "Agilent 7890B GC"},
-        {"family": "Bruker", "model": "Bruker Easy-nLC I"},
-        {"family": "Bruker", "model": "Bruker Easy-nLC II"},
-        {"family": "Bruker", "model": "Bruker nano-Advance UHPLC"},
-        {"family": "Bruker", "model": "Bruker SCION 436-GC"},
-        {"family": "Bruker", "model": "Bruker SCION 456-GC"},
-        {"family": "Shimadzu", "model": "Shimadzu GC-2010 Plus"},
-        {"family": "Shimadzu", "model": "Shimadzu GC-2014"},
-        {"family": "Shimadzu", "model": "Shimadzu GC 8A"},
-        {"family": "Shimadzu", "model": "Shimadzu LC-2010HT"},
-        {"family": "Shimadzu", "model": "Shimadzu MDGC/GCMS-2010"},
-        {"family": "Shimadzu", "model": "Shimadzu Nexera X2 SR LC"},
-        {"family": "Shimadzu", "model": "Shimadzu Tracera  GC"}
+    "extractionMethod.separationMethod.column_manufacturer": [
+        {
+            "label": "Agilent Technologies",
+            "value": "Agilent Technologies"
+        },
+        {
+            "label": "Bruker",
+            "value": "Bruker"
+        },
+        {
+            "label": "Shimadzu",
+            "value": "Shimadzu"
+        }
     ]
 }

@@ -17,7 +17,6 @@
  *  More info http://bioinfo.cipf.es/stategraems
  *  Technical contact stategraemsdev@gmail.com
  *  *************************************************************** */
-
 package bdManager.DAO.analysis.non_processed_data.raw_data.ExtractionMethods;
 
 import bdManager.DAO.DAO;
@@ -26,7 +25,7 @@ import bdManager.DBConnectionManager;
 import classes.analysis.non_processed_data.raw_data.ExtractionMethods.MassSpectrometry;
 import classes.analysis.non_processed_data.raw_data.SeparationMethods.SeparationMethod;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet; 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -46,42 +45,72 @@ public class MassSpectrometry_JDBCDAO extends DAO {
         //1.   Inserts a new entry in the calling_step table
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "INSERT INTO mass_spectrometry_rawdata SET "
-                + "rawdata_id= ?, mass_spectrometer_manufacturer= ?, customizations= ?, ionization_source= ?, "
+                + "rawdata_id= ?, mass_spectrometer_manufacturer= ?, mass_spectrometer_model= ?, customizations= ?, ionization_source= ?, "
                 + "supply_type= ?, interface_manufacturer_and_model= ?, sprayer_type_manufacturer_and_model= ?, other_electrospray_ionisation= ?, "
                 + "plate_composition= ?, matrix_composition= ?, psd_summary= ?, laser_type_and_wavelength= ?, other_maldi= ?, "
                 + "other_ionization_description= ?, mass_analyzer_type= ?, reflectron_status= ?, activation_location= ?, "
                 + "gas_type= ?, activation_type= ?, acquisition_software= ?, acquisition_parameters= ?, "
                 + "analysis_software= ?, analysis_parameters= ?, intensity_values= ?, ms_level= ?, "
                 + "ion_mode= ?, additional_info= ?, separation_method_type = ? ");
-        int i =1;
-        ps.setString(i, massSpectrometry.getRAWdataID());i++;
-        ps.setString(i, massSpectrometry.getMassSpectrometerManufacturer());i++;
-        ps.setString(i, massSpectrometry.getCustomizations());i++;
-        ps.setString(i, massSpectrometry.getIonizationSource());i++;
-        ps.setString(i, massSpectrometry.getSupplyType());i++;
-        ps.setString(i, massSpectrometry.getInterfaceManufacturerAndModel());i++;
-        ps.setString(i, massSpectrometry.getSprayerTypeManufacturerAndModel());i++;
-        ps.setString(i, massSpectrometry.getOtherElectrosprayIonisation());i++;
-        ps.setString(i, massSpectrometry.getPlateComposition());i++;
-        ps.setString(i, massSpectrometry.getMatrixComposition());i++;
-        ps.setString(i, massSpectrometry.getPSDsummary());i++;
-        ps.setString(i, massSpectrometry.getLaserTypeAndWavelength());i++;
-        ps.setString(i, massSpectrometry.getOtherMALDI());i++;
-        ps.setString(i, massSpectrometry.getOtherIonizationDescription());i++;
-        ps.setString(i, massSpectrometry.getMassAnalyzerType());i++;
-        ps.setString(i, massSpectrometry.getReflectronStatus());i++;
-        ps.setString(i, massSpectrometry.getActivationLocation());i++;
-        ps.setString(i, massSpectrometry.getGasType());i++;
-        ps.setString(i, massSpectrometry.getActivationType());i++;
-        ps.setString(i, massSpectrometry.getAcquisitionSoftware());i++;
-        ps.setString(i, massSpectrometry.getAcquisitionParameters());i++;
-        ps.setString(i, massSpectrometry.getAnalysisSoftware());i++;
-        ps.setString(i, massSpectrometry.getAnalysisParameters());i++;
-        ps.setString(i, massSpectrometry.getIntensityValues());i++;
-        ps.setString(i, massSpectrometry.getMSlevel());i++;
-        ps.setString(i, massSpectrometry.getIonMode());i++;
-        ps.setString(i, massSpectrometry.getAdditionalInfo());i++;
-        ps.setString(i, massSpectrometry.getSeparationMethodType());i++;
+        int i = 1;
+        ps.setString(i, massSpectrometry.getRAWdataID());
+        i++;
+        ps.setString(i, massSpectrometry.getMassSpectrometerManufacturer());
+        i++;
+        ps.setString(i, massSpectrometry.getMassSpectrometerModel());
+        i++;
+        ps.setString(i, massSpectrometry.getCustomizations());
+        i++;
+        ps.setString(i, massSpectrometry.getIonizationSource());
+        i++;
+        ps.setString(i, massSpectrometry.getSupplyType());
+        i++;
+        ps.setString(i, massSpectrometry.getInterfaceManufacturerAndModel());
+        i++;
+        ps.setString(i, massSpectrometry.getSprayerTypeManufacturerAndModel());
+        i++;
+        ps.setString(i, massSpectrometry.getOtherElectrosprayIonisation());
+        i++;
+        ps.setString(i, massSpectrometry.getPlateComposition());
+        i++;
+        ps.setString(i, massSpectrometry.getMatrixComposition());
+        i++;
+        ps.setString(i, massSpectrometry.getPSDsummary());
+        i++;
+        ps.setString(i, massSpectrometry.getLaserTypeAndWavelength());
+        i++;
+        ps.setString(i, massSpectrometry.getOtherMALDI());
+        i++;
+        ps.setString(i, massSpectrometry.getOtherIonizationDescription());
+        i++;
+        ps.setString(i, massSpectrometry.getMassAnalyzerType());
+        i++;
+        ps.setString(i, massSpectrometry.getReflectronStatus());
+        i++;
+        ps.setString(i, massSpectrometry.getActivationLocation());
+        i++;
+        ps.setString(i, massSpectrometry.getGasType());
+        i++;
+        ps.setString(i, massSpectrometry.getActivationType());
+        i++;
+        ps.setString(i, massSpectrometry.getAcquisitionSoftware());
+        i++;
+        ps.setString(i, massSpectrometry.getAcquisitionParameters());
+        i++;
+        ps.setString(i, massSpectrometry.getAnalysisSoftware());
+        i++;
+        ps.setString(i, massSpectrometry.getAnalysisParameters());
+        i++;
+        ps.setString(i, massSpectrometry.getIntensityValues());
+        i++;
+        ps.setString(i, massSpectrometry.getMSlevel());
+        i++;
+        ps.setString(i, massSpectrometry.getIonMode());
+        i++;
+        ps.setString(i, massSpectrometry.getAdditionalInfo());
+        i++;
+        ps.setString(i, massSpectrometry.getSeparationMethodType());
+        i++;
         ps.execute();
 
         SeparationMethod separationMethod = massSpectrometry.getSeparationMethod();
@@ -108,7 +137,7 @@ public class MassSpectrometry_JDBCDAO extends DAO {
         //1.   Inserts a new entry in the calling_step table
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "UPDATE mass_spectrometry_rawdata SET "
-                + "mass_spectrometer_manufacturer= ?, customizations= ?, ionization_source= ?, "
+                + "mass_spectrometer_manufacturer= ?, mass_spectrometer_model= ?, customizations= ?, ionization_source= ?, "
                 + "supply_type= ?, interface_manufacturer_and_model= ?, sprayer_type_manufacturer_and_model= ?, other_electrospray_ionisation= ?, "
                 + "plate_composition= ?, matrix_composition= ?, psd_summary= ?, laser_type_and_wavelength= ?, other_maldi= ?, "
                 + "other_ionization_description= ?, mass_analyzer_type= ?, reflectron_status= ?, activation_location= ?, "
@@ -117,37 +146,66 @@ public class MassSpectrometry_JDBCDAO extends DAO {
                 + "ion_mode= ?, additional_info= ?, separation_method_type = ? "
                 + "WHERE rawdata_id= ?");
 
-        int i =1;
-        ps.setString(i, massSpectrometry.getMassSpectrometerManufacturer());i++;
-        ps.setString(i, massSpectrometry.getCustomizations());i++;
-        ps.setString(i, massSpectrometry.getIonizationSource());i++;
-        ps.setString(i, massSpectrometry.getSupplyType());i++;
-        ps.setString(i, massSpectrometry.getInterfaceManufacturerAndModel());i++;
-        ps.setString(i, massSpectrometry.getSprayerTypeManufacturerAndModel());i++;
-        ps.setString(i, massSpectrometry.getOtherElectrosprayIonisation());i++;
-        ps.setString(i, massSpectrometry.getPlateComposition());i++;
-        ps.setString(i, massSpectrometry.getMatrixComposition());i++;
-        ps.setString(i, massSpectrometry.getPSDsummary());i++;
-        ps.setString(i, massSpectrometry.getLaserTypeAndWavelength());i++;
-        ps.setString(i, massSpectrometry.getOtherMALDI());i++;
-        ps.setString(i, massSpectrometry.getOtherIonizationDescription());i++;
-        ps.setString(i, massSpectrometry.getMassAnalyzerType());i++;
-        ps.setString(i, massSpectrometry.getReflectronStatus());i++;
-        ps.setString(i, massSpectrometry.getActivationLocation());i++;
-        ps.setString(i, massSpectrometry.getGasType());i++;
-        ps.setString(i, massSpectrometry.getActivationType());i++;
-        ps.setString(i, massSpectrometry.getAcquisitionSoftware());i++;
-        ps.setString(i, massSpectrometry.getAcquisitionParameters());i++;
-        ps.setString(i, massSpectrometry.getAnalysisSoftware());i++;
-        ps.setString(i, massSpectrometry.getAnalysisParameters());i++;
-        ps.setString(i, massSpectrometry.getIntensityValues());i++;
-        ps.setString(i, massSpectrometry.getMSlevel());i++;
-        ps.setString(i, massSpectrometry.getIonMode());i++;
-        ps.setString(i, massSpectrometry.getAdditionalInfo());i++;
-        ps.setString(i, massSpectrometry.getSeparationMethodType());i++;
-        ps.setString(i, massSpectrometry.getRAWdataID());i++;
+        int i = 1;
+        ps.setString(i, massSpectrometry.getMassSpectrometerManufacturer());
+        i++;
+        ps.setString(i, massSpectrometry.getMassSpectrometerModel());
+        i++;
+        ps.setString(i, massSpectrometry.getCustomizations());
+        i++;
+        ps.setString(i, massSpectrometry.getIonizationSource());
+        i++;
+        ps.setString(i, massSpectrometry.getSupplyType());
+        i++;
+        ps.setString(i, massSpectrometry.getInterfaceManufacturerAndModel());
+        i++;
+        ps.setString(i, massSpectrometry.getSprayerTypeManufacturerAndModel());
+        i++;
+        ps.setString(i, massSpectrometry.getOtherElectrosprayIonisation());
+        i++;
+        ps.setString(i, massSpectrometry.getPlateComposition());
+        i++;
+        ps.setString(i, massSpectrometry.getMatrixComposition());
+        i++;
+        ps.setString(i, massSpectrometry.getPSDsummary());
+        i++;
+        ps.setString(i, massSpectrometry.getLaserTypeAndWavelength());
+        i++;
+        ps.setString(i, massSpectrometry.getOtherMALDI());
+        i++;
+        ps.setString(i, massSpectrometry.getOtherIonizationDescription());
+        i++;
+        ps.setString(i, massSpectrometry.getMassAnalyzerType());
+        i++;
+        ps.setString(i, massSpectrometry.getReflectronStatus());
+        i++;
+        ps.setString(i, massSpectrometry.getActivationLocation());
+        i++;
+        ps.setString(i, massSpectrometry.getGasType());
+        i++;
+        ps.setString(i, massSpectrometry.getActivationType());
+        i++;
+        ps.setString(i, massSpectrometry.getAcquisitionSoftware());
+        i++;
+        ps.setString(i, massSpectrometry.getAcquisitionParameters());
+        i++;
+        ps.setString(i, massSpectrometry.getAnalysisSoftware());
+        i++;
+        ps.setString(i, massSpectrometry.getAnalysisParameters());
+        i++;
+        ps.setString(i, massSpectrometry.getIntensityValues());
+        i++;
+        ps.setString(i, massSpectrometry.getMSlevel());
+        i++;
+        ps.setString(i, massSpectrometry.getIonMode());
+        i++;
+        ps.setString(i, massSpectrometry.getAdditionalInfo());
+        i++;
+        ps.setString(i, massSpectrometry.getSeparationMethodType());
+        i++;
+        ps.setString(i, massSpectrometry.getRAWdataID());
+        i++;
         ps.execute();
-
 
         //TODO: REMOVE PREVIOUS SEPARATION METHOD
         SeparationMethod separationMethod = massSpectrometry.getSeparationMethod();
@@ -176,12 +234,13 @@ public class MassSpectrometry_JDBCDAO extends DAO {
                 + "SELECT * FROM mass_spectrometry_rawdata WHERE rawdata_id= ?");
         ps.setString(1, objectID);
 
-        ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps,true); 
+        ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
 
         if (rs.first()) {
             massSpectrometry = new MassSpectrometry();
             massSpectrometry.setRawdataID(objectID);
             massSpectrometry.setMassSpectrometerManufacturer(rs.getString("mass_spectrometer_manufacturer"));
+            massSpectrometry.setMassSpectrometerModel(rs.getString("mass_spectrometer_model"));
             massSpectrometry.setCustomizations(rs.getString("customizations"));
             massSpectrometry.setIonizationSource(rs.getString("ionization_source"));
             massSpectrometry.setSupplyType(rs.getString("supply_type"));
@@ -211,10 +270,17 @@ public class MassSpectrometry_JDBCDAO extends DAO {
         }
 
         //GET THE ASSOCIATED EXTRACTION METHOD
-        if (!"None".equals(massSpectrometry.getSeparationMethodType())) {
+        if (massSpectrometry.getSeparationMethodType() != null && !"None".equals(massSpectrometry.getSeparationMethodType())) {
             SeparationMethod separationMethod = (SeparationMethod) DAOProvider.getDAOByName(massSpectrometry.getSeparationMethodType()).findByID(massSpectrometry.getRAWdataID(), null);
             massSpectrometry.setSeparationMethod(separationMethod);
+        } else {
+            SeparationMethod separationMethod = (SeparationMethod) DAOProvider.getDAOByName("ColumnChromatography").findByID(massSpectrometry.getRAWdataID(), null);
+            if (separationMethod == null) {
+                separationMethod = (SeparationMethod) DAOProvider.getDAOByName("CapillaryElectrophoresis").findByID(massSpectrometry.getRAWdataID(), null);
+            }
+            massSpectrometry.setSeparationMethod(separationMethod);
         }
+
         return massSpectrometry;
     }
 
@@ -234,7 +300,7 @@ public class MassSpectrometry_JDBCDAO extends DAO {
         ps.execute();
         return true;
     }
-            
+
     @Override
     public boolean remove(String[] object_id_list) throws SQLException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

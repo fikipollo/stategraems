@@ -53,7 +53,7 @@
                     '   </a>' +
                     '   <div class="tag-container" style="min-width:200px; min-height: 30px; margin-right: 120px;">'+
                     '     <span class="tag label label-info" ng-repeat="user in models">'+
-                    '       {{user.user_id}} <i class="fa fa-times" style="cursor:pointer;" ng-show="viewMode !== \'view\'" ng-click="controller.removeSelectedUser(user)";></i>' + 
+                    '       {{user.user_id}} <i class="fa fa-times clickable" ng-show="viewMode !== \'view\'" ng-click="controller.removeSelectedUser(user)";></i>' + 
                     '     </span>' + 
                     '   </div>'+
                     '</div>'

@@ -74,14 +74,26 @@
                         </a>
                     </div>
                 </div>
-                <h3 class="" style=" color: #ea8f60; font-weight: lighter; margin-left: 5px; margin-bottom: 20px;">External and reference files</h3>
-                <external-source-form ng-repeat="model in model.non_processed_data| filter:filterSteps('external_source') | orderBy:'step_number'" ng-init="summary = true"></external-source-form>
-                <h3 class="" style=" color: #ea8f60; font-weight: lighter; margin-left: 5px; margin-bottom: 20px; ">Biological experiments</h3>
-                <raw-data-form ng-repeat="model in model.non_processed_data | filter:filterSteps('rawdata') |  orderBy:'step_number'" ng-init="summary = true"></raw-data-form>
-                <h3 class="" style=" color: #ea8f60; font-weight: lighter; margin-left: 5px; margin-bottom: 20px;">Intermediate steps</h3>
-                <intermediate-data-form ng-repeat="model in model.non_processed_data| filter:filterSteps('intermediate_data') | orderBy:'step_number'" ng-init="summary = true"></intermediate-data-form>
-                <h3 class="" style=" color: #ea8f60; font-weight: lighter; margin-left: 5px; margin-bottom: 20px; ">Processed data</h3>
-                <processed-data-form ng-repeat="model in model.processed_data | filter:filterSteps('processed_data') | orderBy:'step_number'" ng-init="summary = true"></processed-data-form>
+                <div ng-show="show.steps === 'all' || show.steps === 'external_source'">
+                    <h3 class="step-classification-title">External and reference files</h3>
+                    <h4 ng-show="countStepsByClassification('external_source') === 0" style=" margin-left: 10px; ">No external or reference files have been registered.</h4>
+                    <external-source-form ng-repeat="model in model.non_processed_data| filter:filterSteps('external_source') | orderBy:'step_number'" ng-init="summary = true"></external-source-form>
+                </div>
+                <div ng-show="show.steps === 'all' || show.steps === 'rawdata'">
+                    <h3 class="step-classification-title">Biological experiments</h3>
+                    <h4 ng-show="countStepsByClassification('rawdata') === 0" style=" margin-left: 10px; ">No biological experiments have been registered.</h4>
+                    <raw-data-form ng-repeat="model in model.non_processed_data| filter:filterSteps('rawdata') |  orderBy:'step_number'" ng-init="summary = true"></raw-data-form>
+                </div>
+                <div ng-show="show.steps === 'all' || show.steps === 'intermediate_data'">
+                    <h3 class="step-classification-title">Intermediate steps</h3>
+                    <h4 ng-show="countStepsByClassification('intermediate_data') === 0" style=" margin-left: 10px; ">This analysis does not contain any intermediate step.</h4>
+                    <intermediate-data-form ng-repeat="model in model.non_processed_data| filter:filterSteps('intermediate_data') | orderBy:'step_number'" ng-init="summary = true"></intermediate-data-form>
+                </div>
+                <div ng-show="show.steps === 'all' || show.steps === 'processed_data'">
+                    <h3 class="step-classification-title">Processed data</h3>
+                    <h4 ng-show="countStepsByClassification('processed_data') === 0" style=" margin-left: 10px; ">This analysis does not contain any processed data.</h4>
+                    <processed-data-form ng-repeat="model in model.processed_data| filter:filterSteps('processed_data') | orderBy:'step_number'" ng-init="summary = true"></processed-data-form>
+                </div>
             </uib-tab>
             <uib-tab ng-repeat="model in displayedSteps">
                 <uib-tab-heading>

@@ -52,10 +52,12 @@ public class ChIPseq extends Sequencing {
 
     public ChIPseq() {
         super();
+        this.extraction_method_type = "ChIP-seq";
     }
 
     public ChIPseq(String rawdata_id) {
         super(rawdata_id);
+        this.extraction_method_type = "ChIP-seq";
     }
 
     /**

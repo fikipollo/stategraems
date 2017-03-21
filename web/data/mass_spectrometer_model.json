@@ -1,0 +1,249 @@
+{
+    "success": true,
+    "extractionMethod.mass_spectrometer_model": [
+        {
+            "label": "Agilent 240 GC/MS Ion Trap System",
+            "value": "Agilent 240 GC/MS Ion Trap System"
+        },
+        {
+            "label": "Agilent 5975T LTM GC/MSD System",
+            "value": "Agilent 5975T LTM GC/MSD System"
+        },
+        {
+            "label": "Agilent 5977A Series GC/MSD System",
+            "value": "Agilent 5977A Series GC/MSD System"
+        },
+        {
+            "label": "Agilent 5977E Series GC/MSD System",
+            "value": "Agilent 5977E Series GC/MSD System"
+        },
+        {
+            "label": "Agilent 7000 Triple Quadrupole GC/MS System",
+            "value": "Agilent 7000 Triple Quadrupole GC/MS System"
+        },
+        {
+            "label": "Agilent 7200 GC/Q-TOF",
+            "value": "Agilent 7200 GC/Q-TOF"
+        },
+        {
+            "label": "Agilent 6100B Series Single Quadrupole LC/MS ",
+            "value": "Agilent 6100B Series Single Quadrupole LC/MS "
+        },
+        {
+            "label": "Agilent 6200 Series TOF LC/MS",
+            "value": "Agilent 6200 Series TOF LC/MS"
+        },
+        {
+            "label": "Agilent 6400 Series Triple Quad LC/MS",
+            "value": "Agilent 6400 Series Triple Quad LC/MS"
+        },
+        {
+            "label": "Agilent 6550 iFunnel Q-TOF LC/MS",
+            "value": "Agilent 6550 iFunnel Q-TOF LC/MS"
+        },
+        {
+            "label": "Agilent Automated Card Extraction (AACE) DBS LC/MS",
+            "value": "Agilent Automated Card Extraction (AACE) DBS LC/MS"
+        },
+        {
+            "label": "Bruker microflex LT",
+            "value": "Bruker microflex LT"
+        },
+        {
+            "label": "Bruker microflex LRF",
+            "value": "Bruker microflex LRF"
+        },
+        {
+            "label": "Bruker autoflex series",
+            "value": "Bruker autoflex series"
+        },
+        {
+            "label": "Bruker ultrafleXtreme",
+            "value": "Bruker ultrafleXtreme"
+        },
+        {
+            "label": "Bruker PROTEINEER fc I",
+            "value": "Bruker PROTEINEER fc I"
+        },
+        {
+            "label": "Bruker PROTEINEER fc II",
+            "value": "Bruker PROTEINEER fc II"
+        },
+        {
+            "label": "Bruker microTOF focus I",
+            "value": "Bruker microTOF focus I"
+        },
+        {
+            "label": "Bruker microTOF focus II",
+            "value": "Bruker microTOF focus II"
+        },
+        {
+            "label": "Bruker micrOTOF-Q I",
+            "value": "Bruker micrOTOF-Q I"
+        },
+        {
+            "label": "Bruker micrOTOF-Q II",
+            "value": "Bruker micrOTOF-Q II"
+        },
+        {
+            "label": "Bruker micrOTOF-Q III",
+            "value": "Bruker micrOTOF-Q III"
+        },
+        {
+            "label": "Bruker compact",
+            "value": "Bruker compact"
+        },
+        {
+            "label": "Bruker impact HD",
+            "value": "Bruker impact HD"
+        },
+        {
+            "label": "Bruker maXis 4G",
+            "value": "Bruker maXis 4G"
+        },
+        {
+            "label": "Bruker amaZon speed",
+            "value": "Bruker amaZon speed"
+        },
+        {
+            "label": "Bruker amaZon speed ETD",
+            "value": "Bruker amaZon speed ETD"
+        },
+        {
+            "label": "Bruker amaZon SL",
+            "value": "Bruker amaZon SL"
+        },
+        {
+            "label": "Bruker EVOQ",
+            "value": "Bruker EVOQ"
+        },
+        {
+            "label": "Bruker SCION",
+            "value": "Bruker SCION"
+        },
+        {
+            "label": "Bruker Bruker aurora M90",
+            "value": "Bruker Bruker aurora M90"
+        },
+        {
+            "label": "Bruker aurora Elite",
+            "value": "Bruker aurora Elite"
+        },
+        {
+            "label": "JEOL JMS-S3000",
+            "value": "JEOL JMS-S3000"
+        },
+        {
+            "label": "JEOL JMS-T100GCV",
+            "value": "JEOL JMS-T100GCV"
+        },
+        {
+            "label": "JEOL JMS-Q1050GC",
+            "value": "JEOL JMS-Q1050GC"
+        },
+        {
+            "label": "JEOL JMS-T100LP LC-TOFMS",
+            "value": "JEOL JMS-T100LP LC-TOFMS"
+        },
+        {
+            "label": "JEOL DART",
+            "value": "JEOL DART"
+        },
+        {
+            "label": "JEOL JMS-700 MStation",
+            "value": "JEOL JMS-700 MStation"
+        },
+        {
+            "label": "JEOL JMS-800D",
+            "value": "JEOL JMS-800D"
+        },
+        {
+            "label": "Leco Pegasus 4D GCxGC-TOFMS",
+            "value": "Leco Pegasus 4D GCxGC-TOFMS"
+        },
+        {
+            "label": "Leco GCxGC-ECD/FID",
+            "value": "Leco GCxGC-ECD/FID"
+        },
+        {
+            "label": "Leco Pegasus HT GC-TOFMS",
+            "value": "Leco Pegasus HT GC-TOFMS"
+        },
+        {
+            "label": "Leco Pegasus GC-HRT",
+            "value": "Leco Pegasus GC-HRT"
+        },
+        {
+            "label": "Leco Citius LC-HRT",
+            "value": "Leco Citius LC-HRT"
+        },
+        {
+            "label": "PerkinElmer AxION iQT",
+            "value": "PerkinElmer AxION iQT"
+        },
+        {
+            "label": "PerkinElmer AxION 2 TOF MS",
+            "value": "PerkinElmer AxION 2 TOF MS"
+        },
+        {
+            "label": "PerkinElmer Flexar SQ 300 MS",
+            "value": "PerkinElmer Flexar SQ 300 MS"
+        },
+        {
+            "label": "PerkinElmer Clarus SQ 8S GC/MS",
+            "value": "PerkinElmer Clarus SQ 8S GC/MS"
+        },
+        {
+            "label": "PerkinElmer Clarus SQ 8T GC/MS",
+            "value": "PerkinElmer Clarus SQ 8T GC/MS"
+        },
+        {
+            "label": "PerkinElmer Clarus SQ 8C GC/MS",
+            "value": "PerkinElmer Clarus SQ 8C GC/MS"
+        },
+        {
+            "label": "PerkinElmer NexION 300Q ICP-MS",
+            "value": "PerkinElmer NexION 300Q ICP-MS"
+        },
+        {
+            "label": "PerkinElmer NexION 300X ICP-MS",
+            "value": "PerkinElmer NexION 300X ICP-MS"
+        },
+        {
+            "label": "PerkinElmer NexION 300D ICP-MS",
+            "value": "PerkinElmer NexION 300D ICP-MS"
+        },
+        {
+            "label": "PerkinElmer NexION 300S ICP-MS",
+            "value": "PerkinElmer NexION 300S ICP-MS"
+        },
+        {
+            "label": "Shimadzu GCMS-TQ8030",
+            "value": "Shimadzu GCMS-TQ8030"
+        },
+        {
+            "label": "Shimadzu GCMS-QP2010 Ultra",
+            "value": "Shimadzu GCMS-QP2010 Ultra"
+        },
+        {
+            "label": "Shimadzu GCMS-QP2010 SE",
+            "value": "Shimadzu GCMS-QP2010 SE"
+        },
+        {
+            "label": "Shimadzu LCMS-8040",
+            "value": "Shimadzu LCMS-8040"
+        },
+        {
+            "label": "Shimadzu LCMS-8030",
+            "value": "Shimadzu LCMS-8030"
+        },
+        {
+            "label": "Shimadzu LCMS-2020",
+            "value": "Shimadzu LCMS-2020"
+        },
+        {
+            "label": "Shimadzu LCMS-IT-TOF",
+            "value": "Shimadzu LCMS-IT-TOF"
+        }
+    ]
+}

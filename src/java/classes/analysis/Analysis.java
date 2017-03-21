@@ -328,7 +328,7 @@ public class Analysis {
 
         //STEP 3. Create the instance of analysis
         Analysis analysis = new Analysis();
-        analysis.setAnalysisName(analysisData.get("emsanalysisname").getAsString());
+        analysis.setAnalysisName(analysisData.get("ems_analysis_name").getAsString());
         analysis.setAnalysisType("Galaxy workflow");
         analysis.setNonProcessedData(nonProcessedDataList.toArray(new NonProcessedData[]{}));
         analysis.setProcessedData(processedDataList.toArray(new ProcessedData[]{}));

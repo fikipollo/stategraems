@@ -21,6 +21,7 @@ package classes.analysis.non_processed_data;
 
 import classes.User;
 import classes.analysis.NonProcessedData;
+import classes.analysis.Step;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -161,8 +162,14 @@ public class IntermediateData extends NonProcessedData {
             }
         }
         step.setUsedData(used_data.toArray(new String[]{}));
-        step.setFilesLocation(new String[]{});
-
+        
+        String prefix = analysisData.get("experiment_id").getAsString() + "/" + analysisData.get("analysis_id").getAsString() + "/";
+        ArrayList<String> outputs = new ArrayList<String>();
+        for(JsonElement output : step_json_object.get("outputs").getAsJsonArray()){
+            outputs.add(prefix + output.getAsJsonObject().get("file").getAsString().replaceAll(" ", "_") + "." + output.getAsJsonObject().get("extension").getAsString());
+        }
+        step.setFilesLocation(outputs.toArray(new String[]{}));
+        
         String description = "Step " + step_json_object.get("id").getAsString() + " in Galaxy history " + analysisData.get("history_id").getAsString() + ".\n";
         description += "The tool exited with code " + step_json_object.get("exit_code").getAsString() + "\n";
         description += "Outputs:\n";
@@ -178,7 +185,7 @@ public class IntermediateData extends NonProcessedData {
         description += "\n";
         description += "Parameters:\n";
         for (JsonElement input : step_json_object.get("parameters").getAsJsonArray()) {
-            description += "  - " + input.getAsJsonObject().get("name").getAsString() + ": " + input.getAsJsonObject().get("value").getAsString() + "\n";
+            description += Step.getParameterDescription(input.getAsJsonObject(), 1);
         }
 
         step.setSoftwareConfiguration(description);
@@ -191,6 +198,7 @@ public class IntermediateData extends NonProcessedData {
         step.setStepName(step_json_object.get("tool_id").getAsString());
         step.setStepNumber(step_json_object.get("id").getAsInt());
 
+        
         return step;
     }
 }

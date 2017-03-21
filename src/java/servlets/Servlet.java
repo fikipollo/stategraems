@@ -34,6 +34,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  *
@@ -111,14 +112,21 @@ public abstract class Servlet extends HttpServlet {
         }
         return true;
     }
-    
+
+    protected boolean isValidAdminUser(String loggedUser) {
+        if (!UserSessionManager.getUserSessionManager().isValidAdminUser(loggedUser)) {
+            return false;
+        }
+        return true;
+    }
+
     /*------------------------------------------------------------------------------------------*
      *                                                                                          *
      * OTHER FUNCTIONS                                                                          *
      *                                                                                          *
      *------------------------------------------------------------------------------------------*/
     protected boolean matchService(String request, String service) {
-        if(request == null){
+        if (request == null) {
             return false;
         }
         // Create a Pattern object
@@ -128,11 +136,21 @@ public abstract class Servlet extends HttpServlet {
         return m.find();
         //m.group(0)
     }
-    
-    protected Map<String, Cookie> getCookies(HttpServletRequest request){
-        HashMap<String, Cookie> cookies = new HashMap<String, Cookie>();
-        for(Cookie cookie : request.getCookies()){
-            cookies.put(cookie.getName(), cookie);
+
+    protected Map<String, Cookie> getCookies(HttpServletRequest request) {
+        HashMap<String, Cookie> cookies = null;
+        if (request.getCookies() != null) {
+            cookies = new HashMap<String, Cookie>();
+            for (Cookie cookie : request.getCookies()) {
+                if ("session".equals(cookie.getName())) {
+                    String session = new String(Base64.decodeBase64(cookie.getValue()));
+                    cookies.put(cookie.getName(), cookie);
+                    cookies.put("loggedUser", new Cookie("loggedUser", session.split(":")[0]));
+                    cookies.put("sessionToken", new Cookie("loggedUser", session.split(":")[1]));
+                } else {
+                    cookies.put(cookie.getName(), cookie);
+                }
+            }
         }
         return cookies;
     }
