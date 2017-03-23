@@ -5,7 +5,7 @@ install_dir=""
 tomcat_location=""
 server_subdomain="stategraems_app"
 
-origin="http://bioinfo.cipf.es/stategraems/unofficial_dist"
+origin="http://bioinfo.cipf.es/stategraems/dist"
 
 function quit {
 	cd $previous_location
@@ -47,7 +47,7 @@ function readTomcatLocation {
 
 	valid_data=1
 	while [ $valid_data == 1 ]; do
-		echo -en "\tPlease type the location of TOMCAT in the system (e.g. /opt/tomcat6/). This location must contains the webapps directory. [Ctrl + C to cancel]  "	
+		echo -en "\tPlease type the location of TOMCAT in the system (e.g. /var/lib/tomcat7/). This location must contains the webapps directory. [Ctrl + C to cancel]  "	
 		read -e -p "" tomcat_location
 
 		status=$(ls $tomcat_location | grep webapps)
@@ -83,11 +83,11 @@ function checkTomcatInstallation {
 		status=$(ls $tomcat_location | grep webapps)
 		status=$?
 		if [ $status == 1 ]; then 
-			echo -e "\t"$tomcat_location"does not contain the webapp directory. Please specify manually the location for this directory."
+			echo -e "\t"$tomcat_location" does not contain the webapp directory. Please specify manually the location for this directory."
 			readTomcatLocation
+                else
+                    echo -e "...\033[92;1mOK\033[0m Tomcat files located at "$tomcat_location
 		fi
-
-		echo -e "...\033[92;1mOK\033[0m Tomcat files located at "$tomcat_location
 	fi
 }
 
@@ -285,4 +285,3 @@ configureSTATegraEMS 4 4
 echo ""
 
 quit 0
-
