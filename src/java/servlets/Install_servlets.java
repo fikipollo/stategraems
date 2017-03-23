@@ -105,24 +105,26 @@ public class Install_servlets extends Servlet {
         String install_type = "install";
         String is_docker = System.getenv("is_docker");
 
-        //COMPARE IF DATABASE VERSION IS SAME THAT APP VERSION
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(DBConnectionManager.class.getResourceAsStream("/conf/version.info")));
-        bufferedReader.readLine(); //ignore first line
-        String codeVersion = new StringBuffer().append(bufferedReader.readLine()).toString().replace("v", "");
+        if (is_valid) {
+            //COMPARE IF DATABASE VERSION IS SAME THAT APP VERSION
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(DBConnectionManager.class.getResourceAsStream("/conf/version.info")));
+            bufferedReader.readLine(); //ignore first line
+            String codeVersion = new StringBuffer().append(bufferedReader.readLine()).toString().replace("v", "");
 
-        String installedVersion = "0";
-        try {
-            PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT version FROM appVersion;");
-            ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
-            if (rs.first()) {
-                installedVersion = rs.getString("version");
-            }
-            if (!codeVersion.equalsIgnoreCase(installedVersion)) {
+            String installedVersion = "0";
+            try {
+                PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT version FROM appVersion;");
+                ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
+                if (rs.first()) {
+                    installedVersion = rs.getString("version");
+                }
+                if (!codeVersion.equalsIgnoreCase(installedVersion)) {
+                    is_valid = false;
+                    install_type = "upgrade";
+                }
+            } catch (SQLException e) {
                 is_valid = false;
-                install_type = "upgrade";
             }
-        } catch (SQLException e) {
-            is_valid = false;
         }
 
         JsonObject obj = new JsonObject();
