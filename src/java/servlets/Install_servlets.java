@@ -550,8 +550,8 @@ public class Install_servlets extends Servlet {
 
         String inputLine, key, value;
         while ((inputLine = bufferedReader.readLine()) != null) {
-            key = inputLine.split(":", 2)[0];
-            value = inputLine.split(":", 2)[1];
+            key = inputLine.split(":", 2)[0].replaceAll(" ", "");
+            value = inputLine.split(":", 2)[1].replaceAll("\"", "").replaceAll("\'", "").replaceAll(" ", "");
             if (settings.has(key)) {
                 settings.remove(key);
             }
