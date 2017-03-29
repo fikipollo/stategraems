@@ -102,23 +102,7 @@
                     ' </div>'
         };
     });
+    
 
-    app.directive("userAdminToolsPanel", function () {
-        return {
-            restrict: 'E',
-            replace: true,
-            template:
-                    ' <div ng-show="userInfo.role === \'admin\'" ng-controller="UserSessionController as controller">' +
-                    '  <h4>Admin tools</h4>' +
-                    '  <div class="panel panel-container" style="text-align: center;margin-top:10px;">' +
-//                    '   <a class="btn btn-default homeMainButton" ng-click="controller.showUserManagementTool()">' +
-//                    '       <i class="fa fa-users fa-5" aria-hidden="true" ></i><p>Manage users</p>' +
-//                    '   </a>' +
-                    '   <a class="btn btn-default homeMainButton" >' +
-                    '       <i class="fa fa-database fa-5" aria-hidden="true" ng-click="controller.sendBackupRequestHandler()"></i><p>Backup DB</p>' +
-                    '   </a>' +
-                    '  </div>' +
-                    ' </div>'
-        };
-    });
+
 })();

@@ -1,6 +1,6 @@
 <div >
-    <div class="home-container">
-        <div class="col-md-12" style="margin-top:20px;text-align: center;">
+    <div class="home-container" >
+        <div class="col-md-12" style="margin-top:20px;text-align: center;" ng-controller="UserSessionController as controller">
             <h1 class="form_title" style=" text-align: center; font-size: 45px;">Welcome to STATegra EMS</h1>
             <h4 class="form_subtitle">The Experiment Management System</h4>
             <div class="panel panel-container">
@@ -13,6 +13,9 @@
                 <a class="btn btn-default homeMainButton" ui-sref="analysis()">
                     <i class="fa fa-sitemap fa-5" aria-hidden="true" ></i><p>Analysis</p>
                 </a>
+                <a ng-if="userInfo.role === 'admin'" class="btn btn-default homeMainButton" ui-sref="admin()">
+                    <i class="fa fa-sliders fa-5" aria-hidden="true" ></i><p>System settings</p>
+                </a> 
                 <h4>Please choose an option below to start working</h4>
             </div>
         </div>
@@ -34,10 +37,7 @@
             </div>
         </div>
         <div class="col-md-6" >
-            <message-inbox ng-controller="MessageListController as controller" ng-init="show = 'unread'; lite=true; title='Unread messages'; limit=2"></message-inbox>
-        </div>
-        <div class="col-md-12" >
-            <user-admin-tools-panel style="height: 170px; margin-top: 20px;"></user-admin-tools-panel>
+            <message-inbox ng-controller="MessageListController as controller" ng-init="show = 'unread'; lite = true; title = 'Unread messages'; limit = 2"></message-inbox>
         </div>
     </div>
 </div>

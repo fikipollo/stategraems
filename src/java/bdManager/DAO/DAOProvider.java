@@ -30,10 +30,8 @@ import bdManager.DAO.analysis.non_processed_data.raw_data.RAWdata_JDBCDAO;
 import bdManager.DAO.analysis.non_processed_data.raw_data.SeparationMethods.*;
 import bdManager.DAO.analysis.non_processed_data.raw_data.SequencingJDBCDAO;
 import bdManager.DAO.samples.*;
-import classes.Message;
-import classes.analysis.Analysis;
-import classes.analysis.ProcessedData;
-import classes.analysis.QualityReport;
+import classes.*;
+import classes.analysis.*;
 import classes.analysis.non_processed_data.ExternalData;
 import classes.analysis.non_processed_data.IntermediateData;
 import classes.analysis.non_processed_data.RAWdata;
@@ -50,6 +48,8 @@ public class DAOProvider {
     public static DAO getDAO(Object object) {
         if (object instanceof Message) {
             return new Message_JDBCDAO();
+        }else if (object instanceof ExternalSource) {
+            return new ExternalSource_JDBCDAO();
         }else if (object instanceof Analysis) {
             return new Analysis_JDBCDAO();
             //************************
@@ -168,6 +168,8 @@ public class DAOProvider {
             return new User_JDBCDAO();
         } else if ("Message".equalsIgnoreCase(className)) {
             return new Message_JDBCDAO();
+        }else if ("ExternalSource".equalsIgnoreCase(className)) {
+            return new ExternalSource_JDBCDAO();
         } else {
             return null;
         }
