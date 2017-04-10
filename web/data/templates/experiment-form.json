@@ -44,6 +44,9 @@
                     "type": "select",
                     "free": false,
                     "options": [{
+                            "value": "hopsworks",
+                            "label": "Hops Works"
+                        },{
                             "value": "local_dir",
                             "label": "Local directory (in server)"
                         }, {

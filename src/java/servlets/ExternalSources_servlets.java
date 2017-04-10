@@ -23,7 +23,6 @@ import bdManager.DAO.DAO;
 import bdManager.DAO.DAOProvider;
 import classes.ExternalSource;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;

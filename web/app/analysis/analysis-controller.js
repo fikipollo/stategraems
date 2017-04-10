@@ -842,16 +842,16 @@
                 return true;
             };
         };
-        
-        $scope.countStepsByClassification = function(classification){
+
+        $scope.countStepsByClassification = function (classification) {
             var count = 0;
-            for(var i in $scope.model.non_processed_data){
-                if($scope.model.non_processed_data[i].type === classification){
+            for (var i in $scope.model.non_processed_data) {
+                if ($scope.model.non_processed_data[i].type === classification) {
                     count++;
                 }
-            }  
-            for(var i in $scope.model.processed_data){
-                if($scope.model.processed_data[i].type === classification){
+            }
+            for (var i in $scope.model.processed_data) {
+                if ($scope.model.processed_data[i].type === classification) {
                     count++;
                 }
             }
@@ -1142,6 +1142,8 @@
             if ($stateParams.analysis_id !== null) {
                 AnalysisList.setNewAnalysis(null);
                 this.retrieveAnalysisDetails($stateParams.analysis_id);
+            } else if ($stateParams.analysis_id === null && $scope.viewMode === "view") {
+                $state.go('analysis');
             } else {
                 $scope.model.analysis_id = "ANxxxx";
                 $scope.model.analysis_name = "Unnamed analysis";
@@ -1295,9 +1297,16 @@
             $rootScope.$broadcast(APP_EVENTS.stepChanged);
         };
 
-        this.sendStepToGalaxyHandler = function (model) {
+
+        /******************************************************************************
+         * This function handles the event fired when the use choose the option "Send files
+         * to an external tool" in a Step panel. It shows a new dialog for destination and 
+         * files selection.
+         * 
+         ******************************************************************************/
+        this.sendStepToGalaxyHandler = function () {
             $scope.files_selection = {
-                destination: '',
+                source_id: '',
                 selection: 'all',
                 files: []
             };
@@ -1306,11 +1315,16 @@
                 templateUrl: 'app/analysis/send-step-dialog.tpl.html',
                 scope: $scope,
                 backdrop: 'static',
-                size: 'md'
+                size: 'lg'
             });
 
         };
-
+        /******************************************************************************
+         * This function handles the event fired when the user changes the selection of
+         * files to be sent to an external tool.
+         * 
+         * @param file the file (un)selected
+         ******************************************************************************/
         this.changeFileSelection = function (file) {
             var pos = $scope.files_selection.files.indexOf(file);
             if (pos !== -1) {
@@ -1319,26 +1333,52 @@
                 $scope.files_selection.files.push(file);
             }
         };
-
+        /******************************************************************************
+         * This auxiliar function removes all the sources that are not valid for 
+         * sending files.
+         * 
+         * @param item the external_source to be evaluated
+         ******************************************************************************/
+        $scope.filterValidTools = function (item) {
+            return item.type !== 'id_mapping';
+        };
+        /******************************************************************************
+         * This function handles the event fired when the user closes the dialog for 
+         * sending files.
+         * 
+         * @param option whether the selected option is "send" or "close"
+         ******************************************************************************/
         this.closeSendStepDialogHandler = function (option) {
             if (option === 'send') {
                 $scope.setLoading(true);
                 if ($scope.files_selection.selection === "all") {
                     $scope.files_selection.files = $scope.model.files_location;
                 }
+                if ($scope.files_selection.username !== undefined && $scope.files_selection.username !== "") {
+                    $scope.files_selection.username = btoa($scope.files_selection.username + ":" + $scope.files_selection.pass);
+                }
+                if ($scope.remember) {
+
+                }
 
                 $http($rootScope.getHttpRequestConfig("POST", "file-rest", {
                     headers: {'Content-Type': 'application/json; charset=utf-8'},
                     data: {
-                        files: $scope.files_selection.files,
-                        destination: $scope.files_selection.destination
+                        source_id: $scope.files_selection.source_id,
+                        credentials: $scope.files_selection.username,
+                        apikey: $scope.files_selection.apikey,
+                        files: $scope.files_selection.files
                     },
                     extra: "send"
                 })).then(
                         function successCallback(response) {
                             $scope.setLoading(false);
                             if (response.data.errors === "") {
-                                $dialogs.showSuccessDialog("The selected files have being sent successfully.");
+                                $dialogs.showSuccessDialog("The selected files were successfully sent.");
+
+                                $scope.modalInstance.close();
+                                delete $scope.modalInstance;
+                                delete $scope.files_selection;
                             } else {
                                 $dialogs.showWarningDialog("Some errors were found while sending the selected files: " + response.data.errors);
                             }
@@ -1353,11 +1393,32 @@
                             debugger
                         }
                 );
+            } else {
+                $scope.modalInstance.close();
+                delete $scope.modalInstance;
+                delete $scope.files_selection;
             }
+        };
 
-            $scope.modalInstance.close();
-            delete $scope.modalInstance;
-            delete $scope.files_selection;
+        /******************************************************************************
+         * This function handles the event fired when the use choose the option "Download 
+         * files" in a Step panel. 
+         * 
+         * @param step the current step whose file will be downloaded
+         ******************************************************************************/
+        this.downloadStepFilesHandler = function (step) {
+            alert("Not implemented!!");
+        };
+
+        /******************************************************************************
+         * This function handles the event fired when the use choose the option "Export
+         * step" in a Step panel. 
+         * 
+         * @param step the step to be exported
+         * @param format the format to be exported
+         ******************************************************************************/
+        this.exportStepHandler = function (step, format) {
+            alert("Not implemented!!");
         };
 
         /******************************************************************************

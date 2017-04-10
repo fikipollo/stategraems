@@ -176,7 +176,7 @@
 
         this.pages = [
             {name: 'home', title: 'Home', icon: 'home', isParent: true},
-            {name: 'messages', title: 'Inbox', icon: 'envelope', isParent: false},
+            {name: 'messages', title: 'Messages', icon: 'envelope', isParent: false},
             {name: '', title: 'Studies', icon: 'book', isParent: true},
             {name: 'experiments', title: 'Browse studies', icon: 'angle-right', isParent: false},
             {name: 'experimentDetail', title: 'Show current study', icon: 'angle-right', isParent: false, params: {viewMode: 'view', experiment_id: "promise"}},

@@ -38,7 +38,7 @@
                 $scope.$watch('filesTree', function (newValues, oldValues) {
                     var template =
                             '<div ng-controller="FileListController as controller">' +
-                            '   <div id="files-tree-container" ng-show="(!filters || filters.length < 1)" style="min-width:200px; min-height: 330px;"></div>' +
+                            '   <div id="files-tree-container" class="files-tree-container" ng-show="(!filters || filters.length < 1)" ></div>' +
                             '   <div ng-show="(filters && filters.length > 0)" style="min-width:200px; min-height: 330px;"></div>' +
                             '</div>';
 

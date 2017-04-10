@@ -32,7 +32,7 @@
                     </div>
                 </div>
                 <files-tree></files-tree>
-                <button type="button" class="btn btn-primary" style="float: right;" ng-click="controller.updateFileSelectionHandler();"><i class="fa fa-plus"></i> Add the files</button>
+                <button type="button" class="btn btn-primary btn-lg" style="display: block;margin: auto;" ng-click="controller.updateFileSelectionHandler();"><i class="fa fa-plus"></i> Add selected files</button>
             </uib-tab>
             <uib-tab heading="Manual entry" classes="btn-sm" ng-init="manual_entries = '';">
                 <div class="well well-sm text-info"><i class="fa fa-info-circle"></i> Type the location for the files (one file per line). You can use file paths (e.g. /mydata/mydir/this_file.txt), URLs (http://myserver.com/mydata/myfiles), FTP links (ftp://myftpserver.com/mydata/myfiles), or even textual descriptions (in one line).</div>

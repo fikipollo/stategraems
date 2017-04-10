@@ -22,6 +22,7 @@ package servlets;
 import bdManager.DAO.DAO;
 import bdManager.DAO.DAOProvider;
 import classes.Experiment;
+import classes.ExternalSource;
 import classes.Message;
 import classes.User;
 import com.google.gson.JsonElement;
@@ -63,13 +64,14 @@ import org.apache.commons.codec.binary.Base64;
  *
  * SERVLET FOR MESSAGES:
  * +----------------------+-----------------------+---------------+------------------------------+---------------------+
- * | Resource             | POST                  | GET           |  PUT                         | DELETE              |
+ * | Resource | POST | GET | PUT | DELETE |
  * +----------------------+-----------------------+---------------+------------------------------+---------------------+
- * | /rest/files          | Upload a new file     | List files    |                              |                     |
+ * | /rest/files | Upload a new file | List files | | |
  * +----------------------+-----------------------+---------------+------------------------------+---------------------+
- * | /rest/files/1234     | Error                 | Download file | If exist replace file        | Delete file         |
+ * | /rest/files/1234 | Error | Download file | If exist replace file | Delete
+ * file |
  * +----------------------+-----------------------+---------------+------------------------------+---------------------+
- * | /rest/files/send     | Send selection        |               |                              |                     |
+ * | /rest/files/send | Send selection | | | |
  * +----------------------+-----------------------+---------------+------------------------------+---------------------+
  *
  */
@@ -172,8 +174,8 @@ public class File_servlets extends Servlet {
 
                 /**
                  * *******************************************************
-                 * STEP 2 Get the Experiment Object from DB. IF ERROR -->
-                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * STEP 2 Get the Experiment Object from DB. IF ERROR --> throws
+                 * MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
                  * *******************************************************
                  */
                 String experiment_id;
@@ -187,14 +189,15 @@ public class File_servlets extends Servlet {
                 if (request.getParameter("parent_dir") != null) {
                     parent_dir = request.getParameter("parent_dir");
                 }
-                
+
                 file_name = "";
                 if (request.getParameter("file_name") != null) {
                     file_name = request.getParameter("file_name");
                 }
                 /**
                  * *******************************************************
-                 * STEP 3 Check that the user is a valid owner for the experiment.
+                 * STEP 3 Check that the user is a valid owner for the
+                 * experiment.
                  * *******************************************************
                  */
                 daoInstance = DAOProvider.getDAOByName("Experiment");
@@ -206,9 +209,10 @@ public class File_servlets extends Servlet {
 
                 /**
                  * *******************************************************
-                 * STEP 1 Get the request params: read the params and the PDF file.
-                 * IF ERROR --> throws SQL Exception, GO TO STEP ? ELSE --> GO TO
-                 * STEP 9 *******************************************************
+                 * STEP 1 Get the request params: read the params and the PDF
+                 * file. IF ERROR --> throws SQL Exception, GO TO STEP ? ELSE
+                 * --> GO TO STEP 9
+                 * *******************************************************
                  */
                 FileItem tmpUploadedFile = null;
                 final String CACHE_PATH = "/tmp/";
@@ -245,12 +249,13 @@ public class File_servlets extends Servlet {
                 /**
                  * *******************************************************
                  * STEP 3 SAVE THE FILE IN THE SERVER. IF ERROR --> throws
-                 * exception if not valid session, GO TO STEP 6b ELSE --> GO TO STEP
-                 * 3 *******************************************************
+                 * exception if not valid session, GO TO STEP 6b ELSE --> GO TO
+                 * STEP 3
+                 * *******************************************************
                  */
                 //First check if the file already exists -> error, probably a previous treatmente exists with the same treatment_id
                 Path tmpDir = Files.createTempDirectory(null);
-                file_name = (file_name.isEmpty()? tmpUploadedFile.getName() : file_name);
+                file_name = (file_name.isEmpty() ? tmpUploadedFile.getName() : file_name);
                 uploadedFile = new File(tmpDir.toString(), file_name);
 
                 try {
@@ -294,12 +299,13 @@ public class File_servlets extends Servlet {
     }
 
     /**
-    This function sends a file to an external application (e.g. a Galaxy server).
-    
-    @param request
-    @param response
-    @throws IOException 
-    */
+     * This function sends a file to an external application (e.g. a Galaxy
+     * server).
+     *
+     * @param request
+     * @param response
+     * @throws IOException
+     */
     private void send_file_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             DAO daoInstance = null;
@@ -326,8 +332,8 @@ public class File_servlets extends Servlet {
 
                 /**
                  * *******************************************************
-                 * STEP 2 Get the Experiment Object from DB. IF ERROR -->
-                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * STEP 2 Get the Experiment Object from DB. IF ERROR --> throws
+                 * MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
                  * *******************************************************
                  */
                 JsonParser parser = new JsonParser();
@@ -339,12 +345,23 @@ public class File_servlets extends Servlet {
                     files.add(it.next().getAsString());
                 }
 
-                String destination = requestData.get("destination").getAsString();
-                //TODO: read destination URL and credentials from User
                 HashMap<String, String> destination_settings = new HashMap<String, String>();
-                destination_settings.put("type", "galaxy");
-                destination_settings.put("URL", "http://localhost:8090");
-                destination_settings.put("key", "2b059e2a17f03406c65e5a7e429958f1");
+
+                String source_id = requestData.get("source_id").getAsString();
+                daoInstance = DAOProvider.getDAOByName("ExternalSource");
+                ExternalSource externalSource = (ExternalSource) daoInstance.findByID(source_id, null);
+                destination_settings.put("type", externalSource.getType());
+                destination_settings.put("URL", externalSource.getUrl());
+
+                if (requestData.get("credentials") != null && !"".equals(requestData.get("credentials").getAsString())) {
+                    String credentials = requestData.get("credentials").getAsString();
+                    credentials = new String(Base64.decodeBase64(credentials));
+                    destination_settings.put("username", credentials.split(":")[0]);
+                    destination_settings.put("pass", (credentials.split(":").length > 1 ? credentials.split(":")[1] : ""));
+                } else {
+                    String apikey = requestData.get("apikey").getAsString();
+                    destination_settings.put("key", apikey);
+                }
 
                 String experiment_id;
                 if (request.getParameter("experiment_id") != null) {
@@ -355,7 +372,8 @@ public class File_servlets extends Servlet {
 
                 /**
                  * *******************************************************
-                 * STEP 3 Check that the user is a valid owner for the experiment.
+                 * STEP 3 Check that the user is a valid owner for the
+                 * experiment.
                  * *******************************************************
                  */
                 daoInstance = DAOProvider.getDAOByName("Experiment");
@@ -368,8 +386,9 @@ public class File_servlets extends Servlet {
                 /**
                  * *******************************************************
                  * STEP 3 SEND THE FILES IN THE SERVER. IF ERROR --> throws
-                 * exception if not valid session, GO TO STEP 6b ELSE --> GO TO STEP
-                 * 3 *******************************************************
+                 * exception if not valid session, GO TO STEP 6b ELSE --> GO TO
+                 * STEP 3
+                 * *******************************************************
                  */
                 String tmpfile;
                 for (String file : files) {
@@ -433,8 +452,8 @@ public class File_servlets extends Servlet {
 
                 /**
                  * *******************************************************
-                 * STEP 2 Get the Experiment Object from DB. IF ERROR -->
-                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * STEP 2 Get the Experiment Object from DB. IF ERROR --> throws
+                 * MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
                  * *******************************************************
                  */
                 String experiment_id;
@@ -446,7 +465,8 @@ public class File_servlets extends Servlet {
 
                 /**
                  * *******************************************************
-                 * STEP 3 Check that the user is a valid owner for the experiment.
+                 * STEP 3 Check that the user is a valid owner for the
+                 * experiment.
                  * *******************************************************
                  */
                 dao_instance = DAOProvider.getDAOByName("Experiment");
@@ -796,14 +816,15 @@ public class File_servlets extends Servlet {
         JsonElement jelement = new JsonParser().parse(org.apache.http.util.EntityUtils.toString(response.getEntity()));
 
         String historyID = jelement.getAsJsonObject().get("id").getAsString();
-        
+
         uri = new URIBuilder(destination_settings.get("URL") + "/api/tools/").addParameter("key", destination_settings.get("key")).build();
         HttpPost post = new HttpPost(uri);
         FileBody fileBody = new FileBody(new File(file_path));
 
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+        builder.addPart("key", new StringBody(destination_settings.get("key")));
+        builder.addPart("inputs", new StringBody("{\"dbkey\":\"?\",\"file_type\":\"txt\",\"files_0|type\":\"upload_dataset\",\"files_0|space_to_tab\":null,\"files_0|to_posix_lines\":\"Yes\"}"));
         builder.addPart("files_0|file_data", fileBody);
-//        builder.addPart("inputs", new StringBody("{\"dbkey\":\"?\",\"file_type\":\"txt\",\"files_0|type\":\"upload_dataset\",\"files_0|space_to_tab\":null,\"files_0|to_posix_lines\":\"Yes\"}"));
         builder.addPart("tool_id", new StringBody("upload1"));
         builder.addPart("history_id", new StringBody(historyID));
         post.setEntity(builder.build());
@@ -811,8 +832,8 @@ public class File_servlets extends Servlet {
         response = httpclient.execute(post);
 
         httpclient.close();
-        
-        if(response.getStatusLine().getStatusCode() != 200){
+
+        if (response.getStatusLine().getStatusCode() != 200) {
             throw new Exception();
         }
     }

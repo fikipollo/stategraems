@@ -355,6 +355,8 @@ textarea.ng-invalid-required:read-write {
 textarea.ng-valid-required:read-write {
     border: 1px solid #54BF78
 }
+
+div.files-tree-container{min-width:200px;height: 330px; overflow-y: scroll;overflow-x: hidden;}
 /******************************************************************************************/
 /* STYLES FOR progress INDICATOR                                                          */
 /******************************************************************************************/

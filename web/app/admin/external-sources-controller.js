@@ -138,11 +138,11 @@
         // EVENT HANDLERS
         //--------------------------------------------------------------------
         this.saveExternalSourceDetailsHandler = function () {
-            $http($rootScope.getHttpRequestConfig(($scope.isUpdate?"PUT":"POST"), "external-sources-rest", {
+            $http($rootScope.getHttpRequestConfig(($scope.isUpdate ? "PUT" : "POST"), "external-sources-rest", {
                 data: {
                     external_source_json_data: $scope.model
                 },
-                extra : ($scope.isUpdate?$scope.model.source_id:"")
+                extra: ($scope.isUpdate ? $scope.model.source_id : "")
             })).then(
                     function successCallback(response) {
                         $dialogs.showSuccessDialog("External source succesfully saved.");
