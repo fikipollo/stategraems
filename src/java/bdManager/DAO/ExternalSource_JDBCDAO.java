@@ -26,7 +26,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.sql.ResultSet;
 
-
 public class ExternalSource_JDBCDAO extends DAO {
 
     /*------------------------------------------------------------------------------------------*
@@ -39,12 +38,13 @@ public class ExternalSource_JDBCDAO extends DAO {
         ExternalSource externalSource = (ExternalSource) object;
 
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                + "INSERT INTO external_sources SET name=?, type=?, url=?, description=?");
+                + "INSERT INTO external_sources SET name=?, type=?, url=?, description=?, enabled=?");
 
         ps.setString(1, externalSource.getName());
         ps.setString(2, externalSource.getType());
         ps.setString(3, externalSource.getUrl());
         ps.setString(4, externalSource.getDescription());
+        ps.setBoolean(5, externalSource.isEnabled());
         ps.execute();
 
         return true;
@@ -60,13 +60,14 @@ public class ExternalSource_JDBCDAO extends DAO {
         ExternalSource externalSource = (ExternalSource) object;
 
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
-                + "UPDATE external_sources SET name = ?, type=?, url=?, description=? WHERE source_id=?");
+                + "UPDATE external_sources SET name = ?, type=?, url=?, description=?, enabled=? WHERE source_id=?");
 
         ps.setString(1, externalSource.getName());
         ps.setString(2, externalSource.getType());
         ps.setString(3, externalSource.getUrl());
         ps.setString(4, externalSource.getDescription());
-        ps.setString(5, externalSource.getSourceID());
+        ps.setBoolean(5, externalSource.isEnabled());
+        ps.setString(6, externalSource.getSourceID());
         ps.execute();
 
         return true;
@@ -84,7 +85,7 @@ public class ExternalSource_JDBCDAO extends DAO {
             type = (String) otherParams[0];
         }
 
-        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT * FROM external_sources" + (type == null ? "" : " WHERE type='" + type +"'"));
+        PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT * FROM external_sources" + (type == null ? "" : " WHERE type='" + type + "'"));
         ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
         ArrayList<Object> externalSourcesList = new ArrayList<Object>();
         ExternalSource externalSource;
@@ -95,6 +96,7 @@ public class ExternalSource_JDBCDAO extends DAO {
             externalSource.setType(rs.getString("type"));
             externalSource.setUrl(rs.getString("url"));
             externalSource.setDescription(rs.getString("description"));
+            externalSource.setEnabled(rs.getBoolean("enabled"));
             externalSourcesList.add(externalSource);
         }
         return externalSourcesList;
@@ -111,6 +113,7 @@ public class ExternalSource_JDBCDAO extends DAO {
             externalSource.setName(rs.getString("name"));
             externalSource.setType(rs.getString("type"));
             externalSource.setUrl(rs.getString("url"));
+            externalSource.setEnabled(rs.getBoolean("enabled"));
             externalSource.setDescription(rs.getString("description"));
         }
         return externalSource;
@@ -126,7 +129,6 @@ public class ExternalSource_JDBCDAO extends DAO {
      * DELETE FUNCTIONS                                                                           *
      *                                                                                          *
      *------------------------------------------------------------------------------------------*/
-
     @Override
     public boolean remove(String source_id) throws SQLException {
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
@@ -138,6 +140,6 @@ public class ExternalSource_JDBCDAO extends DAO {
 
     @Override
     public boolean remove(String[] object_id_list) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

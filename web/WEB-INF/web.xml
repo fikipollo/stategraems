@@ -79,7 +79,6 @@
         <url-pattern>/unlock_experiment</url-pattern>
         <url-pattern>/remove_experiment</url-pattern>
         <url-pattern>/change_current_experiment</url-pattern>
-        <url-pattern>/get_experiment_directory_content</url-pattern>
         <url-pattern>/experiment_member_request</url-pattern>
     </servlet-mapping>
     <servlet-mapping>

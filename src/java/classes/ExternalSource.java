@@ -33,8 +33,12 @@ public class ExternalSource {
     private String type; //id_mapper, tool
     private String url = "";
     private String description = "";
+    private boolean enabled= true;
 
     public ExternalSource() {
+    }
+    public ExternalSource(String name) {
+        this.name = name;
     }
 
     /**
@@ -61,6 +65,10 @@ public class ExternalSource {
         String jsonString = gson.toJson(this);
 
         return jsonString;
+    }
+    
+    public String toOptionJSON() {
+        return "{\"value\" : \"" + this.getName().replaceAll(" ", "_").toLowerCase() + "\", \"label\" : \"" + this.getName() + "\"}";
     }
     
     public String getSourceID() {
@@ -101,6 +109,14 @@ public class ExternalSource {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
     
     @Override

@@ -23,19 +23,18 @@ import bdManager.DAO.DAO;
 import bdManager.DAO.DAOProvider;
 import classes.Experiment;
 import classes.ExternalSource;
-import classes.Message;
 import classes.User;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import common.ExtensionLoader;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import common.ServerErrorManager;
 import java.io.File;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.AccessControlException;
@@ -49,30 +48,22 @@ import javax.servlet.http.Cookie;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.commons.codec.binary.Base64;
+import resources.extensions.FileSystemManager;
+
 
 /**
  *
  * SERVLET FOR MESSAGES:
- * +----------------------+-----------------------+---------------+------------------------------+---------------------+
- * | Resource | POST | GET | PUT | DELETE |
- * +----------------------+-----------------------+---------------+------------------------------+---------------------+
- * | /rest/files | Upload a new file | List files | | |
- * +----------------------+-----------------------+---------------+------------------------------+---------------------+
- * | /rest/files/1234 | Error | Download file | If exist replace file | Delete
- * file |
- * +----------------------+-----------------------+---------------+------------------------------+---------------------+
- * | /rest/files/send | Send selection | | | |
- * +----------------------+-----------------------+---------------+------------------------------+---------------------+
+ * +----------------------+-----------------------+---------------+-----------------------+---------------------+
+ * | Resource             | POST                  | GET           | PUT                   | DELETE              |
+ * +----------------------+-----------------------+---------------+------------------------------+--------------+
+ * | /rest/files          | Upload a new file     | List files    | -                     | -                   |
+ * +----------------------+-----------------------+---------------+-----------------------+---------------------+
+ * | /rest/files/1234     | -                     | Download file | If exist replace file | Delete file         |
+ * +----------------------+-----------------------+---------------+-----------------------+---------------------+
+ * | /rest/files/send     | Send selection        | -             | -                     | -                   |
+ * +----------------------+-----------------------+---------------+-----------------------+---------------------+
  *
  */
 public class File_servlets extends Servlet {
@@ -129,12 +120,12 @@ public class File_servlets extends Servlet {
      *------------------------------------------------------------------------------------------*/
     private void add_new_file_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            DAO daoInstance = null;
-            File uploadedFile = null;
-            Experiment experiment = null;
-            boolean REMOVE_FILE_NEEDED = false;
-            String parent_dir = "";
-            String file_name = "";
+            DAO daoInstance;
+            File uploadedFile;
+            Experiment experiment;
+            String parent_dir;
+            String file_name;
+            
             try {
 
                 if (!ServletFileUpload.isMultipartContent(request)) {
@@ -209,9 +200,7 @@ public class File_servlets extends Servlet {
 
                 /**
                  * *******************************************************
-                 * STEP 1 Get the request params: read the params and the PDF
-                 * file. IF ERROR --> throws SQL Exception, GO TO STEP ? ELSE
-                 * --> GO TO STEP 9
+                 * STEP 4 Read the uploaded file and store in a temporal dir.
                  * *******************************************************
                  */
                 FileItem tmpUploadedFile = null;
@@ -248,9 +237,7 @@ public class File_servlets extends Servlet {
 
                 /**
                  * *******************************************************
-                 * STEP 3 SAVE THE FILE IN THE SERVER. IF ERROR --> throws
-                 * exception if not valid session, GO TO STEP 6b ELSE --> GO TO
-                 * STEP 3
+                 * STEP 5 SAVE THE FILE IN THE SERVER.
                  * *******************************************************
                  */
                 //First check if the file already exists -> error, probably a previous treatmente exists with the same treatment_id
@@ -260,8 +247,7 @@ public class File_servlets extends Servlet {
 
                 try {
                     tmpUploadedFile.write(uploadedFile);
-                    REMOVE_FILE_NEEDED = true;
-                    experiment.addExperimentDataDirectoryContent(new File[]{uploadedFile}, parent_dir);
+                    FileManager.getFileManager(DATA_LOCATION).saveFiles(new File[]{uploadedFile}, experiment.getDataDirectoryInformation(), parent_dir);
                 } catch (IOException e) {
                     // Directory creation failed
                     throw new Exception("Unable to save the uploded file. Please check if the Tomcat user has read/write permissions over the data application directory.");
@@ -281,10 +267,6 @@ public class File_servlets extends Servlet {
                 if (ServerErrorManager.errorStatus()) {
                     response.setStatus(400);
                     response.getWriter().print(ServerErrorManager.getErrorResponse());
-
-                    if (REMOVE_FILE_NEEDED && experiment != null) {
-                        experiment.deleteExperimentDataDirectoryContent(new File[]{uploadedFile}, parent_dir);
-                    }
                 } else {
                     JsonObject obj = new JsonObject();
                     obj.add("success", new JsonPrimitive(true));
@@ -390,15 +372,14 @@ public class File_servlets extends Servlet {
                  * STEP 3
                  * *******************************************************
                  */
-                String tmpfile;
-                for (String file : files) {
+                for (String file_path : files) {
                     try {
-                        tmpfile = this.retrieveFileFromDataDir(file, experiment);
-                        this.sendFileToExternalApplication(tmpfile, destination_settings);
+                        FileManager.getFileManager(DATA_LOCATION).sendFile(file_path, experiment.getDataDirectoryInformation(), destination_settings);
                     } catch (Exception e) {
-                        errors += "Failed while sending file " + file + "\n";
+                        errors += "Failed while sending file " + file_path + "\n";
                     }
                 }
+
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, File_servlets.class.getName(), "send_file_handler", e.getMessage());
             } finally {
@@ -476,7 +457,7 @@ public class File_servlets extends Servlet {
                     throw new AccessControlException("Cannot get files for selected Experiment. Current useris not a valid member for this Experiment.");
                 }
 
-                directoryContent = experiment.getExperimentDataDirectoryContent();
+                directoryContent = FileManager.getFileManager(DATA_LOCATION).getDirectoryContent("", experiment.getDataDirectoryInformation());
 
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, File_servlets.class.getName(), "get_all_files_handler", e.getMessage());
@@ -515,73 +496,7 @@ public class File_servlets extends Servlet {
     }
 
     private void get_file_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        try {
-            DAO dao_instance = null;
-            Message message = null;
-            try {
-                Map<String, Cookie> cookies = this.getCookies(request);
-                String loggedUser = cookies.get("loggedUser").getValue();
-                String sessionToken = cookies.get("sessionToken").getValue();
-                String messageID = request.getPathInfo().replaceAll("/", "");
-
-                /**
-                 * *******************************************************
-                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
-                 * ERROR --> throws exception if not valid session, GO TO STEP
-                 * 5b ELSE --> GO TO STEP 2
-                 * *******************************************************
-                 */
-                if (!checkAccessPermissions(loggedUser, sessionToken)) {
-                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-                }
-
-                /**
-                 * *******************************************************
-                 * STEP 2 Get THE ANALYSIS Object from DB. IF ERROR --> throws
-                 * MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
-                 * *******************************************************
-                 */
-                dao_instance = DAOProvider.getDAOByName("Message");
-                message = (Message) dao_instance.findByID(messageID, null);
-
-            } catch (Exception e) {
-                ServerErrorManager.handleException(e, File_servlets.class.getName(), "get_message_handler", e.getMessage());
-            } finally {
-                /**
-                 * *******************************************************
-                 * STEP 3b CATCH ERROR. GO TO STEP 4
-                 * *******************************************************
-                 */
-                if (ServerErrorManager.errorStatus()) {
-                    response.setStatus(400);
-                    response.getWriter().print(ServerErrorManager.getErrorResponse());
-                } else {
-                    /**
-                     * *******************************************************
-                     * STEP 3A WRITE SUCCESS RESPONSE. GO TO STEP 4
-                     * *******************************************************
-                     */
-                    if (message != null) {
-                        response.getWriter().print(message.toJSON());
-                    } else {
-                        response.getWriter().print("{}");
-                    }
-                }
-                /**
-                 * *******************************************************
-                 * STEP 4 Close connection.
-                 * ********************************************************
-                 */
-                if (dao_instance != null) {
-                    dao_instance.closeConnection();
-                }
-            }
-            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, File_servlets.class.getName(), "get_message_handler", e.getMessage());
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
-        }
+        throw new IOException("Not implemented");
     }
 
     /*------------------------------------------------------------------------------------------*
@@ -589,109 +504,8 @@ public class File_servlets extends Servlet {
      * PUT REQUEST HANDLERS                                                                     *
      *                                                                                          *
      *------------------------------------------------------------------------------------------*/
-    private void update_all_messages_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    }
-
     private void update_file_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        try {
-            boolean ROLLBACK_NEEDED = false;
-            DAO daoInstance = null;
-
-            try {
-
-                /**
-                 * *******************************************************
-                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
-                 * ERROR --> throws exception if not valid session, GO TO STEP
-                 * 5A ELSE --> GO TO STEP 2
-                 * *******************************************************
-                 */
-                JsonParser parser = new JsonParser();
-                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
-
-                Map<String, Cookie> cookies = this.getCookies(request);
-                String loggedUser = cookies.get("loggedUser").getValue();
-                String sessionToken = cookies.get("sessionToken").getValue();
-
-                String messageID = request.getPathInfo().replaceAll("/", "");
-
-                if (!checkAccessPermissions(loggedUser, sessionToken)) {
-                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-                }
-
-                /**
-                 * *******************************************************
-                 * STEP 2 Get the Object by parsing the JSON data. IF ERROR -->
-                 * throws JsonParseException, GO TO STEP 5A ELSE --> GO TO STEP
-                 * 3 *******************************************************
-                 */
-                Message message = Message.fromJSON(requestData.get("message_json_data"));
-                message.setMessageID(messageID);
-
-                /**
-                 * *******************************************************
-                 * STEP 3 UPDATE the message in DATABASE. IF ERROR --> throws
-                 * SQL Exception, GO TO STEP 5A ELSE --> GO TO STEP 4
-                 * *******************************************************
-                 */
-                daoInstance = DAOProvider.getDAOByName("Message");
-                daoInstance.disableAutocommit();
-                ROLLBACK_NEEDED = true;
-                daoInstance.update(message);
-
-                /**
-                 * *******************************************************
-                 * STEP 4 COMMIT CHANGES TO DATABASE. throws SQLException IF
-                 * ERROR --> throws SQL Exception, GO TO STEP 5A ELSE --> GO TO
-                 * STEP 5B
-                 * *******************************************************
-                 */
-                daoInstance.doCommit();
-            } catch (Exception e) {
-                if (e.getClass().getSimpleName().equals("MySQLIntegrityConstraintViolationException")) {
-                    ServerErrorManager.handleException(null, null, null, "Unable to update the Analysis information.");
-                } else {
-                    ServerErrorManager.handleException(e, File_servlets.class.getName(), "update_message_handler", e.getMessage());
-                }
-            } finally {
-                /**
-                 * *******************************************************
-                 * STEP 5A CATCH ERROR, CLEAN CHANGES. throws SQLException
-                 * *******************************************************
-                 */
-                if (ServerErrorManager.errorStatus()) {
-                    response.setStatus(400);
-                    response.getWriter().print(ServerErrorManager.getErrorResponse());
-
-                    if (ROLLBACK_NEEDED) {
-                        daoInstance.doRollback();
-                    }
-                } else {
-                    /**
-                     * *******************************************************
-                     * STEP 5B return success
-                     * *******************************************************
-                     */
-                    JsonObject obj = new JsonObject();
-                    obj.add("success", new JsonPrimitive(true));
-                    response.getWriter().print(obj.toString());
-                }
-
-                /**
-                 * *******************************************************
-                 * STEP 6 Close connection.
-                 * ********************************************************
-                 */
-                if (daoInstance != null) {
-                    daoInstance.closeConnection();
-                }
-            }
-            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, File_servlets.class.getName(), "update_message_handler", e.getMessage());
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
-        }
+        throw new IOException("Not implemented");
     }
 
     /*------------------------------------------------------------------------------------------*
@@ -699,143 +513,100 @@ public class File_servlets extends Servlet {
      * DELETE REQUEST HANDLERS                                                                  *
      *                                                                                          *
      *------------------------------------------------------------------------------------------*/
-    private void delete_all_messages_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    }
-
     private void delete_file_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        try {
-            boolean ROLLBACK_NEEDED = false;
-            DAO daoInstance = null;
-
-            try {
-                /**
-                 * *******************************************************
-                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
-                 * ERROR --> throws exception if not valid session, GO TO STEP
-                 * ELSE --> GO TO STEP 2
-                 * *******************************************************
-                 */
-                Map<String, Cookie> cookies = this.getCookies(request);
-                String loggedUser = cookies.get("loggedUser").getValue();
-                String sessionToken = cookies.get("sessionToken").getValue();
-
-                String messageID = request.getPathInfo().replaceAll("/", "");
-
-                if (!checkAccessPermissions(loggedUser, sessionToken)) {
-                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-                }
-
-                /**
-                 * *******************************************************
-                 * STEP 3 Remove the message
-                 * *******************************************************
-                 */
-                daoInstance = DAOProvider.getDAOByName("Message");
-                daoInstance.disableAutocommit();
-                ROLLBACK_NEEDED = true;
-                daoInstance.remove(messageID);
-
-                /**
-                 * *******************************************************
-                 * STEP 5 COMMIT CHANGES TO DATABASE. throws SQLException IF
-                 * ERROR --> throws SQL Exception, GO TO STEP ? ELSE --> GO TO
-                 * STEP 6
-                 * *******************************************************
-                 */
-                daoInstance.doCommit();
-            } catch (Exception e) {
-                ServerErrorManager.handleException(e, File_servlets.class.getName(), "delete_message_handler", e.getMessage());
-            } finally {
-                /**
-                 * *******************************************************
-                 * STEP 7b CATCH ERROR, CLEAN CHANGES. throws SQLException
-                 * *******************************************************
-                 */
-                if (ServerErrorManager.errorStatus()) {
-                    response.setStatus(400);
-                    response.getWriter().print(ServerErrorManager.getErrorResponse());
-                    if (ROLLBACK_NEEDED) {
-                        daoInstance.doRollback();
-                    }
-                } else {
-                    JsonObject obj = new JsonObject();
-                    obj.add("success", new JsonPrimitive(true));
-                    response.getWriter().print(obj.toString());
-                }
-
-                /**
-                 * *******************************************************
-                 * STEP 9 Close connection.
-                 * ********************************************************
-                 */
-                if (daoInstance != null) {
-                    daoInstance.closeConnection();
-                }
-            }
-            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, File_servlets.class.getName(), "delete_message_handler", e.getMessage());
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
-        }
-    }
-
-    /*------------------------------------------------------------------------------------------*
-     *                                                                                          *
-     * AUXILIAR FUNCTIONS                                                                       *
-     *                                                                                          *
-     *------------------------------------------------------------------------------------------*/
-    private String retrieveFileFromDataDir(String filename, Experiment experiment) throws Exception {
-        if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
-            filename = filename.substring(filename.indexOf("/") + 1);
-            return experiment.getDataDirectoryPath() + filename;
-        } else if ("ftp_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
-            throw new Exception("Not implemented");
-        } else if ("irods_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
-            throw new Exception("Not implemented");
-        } else if ("seeddms_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
-            throw new Exception("Not implemented");
-        }
-        return null;
-    }
-
-    private void sendFileToExternalApplication(String file_path, HashMap<String, String> destination_settings) throws Exception {
-        if ("galaxy".equalsIgnoreCase(destination_settings.get("type"))) {
-            this.sendFileToGalaxy(file_path, destination_settings);
-        } else {
-            throw new Exception("Destination type unknown.");
-        }
-    }
-
-    private void sendFileToGalaxy(String file_path, HashMap<String, String> destination_settings) throws Exception {
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        URI uri = new URIBuilder(destination_settings.get("URL") + "/api/histories/most_recently_used").addParameter("key", destination_settings.get("key")).build();
-
-        HttpGet get = new HttpGet(uri);
-        HttpResponse response = httpclient.execute(get);
-        JsonElement jelement = new JsonParser().parse(org.apache.http.util.EntityUtils.toString(response.getEntity()));
-
-        String historyID = jelement.getAsJsonObject().get("id").getAsString();
-
-        uri = new URIBuilder(destination_settings.get("URL") + "/api/tools/").addParameter("key", destination_settings.get("key")).build();
-        HttpPost post = new HttpPost(uri);
-        FileBody fileBody = new FileBody(new File(file_path));
-
-        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-        builder.addPart("key", new StringBody(destination_settings.get("key")));
-        builder.addPart("inputs", new StringBody("{\"dbkey\":\"?\",\"file_type\":\"txt\",\"files_0|type\":\"upload_dataset\",\"files_0|space_to_tab\":null,\"files_0|to_posix_lines\":\"Yes\"}"));
-        builder.addPart("files_0|file_data", fileBody);
-        builder.addPart("tool_id", new StringBody("upload1"));
-        builder.addPart("history_id", new StringBody(historyID));
-        post.setEntity(builder.build());
-
-        response = httpclient.execute(post);
-
-        httpclient.close();
-
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new Exception();
-        }
+        throw new IOException("Not implemented");
     }
 
 }
+
+
+class FileManager {
+    private static FileManager instance = null;
+    private String DATA_LOCATION = "";
+    
+    private FileManager(){
+    }
+    
+    private synchronized static void createFileManager(String DATA_LOCATION) {
+        if (instance == null) {
+            instance = new FileManager();
+            instance.DATA_LOCATION = DATA_LOCATION;
+        }
+    }
+
+    public static FileManager getFileManager(String DATA_LOCATION)  {
+        if (instance == null) {
+            createFileManager(DATA_LOCATION);
+        }
+        return instance;
+    }
+    
+    public boolean saveFiles(File[] files, Map<String,String> hostInfo, String path) throws Exception{
+        //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
+        ExtensionLoader<FileSystemManager> loader = new ExtensionLoader<FileSystemManager>();
+        FileSystemManager fileSystemManager = loader.loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), FileSystemManager.class);
+
+        //STEP 2. LOAD THE SETTINGS
+        fileSystemManager.loadSettings(hostInfo);
+        
+        //STEP 3. RUN THE CORRESPONDING FUNCTION
+        for(File file : files){
+            fileSystemManager.saveFile(file, path);
+        }
+        return true;
+    }
+    
+    public boolean removeFiles(String[] filePaths, Map<String,String> hostInfo) throws Exception{
+        //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
+        ExtensionLoader<FileSystemManager> loader = new ExtensionLoader<FileSystemManager>();
+        FileSystemManager fileSystemManager = loader.loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), FileSystemManager.class);
+
+        //STEP 2. LOAD THE SETTINGS
+        fileSystemManager.loadSettings(hostInfo);
+        
+        //STEP 3. RUN THE CORRESPONDING FUNCTION
+        for(String filepath : filePaths){
+            fileSystemManager.removeFile(filepath);
+        }
+        return true;
+    }
+    
+    public String getFile(String filePath, Map<String,String> hostInfo, String tmpDir) throws Exception{
+        //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
+        ExtensionLoader<FileSystemManager> loader = new ExtensionLoader<FileSystemManager>();
+        FileSystemManager fileSystemManager = loader.loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), FileSystemManager.class);
+
+        //STEP 2. LOAD THE SETTINGS
+        fileSystemManager.loadSettings(hostInfo);
+        
+        //STEP 3. RUN THE CORRESPONDING FUNCTION
+        return fileSystemManager.getFile(filePath, tmpDir);
+    }
+    
+    public boolean sendFile(String filePath, Map<String,String> hostInfo, Map<String,String> destination_settings) throws Exception{
+        Path tmpDir = Files.createTempDirectory(null);
+        try{
+            String tmpfile = this.getFile(filePath, hostInfo, tmpDir.toString());
+            //TODO: SEND
+        }catch(Exception ex){
+            throw ex;
+        }finally{
+            Files.delete(tmpDir);
+        }
+        return false;
+    }
+    
+    public String getDirectoryContent(String dirPath, Map<String,String> hostInfo) throws Exception{
+        //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
+        ExtensionLoader<FileSystemManager> loader = new ExtensionLoader<FileSystemManager>();
+        FileSystemManager fileSystemManager = loader.loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), FileSystemManager.class);
+
+        //STEP 2. LOAD THE SETTINGS
+        fileSystemManager.loadSettings(hostInfo);
+
+        //STEP 3. RUN THE CORRESPONDING FUNCTION
+        String content = fileSystemManager.getDirectoryContent(dirPath);
+        return content;
+    }
+}
+

@@ -43,16 +43,7 @@
                     "label": "Data directory",
                     "type": "select",
                     "free": false,
-                    "options": [{
-                            "value": "hopsworks",
-                            "label": "Hops Works"
-                        },{
-                            "value": "local_dir",
-                            "label": "Local directory (in server)"
-                        }, {
-                            "value": "none",
-                            "label": "None"
-                        }],
+                    "source": "/rest/externalsources?type=storage_system&format=json_options",
                     "required": true,
                     "help": "The location for the files produced during the experiment (e.g. the raw data files, the processed files, etc.). Files can be stored in the same machine in which the EMS is running (local directory) or in a third storage system such as a FTP server, an iRODS server or a SeedDMS system."
                 },
@@ -60,32 +51,32 @@
                     "name": "data_dir_host",
                     "label": "Host",
                     "type": "text",
-                    "required": "model.data_dir_type.search('none|local_dir') < 0",
-                    "dependency": "data_dir_type.search('none|local_dir') < 0",
+                    "required": "model.data_dir_type.search('none|local_directory') < 0",
+                    "dependency": "data_dir_type.search('none|local_directory') < 0",
                     "help": "The URL for the remote storage system (i.e. FTP server, iRODS server or SeedDMS system). E.g. <i>ftp://myserver.com</i>"
                 },
                 {
                     "name": "data_dir_port",
                     "label": "Port number",
                     "type": "text",
-                    "required": "model.data_dir_type.search('none|local_dir') < 0",
-                    "dependency": "data_dir_type.search('none|local_dir') < 0",
+                    "required": "model.data_dir_type.search('none|local_directory') < 0",
+                    "dependency": "data_dir_type.search('none|local_directory') < 0",
                     "help": "The port for the remote storage system. E.g. <i>22</i>"
                 },
                 {
                     "name": "data_dir_user",
                     "label": "User",
                     "type": "text",
-                    "required": "model.data_dir_type.search('none|local_dir') < 0",
-                    "dependency": "data_dir_type.search('none|local_dir') < 0",
+                    "required": "model.data_dir_type.search('none|local_directory') < 0",
+                    "dependency": "data_dir_type.search('none|local_directory') < 0",
                     "help": "A valid username for the remote storage system with read and write rights."
                 },
                 {
                     "name": "data_dir_pass",
                     "label": "Password",
                     "type": "password",
-                    "required": "model.data_dir_type.search('none|local_dir') < 0",
-                    "dependency": "data_dir_type.search('none|local_dir') < 0",
+                    "required": "model.data_dir_type.search('none|local_directory') < 0",
+                    "dependency": "data_dir_type.search('none|local_directory') < 0",
                     "help": "The password for the user in the remote storage system."
                 },
                 {

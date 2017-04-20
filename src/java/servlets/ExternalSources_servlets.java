@@ -234,11 +234,11 @@ public class ExternalSources_servlets extends Servlet {
                  * *******************************************************
                  */
                 JsonElement requestData = (JsonElement) new JsonParser().parse(request.getReader());
-                String type = null;
+                String type = request.getParameter("type");
                 if (requestData != null && !requestData.isJsonNull()) {
-                    type = ((JsonObject)requestData).get("type").getAsString();
+                    type = ((JsonObject) requestData).get("type").getAsString();
                 }
-
+                
                 Object[] params = {type};
                 dao_instance = DAOProvider.getDAOByName("ExternalSource");
                 externalSourceList = dao_instance.findAll(params);
@@ -259,13 +259,33 @@ public class ExternalSources_servlets extends Servlet {
                      * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
                      * *******************************************************
                      */
-                    String analysisJSON = "[";
-                    for (int i = 0; i < externalSourceList.size(); i++) {
-                        analysisJSON += ((ExternalSource) externalSourceList.get(i)).toJSON() + ((i < externalSourceList.size() - 1) ? "," : "");
-                    }
-                    analysisJSON += "]";
+                    String responseJSON = "";
 
-                    response.getWriter().print(analysisJSON);
+                    if ("json_options".equals(request.getParameter("format"))) {
+                        externalSourceList.add(0, new ExternalSource("Local directory"));
+                        externalSourceList.add(0, new ExternalSource("None"));
+                        
+                        responseJSON = "{\"data_dir_type\": [";
+                        ExternalSource aux;
+                        for (int i = 0; i < externalSourceList.size(); i++) {
+                            aux = ((ExternalSource) externalSourceList.get(i));
+                            if(aux.isEnabled()){
+                                responseJSON += aux.toOptionJSON() + ",";
+                            }
+                        }
+                        responseJSON = responseJSON.replaceAll(",$", "");
+                        responseJSON += "]}";
+                        
+                    } else {
+                        responseJSON = "[";
+
+                        for (int i = 0; i < externalSourceList.size(); i++) {
+                            responseJSON += ((ExternalSource) externalSourceList.get(i)).toJSON() + ((i < externalSourceList.size() - 1) ? "," : "");
+                        }
+                        responseJSON += "]";
+                    }
+
+                    response.getWriter().print(responseJSON);
                 }
                 /**
                  * *******************************************************
