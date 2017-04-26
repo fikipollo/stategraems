@@ -1,6 +1,10 @@
 <div class="biocondition-card iu-card">
     <div class="iu-card-body">
-        <h2 class="iu-card-name">{{biocondition.title}}</h2>
+        <h2 class="iu-card-name">
+            {{biocondition.name}}
+            <i style=" font-size: 13px; display: block; margin-top: 5px; " >{{biocondition.title}}</i>
+        </h2>
+        
         <div class="iu-card-description">
             <b ng-show="biocondition.isExternal">External sample</b>
             <span>{{(biocondition.sample_description !== ""?biocondition.sample_description:"No description provided")}}</span>

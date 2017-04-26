@@ -49,8 +49,9 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.codec.binary.Base64;
+import org.xeustechnologies.jcl.JarClassLoader;
+import org.xeustechnologies.jcl.JclObjectFactory;
 import resources.extensions.FileSystemManager;
-
 
 /**
  *
@@ -125,7 +126,7 @@ public class File_servlets extends Servlet {
             Experiment experiment;
             String parent_dir;
             String file_name;
-            
+
             try {
 
                 if (!ServletFileUpload.isMultipartContent(request)) {
@@ -519,14 +520,14 @@ public class File_servlets extends Servlet {
 
 }
 
-
 class FileManager {
+
     private static FileManager instance = null;
     private String DATA_LOCATION = "";
-    
-    private FileManager(){
+
+    private FileManager() {
     }
-    
+
     private synchronized static void createFileManager(String DATA_LOCATION) {
         if (instance == null) {
             instance = new FileManager();
@@ -534,79 +535,93 @@ class FileManager {
         }
     }
 
-    public static FileManager getFileManager(String DATA_LOCATION)  {
+    public static FileManager getFileManager(String DATA_LOCATION) {
         if (instance == null) {
             createFileManager(DATA_LOCATION);
         }
         return instance;
     }
-    
-    public boolean saveFiles(File[] files, Map<String,String> hostInfo, String path) throws Exception{
+
+    public boolean saveFiles(File[] files, Map<String, String> hostInfo, String path) throws Exception {
         //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
         ExtensionLoader<FileSystemManager> loader = new ExtensionLoader<FileSystemManager>();
         FileSystemManager fileSystemManager = loader.loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), FileSystemManager.class);
 
         //STEP 2. LOAD THE SETTINGS
         fileSystemManager.loadSettings(hostInfo);
-        
+
         //STEP 3. RUN THE CORRESPONDING FUNCTION
-        for(File file : files){
+        for (File file : files) {
             fileSystemManager.saveFile(file, path);
         }
         return true;
     }
-    
-    public boolean removeFiles(String[] filePaths, Map<String,String> hostInfo) throws Exception{
+
+    public boolean removeFiles(String[] filePaths, Map<String, String> hostInfo) throws Exception {
         //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
         ExtensionLoader<FileSystemManager> loader = new ExtensionLoader<FileSystemManager>();
         FileSystemManager fileSystemManager = loader.loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), FileSystemManager.class);
 
         //STEP 2. LOAD THE SETTINGS
         fileSystemManager.loadSettings(hostInfo);
-        
+
         //STEP 3. RUN THE CORRESPONDING FUNCTION
-        for(String filepath : filePaths){
+        for (String filepath : filePaths) {
             fileSystemManager.removeFile(filepath);
         }
         return true;
     }
-    
-    public String getFile(String filePath, Map<String,String> hostInfo, String tmpDir) throws Exception{
+
+    public String getFile(String filePath, Map<String, String> hostInfo, String tmpDir) throws Exception {
         //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
         ExtensionLoader<FileSystemManager> loader = new ExtensionLoader<FileSystemManager>();
         FileSystemManager fileSystemManager = loader.loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), FileSystemManager.class);
 
         //STEP 2. LOAD THE SETTINGS
         fileSystemManager.loadSettings(hostInfo);
-        
+
         //STEP 3. RUN THE CORRESPONDING FUNCTION
         return fileSystemManager.getFile(filePath, tmpDir);
     }
-    
-    public boolean sendFile(String filePath, Map<String,String> hostInfo, Map<String,String> destination_settings) throws Exception{
+
+    public boolean sendFile(String filePath, Map<String, String> hostInfo, Map<String, String> destination_settings) throws Exception {
         Path tmpDir = Files.createTempDirectory(null);
-        try{
+        try {
             String tmpfile = this.getFile(filePath, hostInfo, tmpDir.toString());
             //TODO: SEND
-        }catch(Exception ex){
+        } catch (Exception ex) {
             throw ex;
-        }finally{
+        } finally {
             Files.delete(tmpDir);
         }
         return false;
     }
-    
-    public String getDirectoryContent(String dirPath, Map<String,String> hostInfo) throws Exception{
-        //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
-        ExtensionLoader<FileSystemManager> loader = new ExtensionLoader<FileSystemManager>();
-        FileSystemManager fileSystemManager = loader.loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), FileSystemManager.class);
 
-        //STEP 2. LOAD THE SETTINGS
-        fileSystemManager.loadSettings(hostInfo);
+    public String getDirectoryContent(String dirPath, Map<String, String> hostInfo) throws Exception {
+        try {
+//            STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
+//            ExtensionLoader<FileSystemManager> loader = new ExtensionLoader<FileSystemManager>();
+//            FileSystemManager fileSystemManager = loader.loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), FileSystemManager.class);
+////
+////        //STEP 2. LOAD THE SETTINGS
+//            fileSystemManager.loadSettings(hostInfo);
+//
+//            //STEP 3. RUN THE CORRESPONDING FUNCTION
+//            try {
+//            String content = fileSystemManager.getDirectoryContent(dirPath);
+//https://github.com/kamranzafar/JCL
+                JarClassLoader jcl = new JarClassLoader();
+                jcl.add(DATA_LOCATION + "/extensions/" + hostInfo.get("type") + ".jar");
+                JclObjectFactory factory = JclObjectFactory.getInstance(true);
+                //Create object of loaded class
+//                Object obj = factory.create(jcl, hostInfo.get("type"));
+            FileSystemManager fileSystemManager =  ((FileSystemManager) (factory.create(jcl, hostInfo.get("type"))));
+            String content = fileSystemManager.getDirectoryContent(dirPath);
 
-        //STEP 3. RUN THE CORRESPONDING FUNCTION
-        String content = fileSystemManager.getDirectoryContent(dirPath);
-        return content;
+            return content;
+            } catch (ClassNotFoundException e) {
+                return "";
+            }
+
+        }
     }
-}
-
