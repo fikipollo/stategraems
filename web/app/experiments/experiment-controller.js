@@ -28,6 +28,7 @@
         'experiments.services.experiment-list',
         'experiments.directives.experiment-views',
         'analysis.services.analysis-list',
+        'files.services.file-list',
         'templates.directives.template',
         'ui.bootstrap'
     ]);
@@ -58,7 +59,7 @@
      *                                                                                  
      ******************************************************************************/
 
-    app.controller('ExperimentListController', function ($rootScope, $scope, $http, $stateParams, $dialogs, APP_EVENTS, ExperimentList, AnalysisList) {
+    app.controller('ExperimentListController', function ($rootScope, $scope, $http, $stateParams, $dialogs, APP_EVENTS, ExperimentList, AnalysisList, FileList) {
         /******************************************************************************      
          *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
          *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
@@ -147,6 +148,7 @@
                             console.info((new Date()).toLocaleString() + "CHANGED TO EXPERIMENT " + experiment_id + " SUCCESSFULLY");
                             Cookies.set('currentExperimentID', experiment_id, null, location.pathname);
                             AnalysisList.clearAnalysis();
+                            FileList.clearFiles();
                             $scope.currentExperiment = ExperimentList.getExperiment(Cookies.get('currentExperimentID'));
                             $dialogs.showSuccessDialog("Now you are working with study \"" + ExperimentList.getExperiment(experiment_id).title + "\"");
                         } else {

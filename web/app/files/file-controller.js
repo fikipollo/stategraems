@@ -181,6 +181,105 @@
             }
         };
 
+        $scope.deleteFileHandler = function (event) {
+            var node = event.data;
+            var name = node.text;
+            var parent = $('#files-tree-container').data('treeview').getParent(node.nodeId);
+            while (parent !== undefined) {
+                name = parent.text + "/" + name;
+                parent = $('#files-tree-container').data('treeview').getParent(parent.nodeId);
+            }
+
+            me.deleteFileHandler("/" + name);
+        };
+
+        this.deleteFileHandler = function (selectedFile) {
+            var sendRemoveRequest = function (option) {
+                if (option === "ok") {
+                    $http($rootScope.getHttpRequestConfig("DELETE", "file-rest", {
+                        extra: "file",
+                        params: {filename: selectedFile}
+                    })).then(
+                            function successCallback(response) {
+                                me.retrieveFilesData(true);
+                            },
+                            function errorCallback(response) {
+                                $scope.isLoading = false;
+
+                                debugger;
+                                var message = "Failed while deleting the file.";
+                                $dialogs.showErrorDialog(message, {
+                                    logMessage: message + " at FileListController:downloadFileHandler."
+                                });
+                                console.error(response.data);
+                            }
+                    );
+                }
+            };
+            var fileName = selectedFile.substring(selectedFile.lastIndexOf("/") + 1, selectedFile.length);
+            $dialogs.showConfirmationDialog("Are you sure that you want to permanently delete \"" + fileName + "\"? If you delete a file, it is permanently lost.", {title: "Remove the selected file?", callback: sendRemoveRequest});
+        };
+
+        $scope.downloadFileHandler = function (event) {
+            var node = event.data;
+            var name = node.text;
+            var parent = $('#files-tree-container').data('treeview').getParent(node.nodeId);
+            while (parent !== undefined) {
+                name = parent.text + "/" + name;
+                parent = $('#files-tree-container').data('treeview').getParent(parent.nodeId);
+            }
+
+            me.downloadFileHandler("/" + name);
+        };
+
+        this.downloadFileHandler = function (selectedFile) {
+
+
+            var config = $rootScope.getHttpRequestConfig("GET", "file-rest", {
+                extra: "file",
+                params: {filename: selectedFile}
+            })
+
+            var a = document.createElement("a");
+            a.href = config.url + "?filename=" + selectedFile;
+            a.target = "_blank";
+            a.click();
+//            
+//            
+//            $http($rootScope.getHttpRequestConfig("GET", "file-rest", {
+//                extra: "file",
+//                params: {: }
+//            })).then(
+//                    function successCallback(response) {
+//                        var file_content = response.data;
+//
+//                        var saveByteArray = (function () {
+//                            document.body.appendChild(a);
+//                            a.style = "display: none";
+//                            return function (data, name) {
+//                                var blob = new Blob(data, {type: "octet/stream"}),
+//                                        url = window.URL.createObjectURL(blob);
+//                                a.href = url;
+//                                a.download = name;
+//                                a.click();
+//                                window.URL.revokeObjectURL(url);
+//                            };
+//                        }());
+//                        var filename = response.headers("content-disposition").replace("filename=", "").replace(/\"/g, "");
+//                        saveByteArray([file_content], filename);
+//                    },
+//                    function errorCallback(response) {
+//                        $scope.isLoading = false;
+//
+//                        debugger;
+//                        var message = "Failed while downloading the file.";
+//                        $dialogs.showErrorDialog(message, {
+//                            logMessage: message + " at FileListController:downloadFileHandler."
+//                        });
+//                        console.error(response.data);
+//                    }
+//            );
+        };
         /**
          * This function handles the event when clicking on the "Choose files" button
          * in a "File selector" field.
@@ -250,7 +349,6 @@
         };
 
         this.updateFileSelectionHandler = function () {
-            $scope.filesTree;
             var selectedNodes = $('#files-tree-container').data('treeview').getChecked();
             //Ignore directories from selection
             var selection = [];

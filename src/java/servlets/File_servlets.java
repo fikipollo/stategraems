@@ -35,6 +35,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import common.ServerErrorManager;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.AccessControlException;
@@ -44,26 +49,27 @@ import java.util.Iterator;
 import java.util.List;
 
 import java.util.Map;
+import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.codec.binary.Base64;
-import org.xeustechnologies.jcl.JarClassLoader;
-import org.xeustechnologies.jcl.JclObjectFactory;
+import org.apache.commons.io.FileUtils;
 import resources.extensions.FileSystemManager;
 
 /**
  *
  * SERVLET FOR MESSAGES:
  * +----------------------+-----------------------+---------------+-----------------------+---------------------+
- * | Resource             | POST                  | GET           | PUT                   | DELETE              |
+ * | Resource | POST | GET | PUT | DELETE |
  * +----------------------+-----------------------+---------------+------------------------------+--------------+
- * | /rest/files          | Upload a new file     | List files    | -                     | -                   |
+ * | /rest/files | Upload a new file | List files | - | - |
  * +----------------------+-----------------------+---------------+-----------------------+---------------------+
- * | /rest/files/1234     | -                     | Download file | If exist replace file | Delete file         |
+ * | /rest/files/1234 | - | Download file | If exist replace file | Delete file
+ * |
  * +----------------------+-----------------------+---------------+-----------------------+---------------------+
- * | /rest/files/send     | Send selection        | -             | -                     | -                   |
+ * | /rest/files/send | Send selection | - | - | - |
  * +----------------------+-----------------------+---------------+-----------------------+---------------------+
  *
  */
@@ -455,7 +461,7 @@ public class File_servlets extends Servlet {
                 Experiment experiment = (Experiment) dao_instance.findByID(experiment_id, null);
 
                 if (!experiment.isOwner(loggedUserID) && !experiment.isMember(loggedUserID) && !loggedUserID.equals("admin")) {
-                    throw new AccessControlException("Cannot get files for selected Experiment. Current useris not a valid member for this Experiment.");
+                    throw new AccessControlException("Cannot get files for selected Experiment. Current user is not a valid member for this Experiment.");
                 }
 
                 directoryContent = FileManager.getFileManager(DATA_LOCATION).getDirectoryContent("", experiment.getDataDirectoryInformation());
@@ -497,7 +503,133 @@ public class File_servlets extends Servlet {
     }
 
     private void get_file_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        throw new IOException("Not implemented");
+        try {
+            DAO dao_instance = null;
+            String tmpFile = "";
+            Path tmpDir = null;
+            try {
+                Map<String, Cookie> cookies = this.getCookies(request);
+                String loggedUser = cookies.get("loggedUser").getValue();
+                String sessionToken = cookies.get("sessionToken").getValue();
+                String loggedUserID = cookies.get("loggedUserID").getValue();
+
+                /**
+                 * *******************************************************
+                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
+                 * ERROR --> throws exception if not valid session, GO TO STEP
+                 * 5b ELSE --> GO TO STEP 2
+                 * *******************************************************
+                 */
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 2 Get the Experiment Object from DB. IF ERROR --> throws
+                 * MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * *******************************************************
+                 */
+                String experiment_id;
+                if (request.getParameter("experiment_id") != null) {
+                    experiment_id = request.getParameter("experiment_id");
+                } else {
+                    experiment_id = cookies.get("currentExperimentID").getValue();
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 3 Check that the user is a valid owner for the
+                 * experiment.
+                 * *******************************************************
+                 */
+                dao_instance = DAOProvider.getDAOByName("Experiment");
+                Experiment experiment = (Experiment) dao_instance.findByID(experiment_id, null);
+
+                if (!experiment.isOwner(loggedUserID) && !experiment.isMember(loggedUserID) && !loggedUserID.equals("admin")) {
+                    throw new AccessControlException("Cannot get files for selected Experiment. Current user is not a valid member for this Experiment.");
+                }
+
+                String fileName;
+                if (request.getParameter("filename") != null) {
+                    fileName = request.getParameter("filename");
+                } else {
+                    throw new FileNotFoundException("Cannot get selected file. File not found in server.");
+                }
+
+                tmpDir = Files.createTempDirectory(null);
+                tmpFile = FileManager.getFileManager(DATA_LOCATION).getFile(fileName, experiment.getDataDirectoryInformation(), tmpDir.toString());
+
+            } catch (Exception e) {
+                ServerErrorManager.handleException(e, File_servlets.class.getName(), "get_file_handler", e.getMessage());
+            } finally {
+                /**
+                 * *******************************************************
+                 * STEP 3b CATCH ERROR. GO TO STEP 4
+                 * *******************************************************
+                 */
+                if (ServerErrorManager.errorStatus()) {
+                    response.setStatus(400);
+                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+                } else {
+                    /**
+                     * *******************************************************
+                     * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
+                     * *******************************************************
+                     */
+                    // reads input file from an absolute path
+                    File downloadFile = new File(tmpFile);
+                    try {
+                        FileInputStream inStream = new FileInputStream(downloadFile);
+                        // gets MIME type of the file
+                        String mimeType = getServletContext().getMimeType(tmpFile);
+                        if (mimeType == null) {
+                            // set to binary type if MIME mapping not found
+                            mimeType = "application/octet-stream";
+                        }
+                        response.setContentType(mimeType);
+                        response.setHeader("Content-Disposition", "filename=\"" + downloadFile.getName() + "\"");
+
+                        // obtains response's output stream
+                        OutputStream outStream = response.getOutputStream();
+
+                        byte[] buffer = new byte[4096];
+                        int bytesRead = -1;
+
+                        while ((bytesRead = inStream.read(buffer)) != -1) {
+                            outStream.write(buffer, 0, bytesRead);
+                        }
+
+                        inStream.close();
+                        outStream.close();
+
+//                        response.setContentLength((int) downloadFile.length());
+//                        FileUtils.copyFile(downloadFile, response.getOutputStream());
+                    } catch (Exception ex) {
+                    } finally {
+                        if (downloadFile.exists()) {
+                            downloadFile.delete();
+                        }
+                        if (tmpDir != null) {
+                            Files.delete(tmpDir);
+                        }
+                    }
+                }
+                /**
+                 * *******************************************************
+                 * STEP 4 Close connection.
+                 * ********************************************************
+                 */
+                if (dao_instance != null) {
+                    dao_instance.closeConnection();
+                }
+            }
+            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, File_servlets.class.getName(), "get_file_handler", e.getMessage());
+            response.setStatus(400);
+            response.getWriter().print(ServerErrorManager.getErrorResponse());
+        }
     }
 
     /*------------------------------------------------------------------------------------------*
@@ -515,7 +647,95 @@ public class File_servlets extends Servlet {
      *                                                                                          *
      *------------------------------------------------------------------------------------------*/
     private void delete_file_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        throw new IOException("Not implemented");
+        try {
+            DAO dao_instance = null;
+            String tmpFile = "";
+            Path tmpDir = null;
+            try {
+                Map<String, Cookie> cookies = this.getCookies(request);
+                String loggedUser = cookies.get("loggedUser").getValue();
+                String sessionToken = cookies.get("sessionToken").getValue();
+                String loggedUserID = cookies.get("loggedUserID").getValue();
+
+                /**
+                 * *******************************************************
+                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
+                 * ERROR --> throws exception if not valid session, GO TO STEP
+                 * 5b ELSE --> GO TO STEP 2
+                 * *******************************************************
+                 */
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 2 Get the Experiment Object from DB. IF ERROR --> throws
+                 * MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * *******************************************************
+                 */
+                String experiment_id;
+                if (request.getParameter("experiment_id") != null) {
+                    experiment_id = request.getParameter("experiment_id");
+                } else {
+                    experiment_id = cookies.get("currentExperimentID").getValue();
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 3 Check that the user is a valid owner for the
+                 * experiment.
+                 * *******************************************************
+                 */
+                dao_instance = DAOProvider.getDAOByName("Experiment");
+                Experiment experiment = (Experiment) dao_instance.findByID(experiment_id, null);
+
+                if (!experiment.isOwner(loggedUserID) && !experiment.isMember(loggedUserID) && !loggedUserID.equals("admin")) {
+                    throw new AccessControlException("Cannot delete files for selected Experiment. Current user is not a valid member for this Experiment.");
+                }
+
+                String fileName;
+                if (request.getParameter("filename") != null) {
+                    fileName = request.getParameter("filename");
+                } else {
+                    throw new FileNotFoundException("Cannot delete selected file. File not found in server.");
+                }
+
+                tmpDir = Files.createTempDirectory(null);
+                String[] files = new String[]{fileName};
+                FileManager.getFileManager(DATA_LOCATION).removeFiles(files, experiment.getDataDirectoryInformation());
+
+            } catch (Exception e) {
+                ServerErrorManager.handleException(e, File_servlets.class.getName(), "delete_file_handler", e.getMessage());
+            } finally {
+                /**
+                 * *******************************************************
+                 * STEP 3b CATCH ERROR. GO TO STEP 4
+                 * *******************************************************
+                 */
+                if (ServerErrorManager.errorStatus()) {
+                    response.setStatus(400);
+                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+                } else {
+                    JsonObject obj = new JsonObject();
+                    obj.add("success", new JsonPrimitive(true));
+                    response.getWriter().print(obj.toString());
+                }
+                /**
+                 * *******************************************************
+                 * STEP 4 Close connection.
+                 * ********************************************************
+                 */
+                if (dao_instance != null) {
+                    dao_instance.closeConnection();
+                }
+            }
+            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, File_servlets.class.getName(), "delete_file_handler", e.getMessage());
+            response.setStatus(400);
+            response.getWriter().print(ServerErrorManager.getErrorResponse());
+        }
     }
 
 }
@@ -543,85 +763,97 @@ class FileManager {
     }
 
     public boolean saveFiles(File[] files, Map<String, String> hostInfo, String path) throws Exception {
-        //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
-        ExtensionLoader<FileSystemManager> loader = new ExtensionLoader<FileSystemManager>();
-        FileSystemManager fileSystemManager = loader.loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), FileSystemManager.class);
-
-        //STEP 2. LOAD THE SETTINGS
-        fileSystemManager.loadSettings(hostInfo);
-
-        //STEP 3. RUN THE CORRESPONDING FUNCTION
-        for (File file : files) {
-            fileSystemManager.saveFile(file, path);
+        Path tmpDir = Files.createTempDirectory(null);
+        try {
+            for (File tmpfile : files) {
+                try {
+                    //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
+                    Object fileSystemManager = ExtensionLoader.getExtensionLoader().loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), Object.class);
+                    //STEP 2. LOAD THE SETTINGS
+                    Method method = fileSystemManager.getClass().getDeclaredMethod("loadSettings", Map.class);
+                    method.invoke(fileSystemManager, hostInfo);
+                    //STEP 3. RUN THE CORRESPONDING FUNCTION
+                    method = fileSystemManager.getClass().getDeclaredMethod("saveFile", File.class, String.class);
+                    method.invoke(fileSystemManager, tmpfile, path);
+                } catch (InvocationTargetException e) {
+                    throw new Exception(e.getTargetException());
+                }
+            }
+        } catch (Exception ex) {
+            throw ex;
+        } finally {
+            Files.delete(tmpDir);
         }
         return true;
     }
 
     public boolean removeFiles(String[] filePaths, Map<String, String> hostInfo) throws Exception {
-        //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
-        ExtensionLoader<FileSystemManager> loader = new ExtensionLoader<FileSystemManager>();
-        FileSystemManager fileSystemManager = loader.loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), FileSystemManager.class);
-
-        //STEP 2. LOAD THE SETTINGS
-        fileSystemManager.loadSettings(hostInfo);
-
-        //STEP 3. RUN THE CORRESPONDING FUNCTION
         for (String filepath : filePaths) {
-            fileSystemManager.removeFile(filepath);
+            //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
+            Object fileSystemManager = ExtensionLoader.getExtensionLoader().loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), Object.class);
+            //STEP 2. LOAD THE SETTINGS
+            Method method = fileSystemManager.getClass().getDeclaredMethod("loadSettings", Map.class);
+            method.invoke(fileSystemManager, hostInfo);
+            //STEP 3. RUN THE CORRESPONDING FUNCTION
+            method = fileSystemManager.getClass().getDeclaredMethod("removeFile", String.class);
+            method.invoke(fileSystemManager, filepath);
         }
         return true;
     }
 
     public String getFile(String filePath, Map<String, String> hostInfo, String tmpDir) throws Exception {
         //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
-        ExtensionLoader<FileSystemManager> loader = new ExtensionLoader<FileSystemManager>();
-        FileSystemManager fileSystemManager = loader.loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), FileSystemManager.class);
-
+        Object fileSystemManager = ExtensionLoader.getExtensionLoader().loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), Object.class);
         //STEP 2. LOAD THE SETTINGS
-        fileSystemManager.loadSettings(hostInfo);
-
+        Method method = fileSystemManager.getClass().getDeclaredMethod("loadSettings", Map.class);
+        method.invoke(fileSystemManager, hostInfo);
         //STEP 3. RUN THE CORRESPONDING FUNCTION
-        return fileSystemManager.getFile(filePath, tmpDir);
+        method = fileSystemManager.getClass().getDeclaredMethod("getFile", String.class, String.class);
+        String path = (String) method.invoke(fileSystemManager, filePath, tmpDir);
+
+        return path;
     }
 
     public boolean sendFile(String filePath, Map<String, String> hostInfo, Map<String, String> destination_settings) throws Exception {
-        Path tmpDir = Files.createTempDirectory(null);
-        try {
-            String tmpfile = this.getFile(filePath, hostInfo, tmpDir.toString());
-            //TODO: SEND
-        } catch (Exception ex) {
-            throw ex;
-        } finally {
-            Files.delete(tmpDir);
-        }
-        return false;
+//        Path tmpDir = Files.createTempDirectory(null);
+//        try {
+//            String tmpfile = this.getFile(filePath, hostInfo, tmpDir.toString());
+//            //TODO: SEND
+//            try {
+//                //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
+//                Object fileSystemManager = ExtensionLoader.getExtensionLoader().loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), Object.class);
+//                //STEP 2. LOAD THE SETTINGS
+//                Method method = fileSystemManager.getClass().getDeclaredMethod("loadSettings", Map.class);
+//                method.invoke(fileSystemManager, hostInfo);
+//                //STEP 3. RUN THE CORRESPONDING FUNCTION
+////                method = fileSystemManager.getClass().getDeclaredMethod("saveFile", File.class, String.class);
+////                method.invoke(fileSystemManager, tmpfile, );
+//            } catch (InvocationTargetException e) {
+//                throw new Exception(e.getTargetException());
+//            }
+//        } catch (Exception ex) {
+//            throw ex;
+//        } finally {
+//            Files.delete(tmpDir);
+//        }
+        return true;
     }
 
     public String getDirectoryContent(String dirPath, Map<String, String> hostInfo) throws Exception {
         try {
-//            STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
-//            ExtensionLoader<FileSystemManager> loader = new ExtensionLoader<FileSystemManager>();
-//            FileSystemManager fileSystemManager = loader.loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), FileSystemManager.class);
-////
-////        //STEP 2. LOAD THE SETTINGS
-//            fileSystemManager.loadSettings(hostInfo);
-//
-//            //STEP 3. RUN THE CORRESPONDING FUNCTION
-//            try {
-//            String content = fileSystemManager.getDirectoryContent(dirPath);
-//https://github.com/kamranzafar/JCL
-                JarClassLoader jcl = new JarClassLoader();
-                jcl.add(DATA_LOCATION + "/extensions/" + hostInfo.get("type") + ".jar");
-                JclObjectFactory factory = JclObjectFactory.getInstance(true);
-                //Create object of loaded class
-//                Object obj = factory.create(jcl, hostInfo.get("type"));
-            FileSystemManager fileSystemManager =  ((FileSystemManager) (factory.create(jcl, hostInfo.get("type"))));
-            String content = fileSystemManager.getDirectoryContent(dirPath);
-
+            //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
+            Object fileSystemManager = ExtensionLoader.getExtensionLoader().loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), Object.class);
+            //STEP 2. LOAD THE SETTINGS
+            Method method = fileSystemManager.getClass().getDeclaredMethod("loadSettings", Map.class);
+            method.invoke(fileSystemManager, hostInfo);
+            //STEP 3. RUN THE CORRESPONDING FUNCTION
+            //FileSystemManager.class.cast(fileSystemManager);
+            //((FileSystemManager) fileSystemManager).loadSettings(hostInfo);
+            method = fileSystemManager.getClass().getDeclaredMethod("getDirectoryContent", String.class);
+            String content = (String) method.invoke(fileSystemManager, dirPath);
             return content;
-            } catch (ClassNotFoundException e) {
-                return "";
-            }
-
+        } catch (InvocationTargetException e) {
+            throw new Exception(e.getTargetException());
         }
     }
+}

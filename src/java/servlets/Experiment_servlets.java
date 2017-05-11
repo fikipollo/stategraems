@@ -308,7 +308,7 @@ public class Experiment_servlets extends Servlet {
                         }
                     }
 
-                } else if (!"".equalsIgnoreCase(experiment.getDataDirectoryPass()) && !"dummypassword".equalsIgnoreCase(experiment.getDataDirectoryPass())) {
+                } else if ("".equalsIgnoreCase(experiment.getDataDirectoryPass()) || "dummypassword".equalsIgnoreCase(experiment.getDataDirectoryPass())) {
                     //KEEP PREVIOUS PASS
                     experiment.setDataDirectoryPass(experimentAux.getDataDirectoryPass());
                 }

@@ -5,7 +5,7 @@
     <div ng-class="(isDialog === true) ? 'modal-body' : ''">
         <uib-tabset type="pills">
             <uib-tab heading="Browse files" classes="btn-sm">
-                <div class="navbar-form navbar-default top-toolbar" role="search">
+<!--                <div class="navbar-form navbar-default top-toolbar" role="search">
                     <h2 class="form_subtitle">Search and filter</h2>
                     <div class="row">
                         <div class="col-sm-8">
@@ -16,11 +16,12 @@
                                         <span class="glyphicon glyphicon-search"></span>
                                     </button>
                                 </span>
-                            </div><!-- /input-group -->
+                            </div> /input-group 
                         </div>
                     </div>
-                </div>
+                </div>-->
                 <div class="navbar-form">
+                    <h2 class="form_subtitle">Files for current study</h2>
                     <div style="margin: auto;display: block;max-width: 625px;">
                         <i ng-show="isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
                             <i class="fa fa-spinner fa-pulse fa-fw"></i> Loading files...

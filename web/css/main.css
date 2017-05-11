@@ -357,6 +357,7 @@ textarea.ng-valid-required:read-write {
 }
 
 div.files-tree-container{min-width:200px;height: 330px; overflow-y: scroll;overflow-x: hidden;}
+.tree-icon{margin-right: 7px !important;}
 /******************************************************************************************/
 /* STYLES FOR progress INDICATOR                                                          */
 /******************************************************************************************/
