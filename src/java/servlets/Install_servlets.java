@@ -441,9 +441,13 @@ public class Install_servlets extends Servlet {
                 File folder = new File(path);
                 File[] listOfFiles = folder.listFiles();
 
-                for (File listOfFile : listOfFiles) {
-                    if (listOfFile.isFile() && listOfFile.getName().contains(".jar")) {
-                        FileUtils.copyFile(listOfFile, new File(data_location + "/extensions/" + listOfFile.getName()));
+                for (File file : listOfFiles) {
+                    if (file.isFile() && file.getName().contains(".jar")) {
+                        File _file = new File(data_location + "/extensions/" + file.getName());
+                        if(_file.exists()){
+                           _file.delete();                            
+                        }
+                        FileUtils.copyFile(file, _file);
                     }
                 }
 

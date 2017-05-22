@@ -23,6 +23,7 @@ public class ExtensionLoader<C> {
 
     private static ExtensionLoader INSTANCE = null;
     private URLClassLoader classLoader;
+    private boolean alreadyLoaded  = false;
 
     // creador sincronizado para protegerse de posibles problemas  multi-hilo
     // otra prueba para evitar instanciación múltiple 
@@ -48,6 +49,11 @@ public class ExtensionLoader<C> {
     }
 
     public C loadClass(String directory, String classpath, Class<C> parentClass) throws ClassNotFoundException {
+        if(!this.alreadyLoaded){
+            //Load all extensions
+            this.loadAllJar(directory);
+        }
+        
         File pluginsDir = new File(directory);
         for (File jar : pluginsDir.listFiles()) {
             try {
@@ -75,12 +81,16 @@ public class ExtensionLoader<C> {
         throw new ClassNotFoundException("Class " + classpath + " wasn't found in directory " + directory);
     }
 
-    public static boolean loadAllJar(String directory) {
-        File pluginsDir = new File(directory);
+    public boolean loadAllJar(String directory) {
+        if(alreadyLoaded){
+            return true;
+        }
+        
+        ArrayList<File> allJarFiles = this.findAllJar(directory, null);
 
-        for (File jar : pluginsDir.listFiles()) {
+        for (File file : allJarFiles) {
             try {
-                JarFile jarFile = new JarFile(jar.getAbsolutePath());
+                JarFile jarFile = new JarFile(file.getAbsolutePath());
                 Enumeration<JarEntry> e = jarFile.entries();
 
                 while (e.hasMoreElements()) {
@@ -88,31 +98,45 @@ public class ExtensionLoader<C> {
                     if (je.isDirectory() || !je.getName().endsWith(".class")) {
                         continue;
                     }
-                    // -6 because of .class
+                    // Get the classname
                     String className = je.getName().substring(0, je.getName().length() - 6);
                     className = className.replace('/', '.');
-                    Class c = getExtensionLoader().getClassLoader(directory).loadClass(className);
+                    Class c = this.getClassLoader(file.getParent() + "/").loadClass(className);
+                    // Force dependencies loading by creating a new instance
                     try {
-//                        if ("ftp_server".equals(className)) {
-//                            Object ena = c.newInstance();
-//                            Method method = ena.getClass().getDeclaredMethod("loadSettings", Map.class);
-//                            method.invoke(ena, new HashMap<String, String>());
-//                        } else {
                         c.newInstance();
-//                        }
                     } catch (Exception ex) {
                         continue;
                     }
                 }
             } catch (ClassNotFoundException e) {
-                // There might be multiple JARs in the directory,
-                // so keep looking
+                // There might be multiple JARs in the directory, so keep looking
                 continue;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+        this.alreadyLoaded = true;
+        
         return true;
+    }
+
+    private ArrayList<File> findAllJar(String directory, ArrayList<File> jarFiles) {
+        if(jarFiles == null){
+            jarFiles = new ArrayList<File>();
+        }
+        
+        File pluginsDir = new File(directory);
+        // get all the files from a directory
+        File[] files = pluginsDir.listFiles();
+        for (File file : files) {
+            if (file.isFile() && file.getName().endsWith(".jar")) {
+                jarFiles.add(file);
+            } else if (file.isDirectory()) {
+                findAllJar(file.getAbsolutePath(), jarFiles);
+            }
+        }
+        return jarFiles;
     }
 
     private URLClassLoader getClassLoader(String directory) {

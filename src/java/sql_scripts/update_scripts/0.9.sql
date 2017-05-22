@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS `STATegraDB`.`external_sources` (
   INDEX `idx_ext_sources` (`source_id` ASC))
 ENGINE = InnoDB;
 
+INSERT INTO `external_sources` (`name`, `type`, `url`, `description`, `enabled`) VALUES ('FTP server','storage_system','','Enabled FTP storage in the system.',1),('Owncloud server','storage_system','','Enabled Owncloud storage in the system.',1),('Official Galaxy server','galaxy_server','https://usegalaxy.org','The official server',1);
+
 UPDATE appVersion SET version='0.9';
 
 COMMIT;

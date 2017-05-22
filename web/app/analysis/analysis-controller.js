@@ -1340,7 +1340,7 @@
          * @param item the external_source to be evaluated
          ******************************************************************************/
         $scope.filterValidTools = function (item) {
-            return item.type !== 'id_mapping';
+            return item.type === 'galaxy_server' || item.type === 'other';
         };
         /******************************************************************************
          * This function handles the event fired when the user closes the dialog for 

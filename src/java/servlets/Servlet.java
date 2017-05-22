@@ -70,10 +70,6 @@ public abstract class Servlet extends HttpServlet {
                     System.out.println(String.format("%tc", new Date()) + " STATEGRAEMS LOG > WARNING!! Debugging mode is ON");
                 }
             }
-            
-            //Load all extensions
-            ExtensionLoader.getExtensionLoader().loadAllJar(DATA_LOCATION + "/extensions/");
-
         } catch (IOException ex) {
             throw new ServletException("Unable to read the DATA LOCATION settings files.");
         }

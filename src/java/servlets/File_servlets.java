@@ -24,17 +24,13 @@ import bdManager.DAO.DAOProvider;
 import classes.Experiment;
 import classes.ExternalSource;
 import classes.User;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import common.ExtensionLoader;
-import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import common.ServerErrorManager;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.OutputStream;
@@ -49,14 +45,16 @@ import java.util.Iterator;
 import java.util.List;
 
 import java.util.Map;
-import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
-import resources.extensions.FileSystemManager;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import java.io.File;
+import java.io.IOException;
 
 /**
  *
@@ -334,22 +332,23 @@ public class File_servlets extends Servlet {
                     files.add(it.next().getAsString());
                 }
 
-                HashMap<String, String> destination_settings = new HashMap<String, String>();
-
                 String source_id = requestData.get("source_id").getAsString();
                 daoInstance = DAOProvider.getDAOByName("ExternalSource");
                 ExternalSource externalSource = (ExternalSource) daoInstance.findByID(source_id, null);
+
+                //CONFIGURE THE DESTINATION SETTINGS
+                HashMap<String, String> destination_settings = new HashMap<String, String>();
                 destination_settings.put("type", externalSource.getType());
-                destination_settings.put("URL", externalSource.getUrl());
+                destination_settings.put("host", externalSource.getUrl());
 
                 if (requestData.get("credentials") != null && !"".equals(requestData.get("credentials").getAsString())) {
                     String credentials = requestData.get("credentials").getAsString();
                     credentials = new String(Base64.decodeBase64(credentials));
-                    destination_settings.put("username", credentials.split(":")[0]);
+                    destination_settings.put("user", credentials.split(":")[0]);
                     destination_settings.put("pass", (credentials.split(":").length > 1 ? credentials.split(":")[1] : ""));
                 } else {
                     String apikey = requestData.get("apikey").getAsString();
-                    destination_settings.put("key", apikey);
+                    destination_settings.put("apikey", apikey);
                 }
 
                 String experiment_id;
@@ -602,9 +601,6 @@ public class File_servlets extends Servlet {
 
                         inStream.close();
                         outStream.close();
-
-//                        response.setContentLength((int) downloadFile.length());
-//                        FileUtils.copyFile(downloadFile, response.getOutputStream());
                     } catch (Exception ex) {
                     } finally {
                         if (downloadFile.exists()) {
@@ -815,27 +811,17 @@ class FileManager {
     }
 
     public boolean sendFile(String filePath, Map<String, String> hostInfo, Map<String, String> destination_settings) throws Exception {
-//        Path tmpDir = Files.createTempDirectory(null);
-//        try {
-//            String tmpfile = this.getFile(filePath, hostInfo, tmpDir.toString());
-//            //TODO: SEND
-//            try {
-//                //STEP 1. LOAD THE CORRESPONDING PLUGIN FOR THE FILE SYSTEM
-//                Object fileSystemManager = ExtensionLoader.getExtensionLoader().loadClass(DATA_LOCATION + "/extensions/", hostInfo.get("type"), Object.class);
-//                //STEP 2. LOAD THE SETTINGS
-//                Method method = fileSystemManager.getClass().getDeclaredMethod("loadSettings", Map.class);
-//                method.invoke(fileSystemManager, hostInfo);
-//                //STEP 3. RUN THE CORRESPONDING FUNCTION
-////                method = fileSystemManager.getClass().getDeclaredMethod("saveFile", File.class, String.class);
-////                method.invoke(fileSystemManager, tmpfile, );
-//            } catch (InvocationTargetException e) {
-//                throw new Exception(e.getTargetException());
-//            }
-//        } catch (Exception ex) {
-//            throw ex;
-//        } finally {
-//            Files.delete(tmpDir);
-//        }
+        //STEP 1. GET THE FILE
+        Path tmpDir = Files.createTempDirectory(null);
+        String tmpfile = this.getFile(filePath, hostInfo, tmpDir.toString());
+        //STEP 2. LOAD THE CORRESPONDING PLUGIN FOR THE DESTINATION
+        Object externalToolManager = ExtensionLoader.getExtensionLoader().loadClass(DATA_LOCATION + "/extensions/", destination_settings.get("type"), Object.class);
+        //STEP 3. LOAD THE SETTINGS
+        Method method = externalToolManager.getClass().getDeclaredMethod("loadSettings", Map.class);
+        method.invoke(externalToolManager, destination_settings);
+        //STEP 4. RUN THE CORRESPONDING FUNCTION
+        method = externalToolManager.getClass().getDeclaredMethod("sendFile", String.class);
+        method.invoke(externalToolManager, tmpfile);
         return true;
     }
 
