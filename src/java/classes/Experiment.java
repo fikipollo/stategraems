@@ -21,17 +21,8 @@ package classes;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Stack;
-import org.apache.commons.io.FileUtils;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -56,7 +47,7 @@ public class Experiment {
     String submission_date;
     String last_edition_date;
     String[] tags;
-    String data_dir_type; //local_dir, ftp_dir, irods_dir, seeddms_dir
+    String data_dir_type; //local_directory, ftp_server, seeddms_server...
     String data_dir_host;
     String data_dir_port;
     String data_dir_user;
@@ -357,257 +348,16 @@ public class Experiment {
     public String toString() {
         return this.toJSON();
     }
-
-    public String getExperimentDataDirectoryContent() throws Exception {
-        if ("local_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.getLocalDirectoryContent();
-        } else if ("ftp_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.getFTPDirectoryContent();
-        } else if ("irods_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.getIRODSDirectoryContent();
-        } else if ("seeddms_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.getSeedDMSDirectoryContent();
-        }
-        return null;
-    }
-
-    public String getLocalDirectoryContent() throws Exception {
-        String dirURL = this.getDataDirectoryPath();
-
-        dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/");
-        ArrayList<String> lines = new ArrayList<String>();
-
-        if (dirURL == null) {
-            throw new IOException("Invalid data directory");
-        }
-
-        File f = new File(dirURL + ".stategraems_dir");
-        if (f.exists()) {
-            String[] script = null;
-            script = new String[]{"find", dirURL};
-
-            Runtime rt = Runtime.getRuntime();
-            Process dumpProcess = rt.exec(script);
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(dumpProcess.getInputStream()));
-            String line = br.readLine();
-            String output = "";
-            while (line != null) {
-                output += "\n" + line;
-                lines.add(line);
-                line = br.readLine();
-            }
-            BufferedReader err = new BufferedReader(new InputStreamReader(dumpProcess.getErrorStream()));
-            line = err.readLine();
-            while (line != null) {
-                output += "\n" + line;
-                line = err.readLine();
-            }
-
-            int exitCode = dumpProcess.waitFor();
-
-            if (exitCode != 0) {
-                throw new FileNotFoundException("Failed while getting directory tree for the Experiment " + this.getExperimentID() + " . Error: " + output);
-            }
-
-        } else if (dirURL.isEmpty()) {
-            //IF THE DIRECTORY WAS NOT SPECIFIED, LETS TRY TO READ THE FILE CONTAINING THE DIRECTORY CONTENT
-            //WHICH SHOULD BE CREATED BY THE ADMIN AND UPDATED PERIODICALLY
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(this.getDataDirectoryPath() + "/" + this.getExperimentID() + "/experimentDataDirectoryContent.txt"));
-                try {
-                    String line = br.readLine();
-                    while (line != null) {
-                        lines.add(line);
-                        line = br.readLine();
-                    }
-                } finally {
-                    br.close();
-                }
-            } catch (FileNotFoundException e) {
-                lines.add("The data directory for this study is not valid.");
-            }
-        } else {
-            lines.add("The data directory for this study is not valid.");
-        }
-
-        if (lines.size() > 0) {
-            Iterator it = lines.iterator();
-            String line = (String) it.next();
-            if (line.charAt(line.length() - 1) == '/') {
-                line = line.substring(0, line.length() - 1);
-            }
-
-            Directory directory = new Directory(line);
-
-            Stack<Directory> directoryStack = new Stack<Directory>();
-            directoryStack.push(directory);
-
-            while (it.hasNext()) {
-                line = (String) it.next();
-                if (line.charAt(line.length() - 1) == '/') {
-                    line = line.substring(0, line.length() - 1);
-                }
-
-                directory = new Directory(line);
-
-                //IF THE CURRENT DIR IS A DIRECT CHILD DIRECTORY
-                if ((directoryStack.lastElement().getPath() + "/" + directory.getName()).equals(directory.getPath())) {
-                    directoryStack.lastElement().addChild(directory);
-                    directoryStack.push(directory);
-                } else {
-                    while (!(directoryStack.lastElement().getPath() + "/" + directory.getName()).equals(directory.getPath())) {
-                        directoryStack.pop();
-                    }
-                    directoryStack.lastElement().addChild(directory);
-                    directoryStack.push(directory);
-                }
-            }
-
-            return directoryStack.get(0).toJSONString(0);
-        }
-
-        return null;
-    }
-
-    public String getFTPDirectoryContent() throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String getIRODSDirectoryContent() throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String getSeedDMSDirectoryContent() throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String addExperimentDataDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        if ("local_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.addLocalDirectoryContent(files, parent_dir_path);
-        } else if ("ftp_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.addFTPDirectoryContent(files, parent_dir_path);
-        } else if ("irods_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.addIRODSDirectoryContent(files, parent_dir_path);
-        } else if ("seeddms_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.addSeedDMSDirectoryContent(files, parent_dir_path);
-        }
-        return null;
-    }
-
-    public String addLocalDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        String dirURL = this.getDataDirectoryPath();
-        dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/") + parent_dir_path;
-        dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/");
-        
-        File parent_dir = new File(dirURL);
-        if(!parent_dir.exists()){
-            parent_dir.mkdirs();
-        }
-        
-        for(File file : files){
-            FileUtils.copyFile(file, new File(dirURL + file.getName()));
-        }
-        
-        return null;
-    }
-
-    public String addFTPDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String addIRODSDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String addSeedDMSDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        throw new IOException("Invalid data directory");
-    }
     
-    
-    public String deleteExperimentDataDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        if ("local_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.deleteLocalDirectoryContent(files, parent_dir_path);
-        } else if ("ftp_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.deleteFTPDirectoryContent(files, parent_dir_path);
-        } else if ("irods_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.deleteIRODSDirectoryContent(files, parent_dir_path);
-        } else if ("seeddms_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.deleteSeedDMSDirectoryContent(files, parent_dir_path);
-        }
-        return null;
-    }
-
-    public String deleteLocalDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        String dirURL = this.getDataDirectoryPath();
-        dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/");
-        
-        
-        return null;
-    }
-
-    public String deleteFTPDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String deleteIRODSDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String deleteSeedDMSDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        throw new IOException("Invalid data directory");
+    public Map<String, String> getDataDirectoryInformation(){
+        HashMap<String,String> info = new HashMap<String, String>();
+        info.put("type", this.data_dir_type);
+        info.put("host", this.data_dir_host);
+        info.put("port", this.data_dir_port);
+        info.put("user", this.data_dir_user);
+        info.put("pass", this.data_dir_pass);
+        info.put("root", this.data_dir_path.replaceFirst("/$", ""));
+        return info;
     }
 }
 
-class Directory {
-
-    String name;
-    String path;
-    ArrayList<Directory> children;
-
-    public Directory(String path) {
-        this.name = path.substring(path.lastIndexOf("/") + 1);
-        this.path = path;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public ArrayList<Directory> getChildrens() {
-        return children;
-    }
-
-    public void setChildrens(ArrayList<Directory> children) {
-        this.children = children;
-    }
-
-    public void addChild(Directory child) {
-        if (this.children == null) {
-            this.children = new ArrayList<Directory>();
-        }
-        this.children.add(child);
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String toJSONString(int level) {
-        String childrenCode = "";
-        if (this.children != null) {
-            for (int i = 0; i < children.size(); i++) {
-                childrenCode += children.get(i).toJSONString(level + 1) + ((i + 1) < children.size() ? "," : "");
-            }
-        }
-        return "{\"text\" : \"" + name + "\"" + (childrenCode.equals("") ? "" : ", \"nodes\" :[" + childrenCode + "]") + "}";
-    }
-}

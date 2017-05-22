@@ -51,7 +51,7 @@
                     if (node.nodes !== undefined) {
                         //Is a directory
                         node.selectable = false;
-                        node.icon = "glyphicon glyphicon-folder-close";
+                        node.icon = "glyphicon glyphicon-folder-close text-primary tree-icon";
                         for (var i in node.nodes) {
                             this.extendFilesTreeData(node.nodes[i]);
                         }
@@ -89,7 +89,14 @@
                 },
                 getOld: function () {
                     return (new Date() - old) / 60000;
-                }
+                },
+                clearFiles: function () {
+                    filesTree = {};
+                    files = [];
+                    filters = [];
+                    old = new Date(0);
+                    return this;
+                },
             };
         }]);
 })();

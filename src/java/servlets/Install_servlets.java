@@ -50,6 +50,7 @@ import java.util.Calendar;
 import java.util.Properties;
 import javax.security.auth.login.CredentialException;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
 import resources.SHA1;
 
 /**
@@ -296,6 +297,18 @@ public class Install_servlets extends Servlet {
                 //5. Create all the necessary directories
                 new File(data_location + "/SOP_documents").mkdir();
                 new File(data_location + "/treatment_documents").mkdir();
+                new File(data_location + "/extensions").mkdir();
+
+                logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Copying extensions...");
+                path = Install_servlets.class.getResource("/resources/extensions").getPath();
+                File folder = new File(path);
+                File[] listOfFiles = folder.listFiles();
+
+                for (File listOfFile : listOfFiles) {
+                    if (listOfFile.isFile() && listOfFile.getName().contains(".jar")) {
+                        FileUtils.copyFile(listOfFile, new File(data_location + "/extensions/" + listOfFile.getName()));
+                    }
+                }
 
                 //6. Remove the temporal files
                 logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Cleaning temporal files...");
@@ -422,6 +435,21 @@ public class Install_servlets extends Servlet {
                 properties.setProperty("data_location", data_location);
                 properties.store(fileOutputStream, null);
                 fileOutputStream.close();
+
+                logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Copying extensions...");
+                path = Install_servlets.class.getResource("/resources/extensions").getPath();
+                File folder = new File(path);
+                File[] listOfFiles = folder.listFiles();
+
+                for (File file : listOfFiles) {
+                    if (file.isFile() && file.getName().contains(".jar")) {
+                        File _file = new File(data_location + "/extensions/" + file.getName());
+                        if(_file.exists()){
+                           _file.delete();                            
+                        }
+                        FileUtils.copyFile(file, _file);
+                    }
+                }
 
                 //6. Remove the temporal redirection
 //                        logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Disabling installation page...");

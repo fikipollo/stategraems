@@ -76,8 +76,6 @@ public class Experiment_servlets extends Servlet {
             remove_experiment_handler(request, response);
         } else if (request.getServletPath().equals("/change_current_experiment")) {
             change_current_experiment_handler(request, response);
-        } else if (request.getServletPath().equals("/get_experiment_directory_content")) {
-            get_experiment_directory_content_handler(request, response);
         } else if (request.getServletPath().equals("/experiment_member_request")) {
             process_new_membership_request(request, response);
         } else {
@@ -147,13 +145,13 @@ public class Experiment_servlets extends Servlet {
                  */
                 experiment.setExperimentID(newID);
 
-                if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType()) || "none".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+                if ("local_directory".equalsIgnoreCase(experiment.getDataDirectoryType()) || "none".equalsIgnoreCase(experiment.getDataDirectoryType())) {
                     experiment.setDataDirectoryHost("");
                     experiment.setDataDirectoryPort("");
                     experiment.setDataDirectoryUser("");
                     experiment.setDataDirectoryPass("");
 
-                    if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+                    if ("local_directory".equalsIgnoreCase(experiment.getDataDirectoryType())) {
                         File f = new File(experiment.getDataDirectoryPath() + File.separator + ".stategraems_dir");
                         if (!f.exists()) {
                             warning_message = "Invalid directory. To enable the selected directory, please create a new file called '.stategraems_dir' in the selected path.";
@@ -297,20 +295,20 @@ public class Experiment_servlets extends Servlet {
                 }
 
                 //UPDATE THE INFORMATION FOR DATA DIR (REMOVE UNNECESARY DATA)
-                if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType()) || "none".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+                if ("local_directory".equalsIgnoreCase(experiment.getDataDirectoryType()) || "none".equalsIgnoreCase(experiment.getDataDirectoryType())) {
                     experiment.setDataDirectoryHost("");
                     experiment.setDataDirectoryPort("");
                     experiment.setDataDirectoryUser("");
                     experiment.setDataDirectoryPass("");
                     
-                    if ("local_dir".equalsIgnoreCase(experiment.getDataDirectoryType())) {
+                    if ("local_directory".equalsIgnoreCase(experiment.getDataDirectoryType())) {
                         File f = new File(experiment.getDataDirectoryPath() + File.separator + ".stategraems_dir");
                         if (!f.exists()) {
                             warning_message = "Invalid directory. To enable the selected directory, please create a new file called '.stategraems_dir' in the selected path.";
                         }
                     }
 
-                } else if (!"".equalsIgnoreCase(experiment.getDataDirectoryPass()) && !"dummypassword".equalsIgnoreCase(experiment.getDataDirectoryPass())) {
+                } else if ("".equalsIgnoreCase(experiment.getDataDirectoryPass()) || "dummypassword".equalsIgnoreCase(experiment.getDataDirectoryPass())) {
                     //KEEP PREVIOUS PASS
                     experiment.setDataDirectoryPass(experimentAux.getDataDirectoryPass());
                 }
@@ -859,93 +857,6 @@ public class Experiment_servlets extends Servlet {
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
             ServerErrorManager.handleException(e, Experiment_servlets.class.getName(), "change_current_experiment_handler", e.getMessage());
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
-        }
-    }
-
-    private void get_experiment_directory_content_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            DAO dao_instance = null;
-            String directoryContent = "";
-            try {
-                JsonParser parser = new JsonParser();
-                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
-
-                String loggedUser = requestData.get("loggedUser").getAsString();
-                String loggedUserID = requestData.get("loggedUserID").getAsString();
-                String sessionToken = requestData.get("sessionToken").getAsString();
-
-                /**
-                 * *******************************************************
-                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
-                 * ERROR --> throws exception if not valid session, GO TO STEP
-                 * 5b ELSE --> GO TO STEP 2
-                 * *******************************************************
-                 */
-                if (!checkAccessPermissions(loggedUser, sessionToken)) {
-                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
-                }
-
-                /**
-                 * *******************************************************
-                 * STEP 2 Get ALL THE ANALYSIS Object from DB. IF ERROR -->
-                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
-                 * *******************************************************
-                 */
-                String experiment_id;
-                if (requestData.has("experiment_id")) {
-                    experiment_id = requestData.get("experiment_id").getAsString();
-                } else {
-                    experiment_id = requestData.get("currentExperimentID").getAsString();
-                }
-
-                /**
-                 * *******************************************************
-                 * STEP 2 Get ALL THE ANALYSIS Object from DB. IF ERROR -->
-                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
-                 * *******************************************************
-                 */
-                dao_instance = DAOProvider.getDAOByName("Experiment");
-                Experiment experiment = (Experiment) dao_instance.findByID(experiment_id, null);
-
-                if (!experiment.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
-                    throw new AccessControlException("Cannot get files for selected Experiment. Current useris not a valid member for this Experiment.");
-                }
-
-                directoryContent = experiment.getExperimentDataDirectoryContent();
-
-            } catch (Exception e) {
-                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_experiment_directory_content_handler", e.getMessage());
-            } finally {
-                /**
-                 * *******************************************************
-                 * STEP 3b CATCH ERROR. GO TO STEP 4
-                 * *******************************************************
-                 */
-                if (ServerErrorManager.errorStatus()) {
-                    response.setStatus(400);
-                    response.getWriter().print(ServerErrorManager.getErrorResponse());
-                } else {
-                    /**
-                     * *******************************************************
-                     * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
-                     * *******************************************************
-                     */
-                    response.getWriter().print(directoryContent);
-                }
-                /**
-                 * *******************************************************
-                 * STEP 4 Close connection.
-                 * ********************************************************
-                 */
-                if (dao_instance != null) {
-                    dao_instance.closeConnection();
-                }
-            }
-            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
-        } catch (Exception e) {
-            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_experiment_directory_content", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }

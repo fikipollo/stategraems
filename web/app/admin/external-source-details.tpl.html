@@ -1,0 +1,35 @@
+<div class="modal-header">
+    <h3 class="modal-title" >Message details</h3>
+</div>
+<div class="modal-body">
+    <form>
+        <div class="form-group">
+            <label for="sel1">Source type:</label>
+            <select class="form-control" ng-model="model.type" required>
+                <option value="galaxy_server">Galaxy server</option>
+                <option value="id_mapping">ID mapping tool</option>
+                <option value="storage_system">Storage system</option>
+                <option value="other">Other tool</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" class="form-control" ng-model="model.name" required>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea class="form-control" rows="5"  ng-model="model.description"></textarea>
+        </div>
+        <div class="form-group" ng-show="model.type!=='storage_system'">
+            <label>URL:</label>
+            <input type="url" class="form-control" ng-model="model.url" required>
+        </div>
+        <div class="checkbox">
+            <label><input type="checkbox" ng-model="model.enabled" value="">Enabled</label>
+        </div>
+        <div style="text-align:right;">
+            <a class="btn btn-success" ng-click="controller.saveExternalSourceDetailsHandler();">Save file</a>
+            <a class="btn btn-danger" ng-click="controller.closeExternalSourceDetailsHandler();">Cancel</a>
+        </div>
+    </form>
+</div>

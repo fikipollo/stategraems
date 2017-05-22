@@ -3,31 +3,60 @@
         <h1 class="form_title">Send step results</h1>
     </nav>
     <div class="modal-body">
-        <div style="margin: 20px;">
-            <div class="form-group">
-                <label for="sel1">Choose destination:</label>
-                <select class="form-control" name="destination" ng-model="files_selection.destination">
-                    <option>BiBBox Galaxy</option>
-                </select>
+        <div class="row">
+            <div class="well">
+                <p><i class="fa fa-info-circle" aria-hidden="true"></i> Using this tool you can easily send your files to any of the registered external tools such as your preferred Galaxy server.</p>
+                <p>Note that some services require credentials such as an username and password, or a valid API code.</p> 
+                <p>If your service is not available in the list, please contact the administrators to add a new external tool (use Messages panel).</p> 
             </div>
-            <div class="form-group">
-                <div class="radio">
-                    <label><input type="radio" name="file_selection" value="all" ng-model="files_selection.selection">All files</label>
+            <div class="col-md-6">
+                <div class="form-group" ng-controller="ExternalSourceListController as controller" >
+                    <label>Choose destination:</label>
+                    <select class="form-control" name="source_id" ng-model="files_selection.source_id">
+                        <option ng-value="externalSource.source_id" ng-repeat="externalSource in externalSources| filter: filterValidTools">
+                            {{externalSource.name}}
+                        </option>
+                    </select>
                 </div>
-                <div class="radio">
-                    <label><input type="radio" name="file_selection" value="choose" ng-model="files_selection.selection">Choose the files to send</label>
+                <div class="well" style=" width: 85%; margin: auto; ">
+                    <div class="form-group">
+                        <label>Username:</label>
+                        <input type="text" class="form-control" ng-model="files_selection.username">
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" class="form-control" ng-model="files_selection.pass">
+                    </div>
+                    <div class="form-group">
+                        <label>API key:</label>
+                        <input type="text" class="form-control" ng-model="files_selection.apikey">
+                    </div>
+                    <!--                <div class="checkbox">
+                                        <label><input type="checkbox" ng-model="remember">Remember my credentials</label>
+                                    </div>-->
                 </div>
             </div>
-            <div ng-show="files_selection.selection === 'choose'" style=" padding: 5px 15px; border: 1px solid #dedede; border-radius: 4px; ">
-                <div class="checkbox" ng-repeat="file in model.files_location">
-                    <label><input type="checkbox" value="{{file}}" ng-click="controller.changeFileSelection(file)">{{file}}</label>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Choose the files:</label>
+                    <div class="radio">
+                        <label><input type="radio" name="file_selection" value="all" ng-model="files_selection.selection">Send all files for the step</label>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" name="file_selection" value="choose" ng-model="files_selection.selection">Choose the files to send</label>
+                    </div>
+                </div>
+                <div ng-show="files_selection.selection === 'choose'" style=" padding: 5px 15px; border: 1px solid #dedede; border-radius: 4px; ">
+                    <div class="checkbox" ng-repeat="file in model.files_location">
+                        <label><input type="checkbox" value="{{file}}" ng-click="controller.changeFileSelection(file)">{{file}}</label>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="modal-footer">
-            <button class="btn btn-success btn-lg" type="button" ng-disabled="(files_selection.selection !== 'all') && (files_selection.files.length === 0)" ng-click="controller.closeSendStepDialogHandler('send');">Send the results</button>
-            <button class="btn btn-danger btn-lg" type="button" ng-click="controller.closeSendStepDialogHandler('cancel');">Cancel</button>
-        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-success btn-lg" type="button" ng-disabled="(files_selection.selection !== 'all') && (files_selection.files.length === 0)" ng-click="controller.closeSendStepDialogHandler('send');"><i class="fa fa-paper-plane-o" aria-hidden="true"></i> Send the results</button>
+        <button class="btn btn-danger btn-lg" type="button" ng-click="controller.closeSendStepDialogHandler('cancel');">Cancel</button>
     </div>
 </div>
 

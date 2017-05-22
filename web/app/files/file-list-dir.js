@@ -38,7 +38,7 @@
                 $scope.$watch('filesTree', function (newValues, oldValues) {
                     var template =
                             '<div ng-controller="FileListController as controller">' +
-                            '   <div id="files-tree-container" ng-show="(!filters || filters.length < 1)" style="min-width:200px; min-height: 330px;"></div>' +
+                            '   <div id="files-tree-container" class="files-tree-container" ng-show="(!filters || filters.length < 1)" ></div>' +
                             '   <div ng-show="(filters && filters.length > 0)" style="min-width:200px; min-height: 330px;"></div>' +
                             '</div>';
 
@@ -48,6 +48,16 @@
                     $('#files-tree-container').treeview({
                         data: [$scope.filesTree],
                         showCheckbox: true,
+                        expandIcon: "glyphicon glyphicon-triangle-right tree-icon",
+                        collapseIcon: "glyphicon glyphicon-triangle-bottom tree-icon",
+                        checkedIcon: "glyphicon glyphicon-check text-success tree-icon",
+                        uncheckedIcon: "glyphicon glyphicon-unchecked text-muted tree-icon",
+                        highlightSelected: false,
+                        showTools: true,
+                        toolsHandlers: {
+                            remove: {handler: $scope.deleteFileHandler, icon: "trash text-danger"},
+                            download: {handler: $scope.downloadFileHandler, icon: "download-alt text-primary"}
+                        },
                         onNodeChecked: function (event, node) {
                             for (var i in node.nodes) {
                                 $('#files-tree-container').treeview('checkNode', [node.nodes[i].nodeId]);
@@ -224,11 +234,4 @@
                 }
             };
         }]);
-
-    app.directive("fileIrodsPullPanel", function () {
-        return {
-            restrict: 'E',
-            templateUrl: 'app/files/file-irods-pull.tpl.html'
-        };
-    });
 })();

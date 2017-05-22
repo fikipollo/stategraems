@@ -11,17 +11,18 @@
         'protocols.controllers',
         'analysis.controllers',
         'files.controllers',
+        'admin.controllers',
         'templates.services.template-list'
     ]);
-    
+
     var pathname = window.location.pathname.split("/");
-    if(pathname.length > 1 && pathname[1] !== "" && pathname[1].indexOf(".html") === -1){
+    if (pathname.length > 1 && pathname[1] !== "" && pathname[1].indexOf(".html") === -1) {
         pathname = pathname[1] + "/";
-    }else{
+    } else {
         pathname = "";
     }
     app.constant('myAppConfig', {
-        VERSION: '0.8',
+        VERSION: '0.9',
         EMS_SERVER: "/" + pathname
     });
     //Define the events that are fired when an user login, log out etc.
@@ -61,6 +62,11 @@
                 name: 'home',
                 url: '/',
                 templateUrl: "app/home/home.tpl.html",
+                data: {requireLogin: true}
+            }, admin = {
+                name: 'admin',
+                url: '/',
+                templateUrl: "app/admin/admin.tpl.html",
                 data: {requireLogin: true}
             }, messages = {
                 name: 'messages',
@@ -150,6 +156,7 @@
             };
             $stateProvider.state(signin);
             $stateProvider.state(home);
+            $stateProvider.state(admin);
             $stateProvider.state(messages);
             $stateProvider.state(experiments);
             $stateProvider.state(experimentDetail);
@@ -169,7 +176,7 @@
 
         this.pages = [
             {name: 'home', title: 'Home', icon: 'home', isParent: true},
-            {name: 'messages', title: 'Inbox', icon: 'envelope', isParent: false},
+            {name: 'messages', title: 'Messages', icon: 'envelope', isParent: false},
             {name: '', title: 'Studies', icon: 'book', isParent: true},
             {name: 'experiments', title: 'Browse studies', icon: 'angle-right', isParent: false},
             {name: 'experimentDetail', title: 'Show current study', icon: 'angle-right', isParent: false, params: {viewMode: 'view', experiment_id: "promise"}},
@@ -276,6 +283,11 @@
                      */
                 case "message-rest":
                     return myAppConfig.EMS_SERVER + "rest/messages" + extra;
+                    /*
+                     * EXTERNAL SOURCES REQUESTS
+                     */
+                case "external-sources-rest":
+                    return myAppConfig.EMS_SERVER + "rest/externalsources" + extra;
                     /*
                      * FILE REQUESTS
                      */
