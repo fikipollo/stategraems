@@ -547,10 +547,12 @@ public class Install_servlets extends Servlet {
             dumpProcess = Runtime.getRuntime().exec(mysqlCommand);
             exitCode = dumpProcess.waitFor();
         } catch (Exception ex) {
+            System.err.println("Unable to connect to database</br>Please check that your database engine is running and that the provided settings are valid. User: " + user + ", pass: " + password +  ", host: " + host);
             throw new SQLException("Unable to connect to database</br>Please check that your database engine is running and that the provided settings are valid.");
         }
 
         if (exitCode != 0) {
+            System.err.println("Failed when connecting to database</br>Please check that your database engine is running and that the provided settings are valid. User: " + user + ", pass: " + password +  ", host: " + host);
             throw new SQLException("Failed when connecting to database</br>Please check that your database engine is running and that the provided settings are valid.");
         }
         return true;
