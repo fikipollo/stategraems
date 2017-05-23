@@ -187,6 +187,7 @@ public class Install_servlets extends Servlet {
 
             String installation_type = settings.get("installation_type").getAsString();
             String data_location = settings.get("data_location").getAsString();
+            DBConnectionManager.setDataLocation(data_location);
 
             String emsadminpass = settings.get("EMS_ADMIN_PASSWORD").getAsString();
             String emsadminuser = settings.get("EMS_ADMIN_USER").getAsString().toLowerCase();
@@ -326,7 +327,6 @@ public class Install_servlets extends Servlet {
                 /**
                  * ***********************************************************************************************************************
                  */
-
                 this.testDatabaseConnection(DBConnectionManager.getConnectionManager().getProperties().getProperty("host"),
                         DBConnectionManager.getConnectionManager().getProperties().getProperty("username"),
                         DBConnectionManager.getConnectionManager().getProperties().getProperty("password"));
@@ -547,7 +547,7 @@ public class Install_servlets extends Servlet {
             dumpProcess = Runtime.getRuntime().exec(mysqlCommand);
             exitCode = dumpProcess.waitFor();
         } catch (Exception ex) {
-            throw new SQLException("Unable to connect to database</br>Please check that your database engine is running and that the provided settings are valid." + user + password + host);
+            throw new SQLException("Unable to connect to database</br>Please check that your database engine is running and that the provided settings are valid.");
         }
 
         if (exitCode != 0) {
