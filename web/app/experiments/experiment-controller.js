@@ -146,7 +146,7 @@
                     function successCallback(response) {
                         if (response.data.valid_experiment) {
                             console.info((new Date()).toLocaleString() + "CHANGED TO EXPERIMENT " + experiment_id + " SUCCESSFULLY");
-                            Cookies.set('currentExperimentID', experiment_id, null, location.pathname);
+                            Cookies.set("currentExperimentID", experiment_id, {expires: 1, path: window.location.pathname});
                             AnalysisList.clearAnalysis();
                             FileList.clearFiles();
                             $scope.currentExperiment = ExperimentList.getExperiment(Cookies.get('currentExperimentID'));

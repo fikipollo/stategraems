@@ -43,7 +43,7 @@
                     "label": "Data directory",
                     "type": "select",
                     "free": false,
-                    "source": "/rest/externalsources?type=storage_system&format=json_options",
+                    "source": "rest/externalsources?type=storage_system&format=json_options",
                     "required": true,
                     "help": "The location for the files produced during the experiment (e.g. the raw data files, the processed files, etc.). Files can be stored in the same machine in which the EMS is running (local directory) or in a third storage system such as a FTP server, an iRODS server or a SeedDMS system."
                 },

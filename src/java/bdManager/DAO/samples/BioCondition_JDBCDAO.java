@@ -258,7 +258,11 @@ public class BioCondition_JDBCDAO extends DAO {
             biocondition.setTime(rs.getString("time"));
             biocondition.setOtherExpCond(rs.getString("other_exp_cond"));
             biocondition.setProtocolDescription(rs.getString("protocol_description"));
-            biocondition.setFilesLocation(rs.getString("files_location").split("\\$\\$"));
+            String files_location = rs.getString("files_location");
+            if (files_location == null) {
+                files_location = "";
+            }
+            biocondition.setFilesLocation(files_location.split("\\$\\$"));
             biocondition.setLastEditionDate(rs.getString("last_edition_date"));
             biocondition.setSubmissionDate(rs.getString("submission_date"));
             biocondition.setExternalLinks(rs.getString("external_links"));
@@ -326,7 +330,11 @@ public class BioCondition_JDBCDAO extends DAO {
             biocondition.setTime(rs.getString("time"));
             biocondition.setOtherExpCond(rs.getString("other_exp_cond"));
             biocondition.setProtocolDescription(rs.getString("protocol_description"));
-            biocondition.setFilesLocation(rs.getString("files_location").split("\\$\\$"));
+            String files_location = rs.getString("files_location");
+            if (files_location == null) {
+                files_location = "";
+            }
+            biocondition.setFilesLocation(files_location.split("\\$\\$"));
             biocondition.setLastEditionDate(rs.getString("last_edition_date"));
             biocondition.setSubmissionDate(rs.getString("submission_date"));
             biocondition.setExternalLinks(rs.getString("external_links"));
@@ -407,7 +415,7 @@ public class BioCondition_JDBCDAO extends DAO {
         }
         return true;
     }
-    
+
     public boolean removeOwnership(String user_id, String object_id) throws SQLException {
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "DELETE FROM biocondition_owners WHERE biocondition_id = ? AND user_id = ?");
