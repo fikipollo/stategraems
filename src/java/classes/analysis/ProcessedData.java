@@ -26,6 +26,7 @@ import com.google.gson.JsonObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 
 /**
  *
@@ -172,7 +173,7 @@ public class ProcessedData extends Step {
         step.setProcessedDataType("quantification_step");
         step.setSoftware(step_json_object.get("tool_id").getAsString());
         step.setSoftwareVersion(step_json_object.get("tool_version").getAsString());
-        ArrayList<String> used_data = new ArrayList<String>();
+        HashSet<String> used_data = new HashSet<String>();
         if (step_json_object.has("used_data")) {
             for (JsonElement data : step_json_object.get("used_data").getAsJsonArray()) {
                 used_data.add(data.getAsString());
