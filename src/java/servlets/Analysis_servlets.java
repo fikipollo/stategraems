@@ -45,6 +45,8 @@ import common.BlockedElementsManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.AccessControlException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -125,7 +127,9 @@ public class Analysis_servlets extends Servlet {
         }
 
         //NEW SERVICES
-        if (matchService(request.getPathInfo(), "/(.+)")) {
+        if (matchService(request.getPathInfo(), "/export")) {
+            export_analysis_handler(request, response);
+        } else if (matchService(request.getPathInfo(), "/(.+)")) {
             get_analysis_handler(request, response);
         } else {
             get_all_analysis_handler(request, response);
@@ -293,7 +297,7 @@ public class Analysis_servlets extends Servlet {
             DAO daoInstance = null;
             Analysis analysis = null;
             try {
-                
+
                 /**
                  * *******************************************************
                  * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
@@ -304,29 +308,28 @@ public class Analysis_servlets extends Servlet {
                 Map<String, Cookie> cookies = this.getCookies(request);
                 JsonParser parser = new JsonParser();
                 JsonObject requestData = (JsonObject) parser.parse(request.getReader());
-                
+
                 String loggedUser, loggedUserID = null, sessionToken;
                 if (cookies != null) {
                     loggedUser = cookies.get("loggedUser").getValue();
                     sessionToken = cookies.get("sessionToken").getValue();
                     loggedUserID = cookies.get("loggedUserID").getValue();
-                } else{
-                    String apicode = requestData.get("apicode").getAsString() ;
+                } else {
+                    String apicode = requestData.get("apicode").getAsString();
                     apicode = new String(Base64.decodeBase64(apicode));
-                    
+
                     loggedUser = apicode.split(":")[0];
                     sessionToken = apicode.split(":")[1];
                 }
-                
+
                 if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
-                                
-                if(loggedUserID == null){
+
+                if (loggedUserID == null) {
                     daoInstance = DAOProvider.getDAOByName("User");
                     loggedUserID = ((User) daoInstance.findByID(loggedUser, new Object[]{null, false, true})).getUserID();
                 }
-
 
                 String experimentID = requestData.get("experiment_id").getAsString();
                 String origin = requestData.get("origin").getAsString();
@@ -336,7 +339,6 @@ public class Analysis_servlets extends Servlet {
                  * STEP 1 CHECK IF THE USER EXISTS AND IF EXPERIMENT IS VALID
                  * *******************************************************
                  */
-
                 daoInstance = DAOProvider.getDAOByName("Experiment");
                 Experiment experiment = (Experiment) daoInstance.findByID(experimentID, null);
                 if (experiment == null) {
@@ -354,7 +356,7 @@ public class Analysis_servlets extends Servlet {
                 daoInstance = DAOProvider.getDAOByName("Analysis");
                 lockedID = daoInstance.getNextObjectID(null);
                 requestData.add("analysis_id", new JsonPrimitive(lockedID));
-                
+
                 /**
                  * *******************************************************
                  * STEP 3 Get the ANALYSIS Object by parsing the JSON data. IF
@@ -609,6 +611,120 @@ public class Analysis_servlets extends Servlet {
         }
     }
 
+    private void export_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            DAO dao_instance = null;
+            Analysis analysis = null;
+            String tmpFile = "";
+            Path tmpDir = null;
+
+            try {
+                String format = request.getParameter("format");
+                if (format == null) {
+                    format = "json";
+                }
+
+                Map<String, Cookie> cookies = this.getCookies(request);
+
+                String loggedUser, sessionToken;
+                loggedUser = cookies.get("loggedUser").getValue();
+                sessionToken = cookies.get("sessionToken").getValue();
+
+                /**
+                 * *******************************************************
+                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
+                 * ERROR --> throws exception if not valid session, GO TO STEP
+                 * 5b ELSE --> GO TO STEP 2
+                 * *******************************************************
+                 */
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 2 Get THE ANALYSIS Object from DB. IF ERROR --> throws
+                 * MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * *******************************************************
+                 */
+                dao_instance = DAOProvider.getDAOByName("Analysis");
+                boolean loadRecursive = true;
+                Object[] params = {loadRecursive};
+                String analysis_id = request.getParameter("analysis_id");
+                analysis = (Analysis) dao_instance.findByID(analysis_id, params);
+
+                tmpDir = Files.createTempDirectory(null);
+                tmpFile = analysis.export(tmpDir.toString(), format, this.getServletContext().getRealPath("/data/templates"));
+
+            } catch (Exception e) {
+                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "export_analysis_handler", e.getMessage());
+            } finally {
+                /**
+                 * *******************************************************
+                 * STEP 3b CATCH ERROR. GO TO STEP 4
+                 * *******************************************************
+                 */
+                if (ServerErrorManager.errorStatus()) {
+                    response.setStatus(400);
+                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+                } else {
+                    /**
+                     * *******************************************************
+                     * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
+                     * *******************************************************
+                     */
+                    // reads input file from an absolute path
+                    File downloadFile = new File(tmpFile);
+                    try {
+                        FileInputStream inStream = new FileInputStream(downloadFile);
+                        // gets MIME type of the file
+                        String mimeType = getServletContext().getMimeType(tmpFile);
+                        if (mimeType == null) {
+                            // set to binary type if MIME mapping not found
+                            mimeType = "application/octet-stream";
+                        }
+                        response.setContentType(mimeType);
+                        response.setHeader("Content-Disposition", "filename=\"" + downloadFile.getName() + "\"");
+
+                        // obtains response's output stream
+                        OutputStream outStream = response.getOutputStream();
+
+                        byte[] buffer = new byte[4096];
+                        int bytesRead = -1;
+
+                        while ((bytesRead = inStream.read(buffer)) != -1) {
+                            outStream.write(buffer, 0, bytesRead);
+                        }
+
+                        inStream.close();
+                        outStream.close();
+                    } catch (Exception ex) {
+                    } finally {
+                        if (downloadFile.exists()) {
+                            downloadFile.delete();
+                        }
+                        if (tmpDir != null) {
+                            Files.delete(tmpDir);
+                        }
+                    }
+                }
+                /**
+                 * *******************************************************
+                 * STEP 4 Close connection.
+                 * ********************************************************
+                 */
+                if (dao_instance != null) {
+                    dao_instance.closeConnection();
+                }
+            }
+            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "export_analysis_handler", e.getMessage());
+            response.setStatus(400);
+            response.getWriter().print(ServerErrorManager.getErrorResponse());
+        }
+    }
+
     /*------------------------------------------------------------------------------------------*
      *                                                                                          *
      * PUT REQUEST HANDLERS                                                                     *
@@ -640,7 +756,7 @@ public class Analysis_servlets extends Servlet {
                 String loggedUser = cookies.get("loggedUser").getValue();
                 String sessionToken = cookies.get("sessionToken").getValue();
                 String loggedUserID = cookies.get("loggedUserID").getValue();
-                
+
                 if (!checkAccessPermissions(loggedUser, sessionToken)) {
                     throw new AccessControlException("Your session is invalid. User or session token not allowed.");
                 }
@@ -661,8 +777,8 @@ public class Analysis_servlets extends Servlet {
                 if (!analysisAux.isOwner(loggedUserID) && !loggedUserID.equals("admin")) {
                     throw new AccessControlException("Cannot update selected Analysis. Current user has not privileges over this element.");
                 }
-                
-                if("pending".equalsIgnoreCase(analysis.getStatus())){
+
+                if ("pending".equalsIgnoreCase(analysis.getStatus())) {
                     analysis.setStatus("open");
                 }
 
@@ -1002,7 +1118,6 @@ public class Analysis_servlets extends Servlet {
     //*****OTHER SERVLET HANDLERS ****************************************************
     //************************************************************************************
     //************************************************************************************
-
     private void lock_analysis_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         boolean alreadyLocked = false;
         String locker_id = "";

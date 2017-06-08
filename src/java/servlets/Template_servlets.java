@@ -21,12 +21,9 @@ package servlets;
 
 import bdManager.DAO.DAO;
 import bdManager.DAO.DAOProvider;
-import bdManager.DAO.samples.Bioreplicate_JDBCDAO;
-import classes.User;
 import classes.samples.Batch;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import common.BlockedElementsManager;
 import common.ServerErrorManager;
 import java.io.IOException;
 import java.security.AccessControlException;

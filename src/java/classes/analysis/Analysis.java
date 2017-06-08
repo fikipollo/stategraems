@@ -21,6 +21,7 @@ package classes.analysis;
 
 import classes.analysis.non_processed_data.ExternalData;
 import classes.analysis.non_processed_data.IntermediateData;
+import com.google.common.collect.Multiset;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -31,11 +32,18 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -260,8 +268,8 @@ public class Analysis {
             return (jsonString.equals("[]")) ? null : ProcessedData.fromJSON(jsonString);
         }
     }
-    
-       public static Analysis parseAnalysisData(String origin, String emsuser, JsonObject analysisData) throws Exception {
+
+    public static Analysis parseAnalysisData(String origin, String emsuser, JsonObject analysisData) throws Exception {
         if ("galaxy".equalsIgnoreCase(origin)) {
             return Analysis.parseAnalysisGalaxyData(origin, emsuser, analysisData);
         } else {
@@ -336,5 +344,115 @@ public class Analysis {
         analysis.setStatus("pending");
 
         return analysis;
+    }
+
+    public String export(String tmpDir, String format, String templatesDir) throws Exception {
+        String content = "";
+        if ("json".equalsIgnoreCase(format)) {
+            content = this.toJSON();
+        } else {
+            ArrayList<Pair> elements = new ArrayList<Pair>();
+            ArrayList<Pair> fields = processTemplateFile(templatesDir + File.separator + "analysis-form.json");
+            JsonObject analysis = new JsonParser().parse(this.toJSON()).getAsJsonObject();
+
+            elements.add(new Pair("Analysis details", "", 0, true));
+            for (Pair field : fields) {
+                elements.add(new Pair(field.value, this.getJsonElementAsString(analysis.get(field.label)), 1, false));
+            }
+
+            elements.add(new Pair("Steps in the analysis", "", 0, true));
+            JsonArray steps = analysis.get("non_processed_data").getAsJsonArray();
+            JsonObject step;
+            for (JsonElement _step : steps) {
+                step = _step.getAsJsonObject();
+                String type = this.getJsonElementAsString(step.get("type"));
+                if("rawdata".equalsIgnoreCase(type)){
+                    type = "Raw data step";
+                } else {
+                    type = type.substring(0, 1).toUpperCase() + type.substring(1);
+                    type = type.replaceAll("_", " ");
+                }
+                elements.add(new Pair(type, "", 1, true));
+                fields = processTemplateFile(templatesDir + File.separator + step.get("type").getAsString() + "-form.json");
+                for (Pair field : fields) {
+                    elements.add(new Pair(field.value, this.getJsonElementAsString(step.get(field.label)), 1, false));
+                }
+            }
+
+//            for(Step step : fields.keySet()){
+//                elements.add(new Pair(fields.get(field), analysis.get(field).getAsString(), 1, false));
+//            }
+            if ("html".equals(format)) {
+                for (Pair element : elements) {
+                    if (element.isSection) {
+                        content += "<h" + (element.level + 1) + ">" + element.label + "</h" + (element.level + 1) + ">\n";
+                    } else {
+                        content += "<p><b>" + element.label + "</b>:" + element.value.replaceAll("\\n", "<br>") + "</p>\n";
+                    }
+                }
+            } else {
+                throw new Exception(format + " is not a valid format");
+            }
+        }
+
+        File file = new File(tmpDir + File.separator + this.analysis_id + "." + format);
+        PrintWriter writer = new PrintWriter(file);
+        writer.println(content);
+        writer.close();
+        return file.getAbsolutePath();
+    }
+
+    private ArrayList<Pair> processTemplateFile(String template) throws FileNotFoundException {
+        ArrayList<Pair> content = new ArrayList<Pair>();
+        JsonParser parser = new JsonParser();
+        JsonElement jsonElement = parser.parse(new FileReader(template));
+
+        JsonArray sections = jsonElement.getAsJsonObject().get("content").getAsJsonArray();
+        JsonArray fields;
+        for (JsonElement element : sections) {
+            fields = element.getAsJsonObject().get("fields").getAsJsonArray();
+            for (JsonElement field : fields) {
+                content.add(new Pair(field.getAsJsonObject().get("name").getAsString(), field.getAsJsonObject().get("label").getAsString(), 0, false));
+            }
+        }
+
+        return content;
+    }
+
+    private String getJsonElementAsString(JsonElement element) {
+        String value = "";
+        if (element == null) {
+            return "-";
+        } else if (element.isJsonArray()) {
+            JsonArray array = element.getAsJsonArray();
+            for (JsonElement subelement : array) {
+                value = this.getJsonElementAsString(subelement);
+            }
+        } else if (element.isJsonObject()) {
+            JsonObject object = element.getAsJsonObject();
+
+            for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
+                value += entry.getKey() + ":" + this.getJsonElementAsString(entry.getValue());
+            }
+        } else if (element.isJsonPrimitive()) {
+            value += element.toString().replaceAll("\"", "") + "\n";
+        }
+        return value;
+    }
+
+    private class Pair {
+
+        String label;
+        String value;
+        int level;
+        boolean isSection;
+
+        public Pair(String label, String value, int level, boolean isSection) {
+            this.label = label;
+            this.value = value;
+            this.level = level;
+            this.isSection = isSection;
+        }
+
     }
 }

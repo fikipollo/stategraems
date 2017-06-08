@@ -233,8 +233,6 @@
         };
 
         this.downloadFileHandler = function (selectedFile) {
-
-
             var config = $rootScope.getHttpRequestConfig("GET", "file-rest", {
                 extra: "file",
                 params: {filename: selectedFile}

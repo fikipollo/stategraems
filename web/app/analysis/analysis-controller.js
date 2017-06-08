@@ -1113,7 +1113,18 @@
             }
         };
 
+        this.exportAnalysisHandler = function (format) {
+            var format = "html";
+            var config = $rootScope.getHttpRequestConfig("GET", "analysis-rest", {
+                extra: "export/" + "?analysis_id=" + $scope.model.analysis_id + "&format=" + format
+            });
 
+            var a = document.createElement("a");
+            a.href = config.url;
+            a.target = "_blank";
+            a.click();
+            return this;
+        };
         /******************************************************************************
          *      ___ _  _ ___ _____ ___   _   _    ___ ____  _ _____ ___ ___  _  _ 
          *     |_ _| \| |_ _|_   _|_ _| /_\ | |  |_ _|_  / /_\_   _|_ _/ _ \| \| |

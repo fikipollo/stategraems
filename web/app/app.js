@@ -261,6 +261,8 @@
                     return myAppConfig.EMS_SERVER + "unlock_analysis";
                 case "analysis-step-subtypes":
                     return myAppConfig.EMS_SERVER + "get_step_subtypes";
+                case "analysis-rest":
+                    return myAppConfig.EMS_SERVER + "rest/analysis" + extra;
                     /*
                      * PROTOCOL REQUESTS
                      */

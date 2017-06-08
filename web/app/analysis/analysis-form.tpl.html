@@ -2,6 +2,9 @@
     <form name="analysisForm" class="form-horizontal">
         <nav class="navbar navbar-default navbar-top title-bar">
             <h1 class="form_title">
+                <a class="clickable btn btn-default" style="float: right;margin: 8px 20px;font-size: 14px;" ng-click="controller.exportAnalysisHandler();">
+                    <i class="fa fa-save"></i> Export analysis
+                </a>
                 <span ng-show="model.isRemoved === true" class="label label-danger" style="float: right;padding: 10px;">Deleted</span>
                 {{panel_title}}
             </h1>
@@ -10,8 +13,8 @@
             <uib-tab index="0" select="controller.updateMainDiagramHandler();">
                 <uib-tab-heading>
                     <i class="fa fa-sitemap"></i> Analysis overview
-                </uib-tab-heading>
-                <h2 class="form_subtitle">Analysis details</h2>
+                </uib-tab-heading>                
+                <h2 class="form_subtitle">Analysis overview</h2>
                 <div ng-show="model.isRemoved === true" class="well well-sm text-danger" style="margin: 23px;background: #ffeaed;">
                     <i class="fa fa-info-circle"></i> You removed this analysis from your collection. The analysis will be completely removed as soon as the other owners confirm this action
                 </div>
@@ -22,7 +25,6 @@
                 <div ng-if="template === undefined">
                     <p>Generating the form...</p>
                 </div>
-
                 <div ng-if="template !== undefined">
                     <div class="section_box" ng-repeat="section in template.content">
                         <form-field ng-repeat="field in section.fields"></form-field>

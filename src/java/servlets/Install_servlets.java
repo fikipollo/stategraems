@@ -50,7 +50,6 @@ import java.util.Calendar;
 import java.util.Properties;
 import javax.security.auth.login.CredentialException;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
 import resources.SHA1;
 
 /**
