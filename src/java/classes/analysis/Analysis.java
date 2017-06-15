@@ -43,7 +43,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import org.apache.poi.util.StringUtil;
 
 /**
  *
@@ -350,46 +352,36 @@ public class Analysis {
         String content = "";
         if ("json".equalsIgnoreCase(format)) {
             content = this.toJSON();
-        } else {
-            ArrayList<Pair> elements = new ArrayList<Pair>();
-            ArrayList<Pair> fields = processTemplateFile(templatesDir + File.separator + "analysis-form.json");
+        } else if ("xml".equalsIgnoreCase(format)) {
+            content = "<?xml version=\"1.0\"?>\n";
+            content += "<analysis id=\"" + this.getAnalysisID() + "\">\n";
             JsonObject analysis = new JsonParser().parse(this.toJSON()).getAsJsonObject();
+            JsonElement non_processed_data = analysis.remove("non_processed_data");
+            JsonElement processed_data = analysis.remove("processed_data");
 
-            elements.add(new Pair("Analysis details", "", 0, true));
-            for (Pair field : fields) {
-                elements.add(new Pair(field.value, this.getJsonElementAsString(analysis.get(field.label)), 1, false));
+            content += this.generateXMLContent(analysis, 1);
+            content += "\t<steps>\n";
+            content += "\t\t<non_processed_data>\n";
+            for (JsonElement subelement : non_processed_data.getAsJsonArray()) {
+                content += "\t\t<step>\n";
+                content += this.generateXMLContent(subelement, 4);
+                content += "\t\t\t</step>\n";
             }
-
-            elements.add(new Pair("Steps in the analysis", "", 0, true));
-            JsonArray steps = analysis.get("non_processed_data").getAsJsonArray();
-            JsonObject step;
-            for (JsonElement _step : steps) {
-                step = _step.getAsJsonObject();
-                String type = this.getJsonElementAsString(step.get("type"));
-                if("rawdata".equalsIgnoreCase(type)){
-                    type = "Raw data step";
-                } else {
-                    type = type.substring(0, 1).toUpperCase() + type.substring(1);
-                    type = type.replaceAll("_", " ");
-                }
-                elements.add(new Pair(type, "", 1, true));
-                fields = processTemplateFile(templatesDir + File.separator + step.get("type").getAsString() + "-form.json");
-                for (Pair field : fields) {
-                    elements.add(new Pair(field.value, this.getJsonElementAsString(step.get(field.label)), 1, false));
-                }
+            content += "\t\t</non_processed_data>\n";
+            content += "\t\t<processed_data>\n";
+            for (JsonElement subelement : processed_data.getAsJsonArray()) {
+                content += "\t\t<step>\n";
+                content += this.generateXMLContent(subelement, 4);
+                content += "\t\t\t</step>\n";
             }
+            content += "\t\t</processed_data>\n";
+            content += "\t</steps>\n";
+            content += "</analysis>\n";
+        } else {
+            ArrayList<Pair> elements = this.processElementContent(templatesDir, this.toJSON());
 
-//            for(Step step : fields.keySet()){
-//                elements.add(new Pair(fields.get(field), analysis.get(field).getAsString(), 1, false));
-//            }
             if ("html".equals(format)) {
-                for (Pair element : elements) {
-                    if (element.isSection) {
-                        content += "<h" + (element.level + 1) + ">" + element.label + "</h" + (element.level + 1) + ">\n";
-                    } else {
-                        content += "<p><b>" + element.label + "</b>:" + element.value.replaceAll("\\n", "<br>") + "</p>\n";
-                    }
-                }
+                content = this.generateHTMLContent(elements);
             } else {
                 throw new Exception(format + " is not a valid format");
             }
@@ -402,6 +394,55 @@ public class Analysis {
         return file.getAbsolutePath();
     }
 
+    private ArrayList<Pair> processElementContent(String templatesDir, String jsonObject) throws FileNotFoundException {
+        ArrayList<Pair> elements = new ArrayList<Pair>();
+        ArrayList<Pair> fields = processTemplateFile(templatesDir + File.separator + "analysis-form.json");
+        JsonObject analysis = new JsonParser().parse(jsonObject).getAsJsonObject();
+
+        elements.add(new Pair("Analysis details", "", 0, "title"));
+        elements.add(new Pair("", "", 1, "section"));
+        for (Pair field : fields) {
+            elements.add(new Pair(field.value, this.getJsonElementAsString(analysis.get(field.label)), 2, "field"));
+        }
+
+        elements.add(new Pair("Steps in the analysis", "", 0, "title"));
+        elements.add(new Pair("", "", 0, "section"));
+        JsonArray steps = analysis.get("non_processed_data").getAsJsonArray();
+        JsonObject step;
+        for (JsonElement _step : steps) {
+            step = _step.getAsJsonObject();
+            String type = this.getJsonElementAsString(step.get("type"));
+            if ("rawdata".equalsIgnoreCase(type)) {
+                type = "Raw data step";
+            } else {
+                type = type.substring(0, 1).toUpperCase() + type.substring(1);
+                type = type.replaceAll("_", " ");
+            }
+            elements.add(new Pair(type, "", 1, "title"));
+            elements.add(new Pair("", "", 1, "section"));
+            fields = processTemplateFile(templatesDir + File.separator + step.get("type").getAsString() + "-form.json");
+            for (Pair field : fields) {
+                elements.add(new Pair(field.value, this.getJsonElementAsString(step.get(field.label)), 2, "field"));
+            }
+        }
+
+        steps = analysis.get("processed_data").getAsJsonArray();
+        for (JsonElement _step : steps) {
+            step = _step.getAsJsonObject();
+            String type = this.getJsonElementAsString(step.get("type"));
+            type = type.substring(0, 1).toUpperCase() + type.substring(1);
+            type = type.replaceAll("_", " ");
+            elements.add(new Pair(type, "", 1, "title"));
+            elements.add(new Pair("", "", 1, "section"));
+            fields = processTemplateFile(templatesDir + File.separator + step.get("type").getAsString() + "-form.json");
+            for (Pair field : fields) {
+                elements.add(new Pair(field.value, this.getJsonElementAsString(step.get(field.label)), 2, "field"));
+            }
+        }
+
+        return elements;
+    }
+
     private ArrayList<Pair> processTemplateFile(String template) throws FileNotFoundException {
         ArrayList<Pair> content = new ArrayList<Pair>();
         JsonParser parser = new JsonParser();
@@ -412,7 +453,7 @@ public class Analysis {
         for (JsonElement element : sections) {
             fields = element.getAsJsonObject().get("fields").getAsJsonArray();
             for (JsonElement field : fields) {
-                content.add(new Pair(field.getAsJsonObject().get("name").getAsString(), field.getAsJsonObject().get("label").getAsString(), 0, false));
+                content.add(new Pair(field.getAsJsonObject().get("name").getAsString(), field.getAsJsonObject().get("label").getAsString(), 0, "field"));
             }
         }
 
@@ -440,18 +481,77 @@ public class Analysis {
         return value;
     }
 
+    private String generateXMLContent(JsonElement jsonCode, int level) {
+        String content = "";
+        if (jsonCode.isJsonPrimitive()) {
+            content += jsonCode.getAsString();
+        } else if (jsonCode.isJsonArray()) {
+            content += "\n";
+            for (JsonElement subelement : jsonCode.getAsJsonArray()) {
+                content += this.generateXMLContent(subelement, level + 1);
+            }
+            content += "\n";
+            content += String.join("", Collections.nCopies(level - 1, "\t"));
+        } else if (jsonCode.isJsonObject()) {
+            for (Map.Entry<String, JsonElement> entry : jsonCode.getAsJsonObject().entrySet()) {
+                content += String.join("", Collections.nCopies(level, "\t")) + "<" + entry.getKey() + ">" + this.generateXMLContent(entry.getValue(), level + 1) + "</" + entry.getKey() + ">\n";
+            }
+        }
+        return content;
+    }
+
+    private String generateHTMLContent(ArrayList<Pair> elements) {
+        String content
+                = "<html>"
+                + " <head>"
+                + "  <title>STATegra EMS report</title>"
+                + "  <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\">"
+                + " </head>"
+                + " <body style=\"background: #fbfbfb;\">"
+                + "  <div style=\"max-width: 1024px; margin: auto; background: #fff; padding:50px 10px;\">"
+                + "   <button value=\"Print this page\" onclick=\"window.print()\" class=\"btn-primary hidden-print btn btn-rigth pull-right\"> <span class=\"glyphicon glyphicon-print\" aria-hidden=\"true\"></span> Print this page </button>"
+                + "   <table style=\" width: 100%; \"><tbody>";
+        int lastLevel = 0;
+
+        for (Pair element : elements) {
+            if (lastLevel > element.level) {
+                content += "</tbody></table></td></tr>";
+            }
+            if ("title".equals(element.type)) {
+                content += "<tr><td colspan='2'>" + "<h" + (element.level + 1) + ">" + element.label + "</h" + (element.level + 1) + ">" + "</td></tr>";
+            } else if ("section".equals(element.type)) {
+                content += "<tr><td style=\"width:20px;\"></td><td><table style=\" width: 100%; \" " + (element.level > 0 ? "class='table table-striped table-bordered'" : "") + " ><tbody>";
+            } else {
+                content += "<tr><td><b>" + element.label + "</b></td><td>" + element.value.replaceAll("\\n", "<br>") + "</td></tr>";
+            }
+            lastLevel = element.level;
+        }
+        content += "</tbody></table>";
+        content += "</div></body></html>";
+        return content;
+    }
+
     private class Pair {
 
+        String name;
         String label;
         String value;
         int level;
-        boolean isSection;
+        String type;
 
-        public Pair(String label, String value, int level, boolean isSection) {
+        public Pair(String name, String label, String value, int level, String type) {
+            this.name = name;
             this.label = label;
             this.value = value;
             this.level = level;
-            this.isSection = isSection;
+            this.type = type;
+        }
+
+        public Pair(String label, String value, int level, String type) {
+            this.label = label;
+            this.value = value;
+            this.level = level;
+            this.type = type;
         }
 
     }

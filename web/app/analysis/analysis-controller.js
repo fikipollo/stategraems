@@ -1114,7 +1114,6 @@
         };
 
         this.exportAnalysisHandler = function (format) {
-            var format = "html";
             var config = $rootScope.getHttpRequestConfig("GET", "analysis-rest", {
                 extra: "export/" + "?analysis_id=" + $scope.model.analysis_id + "&format=" + format
             });
