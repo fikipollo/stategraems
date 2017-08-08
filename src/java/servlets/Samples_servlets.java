@@ -44,10 +44,14 @@ import common.ServerErrorManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.AccessControlException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import javax.servlet.http.Cookie;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -97,45 +101,78 @@ public class Samples_servlets extends Servlet {
         response.setContentType("application/json");
         //response.setContentType("text/html");
 
-        if (request.getServletPath().equals("/get_all_bioconditions")) {
-            get_all_bioconditions_handler(request, response);
-        } else if (request.getServletPath().equals("/remove_biocondition")) {
-            remove_biocondition_handler(request, response);
-        } else if (request.getServletPath().equals("/get_biocondition")) {
-            get_biocondition_handler(request, response);
-        } else if (request.getServletPath().equals("/get_all_bioreplicates")) {
-            get_all_bioreplicates_handler(request, response);
-        } else if (request.getServletPath().equals("/add_biocondition")) {
-            add_biocondition_handler(request, response);
-        } else if (request.getServletPath().equals("/update_biocondition")) {
-            update_biocondition_handler(request, response);
-        } else if (request.getServletPath().equals("/send_biocondition_template_document")) {
-            send_biocondition_template_document_handler(request, response);
-        } else if (request.getServletPath().equals("/lock_biocondition")) {
-            lock_biocondition_handler(request, response);
-        } else if (request.getServletPath().equals("/unlock_biocondition")) {
-            unlock_biocondition_handler(request, response);
-        } else if (request.getServletPath().equals("/associate_biocondition_experiment")) {
-            associate_biocondition_experiment(request, response);
-        } else if (request.getServletPath().equals("/check_removable_sample")) {
-            check_removable_sample(request, response);
-        } else {
-            common.ServerErrorManager.addErrorMessage(3, Samples_servlets.class.getName(), "doPost", "What are you doing here?.");
-            response.setStatus(400);
-            response.getWriter().print(ServerErrorManager.getErrorResponse());
+        if (!matchService(request.getServletPath(), "/rest/samples(.*)")) {
+            if (request.getServletPath().equals("/get_all_bioconditions")) {
+                get_all_bioconditions_handler(request, response);
+            } else if (request.getServletPath().equals("/remove_biocondition")) {
+                remove_biocondition_handler(request, response);
+            } else if (request.getServletPath().equals("/get_biocondition")) {
+                get_biocondition_handler(request, response);
+            } else if (request.getServletPath().equals("/get_all_bioreplicates")) {
+                get_all_bioreplicates_handler(request, response);
+            } else if (request.getServletPath().equals("/add_biocondition")) {
+                add_biocondition_handler(request, response);
+            } else if (request.getServletPath().equals("/update_biocondition")) {
+                update_biocondition_handler(request, response);
+            } else if (request.getServletPath().equals("/send_biocondition_template_document")) {
+                send_biocondition_template_document_handler(request, response);
+            } else if (request.getServletPath().equals("/lock_biocondition")) {
+                lock_biocondition_handler(request, response);
+            } else if (request.getServletPath().equals("/unlock_biocondition")) {
+                unlock_biocondition_handler(request, response);
+            } else if (request.getServletPath().equals("/associate_biocondition_experiment")) {
+                associate_biocondition_experiment(request, response);
+            } else if (request.getServletPath().equals("/check_removable_sample")) {
+                check_removable_sample(request, response);
+            } else {
+                common.ServerErrorManager.addErrorMessage(3, Samples_servlets.class.getName(), "doPost", "What are you doing here?.");
+                response.setStatus(400);
+                response.getWriter().print(ServerErrorManager.getErrorResponse());
+            }
+        }
+
+        //NEW SERVICES
+//        if (matchService(request.getPathInfo(), "/import")) {
+//            import_analysis_handler(request, response);
+//        } else if (matchService(request.getPathInfo(), "/(.+)")) {
+//            //Do nothing
+//        } else {
+//            add_biocondition_handler(request, response);
+//        }
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.addHeader("Access-Control-Allow-Origin", "*");
+
+        if (!matchService(request.getServletPath(), "/rest/samples(.*)")) {
+            if (request.getServletPath().equals("/get_sample_service_host_list")) {
+                get_sample_service_host_list(request, response);
+            } else if (request.getServletPath().equals("/get_sample_service_list")) {
+                get_sample_service_list(request, response);
+            } else if (request.getServletPath().equals("/external-sample")) {
+                redirect_to_external_sample_service(request, response);
+            } else {
+                ServerErrorManager.addErrorMessage(3, Samples_servlets.class.getName(), "doGet", "What are you doing here?.");
+                response.setStatus(400);
+                response.getWriter().print(ServerErrorManager.getErrorResponse());
+            }
+        }
+
+        //NEW SERVICES
+        if (matchService(request.getPathInfo(), "/export")) {
+            export_samples_handler(request, response);
+//        } else if (matchService(request.getPathInfo(), "/(.+)")) {
+//            get_analysis_handler(request, response);
+//        } else {
+//            get_all_analysis_handler(request, response);
         }
     }
 
     //************************************************************************************
     //*****SAMPLES SERVLET HANDLERS     **************************************************
     //************************************************************************************
-    /**
-     *
-     * @param request
-     * @param response
-     * @throws ServletException
-     * @throws IOException
-     */
+
     private void add_biocondition_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
 
@@ -634,13 +671,6 @@ public class Samples_servlets extends Servlet {
         }
     }
 
-    /**
-     *
-     * @param request
-     * @param response
-     * @throws ServletException
-     * @throws IOException
-     */
     private void get_all_bioconditions_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
             DAO dao_instance = null;
@@ -720,13 +750,6 @@ public class Samples_servlets extends Servlet {
         }
     }
 
-    /**
-     *
-     * @param request
-     * @param response
-     * @throws ServletException
-     * @throws IOException
-     */
     private void get_biocondition_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
             DAO dao_instance = null;
@@ -796,11 +819,6 @@ public class Samples_servlets extends Servlet {
         }
     }
 
-    /**
-     *
-     * @param request
-     * @param response
-     */
     private void lock_biocondition_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         boolean alreadyLocked = false;
         String locker_id = "";
@@ -871,11 +889,6 @@ public class Samples_servlets extends Servlet {
 
     }
 
-    /**
-     *
-     * @param request
-     * @param response
-     */
     private void unlock_biocondition_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         boolean alreadyLocked = false;
         try {
@@ -931,11 +944,6 @@ public class Samples_servlets extends Servlet {
         }
     }
 
-    /**
-     *
-     * @param request
-     * @param response
-     */
     private void remove_biocondition_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             String biocondition_id = "";
@@ -1049,12 +1057,9 @@ public class Samples_servlets extends Servlet {
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
     }
-    //************************************************************************************
-    //************************************************************************************
-    //*****BIOREPLICATE SERVLET HANDLERS *************************************************
-    //************************************************************************************
-    //************************************************************************************
-
+   
+    //* BIOREPLICATE SERVLET HANDLERS
+    
     /**
      * This function returns all the bioreplicates stored in the DB for a given
      * BioReplicateID
@@ -1137,9 +1142,8 @@ public class Samples_servlets extends Servlet {
         }
     }
 
-    //************************************************************************************
-    //*****OTHER SERVLET HANDLERS ********************************************************
-    //************************************************************************************
+    //* OTHER SERVLET HANDLERS 
+
     /**
      * This function insert new associations between some bioconditions and a
      * given Experiment.
@@ -1173,9 +1177,6 @@ public class Samples_servlets extends Servlet {
         }
     }
 
-    //************************************************************************************
-    //*****OTHER SERVLET HANDLERS ********************************************************
-    //************************************************************************************
     /**
      * This function checks if a given object is removable or other items depend
      * on this instance
@@ -1258,34 +1259,120 @@ public class Samples_servlets extends Servlet {
         }
     }
 
-    //************************************************************************************
-    //*****HTTP GET REQUESTS HANDLERS*****************************************************
-    //************************************************************************************
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.addHeader("Access-Control-Allow-Origin", "*");
+    private void export_samples_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            DAO dao_instance = null;
+            BioCondition biocondition = null;
+            String tmpFile = "";
+            Path tmpDir = null;
 
-        if (request.getServletPath().equals("/get_sample_service_host_list")) {
-            get_sample_service_host_list(request, response);
-        } else if (request.getServletPath().equals("/get_sample_service_list")) {
-            get_sample_service_list(request, response);
-        } else if (request.getServletPath().equals("/external-sample")) {
-            redirect_to_external_sample_service(request, response);
-        } else {
-            ServerErrorManager.addErrorMessage(3, Samples_servlets.class.getName(), "doGet", "What are you doing here?.");
+            try {
+                String format = request.getParameter("format");
+                if (format == null) {
+                    format = "json";
+                }
+
+                Map<String, Cookie> cookies = this.getCookies(request);
+
+                String loggedUser, sessionToken;
+                loggedUser = cookies.get("loggedUser").getValue();
+                sessionToken = cookies.get("sessionToken").getValue();
+
+                /**
+                 * *******************************************************
+                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
+                 * ERROR --> throws exception if not valid session, GO TO STEP
+                 * 5b ELSE --> GO TO STEP 2
+                 * *******************************************************
+                 */
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 2 Get THE ANALYSIS Object from DB. IF ERROR --> throws
+                 * MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * *******************************************************
+                 */
+                dao_instance = DAOProvider.getDAOByName("Biocondition");
+                boolean loadRecursive = true;
+                Object[] params = {loadRecursive};
+                String biocondition_id = request.getParameter("biocondition_id");
+                biocondition = (BioCondition) dao_instance.findByID(biocondition_id, params);
+
+                tmpDir = Files.createTempDirectory(null);
+                tmpFile = biocondition.export(tmpDir.toString(), format, this.getServletContext().getRealPath("/data/templates"));
+
+            } catch (Exception e) {
+                ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "export_samples_handler", e.getMessage());
+            } finally {
+                /**
+                 * *******************************************************
+                 * STEP 3b CATCH ERROR. GO TO STEP 4
+                 * *******************************************************
+                 */
+                if (ServerErrorManager.errorStatus()) {
+                    response.setStatus(400);
+                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+                } else {
+                    /**
+                     * *******************************************************
+                     * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
+                     * *******************************************************
+                     */
+                    // reads input file from an absolute path
+                    File downloadFile = new File(tmpFile);
+                    try {
+                        FileInputStream inStream = new FileInputStream(downloadFile);
+                        // gets MIME type of the file
+                        String mimeType = getServletContext().getMimeType(tmpFile);
+                        if (mimeType == null) {
+                            // set to binary type if MIME mapping not found
+                            mimeType = "application/octet-stream";
+                        }
+                        response.setContentType(mimeType);
+                        response.setHeader("Content-Disposition", "filename=\"" + downloadFile.getName() + "\"");
+
+                        // obtains response's output stream
+                        OutputStream outStream = response.getOutputStream();
+
+                        byte[] buffer = new byte[4096];
+                        int bytesRead = -1;
+
+                        while ((bytesRead = inStream.read(buffer)) != -1) {
+                            outStream.write(buffer, 0, bytesRead);
+                        }
+
+                        inStream.close();
+                        outStream.close();
+                    } catch (Exception ex) {
+                    } finally {
+                        if (downloadFile.exists()) {
+                            downloadFile.delete();
+                        }
+                        if (tmpDir != null) {
+                            Files.delete(tmpDir);
+                        }
+                    }
+                }
+                /**
+                 * *******************************************************
+                 * STEP 4 Close connection.
+                 * ********************************************************
+                 */
+                if (dao_instance != null) {
+                    dao_instance.closeConnection();
+                }
+            }
+            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "export_samples_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
     }
-
+    
     private void get_sample_service_host_list(HttpServletRequest request, HttpServletResponse response) throws IOException {
         ArrayList<String> hosts = new ArrayList<String>();
         try {

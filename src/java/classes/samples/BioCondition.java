@@ -21,8 +21,19 @@ package classes.samples;
 
 import classes.Experiment;
 import classes.User;
+import classes.analysis.Analysis;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  *
@@ -411,5 +422,196 @@ public class BioCondition {
         }
 
         return newBiocondition; //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public String export(String tmpDir, String format, String templatesDir) throws Exception {
+        String content = "";
+        if ("json".equalsIgnoreCase(format)) {
+            content = this.toJSON();
+        } else if ("xml".equalsIgnoreCase(format)) {
+            content = "<?xml version=\"1.0\"?>\n";
+            content += "<biocondition id=\"" + this.getBioConditionID() + "\">\n";
+            JsonObject biocondition = new JsonParser().parse(this.toJSON()).getAsJsonObject();
+            JsonElement bioreplicates = biocondition.remove("associatedBioreplicates");
+            biocondition.remove("associatedExperiments");
+
+            content += this.generateXMLContent(biocondition, 1);
+            content += "\t<samples>\n";
+            for (JsonElement subelement : bioreplicates.getAsJsonArray()) {
+                content += "\t\t<sample>\n";
+                content += this.generateXMLContent(subelement, 4);
+                content += "\t\t</sample>\n";
+            }
+            content += "\t</samples>\n";
+            content += "</biocondition>\n";
+        } else {
+            ArrayList<Pair> elements = this.processElementContent(templatesDir, this.toJSON());
+
+            if ("html".equals(format)) {
+                content = this.generateHTMLContent(elements);
+            } else {
+                throw new Exception(format + " is not a valid format");
+            }
+        }
+
+        File file = new File(tmpDir + File.separator + this.biocondition_id + "." + format);
+        PrintWriter writer = new PrintWriter(file);
+        writer.println(content);
+        writer.close();
+        return file.getAbsolutePath();
+    }
+
+    private ArrayList<Pair> processElementContent(String templatesDir, String jsonObject) throws FileNotFoundException {
+        ArrayList<Pair> elements = new ArrayList<Pair>();
+        ArrayList<Pair> fields = processTemplateFile(templatesDir + File.separator + "biocondition-form.json");
+        JsonObject analysis = new JsonParser().parse(jsonObject).getAsJsonObject();
+
+        elements.add(new Pair("Biological conditions details", "", 0, "title"));
+        elements.add(new Pair("", "", 1, "section"));
+        for (Pair field : fields) {
+            elements.add(new Pair(field.value, this.getJsonElementAsString(analysis.get(field.label)), 2, "field"));
+        }
+
+        elements.add(new Pair("Samples in the analysis", "", 0, "title"));
+        elements.add(new Pair("", "", 0, "section"));
+        JsonArray samples = analysis.get("associatedBioreplicates").getAsJsonArray();
+        JsonObject sample;
+        for (JsonElement _step : samples) {
+            sample = _step.getAsJsonObject();
+            elements.add(new Pair("Sample", "", 1, "title"));
+            elements.add(new Pair("", "", 1, "section"));
+            fields = processTemplateFile(templatesDir + File.separator + "bioreplicate-form.json");
+            for (Pair field : fields) {
+                elements.add(new Pair(field.value, this.getJsonElementAsString(sample.get(field.label)), 2, "field"));
+            }
+
+            elements.add(new Pair("Aliquouts", "", 2, "title"));
+            elements.add(new Pair("", "", 2, "section"));
+            JsonArray aliquots = sample.get("associatedAnalyticalReplicates").getAsJsonArray();
+            for (JsonElement aliquot : aliquots) {
+                sample = aliquot.getAsJsonObject();
+                fields = processTemplateFile(templatesDir + File.separator + "analytical_replicate-form.json");
+                for (Pair field : fields) {
+                    elements.add(new Pair(field.value, this.getJsonElementAsString(sample.get(field.label)), 3, "field"));
+                }
+            }
+        }
+
+        return elements;
+    }
+
+    private ArrayList<Pair> processTemplateFile(String template) throws FileNotFoundException {
+        ArrayList<Pair> content = new ArrayList<Pair>();
+        JsonParser parser = new JsonParser();
+        JsonElement jsonElement = parser.parse(new FileReader(template));
+
+        JsonArray sections = jsonElement.getAsJsonObject().get("content").getAsJsonArray();
+        JsonArray fields;
+        for (JsonElement element : sections) {
+            fields = element.getAsJsonObject().get("fields").getAsJsonArray();
+            for (JsonElement field : fields) {
+                content.add(new Pair(field.getAsJsonObject().get("name").getAsString(), field.getAsJsonObject().get("label").getAsString(), 0, "field"));
+            }
+        }
+
+        return content;
+    }
+
+    private String getJsonElementAsString(JsonElement element) {
+        String value = "";
+        if (element == null) {
+            return "-";
+        } else if (element.isJsonArray()) {
+            JsonArray array = element.getAsJsonArray();
+            for (JsonElement subelement : array) {
+                value = this.getJsonElementAsString(subelement);
+            }
+        } else if (element.isJsonObject()) {
+            JsonObject object = element.getAsJsonObject();
+
+            for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
+                value += entry.getKey() + ":" + this.getJsonElementAsString(entry.getValue());
+            }
+        } else if (element.isJsonPrimitive()) {
+            value += element.toString().replaceAll("\"", "") + "\n";
+        }
+        return value;
+    }
+
+    private String generateXMLContent(JsonElement jsonCode, int level) {
+        String content = "";
+        if (jsonCode.isJsonPrimitive()) {
+            content += jsonCode.getAsString();
+        } else if (jsonCode.isJsonArray()) {
+            content += "\n";
+            for (JsonElement subelement : jsonCode.getAsJsonArray()) {
+                content += this.generateXMLContent(subelement, level + 1);
+            }
+            content += "\n";
+            content += String.join("", Collections.nCopies(level - 1, "\t"));
+        } else if (jsonCode.isJsonObject()) {
+            for (Map.Entry<String, JsonElement> entry : jsonCode.getAsJsonObject().entrySet()) {
+                content += String.join("", Collections.nCopies(level, "\t")) + "<" + entry.getKey() + ">" + this.generateXMLContent(entry.getValue(), level + 1) + "</" + entry.getKey() + ">\n";
+            }
+        }
+        return content;
+    }
+
+    private String generateHTMLContent(ArrayList<Pair> elements) {
+        String content
+                = "<html>"
+                + " <head>"
+                + "  <title>STATegra EMS report</title>"
+                + "  <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\">"
+                + " </head>"
+                + " <body style=\"background: #fbfbfb;\">"
+                + "  <div style=\"max-width: 1024px; margin: auto; background: #fff; padding:50px 10px;\">"
+                + "   <button value=\"Print this page\" onclick=\"window.print()\" class=\"btn-primary hidden-print btn btn-rigth pull-right\"> <span class=\"glyphicon glyphicon-print\" aria-hidden=\"true\"></span> Print this page </button>"
+                + "   <table style=\" width: 100%; \"><tbody>";
+        int lastLevel = 0;
+
+        for (Pair element : elements) {
+            
+            while (lastLevel > element.level) {
+                content += "</tbody></table></td></tr>";
+                lastLevel--;
+            }
+            if ("title".equals(element.type)) {
+                content += "<tr><td colspan='2'>" + "<h" + (element.level + 1) + ">" + element.label + "</h" + (element.level + 1) + ">" + "</td></tr>";
+            } else if ("section".equals(element.type)) {
+                content += "<tr><td style=\"width:20px;\"></td><td><table style=\" width: 100%; \" " + (element.level > 0 ? "class='table table-striped table-bordered'" : "") + " ><tbody>";
+            } else {
+                content += "<tr><td><b>" + element.label + "</b></td><td>" + element.value.replaceAll("\\n", "<br>") + "</td></tr>";
+            }
+            lastLevel = element.level;
+        }
+        content += "</tbody></table>";
+        content += "</div></body></html>";
+        return content;
+    }
+
+    private class Pair {
+
+        String name;
+        String label;
+        String value;
+        int level;
+        String type;
+
+        public Pair(String name, String label, String value, int level, String type) {
+            this.name = name;
+            this.label = label;
+            this.value = value;
+            this.level = level;
+            this.type = type;
+        }
+
+        public Pair(String label, String value, int level, String type) {
+            this.label = label;
+            this.value = value;
+            this.level = level;
+            this.type = type;
+        }
+
     }
 }

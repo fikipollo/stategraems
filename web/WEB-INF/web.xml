@@ -98,6 +98,7 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Samples_servlets</servlet-name>
+        <url-pattern>/rest/samples/*</url-pattern>
         <url-pattern>/get_all_bioconditions</url-pattern>
         <url-pattern>/get_biocondition</url-pattern>
         <url-pattern>/get_all_bioreplicates</url-pattern>
