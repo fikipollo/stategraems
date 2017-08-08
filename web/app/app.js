@@ -35,6 +35,7 @@
         experimentDeleted: 'experiment-deleted',
         sampleCreated: 'sample-created',
         sampleDeleted: 'sample-deleted',
+        samplesChanged: 'samples-changes',
         protocolCreated: 'protocol-created',
         protocolDeleted: 'protocol-deleted',
         protocolSelection: 'protocol-selection',
@@ -221,7 +222,8 @@
                     return myAppConfig.EMS_SERVER + "unlock_experiment";
                 case "experiment-selection":
                     return myAppConfig.EMS_SERVER + "change_current_experiment";
-                    /*
+                case "experiments-rest":
+                    return myAppConfig.EMS_SERVER + "rest/experiments" + extra;                   /*
                      * SAMPLE REQUESTS
                      */
                 case "sample-list":

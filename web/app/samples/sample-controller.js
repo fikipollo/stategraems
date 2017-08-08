@@ -313,6 +313,7 @@
                         function successCallback(response) {
                             $scope.model = SampleList.addBiocondition(response.data);
                             SampleList.adaptInformation([$scope.model])[0];
+                            $scope.diagram = me.generateWorkflowDiagram($scope.model, $scope.diagram);
 
                             if ($scope.bioreplicate_id) {
                                 $scope.bioreplicate = SampleList.getBioreplicate($scope.model, $scope.bioreplicate_id);
@@ -332,6 +333,9 @@
                             $scope.setLoading(false);
                         }
                 );
+            } else {
+                $scope.diagram = me.generateWorkflowDiagram($scope.model, $scope.diagram);
+                $scope.setLoading(false);
             }
         };
 
@@ -685,6 +689,96 @@
             console.error("cleanCountdownDialogs NOT IMPLEMENTED");
         };
 
+
+        /******************************************************************************
+         * This function creates a network from a given list of steps of a workflow.
+         *
+         * @param {Biocondition} biocondition the IU to for creating the diagram
+         * @param {Object} diagram a previous instance of a diagram (update)
+         * @return {Object} a network representation of the workflow (Object) with a list
+         *         of nodes and a list of edges.
+         ******************************************************************************/
+        this.generateWorkflowDiagram = function (biocondition, diagram) {
+            var sample = null, aliquot = null, edge_id = 0, sample_id = 0, aliquot_id = 0, edges = {}, nodes = {};
+
+            biocondition = biocondition || $scope.model;
+
+            try {
+                debugger;
+                nodes[0] = {
+                    id: 0,
+                    label: biocondition.organism,
+                    x: 0,
+                    y: 0,
+                    node_type: "specie",
+                    size: 25
+                };
+
+                var samples = biocondition.associatedBioreplicates;
+                for (var i in samples) {
+                    sample = samples[i];
+                    if (!sample.status || sample.status.indexOf('deleted') === -1) {
+                        nodes["s" + sample_id] = {
+                            id: "s" + sample_id,
+                            label: sample.bioreplicate_name,
+                            x: 0,
+                            y: 0,
+                            node_type: "sample",
+                            size: 12
+                        };
+
+                        edges[edge_id] = {
+                            id: edge_id,
+                            source: 0,
+                            target: "s" + sample_id,
+                            type: 'arrow',
+                        };
+                        edge_id++;
+
+                        var aliquouts = sample.associatedAnalyticalReplicates;
+                        for (var j in aliquouts) {
+                            aliquot = aliquouts[j];
+                            if (!aliquot.status || aliquot.status.indexOf('deleted') === -1) {
+                                nodes["a" + aliquot_id] = {
+                                    id: "a" + aliquot_id,
+                                    label: aliquot.analytical_rep_name,
+                                    x: 0,
+                                    y: 0,
+                                    node_type: "aliquot",
+                                    size: 10
+                                };
+
+                                edges[edge_id] = {
+                                    id: edge_id,
+                                    source: "s" + sample_id,
+                                    target: "a" + aliquot_id,
+                                    type: 'arrow',
+                                };
+                                edge_id++;
+                                aliquot_id++;
+                            }
+                        }
+
+                        sample_id++;
+                    }
+                }
+
+
+                diagram = diagram || $scope.diagram;
+                if (!diagram) {
+                    diagram = {hasChanged: 0, "nodes": Object.values(nodes), "edges": Object.values(edges)};
+                } else {
+                    diagram.nodes = Object.values(nodes);
+                    diagram.edges = Object.values(edges);
+                    diagram.hasChanged++;
+                }
+            } catch (e) {
+                debugger;
+            }
+
+            return diagram;
+        };
+
         /******************************************************************************      
          *            _____   _____ _  _ _____         
          *           | __\ \ / / __| \| |_   _|        
@@ -695,6 +789,17 @@
          *     |_||_/_/ \_\_|\_|___/|____|___|_|_\|___/
          *                                             
          ******************************************************************************/
+
+        /******************************************************************************
+         * This function handles the event fired when an step has changed.
+         *
+         * @return {SampleDetailController} the controller
+         ******************************************************************************/
+        $scope.$on(APP_EVENTS.samplesChanged, function () {
+            if (!$scope.isModal) {
+                $scope.diagram = me.generateWorkflowDiagram($scope.model, $scope.diagram);
+            }
+        });
 
         /******************************************************************************
          * This function handles the event fires when the user deletes a biocondition
@@ -901,6 +1006,16 @@
             }
         };
 
+
+        this.updateMainDiagramHandler = function () {
+            if ($scope.diagram) {
+                setTimeout(function () {
+                    $scope.diagram.hasChanged--;
+                    $scope.$digest();
+                }, 500);
+            }
+        };
+
         this.exportSamplesHandler = function (format) {
             var config = $rootScope.getHttpRequestConfig("GET", "samples-rest", {
                 extra: "export/" + "?biocondition_id=" + $scope.model.biocondition_id + "&format=" + format
@@ -1021,6 +1136,7 @@
             var hasChanged = (oldValues.bioreplicate_name !== newValues.bioreplicate_name) || (oldValues.batch_id !== newValues.batch_id);
             if (hasChanged) {
                 SampleList.updateModelStatus($scope.model, "edited");
+                $rootScope.$broadcast(APP_EVENTS.samplesChanged);
                 return;
             }
             //TODO: CHANGES IN BATCH
@@ -1077,6 +1193,7 @@
             for (var i in $scope.model.associatedAnalyticalReplicates) {
                 SampleList.updateModelStatus($scope.model.associatedAnalyticalReplicates[i], "deleted");
             }
+            $rootScope.$broadcast(APP_EVENTS.samplesChanged);
         };
 
         this.unremoveBioreplicateHandler = function () {
@@ -1084,6 +1201,7 @@
             for (var i in $scope.model.associatedAnalyticalReplicates) {
                 SampleList.updateModelStatus($scope.model.associatedAnalyticalReplicates[i], "undo");
             }
+            $rootScope.$broadcast(APP_EVENTS.samplesChanged);
         };
 
         /******************************************************************************
@@ -1105,7 +1223,7 @@
     });
 
 
-    app.controller('AnalyticalReplicateDetailController', function ($state, $rootScope, $scope, $http, SampleList, ProtocolList, TemplateList) {
+    app.controller('AnalyticalReplicateDetailController', function ($state, $rootScope, $scope, $http, SampleList, ProtocolList, TemplateList, APP_EVENTS) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -1126,16 +1244,19 @@
         this.removeAnalyticalReplicateHandler = function () {
             //CHECK IF REMOVABLE
             SampleList.updateModelStatus($scope.model, "deleted");
+            $rootScope.$broadcast(APP_EVENTS.samplesChanged);
         };
 
         this.unremoveAnalyticalReplicateHandler = function () {
             SampleList.updateModelStatus($scope.model, "undo");
+            $rootScope.$broadcast(APP_EVENTS.samplesChanged);
         };
 
         $scope.$watch('model', function (newValues, oldValues, scope) {
             var hasChanged = (oldValues.analytical_rep_name !== newValues.analytical_rep_name) || (oldValues.protocol_id !== newValues.protocol_id);
             if (hasChanged) {
                 SampleList.updateModelStatus($scope.model, "edited");
+                $rootScope.$broadcast(APP_EVENTS.samplesChanged);
                 return;
             }
             //TODO: EXTRA FIELDS

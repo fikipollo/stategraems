@@ -71,6 +71,7 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Experiment_servlets</servlet-name>
+        <url-pattern>/rest/experiments/*</url-pattern>
         <url-pattern>/get_all_experiments</url-pattern>
         <url-pattern>/get_experiment</url-pattern>
         <url-pattern>/add_experiment</url-pattern>
