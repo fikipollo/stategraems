@@ -59,7 +59,7 @@
      *                                                                                  
      ******************************************************************************/
 
-    app.controller('ExperimentListController', function ($rootScope, $scope, $http, $stateParams, $dialogs, APP_EVENTS, ExperimentList, AnalysisList, FileList) {
+    app.controller('ExperimentListController', function ($rootScope, $scope, $http, $stateParams, $dialogs, APP_EVENTS, ExperimentList, AnalysisList, FileList, SampleList) {
         /******************************************************************************      
          *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
          *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
@@ -149,6 +149,7 @@
                             Cookies.set("currentExperimentID", experiment_id, {expires: 1, path: window.location.pathname});
                             AnalysisList.clearAnalysis();
                             FileList.clearFiles();
+                            SampleList.clearSamples();
                             $scope.currentExperiment = ExperimentList.getExperiment(Cookies.get('currentExperimentID'));
                             $dialogs.showSuccessDialog("Now you are working with study \"" + ExperimentList.getExperiment(experiment_id).title + "\"");
                         } else {

@@ -164,15 +164,14 @@ public class Samples_servlets extends Servlet {
             export_samples_handler(request, response);
 //        } else if (matchService(request.getPathInfo(), "/(.+)")) {
 //            get_analysis_handler(request, response);
-//        } else {
-//            get_all_analysis_handler(request, response);
+        } else {
+            get_all_samples_handler(request, response);
         }
     }
 
     //************************************************************************************
     //*****SAMPLES SERVLET HANDLERS     **************************************************
     //************************************************************************************
-
     private void add_biocondition_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
 
@@ -1057,9 +1056,8 @@ public class Samples_servlets extends Servlet {
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
     }
-   
+
     //* BIOREPLICATE SERVLET HANDLERS
-    
     /**
      * This function returns all the bioreplicates stored in the DB for a given
      * BioReplicateID
@@ -1143,7 +1141,6 @@ public class Samples_servlets extends Servlet {
     }
 
     //* OTHER SERVLET HANDLERS 
-
     /**
      * This function insert new associations between some bioconditions and a
      * given Experiment.
@@ -1372,7 +1369,7 @@ public class Samples_servlets extends Servlet {
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
     }
-    
+
     private void get_sample_service_host_list(HttpServletRequest request, HttpServletResponse response) throws IOException {
         ArrayList<String> hosts = new ArrayList<String>();
         try {
@@ -1471,6 +1468,107 @@ public class Samples_servlets extends Servlet {
             } else {
                 response.sendRedirect(sample_url);
             }
+        }
+    }
+
+    private void get_all_samples_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            DAO dao_instance = null;
+            ArrayList<Object> bioconditionsList = null;
+            ArrayList<String> study_samples = null;
+            try {
+
+                Map<String, Cookie> cookies = this.getCookies(request);
+
+                String loggedUser, loggedUserID, sessionToken;
+                loggedUser = cookies.get("loggedUser").getValue();
+                loggedUserID = cookies.get("loggedUserID").getValue();
+                sessionToken = cookies.get("sessionToken").getValue();
+
+                /**
+                 * *******************************************************
+                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
+                 * ERROR --> throws exception if not valid session, GO TO STEP
+                 * 5b ELSE --> GO TO STEP 2
+                 * *******************************************************
+                 */
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 2 Get ALL THE ANALYSIS Object from DB. IF ERROR -->
+                 * throws MySQL exception, GO TO STEP 3b ELSE --> GO TO STEP 3
+                 * *******************************************************
+                 */
+                boolean loadRecursive = "1".equals(request.getParameter("recursive"));
+
+                String experiment_id = cookies.get("currentExperimentID").getValue();
+
+                Object[] params = {loadRecursive};
+                dao_instance = DAOProvider.getDAOByName("BioCondition");
+                bioconditionsList = dao_instance.findAll(params);
+
+                study_samples = ((BioCondition_JDBCDAO) dao_instance).findSamplesIDByExperimentID(experiment_id);
+                ArrayList<String> bioconditionIds = new ArrayList<String>();
+                for (String sample_id : study_samples) {
+                    if(sample_id.contains(".")){
+                        sample_id = sample_id.split("\\.")[0];
+                    }
+                    bioconditionIds.add("BC" + sample_id.substring(2));
+                }
+
+                for (int i = bioconditionsList.size() - 1; i >= 0; i--) {
+                    if (((BioCondition) bioconditionsList.get(i)).isOwner(loggedUserID) || ((BioCondition) bioconditionsList.get(i)).isPublic() || bioconditionIds.contains(((BioCondition) bioconditionsList.get(i)).getBioConditionID())) {
+                        continue;
+                    }
+                    bioconditionsList.remove(i);
+                }
+
+            } catch (Exception e) {
+                ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "get_all_samples_handler", e.getMessage());
+            } finally {
+                /**
+                 * *******************************************************
+                 * STEP 3b CATCH ERROR. GO TO STEP 4
+                 * *******************************************************
+                 */
+                if (ServerErrorManager.errorStatus()) {
+                    response.setStatus(400);
+                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+                } else {
+                    /**
+                     * *******************************************************
+                     * STEP 3A WRITE RESPONSE ERROR. GO TO STEP 4
+                     * *******************************************************
+                     */
+                    String bioconditionsJSON = "{\"samples\" : [";
+                    for (int i = 0; i < bioconditionsList.size(); i++) {
+                        bioconditionsJSON += ((BioCondition) bioconditionsList.get(i)).toJSON() + ((i < bioconditionsList.size() - 1) ? "," : "");
+                    }
+                    bioconditionsJSON += "], \"samples_current_study\" : [";
+                    for (int i = 0; i < study_samples.size(); i++) {
+                        bioconditionsJSON += "\"" + study_samples.get(i) + "\"" + ((i < study_samples.size() - 1) ? "," : "");
+                    }
+                    bioconditionsJSON += "]}";
+
+                    response.getWriter().print(bioconditionsJSON);
+                }
+                /**
+                 * *******************************************************
+                 * STEP 4 Close connection.
+                 * ********************************************************
+                 */
+                if (dao_instance != null) {
+                    dao_instance.closeConnection();
+                }
+            }
+            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "get_all_samples_handler", e.getMessage());
+            response.setStatus(400);
+            response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
     }
 }

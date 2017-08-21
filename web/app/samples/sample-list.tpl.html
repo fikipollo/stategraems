@@ -37,11 +37,12 @@
                     <label for="sortBySelector">Show:</label>
                     <select style="display:inline-block;" class="form-control" id="sortBySelector"
                             ng-model="show"
-                            ng-init="show = 'my_samples'"
+                            ng-init="show = 'samples_current_study'"
                             ng-change="controller.showSampleChooserChangeHandler(value);"
                             >
-                        <option value="my_samples">Only my samples</option>
+                        <option value="samples_current_study">Samples for current study</option>
                         <option value="all_samples">All public samples</option>
+                        <option value="my_samples">Only my samples</option>
                     </select>
                 </li>
             </ul>

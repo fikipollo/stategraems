@@ -424,4 +424,17 @@ public class BioCondition_JDBCDAO extends DAO {
         ps.execute();
         return true;
     }
+    
+    public ArrayList<String> findSamplesIDByExperimentID(String experiment_id) throws SQLException {
+        ArrayList<String> sample_ids = new ArrayList<String>();
+         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                + "SELECT analyticalReplicate_id FROM rawdata WHERE rawdata_id IN " +
+                 "(SELECT step_id FROM analysis_has_steps WHERE analysis_id IN "+
+                 "(SELECT analysis_id FROM experiments_contains_analysis WHERE experiment_id=\"" + experiment_id + "\"));");
+        ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
+        while (rs.next()) {
+            sample_ids.add(rs.getString("analyticalReplicate_id"));
+        }
+        return sample_ids;
+    }
 }

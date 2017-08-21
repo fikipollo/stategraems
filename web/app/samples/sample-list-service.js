@@ -101,6 +101,12 @@
                     this.updateTags();
                     return this;
                 },
+                clearSamples: function () {
+                    bioconditions = [];
+                    tags = [];
+                    filters = [];
+                    return this;
+                },
                 getTags: function () {
                     return tags;
                 },
@@ -257,6 +263,27 @@
                                 model.status = "edited";
                             }
                         }
+                    }
+                },
+                checkSamplesInCurrentStudy: function (_bioconditions, samples_current_study) {
+                    var bc_in_study, br_in_study, bioreplicates, analyticalSamples;
+                    for (var i in _bioconditions) {
+                        bc_in_study = false, br_in_study = false;
+                        bioreplicates = _bioconditions[i].associatedBioreplicates;
+                        for (var j in bioreplicates) {
+                            analyticalSamples = bioreplicates[j].associatedAnalyticalReplicates;
+                            for (var k in analyticalSamples) {
+                                if(samples_current_study.indexOf(analyticalSamples[k].analytical_rep_id) > -1){
+                                    analyticalSamples[k].in_current_study = true;
+                                    br_in_study = true;
+                                }
+                            }
+                            if(br_in_study || samples_current_study.indexOf(bioreplicates[j].bioreplicate_id) > -1){
+                                bioreplicates[j].in_current_study = true;
+                                bc_in_study = true;
+                            }
+                        }
+                        _bioconditions[i].in_current_study = (bc_in_study || samples_current_study.indexOf(_bioconditions[i].biocondition_id) > -1);
                     }
                 }
             };

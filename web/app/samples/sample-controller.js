@@ -69,12 +69,13 @@
             $scope.setLoading(true);
 
             if (SampleList.getOld() > 1 || force) { //Max age for data 5min.
-                $http($rootScope.getHttpRequestConfig("POST", "sample-list", {
+                $http($rootScope.getHttpRequestConfig("GET", "samples-rest", {
                     headers: {'Content-Type': 'application/json'},
-                    data: $rootScope.getCredentialsParams({recursive: (recursive !== undefined)})
+                    extra: "?recursive=1"
                 })).then(
                         function successCallback(response) {
-                            $scope.samples = SampleList.setSamples(response.data).getSamples();
+                            $scope.samples = SampleList.setSamples(response.data.samples).getSamples();
+                            SampleList.checkSamplesInCurrentStudy($scope.samples, response.data.samples_current_study);
                             $scope.tags = SampleList.updateTags().getTags();
                             $scope.filteredSamples = $scope.samples.length;
 
@@ -123,11 +124,18 @@
             $scope.filteredSamples = 0;
             $scope.user_id = $scope.user_id || Cookies.get("loggedUserID");
             return function (item) {
-                if ($scope.show === "my_samples") {
+                if ($scope.show === "samples_current_study") {
+                    return item.in_current_study;
+                } else if ($scope.show === "my_samples") {
                     if (!SampleList.isOwner(item, $scope.user_id)) {
                         return false;
                     }
+                } else if ($scope.show === "all_samples") {
+                    if(!item.isPublic){
+                        return false;
+                    }
                 }
+
                 //
                 var filterAux, item_tags;
                 for (var i in $scope.filters) {
@@ -275,9 +283,8 @@
 
         $scope.visibleSamples = Math.min($scope.filteredSamples, $scope.visibleSamples);
 
-
         if ($scope.samples.length === 0 || $stateParams.force || $scope.force) {
-            this.retrieveSamplesData("my_samples", true, $scope.recursive);
+            this.retrieveSamplesData("samples_current_study", true, $scope.recursive);
         }
     });
 
@@ -704,7 +711,6 @@
             biocondition = biocondition || $scope.model;
 
             try {
-                debugger;
                 nodes[0] = {
                     id: 0,
                     label: biocondition.organism,

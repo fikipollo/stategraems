@@ -130,6 +130,7 @@
                                     '       ' + (model.required ? "required" : "") +
                                     '       ng-readonly="viewMode === \'view\'">' +
                                     '  <b> {{field.label}}</b>' +
+                                    '  <i ng-show="' + (model.help !== undefined) + '"  uib-tooltip-html="\'' + model.help + '\'" class="fa fa-question-circle form-help-tip" aria-hidden="true"></i>'+
                                     '</div>';
                         } else if (model.type === "date") {
                             template +=

@@ -21,7 +21,6 @@ package classes.samples;
 
 import classes.Experiment;
 import classes.User;
-import classes.analysis.Analysis;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
