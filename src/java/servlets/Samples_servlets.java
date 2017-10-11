@@ -157,10 +157,7 @@ public class Samples_servlets extends Servlet {
                 response.setStatus(400);
                 response.getWriter().print(ServerErrorManager.getErrorResponse());
             }
-        }
-
-        //NEW SERVICES
-        if (matchService(request.getPathInfo(), "/export")) {
+        } else if (matchService(request.getPathInfo(), "/export")) {
             export_samples_handler(request, response);
 //        } else if (matchService(request.getPathInfo(), "/(.+)")) {
 //            get_analysis_handler(request, response);
@@ -1374,7 +1371,7 @@ public class Samples_servlets extends Servlet {
         ArrayList<String> hosts = new ArrayList<String>();
         try {
             //TODO:
-            hosts.add("eb3kit.ki.se");
+            hosts.add("demo.bibbox.org");
             hosts.add("eb3kit.makerere.ug");
         } catch (Exception e) {
             ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_sample_service_host_list", e.getMessage());
@@ -1409,10 +1406,10 @@ public class Samples_servlets extends Servlet {
         try {
             String host_name = request.getParameter("host");
 
-            if ("eb3kit.ki.se".equals(host_name)) {
-                services.add("lims1");
-                services.add("lims2");
-                services.add("lims3");
+            if ("demo.bibbox.org".equals(host_name)) {
+                services.add("{'name': 'Open specimen 1', 'url' : 'os77.demo.bibbox.org'}");
+                services.add("{'name': 'Open specimen 2', 'url' : 'os77.demo.bibbox.org'}");
+                services.add("{'name': 'Open specimen 3', 'url' : 'os77.demo.bibbox.org'}");
             } else {
                 services.add("samplemanager1");
                 services.add("samplemanager2");

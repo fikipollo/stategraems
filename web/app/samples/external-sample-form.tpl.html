@@ -61,7 +61,7 @@
                     <select class="col-sm-9" name="service" 
                             ng-model="model.protocol_description" 
                             ng-change="controller.sampleIdentifiersChangedHandler();"
-                            ng-options="service for service in samplesInfo.services">
+                            ng-options="service as service.name for service in samplesInfo.services">
                     </select>
                 </div>
                 <div class="field-group row">
