@@ -240,10 +240,6 @@
                     return myAppConfig.EMS_SERVER + "lock_biocondition";
                 case "sample-unlock":
                     return myAppConfig.EMS_SERVER + "unlock_biocondition";
-                case "sample-service-host-list":
-                    return myAppConfig.EMS_SERVER + "get_sample_service_host_list";
-                case "sample-service-list":
-                    return myAppConfig.EMS_SERVER + "get_sample_service_list";
                 case "samples-rest":
                     return myAppConfig.EMS_SERVER + "rest/samples" + extra;
                     /*

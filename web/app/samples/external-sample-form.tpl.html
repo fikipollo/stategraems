@@ -7,8 +7,8 @@
             <h2 class="section_subtitle">General details</h2>
             <div class="field-group row">
                 <label class="col-sm-2" for="name">Sample name</label>
-                <input class="col-sm-9" type="text" placeholder="Type the sample name" name="title" 
-                       ng-model="model.title" 
+                <input class="col-sm-9" type="text" placeholder="Type the sample name" name="name" 
+                       ng-model="model.name" 
                        ng-required="true" 
                        ng-readonly="viewMode === 'view'">
             </div>
@@ -49,36 +49,41 @@
             </div>
             <div ng-if="link_input_type === 'auto' && viewMode !== 'view'">
                 <div class="field-group row">
-                    <label class="col-sm-2" for="location">Choose location:</label>
-                    <select class="col-sm-9" name="location" 
-                            ng-model="model.other_exp_cond" 
-                            ng-change="controller.sampleServicesHostChangedHandler();"
-                            ng-options="host for host in samplesInfo.hosts">
+                    <label class="col-sm-2" for="network_host">Choose location:</label>
+                    <select class="col-sm-9" name="network_host" ng-model="model.network_host" ng-change="controller.externalSampleHostChangedHandler();">
+                        <option ng-repeat="host in samplesInfo.network_hosts" value="{{host.url}}">{{host.name}}</option>
                     </select>
                 </div>
                 <div class="field-group row">
-                    <label class="col-sm-2" for="service">Choose service:</label>
-                    <select class="col-sm-9" name="service" 
-                            ng-model="model.protocol_description" 
-                            ng-change="controller.sampleIdentifiersChangedHandler();"
-                            ng-options="service as service.name for service in samplesInfo.services">
+                    <label class="col-sm-2" for="network_service">Choose service:</label>
+                    <select class="col-sm-9" name="network_service" ng-model="model.network_service" ng-change="controller.externalSampleServiceChangedHandler();">
+                        <option ng-repeat="service in samplesInfo.network_services" value="{{service.url}}">{{service.name}}</option>
+                    </select>
+                </div>
+                <div class="field-group row">
+                    <label class="col-sm-2" for="network_sample_type">Type of sample:</label>
+                    <select class="col-sm-9" name="network_sample_type" ng-model="model.network_sample_type" ng-change="controller.externalSampleTypeChangedHandler();">
+                        <option ng-repeat="sample_type in samplesInfo.network_sample_types" value="{{sample_type.value}}">{{sample_type.name}}</option>
                     </select>
                 </div>
                 <div class="field-group row">
                     <label class="col-sm-2" for="external_links">Sample identifiers (separated by comma):</label>
-                    <textarea class="col-sm-9" rows="5" name="external_links" ng-model="model.external_links" ng-change="controller.sampleIdentifiersChangedHandler();" ></textarea>
+                    <textarea class="col-sm-9" rows="5" name="external_links" 
+                              ng-model="model.external_links" 
+                              ng-change="controller.externalSampleTypeChangedHandler();" >
+                    </textarea>
                 </div>
             </div>
             <div class="field-group row" ng-if="link_input_type === 'auto'">
                 <label class="col-sm-2">External links:</label>
                 <div class=" col-sm-9" style=" min-height: 50px; border: 1px solid #e4e4e4; padding: 10px; margin-bottom: 10px; margin-left: -3px; ">
-                    <a style="display: block;" target="_blank" href="{{external_link}}" ng-repeat="external_link in samplesInfo.built_ids">{{external_link}}</a> 
+                    <a style="display: block;" target="_blank" href="{{external_link}}" ng-repeat="external_link in model.external_sample_links">{{external_link}}</a> 
                 </div>
             </div>         
             <div class="field-group row" ng-if="link_input_type === 'manual'">
                 <div class="field-group row">
-                    <label class="col-sm-2" for="external_links">External links:</label>
-                    <textarea class=" col-sm-9" rows="8" name="external_links" ng-model="model.external_links"></textarea>
+                    <label class="col-sm-2" for="external_sample_links">External links:</label>
+                    <textarea class=" col-sm-9" rows="8" name="external_sample_links" ng-model="model.external_links"></textarea>
                 </div>
             </div>
         </div>

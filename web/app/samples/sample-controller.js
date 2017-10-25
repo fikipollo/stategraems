@@ -131,7 +131,7 @@
                         return false;
                     }
                 } else if ($scope.show === "all_samples") {
-                    if(!item.isPublic){
+                    if (!item.isPublic) {
                         return false;
                     }
                 }
@@ -1311,9 +1311,12 @@
                         function successCallback(response) {
                             $scope.model = SampleList.addBiocondition(response.data);
                             SampleList.adaptInformation([$scope.model])[0];
-                            if ($scope.model.other_exp_cond !== undefined && $scope.model.protocol_description !== undefined) {
-                                $scope.link_input_type = 'auto';
-                                me.generateExternalLinks();
+                            if ($scope.model.isExternal === true) {
+                                debugger;
+                                if ($scope.model.network_host !== "") {
+                                    $scope.link_input_type = 'auto';
+                                }
+                                me.externalSampleGenerateLinks();
                                 me.retrieveSampleServicesList();
                             }
                             $scope.setLoading(false);
@@ -1351,16 +1354,17 @@
          * information for samples (e.g. LIMS)
          * 
          ******************************************************************************/
-        this.retrieveSampleServicesHostList = function () {
-            $http($rootScope.getHttpRequestConfig("GET", "sample-service-host-list", {
+        this.retrieveNetworkHostsList = function () {
+            $http($rootScope.getHttpRequestConfig("GET", "samples-rest", {
+                extra: "network/?request=hosts"
             })).then(
                     function successCallback(response) {
-                        $scope.samplesInfo.hosts = response.data.hosts;
+                        $scope.samplesInfo.network_hosts = response.data.hosts;
                     },
                     function errorCallback(response) {
-                        var message = "Failed while retrieving the list of available hosts.";
+                        var message = "Failed while retrieving the list of available hosts in the network.";
                         $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at ExternalSampleDetailController:retrieveSampleServicesHostList."
+                            logMessage: message + " at ExternalSampleDetailController:retrieveNetworkHostsList."
                         });
                         console.error(response.data);
                         debugger
@@ -1374,14 +1378,14 @@
          * 
          ******************************************************************************/
         this.retrieveSampleServicesList = function () {
-            $http($rootScope.getHttpRequestConfig("GET", "sample-service-list", {
-                params: {'host': $scope.model.other_exp_cond}
+            $http($rootScope.getHttpRequestConfig("GET", "samples-rest", {
+                extra: "network/?request=services&host=" + $scope.model.network_host
             })).then(
                     function successCallback(response) {
-                        $scope.samplesInfo.services = response.data.services;
+                        $scope.samplesInfo.network_services = response.data.services;
                     },
                     function errorCallback(response) {
-                        var message = "Failed while retrieving the list of available hosts.";
+                        var message = "Failed while retrieving the list of available services for the selected host.";
                         $dialogs.showErrorDialog(message, {
                             logMessage: message + " at ExternalSampleDetailController:retrieveSampleServicesList."
                         });
@@ -1391,19 +1395,44 @@
             );
         };
 
-        this.generateExternalLinks = function () {
-            var ids = [];
-            if ($scope.model.other_exp_cond && $scope.model.protocol_description) {
-                ids = $scope.model.external_links.replace(/(\n| )/g, "");
-                ids = ids.split(",");
+        /******************************************************************************
+         * This function gets the list of available sample types for the selected service
+         * e.g. SUBJECT for OPENSPECIMEN
+         * 
+         ******************************************************************************/
+        this.retrieveSampleTypesList = function () {
+            $http($rootScope.getHttpRequestConfig("GET", "samples-rest", {
+                extra: "network/?request=types&host=" + $scope.model.network_host + "&service=" + $scope.model.network_service
+            })).then(
+                    function successCallback(response) {
+                        $scope.samplesInfo.network_sample_types = response.data.types;
+                    },
+                    function errorCallback(response) {
+                        var message = "Failed while retrieving the list of available sample types for the selected service.";
+                        $dialogs.showErrorDialog(message, {
+                            logMessage: message + " at ExternalSampleDetailController:retrieveSampleTypesList."
+                        });
+                        console.error(response.data);
+                        debugger
+                    }
+            );
+        };
 
-                for (var i in ids) {
+        this.externalSampleGenerateLinks = function () {
+            var external_ids = [];
+            if ($scope.model.isExternal && $scope.model.external_links) {
+                var _ids = $scope.model.external_links.replace(/(\n| )/g, ",");
+                _ids = _ids.split(",");
+                
+                for (var i in _ids) {
                     ///translate?sample@samplemanager.eb3kit.ki.se::23
-                    ids[i] = "/external-sample?sample_id=sample@" + $scope.model.protocol_description + "." + $scope.model.other_exp_cond + "::" + ids[i];
+                    if (_ids[i] && _ids[i] !== ""){
+                        external_ids.push("/external-sample?sample_id=" + $scope.model.network_sample_type + "@" + $scope.model.network_service + "::" + _ids[i]);
+                    }
                 }
             }
-            ids = arrayUnique(ids, [""]);
-            $scope.samplesInfo.built_ids = ids;
+            external_ids = arrayUnique(external_ids, [""]);
+            $scope.model.external_sample_links = external_ids;
 
             return this;
         };
@@ -1730,29 +1759,6 @@
          ******************************************************************************/
 
         /******************************************************************************
-         * This function gets the list of installed services in a server that store 
-         * information for samples (e.g. LIMS)
-         * 
-         ******************************************************************************/
-        this.sampleServicesHostChangedHandler = function () {
-            if ($scope.model.other_exp_cond) {
-                delete $scope.model.protocol_description;
-                this.retrieveSampleServicesList();
-            }
-            return this;
-        };
-
-        /******************************************************************************
-         * This function generates the list of external links by combining the
-         * selected Host + Service name + list of sample IDs.
-         * 
-         * @returns {Array} the list of external links
-         ******************************************************************************/
-        this.sampleIdentifiersChangedHandler = function () {
-            this.generateExternalLinks();
-        };
-
-        /******************************************************************************
          * This function handles the event fires when the user deletes a biocondition
          *
          ******************************************************************************/
@@ -1856,6 +1862,42 @@
 
         };
 
+
+        /******************************************************************************
+         * This function gets the list of installed services in a server that store 
+         * information for samples (e.g. LIMS)
+         * 
+         ******************************************************************************/
+        this.externalSampleHostChangedHandler = function () {
+            if ($scope.model.network_host) {
+                delete $scope.model.network_service;
+                this.retrieveSampleServicesList();
+            }
+            return this;
+        };
+
+        /******************************************************************************
+         * This function gets the list of available information units for a service 
+         * installed in a bibbox (e.g. SUBJECT for OPENSPECIMEN LIMS)
+         ******************************************************************************/
+        this.externalSampleServiceChangedHandler = function () {
+            if ($scope.model.network_service) {
+                delete $scope.model.network_sample_type;
+                this.retrieveSampleTypesList();
+            }
+            return this;
+        };
+
+        /******************************************************************************
+         * This function generates the list of external links by combining the
+         * selected Host + Service name + Sample type + list of sample IDs.
+         * 
+         * @returns {Array} the list of external links
+         ******************************************************************************/
+        this.externalSampleTypeChangedHandler = function () {
+            this.externalSampleGenerateLinks();
+        };
+
         /******************************************************************************
          *      ___ _  _ ___ _____ ___   _   _    ___ ____  _ _____ ___ ___  _  _ 
          *     |_ _| \| |_ _|_   _|_ _| /_\ | |  |_ _|_  / /_\_   _|_ _/ _ \| \| |
@@ -1886,7 +1928,7 @@
             $scope.model.isExternal = true;
         }
 
-        this.retrieveSampleServicesHostList();
+        this.retrieveNetworkHostsList();
         this.getOrganimsList();
     });
 })();

@@ -146,11 +146,7 @@ public class Samples_servlets extends Servlet {
         response.addHeader("Access-Control-Allow-Origin", "*");
 
         if (!matchService(request.getServletPath(), "/rest/samples(.*)")) {
-            if (request.getServletPath().equals("/get_sample_service_host_list")) {
-                get_sample_service_host_list(request, response);
-            } else if (request.getServletPath().equals("/get_sample_service_list")) {
-                get_sample_service_list(request, response);
-            } else if (request.getServletPath().equals("/external-sample")) {
+            if (request.getServletPath().equals("/external-sample")) {
                 redirect_to_external_sample_service(request, response);
             } else {
                 ServerErrorManager.addErrorMessage(3, Samples_servlets.class.getName(), "doGet", "What are you doing here?.");
@@ -159,6 +155,9 @@ public class Samples_servlets extends Servlet {
             }
         } else if (matchService(request.getPathInfo(), "/export")) {
             export_samples_handler(request, response);
+        } else if (matchService(request.getPathInfo(), "/network")) {
+            get_network_information(request, response);
+
 //        } else if (matchService(request.getPathInfo(), "/(.+)")) {
 //            get_analysis_handler(request, response);
         } else {
@@ -1367,14 +1366,58 @@ public class Samples_servlets extends Servlet {
         }
     }
 
-    private void get_sample_service_host_list(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        ArrayList<String> hosts = new ArrayList<String>();
+    private void get_network_information(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        ArrayList<JsonObject> response_content = new ArrayList<JsonObject>();
+        String requested="";
         try {
-            //TODO:
-            hosts.add("demo.bibbox.org");
-            hosts.add("eb3kit.makerere.ug");
+            requested = request.getParameter("request");
+
+            if ("hosts".equalsIgnoreCase(requested)) {
+                JsonObject obj = new JsonObject();
+                obj.add("name", new JsonPrimitive("Demo bibbox"));
+                obj.add("url", new JsonPrimitive("demo.bibbox.org"));
+                response_content.add(obj);
+
+                obj = new JsonObject();
+                obj.add("name", new JsonPrimitive("eB3Kit Uganda"));
+                obj.add("url", new JsonPrimitive("eb3kit.makerere.ug"));
+                response_content.add(obj);
+            } else if ("services".equalsIgnoreCase(requested)) {
+                String host = request.getParameter("host");
+
+                if ("demo.bibbox.org".equalsIgnoreCase(host)) {
+                    JsonObject obj = new JsonObject();
+                    obj.add("name", new JsonPrimitive("Open specimen"));
+                    obj.add("url", new JsonPrimitive("os77.demo.bibbox.org"));
+                    response_content.add(obj);
+
+                    obj = new JsonObject();
+                    obj.add("name", new JsonPrimitive("Phenotips"));
+                    obj.add("url", new JsonPrimitive("pt13rc1.demo.bibbox.org"));
+                    response_content.add(obj);
+                }
+            } else if ("types".equalsIgnoreCase(requested)) {
+                String host = request.getParameter("host");
+                String service = request.getParameter("service");
+
+                if ("demo.bibbox.org".equalsIgnoreCase(host) && "pt13rc1.demo.bibbox.org".equalsIgnoreCase(service)) {
+                    JsonObject obj = new JsonObject();
+                    String type = "SUBJECT";
+                    obj.add("name", new JsonPrimitive(type.toUpperCase().substring(0, 1) + type.toLowerCase().substring(1)));
+                    obj.add("value", new JsonPrimitive(type));
+                    response_content.add(obj);
+                } else if ("demo.bibbox.org".equalsIgnoreCase(host) && "os77.demo.bibbox.org".equalsIgnoreCase(service)) {
+                    JsonObject obj = new JsonObject();
+                    String type = "SPECIMEN";
+                    obj.add("name", new JsonPrimitive(type.toUpperCase().substring(0, 1) + type.toLowerCase().substring(1)));
+                    obj.add("value", new JsonPrimitive(type));
+                    response_content.add(obj);
+                }
+            } else {
+
+            }
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_sample_service_host_list", e.getMessage());
+            ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "get_network_information", e.getMessage());
         } finally {
             /**
              * *******************************************************
@@ -1391,11 +1434,11 @@ public class Samples_servlets extends Servlet {
                  * *******************************************************
                  */
                 JsonObject obj = new JsonObject();
-                JsonArray _hosts = new JsonArray();
-                for (String host : hosts) {
-                    _hosts.add(new JsonPrimitive(host));
+                JsonArray _response = new JsonArray();
+                for (JsonObject element : response_content) {
+                    _response.add(element);
                 }
-                obj.add("hosts", _hosts);
+                obj.add(requested, _response);
                 response.getWriter().print(obj.toString());
             }
         }
@@ -1510,7 +1553,7 @@ public class Samples_servlets extends Servlet {
                 study_samples = ((BioCondition_JDBCDAO) dao_instance).findSamplesIDByExperimentID(experiment_id);
                 ArrayList<String> bioconditionIds = new ArrayList<String>();
                 for (String sample_id : study_samples) {
-                    if(sample_id.contains(".")){
+                    if (sample_id.contains(".")) {
                         sample_id = sample_id.split("\\.")[0];
                     }
                     bioconditionIds.add("BC" + sample_id.substring(2));

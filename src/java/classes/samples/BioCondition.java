@@ -69,6 +69,9 @@ public class BioCondition {
     String[] tags;
     boolean isPublic = true;
     boolean isExternal = false;
+    private String network_host;
+    private String network_service;
+    private String network_sample_type;
 
     public BioCondition() {
     }
@@ -357,6 +360,32 @@ public class BioCondition {
         this.isExternal = isExternal;
     }
 
+    public String getNetworkHost() {
+        return network_host;
+    }
+
+    public void setNetworkHost(String network_host) {
+        this.network_host = network_host;
+    }
+
+    public String getNetworkService() {
+        return network_service;
+    }
+
+    public void setNetworkService(String network_service) {
+        this.network_service = network_service;
+    }
+
+    public String getNetworkSampleType() {
+        return network_sample_type;
+    }
+
+    public void setNetworkSampleType(String network_sample_type) {
+        this.network_sample_type = network_sample_type;
+    }
+    
+    
+
     //***********************************************************************
     //* OTHER FUNCTIONS *****************************************************
     //***********************************************************************
@@ -570,7 +599,7 @@ public class BioCondition {
         int lastLevel = 0;
 
         for (Pair element : elements) {
-            
+
             while (lastLevel > element.level) {
                 content += "</tbody></table></td></tr>";
                 lastLevel--;

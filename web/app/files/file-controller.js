@@ -152,6 +152,9 @@
 
             $http($rootScope.getHttpRequestConfig("POST", "file-rest", {
                 data: formData,
+                params: {
+                    "parent_dir": $scope.uploadOptions.parent_dir
+                },
                 headers: {'Content-Type': undefined},
                 config: {
                     transformRequest: angular.identity,
@@ -394,6 +397,9 @@
         $scope.filteredFiles = $scope.files.length;
         $scope.filesTree = FileList.getFilesTree();
         $scope.uploadFiles = [];
+        $scope.uploadOptions = {
+            parent_dir: "/"
+        };
 
         //This controller uses the FileList, which defines a Singleton instance of
         //a list of files + list of tags + list of filters. Hence, the application will not
