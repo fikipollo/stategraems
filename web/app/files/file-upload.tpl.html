@@ -1,7 +1,7 @@
 <div class="panel panel-container" >
     <div class="form-group">
         <label style="float: left;padding-top: 6px;">Destination:</label>
-        <a class="btn btn-primary btn-sm clickable" style="float: right;margin-top: 2px;">Browse</a>
+        <a class="btn btn-primary btn-sm clickable" ng-click="controller.showBrowseDirectoriesDialogHandler();" style="float: right;margin-top: 2px;">Browse</a>
         <div style="margin-right: 70px;margin-left: 85px;">
             <input ng-model="uploadOptions.parent_dir" type="text" class="form-control">
         </div>

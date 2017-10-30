@@ -41,18 +41,28 @@
          * @param {type} force
          * @returns this
          */
-        this.retrieveFilesData = function (force) {
+        this.retrieveFilesData = function (force, params) {
             $scope.isLoading = true;
+
+            if (params === undefined && $scope.credentials !== undefined && $scope.credentials.user !== "") {
+                params = {credentials: window.btoa($scope.credentials.user + ":" + $scope.credentials.pwd)};
+            }
 
             if (FileList.getOld() > 1 || force) { //Max age for data 5min.
                 $http($rootScope.getHttpRequestConfig("GET", "file-rest", {
-                    headers: {'Content-Type': 'application/json'}
+                    headers: {'Content-Type': 'application/json'},
+                    params: params
                 })).then(
                         function successCallback(response) {
                             $scope.isLoading = false;
-                            $scope.filesTree = FileList.setFilesTree(response.data).getFilesTree();
-                            $scope.files = FileList.getFiles();
-                            $scope.filteredFiles = $scope.files.length;
+                            if (response.data.success === false && response.data.error_code === 201 && $scope.credentialsDialog === undefined) {
+                                //Display input for pass and user
+                                me.showCredentialsInputDialog(response.data.host);
+                            } else {
+                                $scope.filesTree = FileList.setFilesTree(response.data).getFilesTree();
+                                $scope.files = FileList.getFiles();
+                                $scope.filteredFiles = $scope.files.length;
+                            }
                         },
                         function errorCallback(response) {
                             $scope.isLoading = false;
@@ -76,6 +86,35 @@
             return this;
         };
 
+        this.showCredentialsInputDialog = function (host) {
+            $scope.credentials = {
+                host: host,
+                user: "",
+                pwd: ""
+            }
+
+            $scope.credentialsDialog = $uibModal.open({
+                templateUrl: 'app/files/credentials-input.tpl.html',
+                size: 'md',
+                controller: 'FileListController',
+                controllerAs: 'controller',
+                scope: $scope
+            });
+
+            $scope.closeCredentialsDialog = function (accept) {
+                $scope.credentialsDialog.close();
+
+                if (accept) {
+                    var credentials = window.btoa($scope.credentials.user + ":" + $scope.credentials.pwd);
+                    me.retrieveFilesData(true, {credentials: credentials});
+                }
+
+                delete $scope.closeCredentialsDialog;
+                delete $scope.credentialsDialog;
+            };
+
+            return this;
+        };
 
         /**
          * This function defines the behaviour for the "filterFiles" function.
@@ -150,11 +189,16 @@
             formData.append('file_data', file);
             file.state = "uploading";
 
+            var params = {
+                parent_dir: $scope.uploadOptions.parent_dir
+            };
+            if ($scope.credentials !== undefined && $scope.credentials.user !== "") {
+                params["credentials"] = window.btoa($scope.credentials.user + ":" + $scope.credentials.pwd);
+            }
+
             $http($rootScope.getHttpRequestConfig("POST", "file-rest", {
                 data: formData,
-                params: {
-                    "parent_dir": $scope.uploadOptions.parent_dir
-                },
+                params: params,
                 headers: {'Content-Type': undefined},
                 config: {
                     transformRequest: angular.identity,
@@ -184,6 +228,48 @@
             }
         };
 
+        this.showBrowseDirectoriesDialogHandler = function () {
+            $scope.browseDirectoriesDialog = $uibModal.open({
+                templateUrl: 'app/files/directories-browser-dialog.tpl.html',
+                size: 'md',
+                controller: 'FileListController',
+                controllerAs: 'controller',
+                scope: $scope
+            });
+
+            $scope.closeBrowseDirectoriesDialog = function () {
+                $scope.browseDirectoriesDialog.close();
+
+                var selectedNodes = $('#files-tree-container').data('treeview').getChecked();
+                //Ignore directories from selection
+                var selection = [];
+                for (var i in selectedNodes) {
+                    if (selectedNodes[i].nodes === undefined) {
+                        var name = selectedNodes[i].text;
+                        if (selectedNodes[i].nodes === undefined){
+                            name="";
+                        }
+                        var parent = $('#files-tree-container').data('treeview').getParent(selectedNodes[i].nodeId);
+                        while (parent !== undefined) {
+                            name = parent.text + "/" + name;
+                            parent = $('#files-tree-container').data('treeview').getParent(parent.nodeId);
+                        }
+                        selection.push(name);
+                    }
+                }
+                selection = arrayUnique(selection);
+
+                if (selection.length > 0) {
+                    $scope.uploadOptions.parent_dir = selection[0];
+                }
+
+                delete $scope.closeBrowseDirectoriesDialog;
+                delete $scope.browseDirectoriesDialog;
+            };
+
+            return this;
+        };
+
         $scope.deleteFileHandler = function (event) {
             var node = event.data;
             var name = node.text;
@@ -199,9 +285,16 @@
         this.deleteFileHandler = function (selectedFile) {
             var sendRemoveRequest = function (option) {
                 if (option === "ok") {
+                    var params = {
+                        filename: selectedFile
+                    };
+                    if ($scope.credentials !== undefined && $scope.credentials.user !== "") {
+                        params["credentials"] = window.btoa($scope.credentials.user + ":" + $scope.credentials.pwd);
+                    }
+
                     $http($rootScope.getHttpRequestConfig("DELETE", "file-rest", {
                         extra: "file",
-                        params: {filename: selectedFile}
+                        params: params
                     })).then(
                             function successCallback(response) {
                                 me.retrieveFilesData(true);
@@ -232,7 +325,7 @@
                 parent = $('#files-tree-container').data('treeview').getParent(parent.nodeId);
             }
 
-            me.downloadFileHandler("/" + name);
+            me.downloadFileHandler("/" + name.replace(/^\//, ""));
         };
 
         this.downloadFileHandler = function (selectedFile) {
@@ -243,6 +336,11 @@
 
             var a = document.createElement("a");
             a.href = config.url + "?filename=" + selectedFile;
+
+            if ($scope.credentials !== undefined && $scope.credentials.user !== "") {
+                a.href += "&credentials=" + window.btoa($scope.credentials.user + ":" + $scope.credentials.pwd);
+            }
+
             a.target = "_blank";
             a.click();
 //            

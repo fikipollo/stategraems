@@ -62,6 +62,7 @@ public class Experiment {
     String data_dir_user;
     String data_dir_pass;
     String data_dir_path;
+    String data_dir_apikey;
 
     User[] experiment_owners;
     User[] experiment_members;
@@ -323,6 +324,14 @@ public class Experiment {
 
     public void setDataDirectoryPass(String data_dir_pass) {
         this.data_dir_pass = data_dir_pass;
+    }
+    
+    public String getDataDirectoryApiKey() {
+        return data_dir_apikey;
+    }
+
+    public void setDataDirectoryApiKey(String apiKey) {
+        this.data_dir_apikey = apiKey;
     }
 
     public String getDataDirectoryPath() {

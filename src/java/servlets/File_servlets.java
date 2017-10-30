@@ -55,6 +55,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
 
 /**
  *
@@ -251,6 +252,16 @@ public class File_servlets extends Servlet {
 
                 try {
                     tmpUploadedFile.write(uploadedFile);
+
+                    if (request.getParameter("credentials") != null) {
+                        byte[] decoded = Base64.decodeBase64(request.getParameter("credentials"));
+                        String[] credentials = new String(decoded).split(":", 2);
+                        experiment.setDataDirectoryUser(credentials[0]);
+                        experiment.setDataDirectoryPass(credentials[1]);
+                    } else if (request.getParameter("apikey") != null) {
+                        experiment.setDataDirectoryApiKey(request.getParameter("apikey"));
+                    }
+
                     FileManager.getFileManager(DATA_LOCATION).saveFiles(new File[]{uploadedFile}, experiment.getDataDirectoryInformation(), parent_dir);
                 } catch (IOException e) {
                     // Directory creation failed
@@ -462,7 +473,21 @@ public class File_servlets extends Servlet {
                     throw new AccessControlException("Cannot get files for selected Experiment. Current user is not a valid member for this Experiment.");
                 }
 
-                directoryContent = FileManager.getFileManager(DATA_LOCATION).getDirectoryContent("", experiment.getDataDirectoryInformation());
+                if (request.getParameter("credentials") != null) {
+                    byte[] decoded = Base64.decodeBase64(request.getParameter("credentials"));
+                    String[] credentials = new String(decoded).split(":", 2);
+                    experiment.setDataDirectoryUser(credentials[0]);
+                    experiment.setDataDirectoryPass(credentials[1]);
+                } else if (request.getParameter("apikey") != null) {
+                    experiment.setDataDirectoryApiKey(request.getParameter("apikey"));
+                }
+                //If using an external storage and pass or user is not set
+                if (!("local_directory".equals(experiment.getDataDirectoryInformation().get("type")) || "none".equals(experiment.getDataDirectoryInformation().get("type")))
+                        && ("".equals(experiment.getDataDirectoryInformation().get("user")) || "".equals(experiment.getDataDirectoryInformation().get("pass")))) {
+                    directoryContent = "{\"success\" : false, \"error_code\" : 201, \"host\" : \"" + experiment.getDataDirectoryInformation().get("host") + "\"}";
+                } else {
+                    directoryContent = FileManager.getFileManager(DATA_LOCATION).getDirectoryContent("", experiment.getDataDirectoryInformation());
+                }
 
             } catch (Exception e) {
                 ServerErrorManager.handleException(e, File_servlets.class.getName(), "get_all_files_handler", e.getMessage());
@@ -555,6 +580,17 @@ public class File_servlets extends Servlet {
                     throw new FileNotFoundException("Cannot get selected file. File not found in server.");
                 }
 
+                if (request.getParameter("credentials") != null) {
+                    byte[] decoded = Base64.decodeBase64(request.getParameter("credentials"));
+                    String[] credentials = new String(decoded).split(":", 2);
+                    experiment.setDataDirectoryUser(credentials[0]);
+                    experiment.setDataDirectoryPass(credentials[1]);
+                } else if (request.getParameter("apikey") != null) {
+                    experiment.setDataDirectoryApiKey(request.getParameter("apikey"));
+                }
+
+                fileName= fileName.replaceAll(" ", "%20");
+                
                 tmpDir = Files.createTempDirectory(null);
                 tmpFile = FileManager.getFileManager(DATA_LOCATION).getFile(fileName, experiment.getDataDirectoryInformation(), tmpDir.toString());
 
@@ -694,6 +730,15 @@ public class File_servlets extends Servlet {
                     fileName = request.getParameter("filename");
                 } else {
                     throw new FileNotFoundException("Cannot delete selected file. File not found in server.");
+                }
+
+                if (request.getParameter("credentials") != null) {
+                    byte[] decoded = Base64.decodeBase64(request.getParameter("credentials"));
+                    String[] credentials = new String(decoded).split(":", 2);
+                    experiment.setDataDirectoryUser(credentials[0]);
+                    experiment.setDataDirectoryPass(credentials[1]);
+                } else if (request.getParameter("apikey") != null) {
+                    experiment.setDataDirectoryApiKey(request.getParameter("apikey"));
                 }
 
                 tmpDir = Files.createTempDirectory(null);
