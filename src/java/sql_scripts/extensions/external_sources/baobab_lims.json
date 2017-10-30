@@ -1,0 +1,11 @@
+{
+	"name" : "Baobab LIMS",
+	"type" : "LIMS",
+	"get_all_url" : "$${APP_URL}/@@API/read?portal_type=Sample",
+	"human_readable_url" : "",
+	"api_readable_url" : "",
+	"id_field" : "SampleID",
+	"name_field" : "Title",
+	"list_samples_field" : "objects",
+	"sample_details_field" : ""
+}

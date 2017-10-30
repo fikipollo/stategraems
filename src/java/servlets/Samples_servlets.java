@@ -25,12 +25,14 @@ import bdManager.DAO.analysis.non_processed_data.raw_data.RAWdata_JDBCDAO;
 import bdManager.DAO.samples.AnalyticalReplicate_JDBCDAO;
 import bdManager.DAO.samples.BioCondition_JDBCDAO;
 import bdManager.DAO.samples.Bioreplicate_JDBCDAO;
+import classes.Experiment;
 import classes.samples.AnalyticalReplicate;
 import classes.samples.Batch;
 import classes.samples.Bioreplicate;
 import classes.samples.BioCondition;
 import classes.samples.Protocol;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -41,8 +43,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import common.ServerErrorManager;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,9 +57,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.Cookie;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import servlets.servlets_resources.BioCondition_XLS_parser;
 
 /**
@@ -132,13 +147,13 @@ public class Samples_servlets extends Servlet {
         }
 
         //NEW SERVICES
-//        if (matchService(request.getPathInfo(), "/import")) {
+        if (matchService(request.getPathInfo(), "/import")) {
 //            import_analysis_handler(request, response);
-//        } else if (matchService(request.getPathInfo(), "/(.+)")) {
+        } else if (matchService(request.getPathInfo(), "/(.+)")) {
 //            //Do nothing
-//        } else {
+        } else {
 //            add_biocondition_handler(request, response);
-//        }
+        }
     }
 
     @Override
@@ -153,21 +168,25 @@ public class Samples_servlets extends Servlet {
                 response.setStatus(400);
                 response.getWriter().print(ServerErrorManager.getErrorResponse());
             }
-        } else if (matchService(request.getPathInfo(), "/export")) {
-            export_samples_handler(request, response);
-        } else if (matchService(request.getPathInfo(), "/network")) {
-            get_network_information(request, response);
+        }
 
-//        } else if (matchService(request.getPathInfo(), "/(.+)")) {
-//            get_analysis_handler(request, response);
+        //NEW SERVICES
+        if (matchService(request.getPathInfo(), "/export")) {
+            export_samples_handler(request, response);
+        } else if (matchService(request.getPathInfo(), "/external-sources")) {
+            get_external_sources(request, response);
+        } else if (matchService(request.getPathInfo(), "/external-samples-list")) {
+            get_external_samples_list(request, response);
+        } else if (matchService(request.getPathInfo(), "/(.+)")) {
+            //get_analysis_handler(request, response);
         } else {
             get_all_samples_handler(request, response);
         }
     }
-
     //************************************************************************************
     //*****SAMPLES SERVLET HANDLERS     **************************************************
     //************************************************************************************
+
     private void add_biocondition_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
 
@@ -1252,6 +1271,18 @@ public class Samples_servlets extends Servlet {
         }
     }
 
+    /*------------------------------------------------------------------------------------------*
+     *                                                                                          *
+     * GET REQUEST HANDLERS                                                                     *
+     *                                                                                          *
+     *------------------------------------------------------------------------------------------*/
+    /**
+     * *
+     *
+     * @param request
+     * @param response
+     * @throws IOException
+     */
     private void export_samples_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             DAO dao_instance = null;
@@ -1366,58 +1397,58 @@ public class Samples_servlets extends Servlet {
         }
     }
 
-    private void get_network_information(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    /**
+     * *
+     * This function reads the configuration files that set the supported LIMS
+     * systems for registering external samples.
+     *
+     * @param request
+     * @param response
+     * @throws IOException
+     */
+    private void get_external_sources(HttpServletRequest request, HttpServletResponse response) throws IOException {
         ArrayList<JsonObject> response_content = new ArrayList<JsonObject>();
-        String requested="";
         try {
-            requested = request.getParameter("request");
 
-            if ("hosts".equalsIgnoreCase(requested)) {
-                JsonObject obj = new JsonObject();
-                obj.add("name", new JsonPrimitive("Demo bibbox"));
-                obj.add("url", new JsonPrimitive("demo.bibbox.org"));
-                response_content.add(obj);
+            Map<String, Cookie> cookies = this.getCookies(request);
+            JsonParser parser = new JsonParser();
 
-                obj = new JsonObject();
-                obj.add("name", new JsonPrimitive("eB3Kit Uganda"));
-                obj.add("url", new JsonPrimitive("eb3kit.makerere.ug"));
-                response_content.add(obj);
-            } else if ("services".equalsIgnoreCase(requested)) {
-                String host = request.getParameter("host");
+            String loggedUser = cookies.get("loggedUser").getValue();
+            String sessionToken = cookies.get("sessionToken").getValue();
 
-                if ("demo.bibbox.org".equalsIgnoreCase(host)) {
-                    JsonObject obj = new JsonObject();
-                    obj.add("name", new JsonPrimitive("Open specimen"));
-                    obj.add("url", new JsonPrimitive("os77.demo.bibbox.org"));
-                    response_content.add(obj);
+            /**
+             * *******************************************************
+             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
+             * --> throws exception if not valid session, GO TO STEP 5b ELSE -->
+             * GO TO STEP 2
+             * *******************************************************
+             */
+            if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                throw new AccessControlException("Your session is invalid. Please sign in again.");
+            }
 
-                    obj = new JsonObject();
-                    obj.add("name", new JsonPrimitive("Phenotips"));
-                    obj.add("url", new JsonPrimitive("pt13rc1.demo.bibbox.org"));
-                    response_content.add(obj);
+            //For each JSON file in the directory
+            File folder = new File(DATA_LOCATION + File.separator + "extensions" + File.separator + "external_sources");
+            File[] listOfFiles = folder.listFiles();
+
+            BufferedReader br;
+            for (File file : listOfFiles) {
+                if (file.isFile()) {
+                    //Read the JS0N file
+                    br = new BufferedReader(new FileReader(file));
+                    parser = new JsonParser();
+                    JsonObject data = parser.parse(br).getAsJsonObject();
+
+                    //Check if type == LIMS
+                    if ("lims".equalsIgnoreCase(data.get("type").getAsString())) {
+                        //If so, add the source to response
+                        data.add("file_name", new JsonPrimitive(file.getName()));
+                        response_content.add(data);
+                    }
                 }
-            } else if ("types".equalsIgnoreCase(requested)) {
-                String host = request.getParameter("host");
-                String service = request.getParameter("service");
-
-                if ("demo.bibbox.org".equalsIgnoreCase(host) && "pt13rc1.demo.bibbox.org".equalsIgnoreCase(service)) {
-                    JsonObject obj = new JsonObject();
-                    String type = "SUBJECT";
-                    obj.add("name", new JsonPrimitive(type.toUpperCase().substring(0, 1) + type.toLowerCase().substring(1)));
-                    obj.add("value", new JsonPrimitive(type));
-                    response_content.add(obj);
-                } else if ("demo.bibbox.org".equalsIgnoreCase(host) && "os77.demo.bibbox.org".equalsIgnoreCase(service)) {
-                    JsonObject obj = new JsonObject();
-                    String type = "SPECIMEN";
-                    obj.add("name", new JsonPrimitive(type.toUpperCase().substring(0, 1) + type.toLowerCase().substring(1)));
-                    obj.add("value", new JsonPrimitive(type));
-                    response_content.add(obj);
-                }
-            } else {
-
             }
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "get_network_information", e.getMessage());
+            ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "get_external_sources", e.getMessage());
         } finally {
             /**
              * *******************************************************
@@ -1438,28 +1469,103 @@ public class Samples_servlets extends Servlet {
                 for (JsonObject element : response_content) {
                     _response.add(element);
                 }
-                obj.add(requested, _response);
+                obj.add("external_sources", _response);
                 response.getWriter().print(obj.toString());
             }
         }
     }
 
-    private void get_sample_service_list(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        ArrayList<String> services = new ArrayList<String>();
+    /**
+     * *
+     * This function retrieves the registered samples for a given LIMS. The
+     * function requires a valid LIMS type, the URL for the service, and the
+     * user credentials.
+     *
+     * @param request
+     * @param response
+     * @throws IOException
+     */
+    private void get_external_samples_list(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        JsonArray samples = new JsonArray();
+        
         try {
-            String host_name = request.getParameter("host");
+            /**
+             * *******************************************************
+             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
+             * --> throws exception if not valid session, GO TO STEP 5b ELSE -->
+             * GO TO STEP 2
+             * *******************************************************
+             */
+            Map<String, Cookie> cookies = this.getCookies(request);
+            String loggedUser = cookies.get("loggedUser").getValue();
+            String sessionToken = cookies.get("sessionToken").getValue();
 
-            if ("demo.bibbox.org".equals(host_name)) {
-                services.add("{'name': 'Open specimen 1', 'url' : 'os77.demo.bibbox.org'}");
-                services.add("{'name': 'Open specimen 2', 'url' : 'os77.demo.bibbox.org'}");
-                services.add("{'name': 'Open specimen 3', 'url' : 'os77.demo.bibbox.org'}");
-            } else {
-                services.add("samplemanager1");
-                services.add("samplemanager2");
-                services.add("samplemanager3");
+            if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+            }
+
+            //Read the JSON file
+            String file_name = request.getParameter("file_name");
+            File file = new File(DATA_LOCATION + File.separator + "extensions" + File.separator + "external_sources" + File.separator + file_name);
+            JsonObject lims_data;
+            if (file.isFile()) {
+                lims_data = new JsonParser().parse(new BufferedReader(new FileReader(file))).getAsJsonObject();
+            }else{
+                throw new FileNotFoundException("JSON file for selected LIMS cannot be found. File name is " + file_name);
+            }
+            
+            String get_all_url = lims_data.get("get_all_url").getAsString();
+            String human_readable_url = lims_data.get("human_readable_url").getAsString();
+            String id_field = lims_data.get("id_field").getAsString();
+            String name_field = lims_data.get("name_field").getAsString();
+            String list_samples_field = lims_data.get("list_samples_field").getAsString();
+            String apikey_param = "";
+            if(lims_data.get("apikey_param") != null){
+                apikey_param = lims_data.get("apikey_param").getAsString();
+            }
+
+            //Request the list of samples for the selected LIMS
+            String lims_url = request.getParameter("lims_url");
+            //Adapt URL
+            if(!(lims_url.startsWith("http://") || lims_url.startsWith("https://"))){
+                lims_url = "http://" + lims_url;
+            }
+            if(lims_url.endsWith("/")){
+                lims_url = lims_url.substring(0, lims_url.length()-1);
+            }
+
+            get_all_url = get_all_url.replace("$${APP_URL}", lims_url);
+            human_readable_url = get_all_url.replace("$${APP_URL}", lims_url);
+            
+            //Prepare request
+            HttpClient client = new DefaultHttpClient();
+            HttpGet _request = new HttpGet(get_all_url);
+            // Set LIMS credentials
+            if (request.getParameter("credentials") != null) {
+                _request.setHeader("Authorization", "Basic " + request.getParameter("credentials"));
+            } else if (request.getParameter("apikey") != null) {
+                URIBuilder uri = new URIBuilder(get_all_url);
+                uri.addParameter(apikey_param, request.getParameter("apikey"));
+                _request = new HttpGet(uri.build());
+            }
+
+            //Send request
+            HttpResponse _response = client.execute(_request);
+            JsonElement json_response = new JsonParser().parse(EntityUtils.toString(_response.getEntity()));
+            
+            if(json_response.isJsonObject()){
+                JsonArray sample_list = json_response.getAsJsonObject().get(list_samples_field).getAsJsonArray();
+                JsonObject object;
+                for(JsonElement element : sample_list){
+                    object = new JsonObject();
+                    object.add("id", element.getAsJsonObject().get(id_field));
+                    object.add("name", element.getAsJsonObject().get(name_field));
+                    object.add("url", new JsonPrimitive(human_readable_url.replace("$${SAMPLE_ID}", element.getAsJsonObject().get(id_field).getAsString())));
+                    samples.add(object);
+                }
             }
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_sample_service_list", e.getMessage());
+            ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "get_external_samples_list", e.getMessage());
         } finally {
             /**
              * *******************************************************
@@ -1476,11 +1582,7 @@ public class Samples_servlets extends Servlet {
                  * *******************************************************
                  */
                 JsonObject obj = new JsonObject();
-                JsonArray _services = new JsonArray();
-                for (String service : services) {
-                    _services.add(new JsonPrimitive(service));
-                }
-                obj.add("services", _services);
+                obj.add("samples", samples);
                 response.getWriter().print(obj.toString());
             }
         }
