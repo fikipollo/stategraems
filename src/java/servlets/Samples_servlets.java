@@ -59,6 +59,7 @@ import javax.servlet.http.Cookie;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -1569,6 +1570,13 @@ public class Samples_servlets extends Servlet {
 
             //For each JSON file in the directory
             File folder = new File(DATA_LOCATION + File.separator + "extensions" + File.separator + "external_sources");
+            
+            //Check if exist, create otherwise
+            if(!folder.exists()){
+                String path = Samples_servlets.class.getResource("/sql_scripts/extensions/external_sources/").getPath();
+                FileUtils.copyDirectory(new File(path), folder);
+            }
+            
             File[] listOfFiles = folder.listFiles();
 
             BufferedReader br;

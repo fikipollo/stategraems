@@ -379,6 +379,10 @@
             this.taskQueue = _taskQueue;
         };
         $rootScope.setLoading = function (loading, message, title) {
+            if(loading === $scope.isLoading){
+                return;
+            }
+            
             $scope.isLoading = (loading === true);
             if (loading === true) {
                 $dialogs.showWaitDialog((message || "Wait please..."), {title: (title || "")});

@@ -1359,6 +1359,8 @@
                     },
                     function errorCallback(response) {
                         $scope.setLoading(false);
+                        
+                        delete $scope.credentials;
 
                         var message = "Failed while retrieving the details for the sample from the original LIMS.";
                         $dialogs.showErrorDialog(message, {
@@ -1397,8 +1399,11 @@
         };
 
         this.openCredentialsDialogHandler = function () {
+            var lims_name = $scope.model.external_sample_type.replace("_", " ").replace(".json", "").toUpperCase();
+            
             $scope.credentials = {
-                dialog_title: "Please enter the credentials for the LIMS"
+                dialog_title: "Please enter the credentials for " + lims_name,
+                dialog_url : $scope.model.external_sample_url
             };
 
             $scope.closeCredentialsDialogHandler = function (option) {
