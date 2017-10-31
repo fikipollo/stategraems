@@ -69,9 +69,9 @@ public class BioCondition {
     String[] tags;
     boolean isPublic = true;
     boolean isExternal = false;
-    private String network_host;
-    private String network_service;
-    private String network_sample_type;
+    private String external_sample_url;
+    private String external_sample_type;
+    private String external_sample_id;
 
     public BioCondition() {
     }
@@ -360,31 +360,29 @@ public class BioCondition {
         this.isExternal = isExternal;
     }
 
-    public String getNetworkHost() {
-        return network_host;
+    public String getExternalSampleURL() {
+        return external_sample_url;
     }
 
-    public void setNetworkHost(String network_host) {
-        this.network_host = network_host;
+    public void setExternalSampleURL(String external_sample_url) {
+        this.external_sample_url = external_sample_url;
     }
 
-    public String getNetworkService() {
-        return network_service;
+    public String getExternalSampleType() {
+        return external_sample_type;
     }
 
-    public void setNetworkService(String network_service) {
-        this.network_service = network_service;
+    public void setExternalSampleType(String external_sample_type) {
+        this.external_sample_type = external_sample_type;
     }
 
-    public String getNetworkSampleType() {
-        return network_sample_type;
+    public String getExternalSampleID() {
+        return external_sample_id;
     }
 
-    public void setNetworkSampleType(String network_sample_type) {
-        this.network_sample_type = network_sample_type;
+    public void setExternalSampleID(String external_sample_id) {
+        this.external_sample_id = external_sample_id;
     }
-    
-    
 
     //***********************************************************************
     //* OTHER FUNCTIONS *****************************************************

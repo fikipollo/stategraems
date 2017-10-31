@@ -248,4 +248,41 @@
                 }
             };
         }]);
+
+    app.directive("externalSampleField", ['$compile', '$dialogs', '$http', function ($compile, $dialogs, $http) {
+            return {
+                restrict: 'E',
+                replace: true,
+                link: function ($scope, element) {
+                    var generateContent = function (element) {
+                        if (element.value === undefined || element.value === null) {
+                            return;
+                        } else if (Array.isArray(element.value)) {
+                            var template = '<div class="field-group row">' +
+                                    '<label class="control-label col-sm-2">' + (element.name || "") + '</label>' +
+                                    '<div class="col-sm-9">';
+
+                            for (var i in element.value) {
+                                template += generateContent(element.value[i]);
+                            }
+                            template += "</div>";
+                            return template;
+                        } else {
+                            return "" +
+                                    '<div class="field-group row">' +
+                                    '<label class="control-label col-sm-2">' + (element.name || "") + '</label>' +
+                                    '<div class="col-sm-9">' +
+                                    '  <p class="form-control-static">' + element.value + '</p>' +
+                                    '</div>';
+                        }
+                    };
+                    
+                    var template = generateContent($scope.field);
+
+                    $compile($(template).appendTo(element))($scope);
+                }
+            };
+        }
+    ]);
+
 })();

@@ -1,0 +1,128 @@
+<div ng-controller="ExternalSampleDetailController as controller" >
+    <form name="bioconditionForm" class="form-horizontal">
+        <nav class="navbar navbar-default navbar-top title-bar">
+            <h1 class="form_title">{{panel_title}}</h1>
+        </nav>
+        <div class="section_box" >
+            <h2 class="section_subtitle">LIMS information</h2>
+            <div class="well" style="margin: 10px;">
+                <p class="text-info">
+                    <i class="fa fa-info-circle"></i> Please, choose the type of LIMS that you want to query and provide the URL to the service. 
+                    After that, enter your credentials for the selected LIMS and use the button "Search" for getting the complete list of samples registered in the LIMS.
+                </p>
+            </div>
+            <div class="field-group row">
+                <label class="col-sm-2" for="external_sample_type">LIMS type:</label>
+                <select class="col-sm-9" name="external_sample_type" ng-model="model.external_sample_type">
+                    <option ng-repeat="lims in samplesInfo.external_sources" ng-value="lims.file_name">{{lims.name}}</option>
+                </select>
+            </div>
+            <div class="field-group row">
+                <label class="col-sm-2" for="external_sample_url">URL to the LIMS</label>
+                <input class="col-sm-9" type="text" placeholder="Type the URL for the lims, e.g. http://baobab.slu.se/" name="external_sample_url" 
+                       ng-model="model.external_sample_url" 
+                       ng-required="true" 
+                       ng-readonly="viewMode === 'view'">
+            </div>
+            <h2 class="section_subtitle">Credentials for LIMS</h2>
+            <div class="field-group row">
+                <label class="col-sm-2">Username:</label>
+                <input class="col-sm-9" type="text" class="form-control" ng-model="samplesInfo.username">
+            </div>
+            <div class="field-group row">
+                <label class="col-sm-2">Password:</label>
+                <input class="col-sm-9" type="password" class="form-control" ng-model="samplesInfo.pwd">
+            </div>
+            <hr style="width: 400px;">
+            <div class="field-group row">
+                <label class="col-sm-2">API key:</label>
+                <input class="col-sm-9" type="text" class="form-control" ng-model="samplesInfo.apikey">
+            </div>
+            <div class="field-group row">
+                <button ng-disabled="isLoading" ng-click="controller.getAllExternalSamplesHandler();" class="btn btn-primary btn-md navbar-right" style="margin-right: 80px;">
+                    <span ng-if="!isLoading"><i class="fa fa-search"></i> Find samples</span>
+                    <span ng-if="isLoading"><i class="fa fa-spinner fa-spin fa-fw"></i> Searching...</span>
+                </button>
+            </div>
+        </div>
+        <div id="external-samples-list" class="section_box" >
+            <h2 class="section_subtitle">Found samples</h2>
+            <div class="well well-sm" style="margin: 10px;">
+                <p class="text-info">
+                    <i class="fa fa-info-circle"></i> Choose the samples that you want to register in the EMS.
+                </p>
+            </div>
+            <table class="table table-striped table-hover" style="width: 90%; margin:auto;">
+                <thead>
+                    <tr>
+                        <th style="width: 30px;">Select</th>
+                        <th>Sample id</th>
+                        <th>Sample name</th>
+                        <th>Tools</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="sample in samples">
+                        <td ng-click="sample.selected = !sample.selected"style="width: 30px;">
+                            <i ng-show="!sample.selected" class="fa fa-square-o" aria-hidden="true"></i>
+                            <i ng-show="sample.selected" class="fa fa-check-square-o" aria-hidden="true"></i>
+                        </td>
+                        <td>{{sample.id}}</td>
+                        <td>{{sample.name}}</td>
+                        <td><a href="{{sample.url}}" target="_blank"><i class="fa fa-external-link" aria-hidden="true"></i></a></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="well" ng-if="!samples || samples.length === 0" style="max-width: 600px; margin: 10px auto; ">
+                <p class="text-info">
+                    <i class="fa fa-info-circle"></i> No samples found.<br>
+                    Please, check if the provided URL as well as the credentials for the selected LIMS are valid and try again.
+                </p>
+            </div>
+        </div>
+        <div class="section_box" >
+            <h2 id="external-samples-organism" class="section_subtitle">Sample details</h2>
+            <div class="well well-sm" style="margin: 10px;">
+                <p class="text-info">
+                    <i class="fa fa-info-circle"></i> Finally, provide some extra details for describing the new samples.
+                </p>
+            </div>
+            <div class="field-group row">
+                <label class="col-sm-2" for="organism">Organism</label>
+                <input class="col-sm-9" type="text" placeholder="Not specified" name="organism" 
+                       ng-model="model.organism" 
+                       uib-typeahead="option.label for option in organisms_options | filter:$viewValue:startsWith"
+                       ng-required="true" 
+                       ng-readonly="viewMode === 'view'">
+            </div>
+            <div class="field-group row">
+                <label class="col-sm-2" for="other_biomaterial">Description:</label>
+                <textarea  class="col-sm-9" rows="8" name="other_biomaterial" ng-model="model.other_biomaterial"  ng-readonly="viewMode === 'view'"></textarea>
+            </div>
+            <div class="field-group row">
+                <label class="col-sm-2" for="owners">Sample owners</label>
+                <user-selector-field  class="col-sm-9" name="owners" ng-init="models = model.owners" ng-readonly="viewMode === 'view'"></user-selector-field>
+            </div>
+            <div class="field-group row">
+                <label class="col-sm-2" for="tags">Sample tags</label>
+                <!--<bootstrap-tagsinput class="col-sm-9" tagClass="label label-info" name="tags" ng-model="model.tags" ng-readonly="viewMode === 'view'"></bootstrap-tagsinput>-->
+                <tag-field class="col-sm-9" name="tags" ng-model="model.tags" editable="viewMode !== 'view'"></tag-field>
+            </div> 
+        </div>
+
+        <nav class="navbar navbar-default navbar-fixed-bottom progressNavigator" ng-hide="isDialog" >
+            <div class="container">
+                <a class="btn btn-danger btn-md navbar-right" ng-click="controller.cancelButtonHandler();">
+                    <i class="fa fa-times"></i> <span ng-if="viewMode === 'view'">Close</span><span ng-if="viewMode !== 'view'">Cancel</span> 
+                </a>
+                <a class="btn btn-success btn-md navbar-right" ng-show="viewMode !== 'view'"  ng-click="controller.acceptButtonHandler()" >
+                    <i class="fa fa-check fa-fw" ></i> Register the selected samples
+                </a>
+            </div>
+        </nav>
+        <nav class=" navbar-fixed-bottom" style="left: initial;" ng-hide="isDialog">
+            <back-top scroll-speed=600 button-theme="btn btn-default btn-sm navbar-right"></back-top>
+        </nav>
+    </form>
+</div>
+

@@ -2,10 +2,10 @@
 	"name" : "Baobab LIMS",
 	"type" : "LIMS",
 	"get_all_url" : "$${APP_URL}/@@API/read?portal_type=Sample",
-	"human_readable_url" : "",
-	"api_readable_url" : "",
-	"id_field" : "SampleID",
+	"human_readable_url" : "$${APP_URL}/biospecimens/$${SAMPLE_ID}",
+	"api_readable_url" : "$${APP_URL}/@@API/read?portal_type=Sample&id=$${SAMPLE_ID}",
+	"id_field" : "id",
 	"name_field" : "Title",
 	"list_samples_field" : "objects",
-	"sample_details_field" : ""
+	"sample_details_field" : "objects"
 }

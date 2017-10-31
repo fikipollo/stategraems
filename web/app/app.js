@@ -128,12 +128,21 @@
                     protocol_id: null
                 },
                 data: {requireLogin: true}
+            }, externalSampleRegister = {
+                name: 'externalSampleRegister',
+                url: '/ext-sample-register/',
+                templateUrl: "app/samples/external-sample-register-form.tpl.html",
+                params: {
+                    viewMode: 'creation', //
+                    biocondition_id: null
+                },
+                data: {requireLogin: true}
             }, externalSampleDetail = {
                 name: 'externalSampleDetail',
                 url: '/ext-sample-detail/',
-                templateUrl: "app/samples/external-sample-form.tpl.html",
+                templateUrl: "app/samples/external-sample-details-form.tpl.html",
                 params: {
-                    viewMode: 'view', //creation, edition
+                    viewMode: 'view', //, edition
                     biocondition_id: null
                 },
                 data: {requireLogin: true}
@@ -165,6 +174,7 @@
             $stateProvider.state(sampleDetail);
             $stateProvider.state(protocols);
             $stateProvider.state(protocolDetail);
+            $stateProvider.state(externalSampleRegister);
             $stateProvider.state(externalSampleDetail);
             $stateProvider.state(analysis);
             $stateProvider.state(analysisDetail);
@@ -369,6 +379,7 @@
             this.taskQueue = _taskQueue;
         };
         $rootScope.setLoading = function (loading, message, title) {
+            $scope.isLoading = (loading === true);
             if (loading === true) {
                 $dialogs.showWaitDialog((message || "Wait please..."), {title: (title || "")});
             } else {
