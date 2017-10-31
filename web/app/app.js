@@ -128,12 +128,21 @@
                     protocol_id: null
                 },
                 data: {requireLogin: true}
+            }, externalSampleRegister = {
+                name: 'externalSampleRegister',
+                url: '/ext-sample-register/',
+                templateUrl: "app/samples/external-sample-register-form.tpl.html",
+                params: {
+                    viewMode: 'creation', //
+                    biocondition_id: null
+                },
+                data: {requireLogin: true}
             }, externalSampleDetail = {
                 name: 'externalSampleDetail',
                 url: '/ext-sample-detail/',
-                templateUrl: "app/samples/external-sample-form.tpl.html",
+                templateUrl: "app/samples/external-sample-details-form.tpl.html",
                 params: {
-                    viewMode: 'view', //creation, edition
+                    viewMode: 'view', //, edition
                     biocondition_id: null
                 },
                 data: {requireLogin: true}
@@ -165,6 +174,7 @@
             $stateProvider.state(sampleDetail);
             $stateProvider.state(protocols);
             $stateProvider.state(protocolDetail);
+            $stateProvider.state(externalSampleRegister);
             $stateProvider.state(externalSampleDetail);
             $stateProvider.state(analysis);
             $stateProvider.state(analysisDetail);
@@ -240,10 +250,6 @@
                     return myAppConfig.EMS_SERVER + "lock_biocondition";
                 case "sample-unlock":
                     return myAppConfig.EMS_SERVER + "unlock_biocondition";
-                case "sample-service-host-list":
-                    return myAppConfig.EMS_SERVER + "get_sample_service_host_list";
-                case "sample-service-list":
-                    return myAppConfig.EMS_SERVER + "get_sample_service_list";
                 case "samples-rest":
                     return myAppConfig.EMS_SERVER + "rest/samples" + extra;
                     /*
@@ -373,6 +379,11 @@
             this.taskQueue = _taskQueue;
         };
         $rootScope.setLoading = function (loading, message, title) {
+            if(loading === $scope.isLoading){
+                return;
+            }
+            
+            $scope.isLoading = (loading === true);
             if (loading === true) {
                 $dialogs.showWaitDialog((message || "Wait please..."), {title: (title || "")});
             } else {

@@ -59,7 +59,6 @@
                     "name": "data_dir_port",
                     "label": "Port number",
                     "type": "text",
-                    "required": "model.data_dir_type.search('none|local_directory') < 0",
                     "dependency": "data_dir_type.search('none|local_directory') < 0",
                     "help": "The port for the remote storage system. E.g. <i>22</i>"
                 },
@@ -67,7 +66,6 @@
                     "name": "data_dir_user",
                     "label": "User",
                     "type": "text",
-                    "required": "model.data_dir_type.search('none|local_directory') < 0",
                     "dependency": "data_dir_type.search('none|local_directory') < 0",
                     "help": "A valid username for the remote storage system with read and write rights."
                 },
@@ -75,7 +73,6 @@
                     "name": "data_dir_pass",
                     "label": "Password",
                     "type": "password",
-                    "required": "model.data_dir_type.search('none|local_directory') < 0",
                     "dependency": "data_dir_type.search('none|local_directory') < 0",
                     "help": "The password for the user in the remote storage system."
                 },

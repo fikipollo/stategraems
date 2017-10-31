@@ -30,11 +30,51 @@ public class owncloud_server {
         root = settings.get("root");
     }
 
-    
-    public boolean saveFile(File file, String path) throws Exception {
+    public boolean saveFile(File file, String path, boolean recursive) throws Exception {
         boolean success = false;
-        path = this.adaptFilePath(path) + "/";
-        Owncloud4j owncloudClient = new Owncloud4j(host, Integer.parseInt(port), "/remote.php/webdav");
+        path = this.adaptFilePath(path);
+        if (path.lastIndexOf("/") + 1 < path.length()) {
+            path += "/";
+        }
+
+        Owncloud4j owncloudClient;
+        if (port == null || "".equals(port)) {
+            owncloudClient = new Owncloud4j(host, "/remote.php/webdav");
+        } else {
+            owncloudClient = new Owncloud4j(host, Integer.parseInt(port), "/remote.php/webdav");
+        }
+
+        try {
+            owncloudClient.login(user, pass);
+            success = owncloudClient.putFile(path, file.getPath(), recursive);
+            if (!success) {
+                throw new Exception("Operation failed. Please check if credentials are valid and if file path is a valid path in the server.");
+            }
+        } catch (IOException ex) {
+            System.out.println("Oops! Something wrong happened");
+            ex.printStackTrace();
+        } finally {
+            owncloudClient.logout();
+        }
+
+        return success;
+    }
+
+    public boolean saveFile(File file, String path, String newName, boolean recursive) throws Exception {
+        boolean success = false;
+
+        path = this.adaptFilePath(path);
+        if (path.lastIndexOf("/") + 1 < path.length()) {
+            path += "/";
+        }
+        path = path + newName;
+
+        Owncloud4j owncloudClient;
+        if (port == null || "".equals(port)) {
+            owncloudClient = new Owncloud4j(host, "/remote.php/webdav");
+        } else {
+            owncloudClient = new Owncloud4j(host, Integer.parseInt(port), "/remote.php/webdav");
+        }
 
         try {
             owncloudClient.login(user, pass);
@@ -52,11 +92,20 @@ public class owncloud_server {
         return success;
     }
 
-    
+    public boolean saveFile(File file, String path) throws Exception {
+        return saveFile(file, path, true);
+    }
+
     public boolean removeFile(String filePath) throws Exception {
         boolean success = false;
         filePath = this.adaptFilePath(filePath);
-        Owncloud4j owncloudClient = new Owncloud4j(host, Integer.parseInt(port), "/remote.php/webdav");
+
+        Owncloud4j owncloudClient;
+        if (port == null || "".equals(port)) {
+            owncloudClient = new Owncloud4j(host, "/remote.php/webdav");
+        } else {
+            owncloudClient = new Owncloud4j(host, Integer.parseInt(port), "/remote.php/webdav");
+        }
 
         try {
             owncloudClient.login(user, pass);
@@ -75,10 +124,15 @@ public class owncloud_server {
         return success;
     }
 
-    
     public String getFile(String filePath, String destinationDir) throws Exception {
         filePath = this.adaptFilePath(filePath);
-        Owncloud4j owncloudClient = new Owncloud4j(host, Integer.parseInt(port), "/remote.php/webdav");
+
+        Owncloud4j owncloudClient;
+        if (port == null || "".equals(port)) {
+            owncloudClient = new Owncloud4j(host, "/remote.php/webdav");
+        } else {
+            owncloudClient = new Owncloud4j(host, Integer.parseInt(port), "/remote.php/webdav");
+        }
 
         try {
             owncloudClient.login(user, pass);
@@ -99,12 +153,16 @@ public class owncloud_server {
         return null;
     }
 
-    
     public String getDirectoryContent(String dirPath) throws Exception {
         dirPath = this.adaptFilePath(dirPath);
         dirPath = dirPath.replaceFirst("/" + "$", "") + "/";
 
-        Owncloud4j owncloudClient = new Owncloud4j(host, Integer.parseInt(port), "/remote.php/webdav");
+        Owncloud4j owncloudClient;
+        if (port == null || "".equals(port)) {
+            owncloudClient = new Owncloud4j(host, "/remote.php/webdav");
+        } else {
+            owncloudClient = new Owncloud4j(host, Integer.parseInt(port), "/remote.php/webdav");
+        }
 
         try {
             owncloudClient.login(user, pass);
@@ -163,11 +221,11 @@ public class owncloud_server {
         Directory directory, parentDirectory;
         for (OCFile child : files) {
             String path = child.getPath().replace("/remote.php/webdav", "").replaceAll("\\/$", "");
-            
-            if(path.equals(parentDir.path)){
+
+            if (path.equals(parentDir.path)) {
                 continue;
             }
-            
+
             if (!directories.containsKey(path)) {
                 directory = new Directory(child.getPath().replace("/remote.php/webdav", "").replaceAll("\\/$", ""));
                 directories.put(directory.getPath(), directory);
@@ -188,32 +246,26 @@ public class owncloud_server {
         return parentDir;
     }
 
-    
     public String getType() {
         return type;
     }
 
-    
     public String getHost() {
         return host;
     }
 
-    
     public String getPort() {
         return port;
     }
 
-    
     public String getUser() {
         return user;
     }
 
-    
     public String getPass() {
         return pass;
     }
 
-    
     public String getRoot() {
         return root;
     }

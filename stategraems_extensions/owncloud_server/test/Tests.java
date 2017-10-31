@@ -22,21 +22,26 @@ public class Tests {
 
             HashMap<String, String> settings = new HashMap<>();
             settings.put("host", "localhost");
-            settings.put("port", "8085");
-            settings.put("user", "rafa");
+            settings.put("port", "80");
+            settings.put("user", "admin");
             settings.put("pass", "123123");
             settings.put("root", "/Documents");
 
             server.loadSettings(settings);
             
-            
-            server.getDirectoryContent("/");
+            File file = new File("/home/foo/Documents/test.txt");
 
-            server.saveFile(new File("/data/test/test.txt"), "/test");
+            //Upload to specific dir
+            boolean success = server.saveFile(file, "/test_dir/", true);
             
-            server.removeFile("/test/test.txt");
-//
-            server.getFile("/Example.odt", "/data/test/");
+            //Upload to specific dir, change the name
+            success = server.saveFile(file, "/", "newfile.txt", true);
+             
+            success = server.removeFile("/test_dir/test.txt");
+
+            String content = server.getDirectoryContent("/newfile.txt");
+
+            content = server.getFile("/newfile.txt", "/tmp/");
 
             return;
         } catch (Exception ex) {

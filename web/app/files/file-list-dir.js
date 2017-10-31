@@ -44,7 +44,6 @@
 
                     element.html(template);
                     $compile(element.contents())($scope);
-
                     $('#files-tree-container').treeview({
                         data: [$scope.filesTree],
                         showCheckbox: true,

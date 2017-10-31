@@ -1,0 +1,11 @@
+{
+	"name" : "OpenSpecimen",
+	"type" : "LIMS",
+	"get_all_url" : "$${APP_URL}/rest/ng/specimens/",
+	"human_readable_url" : "$${APP_URL}/rest/ng/specimens/$${SAMPLE_ID}",
+	"api_readable_url" : "$${APP_URL}/rest/ng/specimens/$${SAMPLE_ID}",
+	"id_field" : "id",
+	"name_field" : "Title",
+	"list_samples_field" : "objects",
+	"sample_details_field" : "objects"
+}

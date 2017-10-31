@@ -31,6 +31,7 @@ import classes.samples.Bioreplicate;
 import classes.samples.BioCondition;
 import classes.samples.Protocol;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -41,8 +42,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import common.ServerErrorManager;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,6 +59,13 @@ import javax.servlet.http.Cookie;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import servlets.servlets_resources.BioCondition_XLS_parser;
 
 /**
@@ -132,13 +143,15 @@ public class Samples_servlets extends Servlet {
         }
 
         //NEW SERVICES
-//        if (matchService(request.getPathInfo(), "/import")) {
+        if (matchService(request.getPathInfo(), "/import")) {
 //            import_analysis_handler(request, response);
-//        } else if (matchService(request.getPathInfo(), "/(.+)")) {
+        } else if (matchService(request.getPathInfo(), "/external-sample")) {
+            add_external_samples_handler(request, response);
+        } else if (matchService(request.getPathInfo(), "/(.+)")) {
 //            //Do nothing
-//        } else {
+        } else {
 //            add_biocondition_handler(request, response);
-//        }
+        }
     }
 
     @Override
@@ -146,29 +159,43 @@ public class Samples_servlets extends Servlet {
         response.addHeader("Access-Control-Allow-Origin", "*");
 
         if (!matchService(request.getServletPath(), "/rest/samples(.*)")) {
-            if (request.getServletPath().equals("/get_sample_service_host_list")) {
-                get_sample_service_host_list(request, response);
-            } else if (request.getServletPath().equals("/get_sample_service_list")) {
-                get_sample_service_list(request, response);
-            } else if (request.getServletPath().equals("/external-sample")) {
+            if (request.getServletPath().equals("/external-sample")) {
                 redirect_to_external_sample_service(request, response);
             } else {
                 ServerErrorManager.addErrorMessage(3, Samples_servlets.class.getName(), "doGet", "What are you doing here?.");
                 response.setStatus(400);
                 response.getWriter().print(ServerErrorManager.getErrorResponse());
             }
-        } else if (matchService(request.getPathInfo(), "/export")) {
+        }
+
+        //NEW SERVICES
+        if (matchService(request.getPathInfo(), "/export")) {
             export_samples_handler(request, response);
-//        } else if (matchService(request.getPathInfo(), "/(.+)")) {
-//            get_analysis_handler(request, response);
+        } else if (matchService(request.getPathInfo(), "/external-sources")) {
+            get_external_sources(request, response);
+        } else if (matchService(request.getPathInfo(), "/external-samples-list")) {
+            get_external_samples_list(request, response);
+        } else if (matchService(request.getPathInfo(), "/external-sample-details")) {
+            get_external_samples_details(request, response);
+        } else if (matchService(request.getPathInfo(), "/(.+)")) {
+            //get_analysis_handler(request, response);
         } else {
             get_all_samples_handler(request, response);
         }
     }
 
-    //************************************************************************************
-    //*****SAMPLES SERVLET HANDLERS     **************************************************
-    //************************************************************************************
+    /*------------------------------------------------------------------------------------------*
+     *                                                                                          *
+     * POST REQUEST HANDLERS                                                                    *
+     *                                                                                          *
+     *------------------------------------------------------------------------------------------*/
+    /**
+     *
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     */
     private void add_biocondition_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
 
@@ -301,6 +328,138 @@ public class Samples_servlets extends Servlet {
             //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
         } catch (Exception e) {
             ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "add_biocondition_handler", e.getMessage());
+            response.setStatus(400);
+            response.getWriter().print(ServerErrorManager.getErrorResponse());
+        }
+    }
+
+    /**
+     *
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void add_external_samples_handler(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            boolean ROLLBACK_NEEDED = false;
+            DAO dao_instance = null;
+            ArrayList<String> LOCKED_IDS = new ArrayList<String>();
+            ArrayList<BioCondition> newSamples = new ArrayList<BioCondition>();
+
+            try {
+                /**
+                 * *******************************************************
+                 * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF
+                 * ERROR --> throws exception if not valid session, GO TO STEP
+                 * 6b ELSE --> GO TO STEP 2
+                 * *******************************************************
+                 */
+                Map<String, Cookie> cookies = this.getCookies(request);
+                String loggedUser = cookies.get("loggedUser").getValue();
+                String sessionToken = cookies.get("sessionToken").getValue();
+
+                if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                    throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 2 Get the new ID for the BIOCONDITION. IF ERROR -->
+                 * throws SQL Exception, GO TO STEP 6b ELSE --> GO TO STEP 3
+                 * *******************************************************
+                 */
+                JsonParser parser = new JsonParser();
+                JsonObject requestData = (JsonObject) parser.parse(request.getReader());
+
+                JsonObject model = requestData.get("model").getAsJsonObject();
+                JsonArray samples = requestData.get("samples").getAsJsonArray();
+
+                /**
+                 * *******************************************************
+                 * STEP 3 Create new objects for each provided sample id. IF
+                 * ERROR --> throws JsonParseException, GO TO STEP 6b ELSE -->
+                 * GO TO STEP
+                 * *******************************************************
+                 */
+                dao_instance = DAOProvider.getDAOByName("BioCondition");
+                String newID;
+                BioCondition biocondition;
+                for (JsonElement sample : samples) {
+                    newID = dao_instance.getNextObjectID(null);
+                    LOCKED_IDS.add(newID);
+                    biocondition = BioCondition.fromJSON(model);
+                    biocondition.setBioConditionID(newID);
+                    biocondition.setTitle(sample.getAsJsonObject().get("name").getAsString());
+                    biocondition.setExternal(true);
+                    biocondition.setExternalSampleID(sample.getAsJsonObject().get("id").getAsString());
+                    newSamples.add(biocondition);
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 5 Add the new Object in the DATABASE. IF ERROR -->
+                 * throws SQL Exception, GO TO STEP 6b ELSE --> GO TO STEP 6
+                 * *******************************************************
+                 */
+                dao_instance.disableAutocommit();
+                ROLLBACK_NEEDED = true;
+                for (BioCondition _biocondition : newSamples) {
+                    dao_instance.insert(_biocondition);
+                }
+
+                /**
+                 * *******************************************************
+                 * STEP 6 COMMIT CHANGES TO DATABASE. throws SQLException IF
+                 * ERROR --> throws SQL Exception, GO TO STEP 6b ELSE --> GO TO
+                 * STEP 7
+                 * *******************************************************
+                 */
+                dao_instance.doCommit();
+
+            } catch (Exception e) {
+                ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "add_external_samples_handler", e.getMessage());
+            } finally {
+                /**
+                 * *******************************************************
+                 * STEP 6b CATCH ERROR, CLEAN CHANGES. throws SQLException
+                 * *******************************************************
+                 */
+                if (ServerErrorManager.errorStatus()) {
+                    response.setStatus(400);
+                    response.getWriter().print(ServerErrorManager.getErrorResponse());
+
+                    if (ROLLBACK_NEEDED) {
+                        dao_instance.doRollback();
+                    }
+                } else {
+                    JsonArray newIDs = new JsonArray();
+                    for (String locked_id : LOCKED_IDS) {
+                        newIDs.add(new JsonPrimitive(locked_id));
+                    }
+
+                    JsonObject obj = new JsonObject();
+                    obj.add("new_ids", newIDs);
+                    response.getWriter().print(obj.toString());
+                }
+
+                if (LOCKED_IDS.size() > 0) {
+                    for (String LOCKED_ID : LOCKED_IDS) {
+                        BlockedElementsManager.getBlockedElementsManager().unlockID(LOCKED_ID);
+                    }
+                }
+                /**
+                 * *******************************************************
+                 * STEP 8 Close connection.
+                 * ********************************************************
+                 */
+                if (dao_instance != null) {
+                    dao_instance.closeConnection();
+                }
+            }
+            //CATCH IF THE ERROR OCCURRED IN ROLL BACK OR CONNECTION CLOSE 
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "add_external_samples_handler", e.getMessage());
             response.setStatus(400);
             response.getWriter().print(ServerErrorManager.getErrorResponse());
         }
@@ -1253,6 +1412,18 @@ public class Samples_servlets extends Servlet {
         }
     }
 
+    /*------------------------------------------------------------------------------------------*
+     *                                                                                          *
+     * GET REQUEST HANDLERS                                                                     *
+     *                                                                                          *
+     *------------------------------------------------------------------------------------------*/
+    /**
+     * *
+     *
+     * @param request
+     * @param response
+     * @throws IOException
+     */
     private void export_samples_handler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             DAO dao_instance = null;
@@ -1367,14 +1538,65 @@ public class Samples_servlets extends Servlet {
         }
     }
 
-    private void get_sample_service_host_list(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        ArrayList<String> hosts = new ArrayList<String>();
+    /**
+     * *
+     * This function reads the configuration files that set the supported LIMS
+     * systems for registering external samples.
+     *
+     * @param request
+     * @param response
+     * @throws IOException
+     */
+    private void get_external_sources(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        ArrayList<JsonObject> response_content = new ArrayList<JsonObject>();
         try {
-            //TODO:
-            hosts.add("demo.bibbox.org");
-            hosts.add("eb3kit.makerere.ug");
+
+            Map<String, Cookie> cookies = this.getCookies(request);
+            JsonParser parser = new JsonParser();
+
+            String loggedUser = cookies.get("loggedUser").getValue();
+            String sessionToken = cookies.get("sessionToken").getValue();
+
+            /**
+             * *******************************************************
+             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
+             * --> throws exception if not valid session, GO TO STEP 5b ELSE -->
+             * GO TO STEP 2
+             * *******************************************************
+             */
+            if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                throw new AccessControlException("Your session is invalid. Please sign in again.");
+            }
+
+            //For each JSON file in the directory
+            File folder = new File(DATA_LOCATION + File.separator + "extensions" + File.separator + "external_sources");
+            
+            //Check if exist, create otherwise
+            if(!folder.exists()){
+                String path = Samples_servlets.class.getResource("/sql_scripts/extensions/external_sources/").getPath();
+                FileUtils.copyDirectory(new File(path), folder);
+            }
+            
+            File[] listOfFiles = folder.listFiles();
+
+            BufferedReader br;
+            for (File file : listOfFiles) {
+                if (file.isFile()) {
+                    //Read the JS0N file
+                    br = new BufferedReader(new FileReader(file));
+                    parser = new JsonParser();
+                    JsonObject data = parser.parse(br).getAsJsonObject();
+
+                    //Check if type == LIMS
+                    if ("lims".equalsIgnoreCase(data.get("type").getAsString())) {
+                        //If so, add the source to response
+                        data.add("file_name", new JsonPrimitive(file.getName()));
+                        response_content.add(data);
+                    }
+                }
+            }
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_sample_service_host_list", e.getMessage());
+            ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "get_external_sources", e.getMessage());
         } finally {
             /**
              * *******************************************************
@@ -1391,32 +1613,107 @@ public class Samples_servlets extends Servlet {
                  * *******************************************************
                  */
                 JsonObject obj = new JsonObject();
-                JsonArray _hosts = new JsonArray();
-                for (String host : hosts) {
-                    _hosts.add(new JsonPrimitive(host));
+                JsonArray _response = new JsonArray();
+                for (JsonObject element : response_content) {
+                    _response.add(element);
                 }
-                obj.add("hosts", _hosts);
+                obj.add("external_sources", _response);
                 response.getWriter().print(obj.toString());
             }
         }
     }
 
-    private void get_sample_service_list(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        ArrayList<String> services = new ArrayList<String>();
-        try {
-            String host_name = request.getParameter("host");
+    /**
+     * *
+     * This function retrieves the registered samples for a given LIMS. The
+     * function requires a valid LIMS type, the URL for the service, and the
+     * user credentials.
+     *
+     * @param request
+     * @param response
+     * @throws IOException
+     */
+    private void get_external_samples_list(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        JsonArray samples = new JsonArray();
 
-            if ("demo.bibbox.org".equals(host_name)) {
-                services.add("{'name': 'Open specimen 1', 'url' : 'os77.demo.bibbox.org'}");
-                services.add("{'name': 'Open specimen 2', 'url' : 'os77.demo.bibbox.org'}");
-                services.add("{'name': 'Open specimen 3', 'url' : 'os77.demo.bibbox.org'}");
+        try {
+            /**
+             * *******************************************************
+             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
+             * --> throws exception if not valid session, GO TO STEP 5b ELSE -->
+             * GO TO STEP 2
+             * *******************************************************
+             */
+            Map<String, Cookie> cookies = this.getCookies(request);
+            String loggedUser = cookies.get("loggedUser").getValue();
+            String sessionToken = cookies.get("sessionToken").getValue();
+
+            if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+            }
+
+            //Read the JSON file
+            String external_sample_type = request.getParameter("external_sample_type");
+            File file = new File(DATA_LOCATION + File.separator + "extensions" + File.separator + "external_sources" + File.separator + external_sample_type);
+            JsonObject lims_data;
+            if (file.isFile()) {
+                lims_data = new JsonParser().parse(new BufferedReader(new FileReader(file))).getAsJsonObject();
             } else {
-                services.add("samplemanager1");
-                services.add("samplemanager2");
-                services.add("samplemanager3");
+                throw new FileNotFoundException("JSON file for selected LIMS cannot be found. File name is " + external_sample_type);
+            }
+
+            String get_all_url = lims_data.get("get_all_url").getAsString();
+            String human_readable_url = lims_data.get("human_readable_url").getAsString();
+            String id_field = lims_data.get("id_field").getAsString();
+            String name_field = lims_data.get("name_field").getAsString();
+            String list_samples_field = lims_data.get("list_samples_field").getAsString();
+            String apikey_param = "";
+            if (lims_data.get("apikey_param") != null) {
+                apikey_param = lims_data.get("apikey_param").getAsString();
+            }
+
+            //Request the list of samples for the selected LIMS
+            String external_sample_url = request.getParameter("external_sample_url");
+            //Adapt URL
+            if (!(external_sample_url.startsWith("http://") || external_sample_url.startsWith("https://"))) {
+                external_sample_url = "http://" + external_sample_url;
+            }
+            if (external_sample_url.endsWith("/")) {
+                external_sample_url = external_sample_url.substring(0, external_sample_url.length() - 1);
+            }
+
+            get_all_url = get_all_url.replace("$${APP_URL}", external_sample_url);
+            human_readable_url = human_readable_url.replace("$${APP_URL}", external_sample_url);
+
+            //Prepare request
+            HttpClient client = new DefaultHttpClient();
+            HttpGet _request = new HttpGet(get_all_url);
+            // Set LIMS credentials
+            if (request.getParameter("credentials") != null) {
+                _request.setHeader("Authorization", "Basic " + request.getParameter("credentials"));
+            } else if (request.getParameter("apikey") != null) {
+                URIBuilder uri = new URIBuilder(get_all_url);
+                uri.addParameter(apikey_param, request.getParameter("apikey"));
+                _request = new HttpGet(uri.build());
+            }
+
+            //Send request
+            HttpResponse _response = client.execute(_request);
+            JsonElement json_response = new JsonParser().parse(EntityUtils.toString(_response.getEntity()));
+
+            if (json_response.isJsonObject()) {
+                JsonArray sample_list = json_response.getAsJsonObject().get(list_samples_field).getAsJsonArray();
+                JsonObject object;
+                for (JsonElement element : sample_list) {
+                    object = new JsonObject();
+                    object.add("id", element.getAsJsonObject().get(id_field));
+                    object.add("name", element.getAsJsonObject().get(name_field));
+                    object.add("url", new JsonPrimitive(human_readable_url.replace("$${SAMPLE_ID}", element.getAsJsonObject().get(id_field).getAsString())));
+                    samples.add(object);
+                }
             }
         } catch (Exception e) {
-            ServerErrorManager.handleException(e, Analysis_servlets.class.getName(), "get_sample_service_list", e.getMessage());
+            ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "get_external_samples_list", e.getMessage());
         } finally {
             /**
              * *******************************************************
@@ -1433,11 +1730,120 @@ public class Samples_servlets extends Servlet {
                  * *******************************************************
                  */
                 JsonObject obj = new JsonObject();
-                JsonArray _services = new JsonArray();
-                for (String service : services) {
-                    _services.add(new JsonPrimitive(service));
+                obj.add("samples", samples);
+                response.getWriter().print(obj.toString());
+            }
+        }
+    }
+
+    /**
+     * *
+     * This function retrieves the details for a specific sample from a LIMS.
+     *
+     * @param request
+     * @param response
+     * @throws IOException
+     */
+    private void get_external_samples_details(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        DAO dao_instance = null;
+        JsonObject sample_details = new JsonObject();
+
+        try {
+            /**
+             * *******************************************************
+             * STEP 1 CHECK IF THE USER IS LOGGED CORRECTLY IN THE APP. IF ERROR
+             * --> throws exception if not valid session, GO TO STEP 5b ELSE -->
+             * GO TO STEP 2
+             * *******************************************************
+             */
+            Map<String, Cookie> cookies = this.getCookies(request);
+            String loggedUser = cookies.get("loggedUser").getValue();
+            String sessionToken = cookies.get("sessionToken").getValue();
+
+            if (!checkAccessPermissions(loggedUser, sessionToken)) {
+                throw new AccessControlException("Your session is invalid. User or session token not allowed.");
+            }
+
+            //Load the sample information
+            String biocondition_id = request.getParameter("biocondition_id");
+            dao_instance = DAOProvider.getDAOByName("Biocondition");
+            boolean loadRecursive = true;
+            Object[] params = {loadRecursive};
+            BioCondition biocondition = (BioCondition) dao_instance.findByID(biocondition_id, params);
+
+            //Read the JSON file
+            File file = new File(DATA_LOCATION + File.separator + "extensions" + File.separator + "external_sources" + File.separator + biocondition.getExternalSampleType());
+            JsonObject lims_data;
+            if (file.isFile()) {
+                lims_data = new JsonParser().parse(new BufferedReader(new FileReader(file))).getAsJsonObject();
+            } else {
+                throw new FileNotFoundException("JSON file for selected LIMS cannot be found. File name is " + biocondition.getExternalSampleType());
+            }
+
+            String api_readable_url = lims_data.get("api_readable_url").getAsString();
+            String human_readable_url = lims_data.get("human_readable_url").getAsString();
+            String sample_details_field = lims_data.get("sample_details_field").getAsString();
+            String apikey_param = "";
+            if (lims_data.get("apikey_param") != null) {
+                apikey_param = lims_data.get("apikey_param").getAsString();
+            }
+
+            //Request the list of samples for the selected LIMS
+            String external_sample_url = biocondition.getExternalSampleURL();
+            //Adapt URL
+            if (!(external_sample_url.startsWith("http://") || external_sample_url.startsWith("https://"))) {
+                external_sample_url = "http://" + external_sample_url;
+            }
+            if (external_sample_url.endsWith("/")) {
+                external_sample_url = external_sample_url.substring(0, external_sample_url.length() - 1);
+            }
+
+            api_readable_url = api_readable_url.replace("$${APP_URL}", external_sample_url).replace("$${SAMPLE_ID}", biocondition.getExternalSampleID());
+            human_readable_url = human_readable_url.replace("$${APP_URL}", external_sample_url);
+
+            //Prepare request
+            HttpClient client = new DefaultHttpClient();
+            HttpGet _request = new HttpGet(api_readable_url);
+            // Set LIMS credentials
+            if (request.getParameter("credentials") != null) {
+                _request.setHeader("Authorization", "Basic " + request.getParameter("credentials"));
+            } else if (request.getParameter("apikey") != null) {
+                URIBuilder uri = new URIBuilder(api_readable_url);
+                uri.addParameter(apikey_param, request.getParameter("apikey"));
+                _request = new HttpGet(uri.build());
+            }
+
+            //Send request
+            HttpResponse _response = client.execute(_request);
+            JsonElement json_response = new JsonParser().parse(EntityUtils.toString(_response.getEntity()));
+
+            if (json_response.isJsonObject()) {
+                JsonElement _sample_details = json_response.getAsJsonObject().get(sample_details_field);
+                if(_sample_details.isJsonObject()){
+                    sample_details = _sample_details.getAsJsonObject();
+                }else if(_sample_details.isJsonArray()){
+                    sample_details = _sample_details.getAsJsonArray().get(0).getAsJsonObject();
                 }
-                obj.add("services", _services);
+            }
+        } catch (Exception e) {
+            ServerErrorManager.handleException(e, Samples_servlets.class.getName(), "get_external_samples_details", e.getMessage());
+        } finally {
+            /**
+             * *******************************************************
+             * STEP 3b CATCH ERROR. GO TO STEP 4
+             * *******************************************************
+             */
+            if (ServerErrorManager.errorStatus()) {
+                response.setStatus(400);
+                response.getWriter().print(ServerErrorManager.getErrorResponse());
+            } else {
+                /**
+                 * *******************************************************
+                 * STEP 3A WRITE SUCCESS RESPONSE. GO TO STEP 4
+                 * *******************************************************
+                 */
+                JsonObject obj = new JsonObject();
+                obj.add("sample_details", sample_details);
                 response.getWriter().print(obj.toString());
             }
         }
@@ -1510,7 +1916,7 @@ public class Samples_servlets extends Servlet {
                 study_samples = ((BioCondition_JDBCDAO) dao_instance).findSamplesIDByExperimentID(experiment_id);
                 ArrayList<String> bioconditionIds = new ArrayList<String>();
                 for (String sample_id : study_samples) {
-                    if(sample_id.contains(".")){
+                    if (sample_id.contains(".")) {
                         sample_id = sample_id.split("\\.")[0];
                     }
                     bioconditionIds.add("BC" + sample_id.substring(2));
