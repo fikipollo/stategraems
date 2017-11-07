@@ -1,0 +1,40 @@
+version: '2'
+services:
+
+    instance1-ems:
+      image: fikipollo/stategraems
+      container_name: instance1-ems
+      environment:
+        - EMS_ADMIN_USER=emsadminuser@email.com
+        - EMS_ADMIN_PASSWORD=supersecret
+        - MYSQL_ROOT_PASSWORD=supersupersecret
+        ##OPTIONAL PARAMS (DEFAULT VALUES IF REMOVED)
+        #- MYSQL_ROOT_USER=root
+        #- MYSQL_DATABASE_NAME=STATegraDB
+        #- MYSQL_HOST=stategraems-mysql
+        #- MYSQL_EMS_USER=emsuser
+      links:
+        - instance1-mysql:stategraems-mysql
+      depends_on:
+        - instance1-mysql
+      volumes_from:
+        - instance1-data
+      ports:
+        - "8080:8080"
+
+    instance1-mysql:
+      image: mysql:5.7
+      container_name: instance1-mysql
+      environment:
+        - MYSQL_ROOT_PASSWORD=supersupersecret
+      depends_on:
+        - instance1-data
+      volumes_from:
+        - instance1-data
+
+    instance1-data:
+      image: busybox
+      container_name: instance1-data
+      volumes:
+        - /data/instance1-data/mysql:/var/lib/mysql
+        - /data/instance1-data/data:/data
