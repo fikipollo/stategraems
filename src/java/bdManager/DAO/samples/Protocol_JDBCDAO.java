@@ -134,7 +134,11 @@ public class Protocol_JDBCDAO extends DAO {
             protocol.setProtocolName(rs.getString("treatment_name"));
             protocol.setBiomolecule(rs.getString("biomolecule"));
             protocol.setDescription(rs.getString("description"));
-            protocol.setFilesLocation(rs.getString("files_location").split("\\$\\$"));
+            String files_location = rs.getString("files_location");
+            if (files_location == null) {
+                files_location = "";
+            }
+            protocol.setFilesLocation(files_location.split("\\$\\$"));
 
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT user_id FROM treatment_owners WHERE treatment_id = ?");
             ps.setString(1, protocol.getProtocolID());
@@ -171,7 +175,11 @@ public class Protocol_JDBCDAO extends DAO {
             protocol.setProtocolName(rs.getString("treatment_name"));
             protocol.setBiomolecule(rs.getString("biomolecule"));
             protocol.setDescription(rs.getString("description"));
-            protocol.setFilesLocation(rs.getString("files_location").split("\\$\\$"));
+            String files_location = rs.getString("files_location");
+            if (files_location == null) {
+                files_location = "";
+            }
+            protocol.setFilesLocation(files_location.split("\\$\\$"));
 
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT user_id FROM treatment_owners WHERE treatment_id = ?");
             ps.setString(1, protocol.getProtocolID());

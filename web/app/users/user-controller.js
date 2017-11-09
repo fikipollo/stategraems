@@ -286,42 +286,6 @@
             $dialogs.showInfoDialog("Your API code is " + Cookies.get("session"), {title: "API code"});
         };
 
-        this.sendBackupRequestHandler = function () {
-            $http($rootScope.getHttpRequestConfig("POST", "admin-rest", {
-                headers: {'Content-Type': 'application/json'},
-                extra: 'backup'
-            })).then(
-                    function successCallback(response) {
-                        $dialogs.showSuccessDialog("Backup successfully created!");
-                        var file_content = response.data;
-
-                        var saveByteArray = (function () {
-                            var a = document.createElement("a");
-                            document.body.appendChild(a);
-                            a.style = "display: none";
-                            return function (data, name) {
-                                var blob = new Blob(data, {type: "octet/stream"}),
-                                        url = window.URL.createObjectURL(blob);
-                                a.href = url;
-                                a.download = name;
-                                a.click();
-                                window.URL.revokeObjectURL(url);
-                            };
-                        }());
-                        var filename = response.headers("content-disposition").replace("filename=","").replace(/\"/g,"");
-                        saveByteArray([file_content], filename);
-
-                    },
-                    function errorCallback(response) {
-                        debugger;
-                        var message = "Failed while creating the backup for databases.";
-                        $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at UserSessionController:sendBackupRequestHandler."
-                        });
-                        console.error(response.data);
-                    }
-            );
-        };
         //--------------------------------------------------------------------
         // INITIALIZATION
         //--------------------------------------------------------------------

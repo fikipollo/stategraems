@@ -69,12 +69,13 @@
             $scope.setLoading(true);
 
             if (SampleList.getOld() > 1 || force) { //Max age for data 5min.
-                $http($rootScope.getHttpRequestConfig("POST", "sample-list", {
+                $http($rootScope.getHttpRequestConfig("GET", "samples-rest", {
                     headers: {'Content-Type': 'application/json'},
-                    data: $rootScope.getCredentialsParams({recursive: (recursive !== undefined)})
+                    extra: "?recursive=1"
                 })).then(
                         function successCallback(response) {
-                            $scope.samples = SampleList.setSamples(response.data).getSamples();
+                            $scope.samples = SampleList.setSamples(response.data.samples).getSamples();
+                            SampleList.checkSamplesInCurrentStudy($scope.samples, response.data.samples_current_study);
                             $scope.tags = SampleList.updateTags().getTags();
                             $scope.filteredSamples = $scope.samples.length;
 
@@ -123,11 +124,18 @@
             $scope.filteredSamples = 0;
             $scope.user_id = $scope.user_id || Cookies.get("loggedUserID");
             return function (item) {
-                if ($scope.show === "my_samples") {
+                if ($scope.show === "samples_current_study") {
+                    return item.in_current_study;
+                } else if ($scope.show === "my_samples") {
                     if (!SampleList.isOwner(item, $scope.user_id)) {
                         return false;
                     }
+                } else if ($scope.show === "all_samples") {
+                    if (!item.isPublic) {
+                        return false;
+                    }
                 }
+
                 //
                 var filterAux, item_tags;
                 for (var i in $scope.filters) {
@@ -275,9 +283,8 @@
 
         $scope.visibleSamples = Math.min($scope.filteredSamples, $scope.visibleSamples);
 
-
         if ($scope.samples.length === 0 || $stateParams.force || $scope.force) {
-            this.retrieveSamplesData("my_samples", true, $scope.recursive);
+            this.retrieveSamplesData("samples_current_study", true, $scope.recursive);
         }
     });
 
@@ -313,6 +320,7 @@
                         function successCallback(response) {
                             $scope.model = SampleList.addBiocondition(response.data);
                             SampleList.adaptInformation([$scope.model])[0];
+                            $scope.diagram = me.generateWorkflowDiagram($scope.model, $scope.diagram);
 
                             if ($scope.bioreplicate_id) {
                                 $scope.bioreplicate = SampleList.getBioreplicate($scope.model, $scope.bioreplicate_id);
@@ -332,6 +340,9 @@
                             $scope.setLoading(false);
                         }
                 );
+            } else {
+                $scope.diagram = me.generateWorkflowDiagram($scope.model, $scope.diagram);
+                $scope.setLoading(false);
             }
         };
 
@@ -685,6 +696,95 @@
             console.error("cleanCountdownDialogs NOT IMPLEMENTED");
         };
 
+
+        /******************************************************************************
+         * This function creates a network from a given list of steps of a workflow.
+         *
+         * @param {Biocondition} biocondition the IU to for creating the diagram
+         * @param {Object} diagram a previous instance of a diagram (update)
+         * @return {Object} a network representation of the workflow (Object) with a list
+         *         of nodes and a list of edges.
+         ******************************************************************************/
+        this.generateWorkflowDiagram = function (biocondition, diagram) {
+            var sample = null, aliquot = null, edge_id = 0, sample_id = 0, aliquot_id = 0, edges = {}, nodes = {};
+
+            biocondition = biocondition || $scope.model;
+
+            try {
+                nodes[0] = {
+                    id: 0,
+                    label: biocondition.organism,
+                    x: 0,
+                    y: 0,
+                    node_type: "specie",
+                    size: 25
+                };
+
+                var samples = biocondition.associatedBioreplicates;
+                for (var i in samples) {
+                    sample = samples[i];
+                    if (!sample.status || sample.status.indexOf('deleted') === -1) {
+                        nodes["s" + sample_id] = {
+                            id: "s" + sample_id,
+                            label: sample.bioreplicate_name,
+                            x: 0,
+                            y: 0,
+                            node_type: "sample",
+                            size: 12
+                        };
+
+                        edges[edge_id] = {
+                            id: edge_id,
+                            source: 0,
+                            target: "s" + sample_id,
+                            type: 'arrow',
+                        };
+                        edge_id++;
+
+                        var aliquouts = sample.associatedAnalyticalReplicates;
+                        for (var j in aliquouts) {
+                            aliquot = aliquouts[j];
+                            if (!aliquot.status || aliquot.status.indexOf('deleted') === -1) {
+                                nodes["a" + aliquot_id] = {
+                                    id: "a" + aliquot_id,
+                                    label: aliquot.analytical_rep_name,
+                                    x: 0,
+                                    y: 0,
+                                    node_type: "aliquot",
+                                    size: 10
+                                };
+
+                                edges[edge_id] = {
+                                    id: edge_id,
+                                    source: "s" + sample_id,
+                                    target: "a" + aliquot_id,
+                                    type: 'arrow',
+                                };
+                                edge_id++;
+                                aliquot_id++;
+                            }
+                        }
+
+                        sample_id++;
+                    }
+                }
+
+
+                diagram = diagram || $scope.diagram;
+                if (!diagram) {
+                    diagram = {hasChanged: 0, "nodes": Object.values(nodes), "edges": Object.values(edges)};
+                } else {
+                    diagram.nodes = Object.values(nodes);
+                    diagram.edges = Object.values(edges);
+                    diagram.hasChanged++;
+                }
+            } catch (e) {
+                debugger;
+            }
+
+            return diagram;
+        };
+
         /******************************************************************************      
          *            _____   _____ _  _ _____         
          *           | __\ \ / / __| \| |_   _|        
@@ -695,6 +795,17 @@
          *     |_||_/_/ \_\_|\_|___/|____|___|_|_\|___/
          *                                             
          ******************************************************************************/
+
+        /******************************************************************************
+         * This function handles the event fired when an step has changed.
+         *
+         * @return {SampleDetailController} the controller
+         ******************************************************************************/
+        $scope.$on(APP_EVENTS.samplesChanged, function () {
+            if (!$scope.isModal) {
+                $scope.diagram = me.generateWorkflowDiagram($scope.model, $scope.diagram);
+            }
+        });
 
         /******************************************************************************
          * This function handles the event fires when the user deletes a biocondition
@@ -901,6 +1012,28 @@
             }
         };
 
+
+        this.updateMainDiagramHandler = function () {
+            if ($scope.diagram) {
+                setTimeout(function () {
+                    $scope.diagram.hasChanged--;
+                    $scope.$digest();
+                }, 500);
+            }
+        };
+
+        this.exportSamplesHandler = function (format) {
+            var config = $rootScope.getHttpRequestConfig("GET", "samples-rest", {
+                extra: "export/" + "?biocondition_id=" + $scope.model.biocondition_id + "&format=" + format
+            });
+
+            var a = document.createElement("a");
+            a.href = config.url;
+            a.target = "_blank";
+            a.click();
+            return this;
+        };
+
         /******************************************************************************
          *      ___ _  _ ___ _____ ___   _   _    ___ ____  _ _____ ___ ___  _  _ 
          *     |_ _| \| |_ _|_   _|_ _| /_\ | |  |_ _|_  / /_\_   _|_ _/ _ \| \| |
@@ -942,6 +1075,8 @@
 
         if ($stateParams.biocondition_id || $scope.biocondition_id) {
             this.retrieveSampleDetails($stateParams.biocondition_id || $scope.biocondition_id, true);
+        } else if ($stateParams.biocondition_id === null && $scope.viewMode === "view") {
+            $state.go('samples');
         } else {
             $scope.model.biocondition_id = "[Autogenerated after saving]";
             $scope.model.bioreplicates = [];
@@ -1007,6 +1142,7 @@
             var hasChanged = (oldValues.bioreplicate_name !== newValues.bioreplicate_name) || (oldValues.batch_id !== newValues.batch_id);
             if (hasChanged) {
                 SampleList.updateModelStatus($scope.model, "edited");
+                $rootScope.$broadcast(APP_EVENTS.samplesChanged);
                 return;
             }
             //TODO: CHANGES IN BATCH
@@ -1063,6 +1199,7 @@
             for (var i in $scope.model.associatedAnalyticalReplicates) {
                 SampleList.updateModelStatus($scope.model.associatedAnalyticalReplicates[i], "deleted");
             }
+            $rootScope.$broadcast(APP_EVENTS.samplesChanged);
         };
 
         this.unremoveBioreplicateHandler = function () {
@@ -1070,6 +1207,7 @@
             for (var i in $scope.model.associatedAnalyticalReplicates) {
                 SampleList.updateModelStatus($scope.model.associatedAnalyticalReplicates[i], "undo");
             }
+            $rootScope.$broadcast(APP_EVENTS.samplesChanged);
         };
 
         /******************************************************************************
@@ -1090,8 +1228,7 @@
         }
     });
 
-
-    app.controller('AnalyticalReplicateDetailController', function ($state, $rootScope, $scope, $http, SampleList, ProtocolList, TemplateList) {
+    app.controller('AnalyticalReplicateDetailController', function ($state, $rootScope, $scope, $http, SampleList, ProtocolList, TemplateList, APP_EVENTS) {
         //--------------------------------------------------------------------
         // CONTROLLER FUNCTIONS
         //--------------------------------------------------------------------
@@ -1112,16 +1249,19 @@
         this.removeAnalyticalReplicateHandler = function () {
             //CHECK IF REMOVABLE
             SampleList.updateModelStatus($scope.model, "deleted");
+            $rootScope.$broadcast(APP_EVENTS.samplesChanged);
         };
 
         this.unremoveAnalyticalReplicateHandler = function () {
             SampleList.updateModelStatus($scope.model, "undo");
+            $rootScope.$broadcast(APP_EVENTS.samplesChanged);
         };
 
         $scope.$watch('model', function (newValues, oldValues, scope) {
             var hasChanged = (oldValues.analytical_rep_name !== newValues.analytical_rep_name) || (oldValues.protocol_id !== newValues.protocol_id);
             if (hasChanged) {
                 SampleList.updateModelStatus($scope.model, "edited");
+                $rootScope.$broadcast(APP_EVENTS.samplesChanged);
                 return;
             }
             //TODO: EXTRA FIELDS
@@ -1139,8 +1279,7 @@
         }
     });
 
-
-    app.controller('ExternalSampleDetailController', function ($state, $rootScope, $scope, $http, $stateParams, $timeout, $dialogs, APP_EVENTS, SampleList, TemplateList) {
+    app.controller('ExternalSampleDetailController', function ($state, $rootScope, $scope, $http, $uibModal, $stateParams, $timeout, $dialogs, APP_EVENTS, SampleList, TemplateList) {
         /******************************************************************************      
          *       ___ ___  _  _ _____ ___  ___  _    _    ___ ___  
          *      / __/ _ \| \| |_   _| _ \/ _ \| |  | |  | __| _ \ 
@@ -1170,10 +1309,8 @@
                         function successCallback(response) {
                             $scope.model = SampleList.addBiocondition(response.data);
                             SampleList.adaptInformation([$scope.model])[0];
-                            if ($scope.model.other_exp_cond !== undefined && $scope.model.protocol_description !== undefined) {
-                                $scope.link_input_type = 'auto';
-                                me.generateExternalLinks();
-                                me.retrieveSampleServicesList();
+                            if ($scope.model.isExternal === true) {
+                                me.retrieveExternalSampleDetails();
                             }
                             $scope.setLoading(false);
                         },
@@ -1192,6 +1329,106 @@
         };
 
         /******************************************************************************
+         * This function gets the details for a given Sexternal sample from the LIMS
+         * 
+         ******************************************************************************/
+        this.retrieveExternalSampleDetails = function () {
+
+            var params = {
+                biocondition_id: $scope.model.biocondition_id
+            };
+
+            if ($scope.credentials !== undefined && $scope.credentials.apikey !== undefined && $scope.credentials.apikey !== "") {
+                params.apikey = $scope.credentials.apikey;
+            } else if ($scope.credentials !== undefined && $scope.credentials.username !== undefined && $scope.credentials.username !== "" && $scope.credentials.pass !== undefined && $scope.credentials.pass !== "") {
+                params.credentials = window.btoa($scope.credentials.username + ":" + $scope.credentials.pass);
+            } else {
+                this.openCredentialsDialogHandler();
+                return;
+            }
+
+            $scope.setLoading(true);
+
+            $http($rootScope.getHttpRequestConfig("GET", "samples-rest", {
+                extra: "external-sample-details",
+                params: params
+            })).then(
+                    function successCallback(response) {
+                        $scope.setLoading(false);
+                        $scope.samplesInfo.sample_details = me.adaptSampleDetails(response.data.sample_details);
+                    },
+                    function errorCallback(response) {
+                        $scope.setLoading(false);
+                        
+                        delete $scope.credentials;
+
+                        var message = "Failed while retrieving the details for the sample from the original LIMS.";
+                        $dialogs.showErrorDialog(message, {
+                            logMessage: message + " at ExternalSampleDetailController:retrieveExternalSampleDetails."
+                        });
+                        console.error(response.data);
+                        debugger
+                    }
+            );
+        };
+
+        this.adaptSampleDetails = function (sample_details) {
+            if (sample_details === undefined || sample_details === null) {
+                return;
+            } else if (typeof sample_details === "object" && !Array.isArray(sample_details)) {
+                var name, value, result = [];
+                var field_names = Object.keys(sample_details);
+                for (var i in field_names) {
+                    name = field_names[i].split(/(?=[A-Z][a-z])/).join(" ");
+                    name = name.replace("_", " ");
+                    name = name[0].toUpperCase() + name.substr(1).toLowerCase();
+                    value = this.adaptSampleDetails(sample_details[field_names[i]]);
+                    result.push({name: name, value: value});
+                }
+                return result;
+            } else if (typeof sample_details === "object" && Array.isArray(sample_details)) {
+                var value, result = [];
+                for (var i in sample_details) {
+                    value = this.adaptSampleDetails(sample_details[i]);
+                    result.push({value: value});
+                }
+                return result;
+            } else {
+                return sample_details;
+            }
+        };
+
+        this.openCredentialsDialogHandler = function () {
+            var lims_name = $scope.model.external_sample_type.replace("_", " ").replace(".json", "").toUpperCase();
+            
+            $scope.credentials = {
+                dialog_title: "Please enter the credentials for " + lims_name,
+                dialog_url : $scope.model.external_sample_url
+            };
+
+            $scope.closeCredentialsDialogHandler = function (option) {
+                $scope.modalInstance.close();
+                delete $scope.closeCredentialsDialogHandler;
+                delete $scope.modalInstance;
+
+                if (option === 'accept') {
+                    me.retrieveExternalSampleDetails();
+                } else {
+                    delete $scope.credentials;
+                }
+            };
+
+            $scope.modalInstance = $uibModal.open({
+                templateUrl: 'app/users/credentials-input-dialog.tpl.html',
+                scope: $scope,
+                backdrop: 'static',
+                size: 'md'
+            });
+        };
+
+
+
+        /******************************************************************************
          * This function gets the list of available hosts that contains services for storing
          * information for samples (e.g. LIMS)
          * 
@@ -1206,88 +1443,30 @@
         };
 
         /******************************************************************************
-         * This function gets the list of available hosts that contains services for storing
-         * information for samples (e.g. LIMS)
+         * This function gets the list of available LIMS supported by the EMS (based on
+         * the configuration files)
          * 
          ******************************************************************************/
-        this.retrieveSampleServicesHostList = function () {
-            $http($rootScope.getHttpRequestConfig("GET", "sample-service-host-list", {
+        this.retrieveExternalSources = function () {
+            $http($rootScope.getHttpRequestConfig("GET", "samples-rest", {
+                extra: "external-sources"
             })).then(
                     function successCallback(response) {
-                        $scope.samplesInfo.hosts = response.data.hosts;
+                        $scope.samplesInfo.external_sources = response.data.external_sources;
                     },
                     function errorCallback(response) {
-                        var message = "Failed while retrieving the list of available hosts.";
+                        var message = "Failed while retrieving the list of supported LIMS.";
                         $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at ExternalSampleDetailController:retrieveSampleServicesHostList."
+                            logMessage: message + " at ExternalSampleDetailController:retrieveExternalSources."
                         });
                         console.error(response.data);
                         debugger
                     }
             );
-        };
-
-        /******************************************************************************
-         * This function gets the list of installed services in a host that store 
-         * information for samples (e.g. LIMS)
-         * 
-         ******************************************************************************/
-        this.retrieveSampleServicesList = function () {
-            $http($rootScope.getHttpRequestConfig("GET", "sample-service-list", {
-                params: {'host': $scope.model.other_exp_cond}
-            })).then(
-                    function successCallback(response) {
-                        $scope.samplesInfo.services = response.data.services;
-                    },
-                    function errorCallback(response) {
-                        var message = "Failed while retrieving the list of available hosts.";
-                        $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at ExternalSampleDetailController:retrieveSampleServicesList."
-                        });
-                        console.error(response.data);
-                        debugger
-                    }
-            );
-        };
-
-        this.generateExternalLinks = function () {
-            var ids = [];
-            if ($scope.model.other_exp_cond && $scope.model.protocol_description) {
-                ids = $scope.model.external_links.replace(/(\n| )/g, "");
-                ids = ids.split(",");
-
-                for (var i in ids) {
-                    ///translate?sample@samplemanager.eb3kit.ki.se::23
-                    ids[i] = "/external-sample?sample_id=sample@" + $scope.model.protocol_description + "." + $scope.model.other_exp_cond + "::" + ids[i];
-                }
-            }
-            ids = arrayUnique(ids, [""]);
-            $scope.samplesInfo.built_ids = ids;
-
-            return this;
         };
 
         /******************************************************************************      
-         * This function send the sample information contain in a given sample_view 
-         * to the SERVER in order to save a NEW sample in the database .
-         * Briefly the way of work is :
-         *	1.	Check if the formulary's content is valid. If not, throws an error that should 
-         *		catched in the caller function.
-         *
-         *	2.	If all fields are correct, then the sample model is converted from JSON to a 
-         *		JSON format STRING and sent to the server using POST. After that the function finished.
-         *	
-         *	3.	After a while, the server returns a RESPONSE catched inside this function. 
-         *		The response has 2 possible status: SUCCESS and FAILURE.
-         *		a.	If SUCCESS, then the new sample identifier is set in the sample_view. 
-         *			After that,  isthe callback function is called, in this case the 
-         *       	callback function is the "execute_task" function that will execute the next
-         *           task in the TASK QUEUE of the given SampleDetailsView panel. This function is called
-         *           with the status flag sets to TRUE (~ success).
-         *		b.	If FAILURE, then the callback function is called (the "execute_task" function again)
-         *       	but this time with the status flag sets to FALSE (~ failure), in this case, 
-         *           the current task is re-added to the TASK QUEUE and an error message is showed.
-         *           The insertion process is aborted, however all "TO DO" steps are saved in order to be executed again.
+         * This function send the selected external in order to create NEW samples in the database .
          *  
          * @param  callback_caller after the success/failure event, this object will call to the callback_function. Is needed to preserve the enviroment.
          * @param  callback_function the function invoked by the callback_caller after the success/failure event
@@ -1296,66 +1475,42 @@
         this.send_create_sample = function (callback_caller, callback_function) {
             $scope.setLoading(true);
 
-            $http($rootScope.getHttpRequestConfig("POST", "sample-create", {
-                headers: {'Content-Type': 'application/json'},
-                data: $rootScope.getCredentialsParams({'biocondition_json_data': $scope.model}),
+            //Check if at least one samples has been selected
+            var selectedSamples = [];
+            for (var i in $scope.samples) {
+                if ($scope.samples[i].selected === true) {
+                    selectedSamples.push({
+                        id: $scope.samples[i].id,
+                        name: $scope.samples[i].name
+                    });
+                }
+            }
+
+            $http($rootScope.getHttpRequestConfig("POST", "samples-rest", {
+                extra: '/external-sample',
+                data: {
+                    'samples': selectedSamples,
+                    'model': $scope.model
+                },
             })).then(
                     function successCallback(response) {
-                        console.info((new Date()).toLocaleString() + "Sample " + $scope.model.biocondition_id + " successfully saved in server");
-                        $scope.model.biocondition_id = response.data.newID;
-
-                        SampleList.addBiocondition($scope.model);
-
+                        console.info((new Date()).toLocaleString() + "Samples successfully saved in server");
                         //Notify all the other controllers that a new sample exists
-                        //$rootScope.$emit(APP_EVENTS.sampleCreated);
+                        $rootScope.$broadcast(APP_EVENTS.sampleCreated);
                         $scope.setLoading(false);
-
                         callback_caller[callback_function](true);
                     },
                     function errorCallback(response) {
                         debugger;
                         var message = "Failed while creating a new sample.";
                         $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at ExternalSampleDetailController:send_create_sample."
+                            logMessage: message + " at BioconditionDetailController:send_create_sample."
                         });
                         console.error(response.data);
+
+                        $scope.setLoading(false);
 
                         $scope.taskQueue.unshift({command: "create_new_sample", object: null});
-                        $scope.setLoading(false);
-                        callback_caller[callback_function](false);
-                    }
-            );
-        };
-
-        /******************************************************************************      
-         * This function updates the information for the external sample.
-         * @param  callback_caller after the success/failure event, this object will call to the callback_function. Is needed to preserve the enviroment.
-         * @param  callback_function the function invoked by the callback_caller after the success/failure event
-         * @return    
-         ******************************************************************************/
-        this.send_update_sample = function (callback_caller, callback_function) {
-            debugger;
-            $scope.setLoading(true);
-
-            $http($rootScope.getHttpRequestConfig("POST", "sample-update", {
-                headers: {'Content-Type': 'application/json'},
-                data: $rootScope.getCredentialsParams({'biocondition_json_data': $scope.model}),
-            })).then(
-                    function successCallback(response) {
-                        console.info((new Date()).toLocaleString() + "Sample " + $scope.model.biocondition_id + " successfully updated in server");
-                        $scope.setLoading(false);
-                        callback_caller[callback_function](true);
-                    },
-                    function errorCallback(response) {
-                        debugger;
-                        var message = "Failed while updating the sample.";
-                        $dialogs.showErrorDialog(message, {
-                            logMessage: message + " at ExternalSampleDetailController:send_update_sample."
-                        });
-                        console.error(response.data);
-
-                        $scope.taskQueue.unshift({command: "update_sample", object: null});
-                        $scope.setLoading(false);
                         callback_caller[callback_function](false);
                     }
             );
@@ -1491,8 +1646,7 @@
             //IF THERE IS A NEXT TASK AND NO PREVIOUS ERROR
             if (current_task != null && status) {
                 try {
-                    switch (current_task.command)
-                    {
+                    switch (current_task.command) {
                         case "create_new_sample":
                             console.info((new Date()).toLocaleString() + "SENDING SAVE NEW sample REQUEST TO SERVER");
                             this.send_create_sample(this, "execute_tasks");
@@ -1500,7 +1654,6 @@
                             break;
                         case "update_sample":
                             console.info((new Date()).toLocaleString() + "SENDING UPDATE Sample REQUEST TO SERVER");
-                            this.send_update_sample(this, "execute_tasks");
                             console.info((new Date()).toLocaleString() + "UPDATE Sample REQUEST SENT TO SERVER");
                             break;
                         case "clear_locked_status":
@@ -1525,9 +1678,15 @@
             }
             //IF NO MORE TASKS AND EVERYTHING GOES WELL
             else if (status) {
+                $scope.setLoading(false);
                 //TODO: $scope.cleanCountdownDialogs();
-                $scope.setViewMode("view", true);
-                $dialogs.showSuccessDialog('Sample ' + $scope.model.biocondition_id + ' saved successfully');
+                if ($scope.viewMode === 'edition') {
+                    $scope.setViewMode("view", true);
+                    $dialogs.showSuccessDialog('Sample ' + $scope.model.biocondition_id + ' saved successfully');
+                } else if ($scope.viewMode === 'creation') {
+                    $dialogs.showSuccessDialog('Samples registered successfully');
+                    $state.go('samples');
+                }
             } else {
                 status = false;
                 $scope.taskQueue.unshift(current_task);
@@ -1544,7 +1703,7 @@
          ******************************************************************************/
         $scope.setViewMode = function (mode, restore) {
             if (mode === 'view') {
-                $scope.panel_title = "External samples details.";
+                $scope.panel_title = "External sample details.";
                 $scope.clearCountdownDialogs();
                 if (restore === true) {
                     me.retrieveSampleDetails($scope.model.biocondition_id, true);
@@ -1589,33 +1748,64 @@
          ******************************************************************************/
 
         /******************************************************************************
-         * This function gets the list of installed services in a server that store 
-         * information for samples (e.g. LIMS)
+         * This function retrieves the registered samples for the selected LIMS system
          * 
          ******************************************************************************/
-        this.sampleServicesHostChangedHandler = function () {
-            if ($scope.model.other_exp_cond) {
-                delete $scope.model.protocol_description;
-                this.retrieveSampleServicesList();
+        this.getAllExternalSamplesHandler = function () {
+            $scope.setLoading(true);
+
+            //Check if form is valid
+            if (!$scope.model.external_sample_type || $scope.model.external_sample_type === "" || !$scope.model.external_sample_url || $scope.model.external_sample_url === "") {
+                $scope.setLoading(false);
+                return;
             }
-            return this;
+
+            //Prepare request params
+            var params = {
+                external_sample_type: $scope.model.external_sample_type,
+                external_sample_url: $scope.model.external_sample_url
+            };
+
+            if ($scope.samplesInfo.apikey !== undefined && $scope.samplesInfo.apikey !== "") {
+                params.apikey = $scope.samplesInfo.apikey;
+            } else {
+                params.credentials = window.btoa($scope.samplesInfo.username + ":" + $scope.samplesInfo.pwd)
+            }
+
+            try {
+                $('html, body').animate({
+                    scrollTop: $("#external-samples-list").offset().top - 60
+                }, 1000);
+            } catch (e) {
+            }
+
+            //Send request
+            $http($rootScope.getHttpRequestConfig("GET", "samples-rest", {
+                extra: "external-samples-list",
+                params: params
+            })).then(
+                    function successCallback(response) {
+                        $scope.setLoading(false);
+                        $scope.samples = response.data.samples;
+                    },
+                    function errorCallback(response) {
+                        $scope.setLoading(false);
+
+                        var message = "Failed while retrieving the list of supported LIMS.";
+                        $dialogs.showErrorDialog(message, {
+                            logMessage: message + " at ExternalSampleDetailController:retrieveExternalSources."
+                        });
+                        console.error(response.data);
+                        debugger
+                    }
+            );
         };
 
         /******************************************************************************
-         * This function generates the list of external links by combining the
-         * selected Host + Service name + list of sample IDs.
-         * 
-         * @returns {Array} the list of external links
-         ******************************************************************************/
-        this.sampleIdentifiersChangedHandler = function () {
-            this.generateExternalLinks();
-        };
-
-        /******************************************************************************
-         * This function handles the event fires when the user deletes a biocondition
+         * This function handles the event fires when the user deletes a external sample
          *
          ******************************************************************************/
-        this.deleteBiologicalConditionHandler = function () {
+        this.deleteExternalSampleHandler = function () {
             var me = this;
             var current_user_id = '' + Cookies.get('loggedUserID');
 
@@ -1633,7 +1823,7 @@
                         function errorCallback(response) {
                             var message = "Failed while deleting the samples.";
                             $dialogs.showErrorDialog(message, {
-                                logMessage: message + " at ExternalSampleDetailController:deleteBiologicalConditionHandler."
+                                logMessage: message + " at ExternalSampleDetailController:deleteExternalSampleHandler."
                             });
                             console.error(response.data);
                             debugger
@@ -1649,12 +1839,40 @@
          * @returns this
          */
         this.acceptButtonHandler = function () {
-            if (!$scope.bioconditionForm.$valid) {
-                $dialogs.showErrorDialog("Invalid form, please check the form and fill the empty fields.")
-                return false;
+            $scope.setLoading(true);
+
+            //Check if at least one samples has been selected
+            var selectedSamples = false;
+            for (var i in $scope.samples) {
+                if ($scope.samples[i].selected === true) {
+                    selectedSamples = true;
+                    break;
+                }
             }
 
-            $scope.setLoading(true);
+            if (!selectedSamples) {
+                $scope.setLoading(false);
+                try {
+                    $('html, body').animate({
+                        scrollTop: $("#external-samples-list").offset().top - 60
+                    }, 1000);
+                } catch (e) {
+                }
+                return;
+            }
+
+
+            if (!$scope.model.organism || $scope.model.organism === "") {
+                $scope.setLoading(false);
+                try {
+                    $('html, body').animate({
+                        scrollTop: $("#external-samples-organism").offset().top - 60
+                    }, 1000);
+                } catch (e) {
+                }
+                return;
+            }
+
             $scope.setTaskQueue(this.clean_task_queue($scope.getTaskQueue()));
             this.execute_tasks(true);
             return this;
@@ -1712,7 +1930,6 @@
             } else {
                 $state.go('samples');
             }
-
         };
 
         /******************************************************************************
@@ -1743,9 +1960,9 @@
             $scope.model.last_edition_date = new Date();
             $scope.model.associatedBioreplicates = [];
             $scope.model.isExternal = true;
-        }
 
-        this.retrieveSampleServicesHostList();
+            this.retrieveExternalSources();
+        }
         this.getOrganimsList();
     });
 })();

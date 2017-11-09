@@ -186,6 +186,7 @@ public class Install_servlets extends Servlet {
 
             String installation_type = settings.get("installation_type").getAsString();
             String data_location = settings.get("data_location").getAsString();
+            DBConnectionManager.setDataLocation(data_location);
 
             String emsadminpass = settings.get("EMS_ADMIN_PASSWORD").getAsString();
             String emsadminuser = settings.get("EMS_ADMIN_USER").getAsString().toLowerCase();
@@ -296,6 +297,18 @@ public class Install_servlets extends Servlet {
                 //5. Create all the necessary directories
                 new File(data_location + "/SOP_documents").mkdir();
                 new File(data_location + "/treatment_documents").mkdir();
+//                new File(data_location + "/extensions").mkdir();
+
+//                logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Copying extensions...");
+//                path = Install_servlets.class.getResource("/resources/extensions").getPath();
+//                File folder = new File(path);
+//                File[] listOfFiles = folder.listFiles();
+//
+//                for (File listOfFile : listOfFiles) {
+//                    if (listOfFile.isFile() && listOfFile.getName().contains(".jar")) {
+//                        FileUtils.copyFile(listOfFile, new File(data_location + "/extensions/" + listOfFile.getName()));
+//                    }
+//                }
 
                 //6. Remove the temporal files
                 logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Cleaning temporal files...");
@@ -313,7 +326,6 @@ public class Install_servlets extends Servlet {
                 /**
                  * ***********************************************************************************************************************
                  */
-
                 this.testDatabaseConnection(DBConnectionManager.getConnectionManager().getProperties().getProperty("host"),
                         DBConnectionManager.getConnectionManager().getProperties().getProperty("username"),
                         DBConnectionManager.getConnectionManager().getProperties().getProperty("password"));
@@ -423,6 +435,21 @@ public class Install_servlets extends Servlet {
                 properties.store(fileOutputStream, null);
                 fileOutputStream.close();
 
+//                logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Copying extensions...");
+//                path = Install_servlets.class.getResource("/resources/extensions").getPath();
+//                File folder = new File(path);
+//                File[] listOfFiles = folder.listFiles();
+//
+//                for (File file : listOfFiles) {
+//                    if (file.isFile() && file.getName().contains(".jar")) {
+//                        File _file = new File(data_location + "/extensions/" + file.getName());
+//                        if(_file.exists()){
+//                           _file.delete();                            
+//                        }
+//                        FileUtils.copyFile(file, _file);
+//                    }
+//                }
+
                 //6. Remove the temporal redirection
 //                        logWriter.println(dateFormat.format(cal.getTime()) + '\t' + "Disabling installation page...");
 //                        path = Install_servlets.class.getResource("/").getPath();
@@ -519,10 +546,12 @@ public class Install_servlets extends Servlet {
             dumpProcess = Runtime.getRuntime().exec(mysqlCommand);
             exitCode = dumpProcess.waitFor();
         } catch (Exception ex) {
-            throw new SQLException("Unable to connect to database</br>Please check that your database engine is running and that the provided settings are valid." + user + password + host);
+            System.err.println("Unable to connect to database</br>Please check that your database engine is running and that the provided settings are valid. User: " + user + ", pass: " + password +  ", host: " + host);
+            throw new SQLException("Unable to connect to database</br>Please check that your database engine is running and that the provided settings are valid.");
         }
 
         if (exitCode != 0) {
+            System.err.println("Failed when connecting to database</br>Please check that your database engine is running and that the provided settings are valid. User: " + user + ", pass: " + password +  ", host: " + host);
             throw new SQLException("Failed when connecting to database</br>Please check that your database engine is running and that the provided settings are valid.");
         }
         return true;

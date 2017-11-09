@@ -7,16 +7,17 @@
                 <span class="label label-danger" ng-if="model.status && model.status.indexOf('deleted') !== - 1">Deleted</span>
                 {{model.step_name}}
                 <a class="btn btn-default" style="float: right;margin-top: -6px;" ng-click="controller.showStepDetailsHandler();"><i class="fa fa-search-plus"></i> View details</a>
-<!--                <div class="btn-group" uib-dropdown is-open="status.isopen" style="float: right;margin-top: -6px;margin-right: 10px;">
-                    <button id="single-button" type="button" class="btn btn-primary" uib-dropdown-toggle ng-disabled="disabled">
+                <div class="btn-group" uib-dropdown style="float: right;margin-top: -6px;margin-right: 10px;" >
+                    <button type="button" class="btn btn-primary" uib-dropdown-toggle ng-disabled="disabled">
                         Use results <span class="caret"></span>
                     </button>
-                    <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="single-button">
-                        <li role="menuitem"><a ng-click="controller.sendStepToGalaxyHandler(model);" >Send files to Galaxy</a></li>
+                    <ul class="dropdown-menu" uib-dropdown-menu role="menu" >
+                        <li role="menuitem"><a class="clickable" ng-click="controller.sendStepToGalaxyHandler(model);"><i class="fa fa-paper-plane-o" aria-hidden="true"></i> Send files to external tool (e.g. Galaxy)</a></li>
+                        <li role="menuitem"><a class="clickable" ng-click="controller.downloadStepFilesHandler(model);"><i class="fa fa-download" aria-hidden="true"></i> Download files</a></li>
                         <li class="divider"></li>
-                        <li role="menuitem"><a ng-click="controller.downloadStepFilesHandler(model);" >Download files</a></li>
+                        <li role="menuitem"><a class="clickable" ng-click="controller.exportStepHandler(model, 'pdf');"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Export step info to PDF</a></li>
                     </ul>
-                </div>-->
+                </div>
                 <a class="clickable text-danger" style="float: right; margin: 2px 20px;font-size: 14px;" ng-click="controller.removeStepHandler();" ng-show="controller.removableModel()"><i class="fa fa-trash-o"></i> Delete this step</a>            
                 <a class="clickable text-info" style="float: right; margin: 2px 20px;font-size: 14px;" ng-click="controller.unremoveStepHandler();" ng-show="controller.unremovableModel()"><i class="fa fa-undo"></i> Restore this step</a>
             </div>    

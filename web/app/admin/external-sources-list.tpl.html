@@ -1,0 +1,47 @@
+<div class="panel panel-default col-md-12" style="margin-bottom:50px;" ng-controller="ExternalSourceListController as controller" >
+    <div class="panel-body">
+        <h2>External sources and tools</h2>
+    </div>
+    <div class="well">
+        <p>Here you can define the URL for external services that could be connected to STATegra EMS (e.g. a local Galaxy instance).</p>
+        <a class="clickable btn btn-sm btn-info" ng-click="controller.addNewExternalSourceHandler();">
+            <i class="fa fa-plus" aria-hidden="true"></i> Register a new external source or tool
+        </a>
+    </div>
+    <h2 ng-show="isLoading === true">
+        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i> Loading...
+    </h2>
+    <table class="table" style="margin: auto; ">
+        <thead>
+            <tr style="text-align:center;">
+                <th>Name</th>
+                <th>Source type</th>
+                <th>URL</th>
+                <th>Enabled</th>
+                <th>Tools</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-show="externalSources === undefined || externalSources.length === 0" style="text-align:center;"><td colspan=4 >No external sources registered.</td></tr>
+            <tr ng-repeat="externalSource in externalSources | orderBy:'type'" >
+                <td>{{externalSource.name}}</td>
+               	<td width="210px;">{{ externalSource.type}}</td>
+                <td>{{externalSource.url}}</td>
+                <td>
+                    <i ng-show="externalSource.enabled" class="fa fa-toggle-on text-success"></i>
+                    <i ng-show="!externalSource.enabled" class="fa fa-toggle-off text-danger"></i>
+                </td>
+                <td width="210px;">
+                    <span>
+                        <a class="clickable" style="margin-right: 10px;" ng-click="controller.editExternalSourceHandler(externalSource)">
+                            <i class="fa fa-pencil-square-o text-warning"></i> Edit
+                        </a>
+                        <a class="clickable" style="margin-right: 10px;" ng-click="controller.deleteExternalSourceHandler(externalSource)">
+                            <i class="fa fa-trash text-danger"></i> Delete
+                        </a>
+                    </span>
+                </td> 
+            </tr>
+        </tbody>
+    </table>
+</div>

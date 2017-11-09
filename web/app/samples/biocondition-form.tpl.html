@@ -1,7 +1,41 @@
 <div ng-controller="BioconditionDetailController as controller" >
     <form name="bioconditionForm" class="form-horizontal">
         <nav class="navbar navbar-default navbar-top title-bar">
-            <h1 class="form_title">{{panel_title}}</h1>
+            <h1 class="form_title">
+                <div ng-show="viewMode === 'view'" class="btn-group pull-right" uib-dropdown style="margin: 8px 20px;font-size: 14px;">
+                    <button type="button" class="btn btn-default" uib-dropdown-toggle ng-disabled="disabled">
+                        <i class="fa fa-save"></i> Export samples <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" uib-dropdown-menu role="menu" >
+                        <li role="menuitem">
+                            <a class="clickable" ng-click="controller.exportSamplesHandler('json');">
+                                <i class="fa fa-file-code-o" aria-hidden="true"></i> Export to JSON
+                            </a>
+                        </li>
+                        <li role="menuitem">
+                            <a class="clickable" ng-click="controller.exportSamplesHandler('xml');">
+                                <i class="fa fa-file-code-o" aria-hidden="true"></i> Export to XML
+                            </a>
+                        </li>
+                        <!--                        <li role="menuitem">
+                                                    <a class="clickable" ng-click="controller.exportSamplesHandler('pdf');">
+                                                        <i class="fa fa-file-pdf-o" aria-hidden="true"></i> Save as PDF
+                                                    </a>
+                                                </li>
+                                                <li role="menuitem">
+                                                    <a class="clickable" ng-click="controller.exportSamplesHandler('doc');">
+                                                        <i class="fa fa-file-word-o" aria-hidden="true"></i> Save as DOC
+                                                    </a>
+                                                </li>-->
+                        <li role="menuitem">
+                            <a class="clickable" ng-click="controller.exportSamplesHandler('html');">
+                                <i class="fa fa-print" aria-hidden="true"></i> Save as PDF / Print
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {{panel_title}}
+            </h1>
         </nav>
         <uib-tabset>
             <uib-tab index="0">
@@ -29,13 +63,24 @@
                     </div>
                 </uib-accordion>
             </uib-tab>
-            <uib-tab index="1">
+            <uib-tab index="1" select="controller.updateMainDiagramHandler();">
                 <uib-tab-heading>
                     <i class="fa fa-tint"></i> Samples
                 </uib-tab-heading>
                 <h2 class="form_subtitle">Biological samples grown in these conditions.</h2>
                 <div ng-if="model.associatedBioreplicates === undefined || model.associatedBioreplicates.length === 0">
                     <div class="well well-lg">There are no samples registered for this biological conditions.</div>
+                </div>
+                <div class="step-form" ng-if="model.associatedBioreplicates !== undefined && model.associatedBioreplicates.length > 0">
+                    <div class="section_box summary">
+                        <h4 class="section_subtitle">
+                            Samples overview
+                            <a class="clickable text-info" style="float: right; margin: 2px 20px; font-size: 14px;" ng-click="controller.updateMainDiagramHandler();"><i class="fa fa-refresh"></i> Refresh diagram</a>            
+                            <a class="clickable text-info" style="float: right; margin: 2px 20px; font-size: 14px;" ng-click="showOverview = false" ng-show="showOverview !== false" ><i class="fa fa-eye-slash"></i> Hide this panel</a>
+                            <a class="clickable text-info" style="float: right ;margin: 2px 20px; font-size: 14px;" ng-click="showOverview = true" ng-show="showOverview === false" ><i class="fa fa-eye"></i> Show this panel</a>
+                        </h4>
+                        <samples-diagram container-id="mainDiagramContainer" style="height:400px;" ng-show="showOverview !== false"></samples-diagram>
+                    </div>
                 </div>
                 <div ng-if="viewMode !== 'view'" class="navbar-form">
                     <div style="margin: auto;display: block;max-width: 625px;text-align: center;margin-top: 34px;">

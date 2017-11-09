@@ -29,7 +29,7 @@
                     function successCallback(response) {
                         $scope.install_done = true;
                         setTimeout(function () {
-                            document.location = "/";
+                            document.location = window.location.pathname;
                         }, 3000);
                     },
                     function errorCallback(response) {

@@ -51,7 +51,8 @@ public class BioCondition_JDBCDAO extends DAO {
                 + "  biocondition_id = ?, organism = ?, title = ?, name = ?, cell_type = ?, "
                 + "  tissue_type = ?, cell_line = ?, gender = ?, genotype = ?, other_biomaterial = ?, "
                 + "  treatment = ?, dosis = ?, time = ?, other_exp_cond = ?, protocol_description = ?, files_location = ?, "
-                + "  submission_date = ?, last_edition_date = ?, external_links = ?, tags = ?, public = ?, external = ? ");
+                + "  submission_date = ?, last_edition_date = ?, external_links = ?, tags = ?, public = ?, external = ?, "
+                + "  external_sample_url = ?, external_sample_type = ?, external_sample_id = ?");
 
         ps.setString(1, biocondition.getBioConditionID());
         ps.setString(2, biocondition.getOrganism());
@@ -75,6 +76,9 @@ public class BioCondition_JDBCDAO extends DAO {
         ps.setString(20, concatString(", ", biocondition.getTags()));
         ps.setBoolean(21, biocondition.isPublic());
         ps.setBoolean(22, biocondition.isExternal());
+        ps.setString(23, biocondition.getExternalSampleURL());
+        ps.setString(24, biocondition.getExternalSampleType());
+        ps.setString(25, biocondition.getExternalSampleID());
         ps.execute();
 
         if (biocondition.getAssociatedBioreplicates() != null) {
@@ -171,7 +175,8 @@ public class BioCondition_JDBCDAO extends DAO {
                 + "UPDATE biocondition SET "
                 + "  organism = ?, title = ?, name = ?, cell_type = ?, tissue_type = ?, cell_line = ?, gender = ?, "
                 + "  genotype = ?, other_biomaterial = ?, treatment = ?, dosis = ?, time = ?, other_exp_cond = ?, "
-                + "  protocol_description = ?, files_location = ?, last_edition_date = ?, external_links = ?, tags = ?, public = ?, external = ? "
+                + "  protocol_description = ?, files_location = ?, last_edition_date = ?, external_links = ?, tags = ?, public = ?, external = ?, "
+                + "  external_sample_url = ?, external_sample_type = ?, external_sample_id = ? "
                 + "WHERE biocondition_id = ?");
 
         ps.setString(1, biocondition.getOrganism());
@@ -194,7 +199,10 @@ public class BioCondition_JDBCDAO extends DAO {
         ps.setString(18, concatString(", ", biocondition.getTags()).replace(", ,", ", "));
         ps.setBoolean(19, biocondition.isPublic());
         ps.setBoolean(20, biocondition.isExternal());
-        ps.setString(21, biocondition.getBioConditionID());
+        ps.setString(21, biocondition.getExternalSampleURL());
+        ps.setString(22, biocondition.getExternalSampleType());
+        ps.setString(23, biocondition.getExternalSampleID());
+        ps.setString(24, biocondition.getBioConditionID());
         ps.execute();
 
         //Remove all the previous entries in the experiment_owners table
@@ -258,13 +266,20 @@ public class BioCondition_JDBCDAO extends DAO {
             biocondition.setTime(rs.getString("time"));
             biocondition.setOtherExpCond(rs.getString("other_exp_cond"));
             biocondition.setProtocolDescription(rs.getString("protocol_description"));
-            biocondition.setFilesLocation(rs.getString("files_location").split("\\$\\$"));
+            String files_location = rs.getString("files_location");
+            if (files_location == null) {
+                files_location = "";
+            }
+            biocondition.setFilesLocation(files_location.split("\\$\\$"));
             biocondition.setLastEditionDate(rs.getString("last_edition_date"));
             biocondition.setSubmissionDate(rs.getString("submission_date"));
             biocondition.setExternalLinks(rs.getString("external_links"));
             biocondition.setTags(rs.getString("tags"));
             biocondition.setPublic(rs.getBoolean("public"));
             biocondition.setExternal(rs.getBoolean("external"));
+            biocondition.setExternalSampleURL(rs.getString("external_sample_url"));
+            biocondition.setExternalSampleType(rs.getString("external_sample_type"));
+            biocondition.setExternalSampleID(rs.getString("external_sample_id"));
         }
 
         if (biocondition != null) {
@@ -326,14 +341,21 @@ public class BioCondition_JDBCDAO extends DAO {
             biocondition.setTime(rs.getString("time"));
             biocondition.setOtherExpCond(rs.getString("other_exp_cond"));
             biocondition.setProtocolDescription(rs.getString("protocol_description"));
-            biocondition.setFilesLocation(rs.getString("files_location").split("\\$\\$"));
+            String files_location = rs.getString("files_location");
+            if (files_location == null) {
+                files_location = "";
+            }
+            biocondition.setFilesLocation(files_location.split("\\$\\$"));
             biocondition.setLastEditionDate(rs.getString("last_edition_date"));
             biocondition.setSubmissionDate(rs.getString("submission_date"));
             biocondition.setExternalLinks(rs.getString("external_links"));
             biocondition.setTags(rs.getString("tags"));
             biocondition.setPublic(rs.getBoolean("public"));
             biocondition.setExternal(rs.getBoolean("external"));
-
+            biocondition.setExternalSampleURL(rs.getString("external_sample_url"));
+            biocondition.setExternalSampleType(rs.getString("external_sample_type"));
+            biocondition.setExternalSampleID(rs.getString("external_sample_id"));
+            
             ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement("SELECT user_id FROM biocondition_owners WHERE biocondition_id = ?");
             ps.setString(1, rs.getString("biocondition_id"));
             rs2 = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
@@ -407,7 +429,7 @@ public class BioCondition_JDBCDAO extends DAO {
         }
         return true;
     }
-    
+
     public boolean removeOwnership(String user_id, String object_id) throws SQLException {
         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
                 + "DELETE FROM biocondition_owners WHERE biocondition_id = ? AND user_id = ?");
@@ -415,5 +437,18 @@ public class BioCondition_JDBCDAO extends DAO {
         ps.setString(2, user_id);
         ps.execute();
         return true;
+    }
+    
+    public ArrayList<String> findSamplesIDByExperimentID(String experiment_id) throws SQLException {
+        ArrayList<String> sample_ids = new ArrayList<String>();
+         PreparedStatement ps = (PreparedStatement) DBConnectionManager.getConnectionManager().prepareStatement(""
+                + "SELECT analyticalReplicate_id FROM rawdata WHERE rawdata_id IN " +
+                 "(SELECT step_id FROM analysis_has_steps WHERE analysis_id IN "+
+                 "(SELECT analysis_id FROM experiments_contains_analysis WHERE experiment_id=\"" + experiment_id + "\"));");
+        ResultSet rs = (ResultSet) DBConnectionManager.getConnectionManager().execute(ps, true);
+        while (rs.next()) {
+            sample_ids.add(rs.getString("analyticalReplicate_id"));
+        }
+        return sample_ids;
     }
 }

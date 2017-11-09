@@ -33,6 +33,10 @@
         <servlet-class>servlets.Message_servlets</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>ExternalSources_servlets</servlet-name>
+        <servlet-class>servlets.ExternalSources_servlets</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>File_servlets</servlet-name>
         <servlet-class>servlets.File_servlets</servlet-class>
     </servlet>
@@ -67,6 +71,7 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Experiment_servlets</servlet-name>
+        <url-pattern>/rest/experiments/*</url-pattern>
         <url-pattern>/get_all_experiments</url-pattern>
         <url-pattern>/get_experiment</url-pattern>
         <url-pattern>/add_experiment</url-pattern>
@@ -75,7 +80,6 @@
         <url-pattern>/unlock_experiment</url-pattern>
         <url-pattern>/remove_experiment</url-pattern>
         <url-pattern>/change_current_experiment</url-pattern>
-        <url-pattern>/get_experiment_directory_content</url-pattern>
         <url-pattern>/experiment_member_request</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
@@ -95,6 +99,7 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Samples_servlets</servlet-name>
+        <url-pattern>/rest/samples/*</url-pattern>
         <url-pattern>/get_all_bioconditions</url-pattern>
         <url-pattern>/get_biocondition</url-pattern>
         <url-pattern>/get_all_bioreplicates</url-pattern>
@@ -119,6 +124,10 @@
     <servlet-mapping>
         <servlet-name>Message_servlets</servlet-name>
         <url-pattern>/rest/messages/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ExternalSources_servlets</servlet-name>
+        <url-pattern>/rest/externalsources/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>File_servlets</servlet-name>

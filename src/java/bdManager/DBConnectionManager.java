@@ -58,7 +58,15 @@ public class DBConnectionManager {
             connections = new HashMap<Long, Connection>();
             properties = new Properties();
             properties.load(new FileReader(this.data_location + "/db_config.properties"));
-            properties.setProperty("password", new String(Base64.decodeBase64(properties.getProperty("password"))));
+            if(properties.get("host") != null){ //Since version 0.8
+                properties.setProperty("password", new String(Base64.decodeBase64(properties.getProperty("password"))));
+            }else{
+                System.err.println("Old version for settings, trying to fix...");
+                String host = properties.get("url").toString();
+                host = host.replace("jdbc:mysql://", "");
+                host = host.replace("/" + properties.get("databasename").toString(), "");
+                properties.setProperty("host", host);
+            }
             connectionPool = BasicDataSourceFactory.createDataSource(properties);
         } catch (Exception ex) {
             System.err.println(String.format("%tc", new Date()) + " STATEGRAEMS LOG > FAILED TRYING TO OPEN A NEW CONNECTIONS POOL");

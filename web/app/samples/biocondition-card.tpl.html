@@ -1,6 +1,11 @@
 <div class="biocondition-card iu-card">
     <div class="iu-card-body">
-        <h2 class="iu-card-name">{{biocondition.title}}</h2>
+        <i ng-if="biocondition.isPublic === false" class="fa fa-ban text-danger" style="position: absolute;margin-left: 350px; cursor: help;" title="These samples are private."></i>
+        <h2 class="iu-card-name">
+            {{biocondition.name}}
+            <i style=" font-size: 13px; display: block; margin-top: 5px; " >{{biocondition.title}}</i>
+        </h2>
+        
         <div class="iu-card-description">
             <b ng-show="biocondition.isExternal">External sample</b>
             <span>{{(biocondition.sample_description !== ""?biocondition.sample_description:"No description provided")}}</span>
@@ -9,12 +14,7 @@
             <i class="tag {{getTagColor(tag)}}" ng-repeat="tag in biocondition.tags| orderBy">{{tag}}</i>
         </div>
     </div>
-    <div class="iu-card-author">
-         <div ng-if="(!isMember(biocondition) && biocondition.isPublic === false)"  style="text-align: center;">
-             <h4>Sorry, this sample is private.</h4>
-        </div>
-    </div>
-    <a ng-if="!biocondition.isPublic && !isMember(biocondition)" class="btn btn-default" type="button" ng-click="controller.requestAccessToSampleHandler(biocondition)"><i class="fa fa-question-circle-o"></i> Request access to this sample</a>
-    <a ng-if="!biocondition.isExternal && (biocondition.isPublic || isMember(biocondition))" class="btn btn-info open-iu-button" ui-sref="sampleDetail({viewMode : 'view', biocondition_id : biocondition.biocondition_id})"> <i class="fa fa-info-circle"></i> More details </a>
-    <a ng-if="biocondition.isExternal && (biocondition.isPublic || isMember(biocondition))" class="btn btn-info open-iu-button" ui-sref="externalSampleDetail({viewMode : 'view', biocondition_id : biocondition.biocondition_id})"> <i class="fa fa-info-circle"></i> More details </a>
+    <!--<a ng-if="!biocondition.isPublic && !isMember(biocondition)" class="btn btn-default" type="button" ng-click="controller.requestAccessToSampleHandler(biocondition)"><i class="fa fa-question-circle-o"></i> Request access to this sample</a>-->
+    <a ng-if="!biocondition.isExternal" class="btn btn-info open-iu-button" ui-sref="sampleDetail({viewMode : 'view', biocondition_id : biocondition.biocondition_id})"> <i class="fa fa-info-circle"></i> More details </a>
+    <a ng-if="biocondition.isExternal" class="btn btn-info open-iu-button" ui-sref="externalSampleDetail({viewMode : 'view', biocondition_id : biocondition.biocondition_id})"> <i class="fa fa-info-circle"></i> More details </a>
 </div>

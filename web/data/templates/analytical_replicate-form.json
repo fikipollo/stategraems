@@ -1,0 +1,30 @@
+{
+    "id": "analytical_replicate-form",
+    "content": [
+        {
+            "name": "section_1",
+            "fields": [
+                {
+                    "name": "analytical_rep_id",
+                    "label": "Aliquot ID",
+                    "type": "display",
+                    "help" : ""
+                },
+                {
+                    "name": "analytical_rep_name",
+                    "label": "Aliquot name",
+                    "type": "text",
+                    "required" : true,
+                    "help" :""
+                },
+                {
+                    "name": "protocol_id",
+                    "label": "Protocol ID",
+                    "type": "text",
+                    "required" : true,
+                    "help" :""
+                }
+            ]
+        }
+    ]
+}

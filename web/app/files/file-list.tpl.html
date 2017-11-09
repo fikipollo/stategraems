@@ -5,7 +5,7 @@
     <div ng-class="(isDialog === true) ? 'modal-body' : ''">
         <uib-tabset type="pills">
             <uib-tab heading="Browse files" classes="btn-sm">
-                <div class="navbar-form navbar-default top-toolbar" role="search">
+<!--                <div class="navbar-form navbar-default top-toolbar" role="search">
                     <h2 class="form_subtitle">Search and filter</h2>
                     <div class="row">
                         <div class="col-sm-8">
@@ -16,11 +16,12 @@
                                         <span class="glyphicon glyphicon-search"></span>
                                     </button>
                                 </span>
-                            </div><!-- /input-group -->
+                            </div> /input-group 
                         </div>
                     </div>
-                </div>
+                </div>-->
                 <div class="navbar-form">
+                    <h2 class="form_subtitle">Files for current study</h2>
                     <div style="margin: auto;display: block;max-width: 625px;">
                         <i ng-show="isLoading" class="ng-binding" style="line-height: 30px;font-size: 15px;color: #777;margin-left: 15px;">
                             <i class="fa fa-spinner fa-pulse fa-fw"></i> Loading files...
@@ -32,7 +33,7 @@
                     </div>
                 </div>
                 <files-tree></files-tree>
-                <button type="button" class="btn btn-primary" style="float: right;" ng-click="controller.updateFileSelectionHandler();"><i class="fa fa-plus"></i> Add the files</button>
+                <button type="button" class="btn btn-primary btn-lg" style="display: block;margin: auto;" ng-click="controller.updateFileSelectionHandler();"><i class="fa fa-plus"></i> Add selected files</button>
             </uib-tab>
             <uib-tab heading="Manual entry" classes="btn-sm" ng-init="manual_entries = '';">
                 <div class="well well-sm text-info"><i class="fa fa-info-circle"></i> Type the location for the files (one file per line). You can use file paths (e.g. /mydata/mydir/this_file.txt), URLs (http://myserver.com/mydata/myfiles), FTP links (ftp://myftpserver.com/mydata/myfiles), or even textual descriptions (in one line).</div>

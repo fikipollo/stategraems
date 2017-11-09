@@ -12,14 +12,16 @@
 
 **STATegra EMS** was published at **BMC Systems Biology** on March 2014, you can find an open-access version for the article here.
 
-*STATegra EMS: an experiment management system for complex next-generation omics experiments.*
-Hernández R, Boix-Chova N, Gómez-Cabrero D, Tegner J, Abugessaisa I, Conesa A
-BMC Syst Biol 2014, 8(Suppl 2):S9. [[Link]](http://bmcsystbiol.biomedcentral.com/articles/10.1186/1752-0509-8-S2-S9)
+- Citation:
+> Hernández-de-Diego R, Boix-Chova N, Gómez-Cabrero D, Tegner J, Abugessaisa I, and Conesa A. STATegra EMS: an Experiment Management System for complex next-generation omics experiments. BMC Syst Biol. 2014;8 Suppl 2:S9. doi: 10.1186/1752-0509-8-S2-S9.
+
 
 ## How to install
 Since version 0.6, the STATegra EMS includes an auto-installer script which makes easier to deploy and configure the the system. Please visit the STATegra EMS documentation for [more information](http://stategraems.readthedocs.io/en/latest/installation/install/).
+
 #### Docker for STATegra EMS
-The STATegra EMS Docker Image is an easy distributable full-fledged STATegra EMS installation. Using dockers you can easily deploy your own instance of STATegra EMS in few seconds. [Read more](https://github.com/fikipollo/stategraems-docker)
+
+The STATegra EMS Docker Image is an easy distributable full-fledged STATegra EMS installation. Using dockers you can easily deploy your own instance of STATegra EMS in few seconds. [Read more](tree/master/docker)
 
 ## Documentation
 A complete documentation is available at the [**readthedocs** platform](http://stategraems.readthedocs.io/en/latest/).

@@ -28,6 +28,7 @@ import com.google.gson.JsonObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 
 /**
  *
@@ -155,21 +156,21 @@ public class IntermediateData extends NonProcessedData {
         step.setIntermediateDataType("preprocessing_step");
         step.setSoftware(step_json_object.get("tool_id").getAsString());
         step.setSoftwareVersion(step_json_object.get("tool_version").getAsString());
-        ArrayList<String> used_data = new ArrayList<String>();
+        HashSet<String> used_data = new HashSet<String>();
         if (step_json_object.has("used_data")) {
             for (JsonElement data : step_json_object.get("used_data").getAsJsonArray()) {
                 used_data.add(data.getAsString());
             }
         }
         step.setUsedData(used_data.toArray(new String[]{}));
-        
+
         String prefix = analysisData.get("experiment_id").getAsString() + "/" + analysisData.get("analysis_id").getAsString() + "/";
         ArrayList<String> outputs = new ArrayList<String>();
-        for(JsonElement output : step_json_object.get("outputs").getAsJsonArray()){
+        for (JsonElement output : step_json_object.get("outputs").getAsJsonArray()) {
             outputs.add(prefix + output.getAsJsonObject().get("file").getAsString().replaceAll(" ", "_") + "." + output.getAsJsonObject().get("extension").getAsString());
         }
         step.setFilesLocation(outputs.toArray(new String[]{}));
-        
+
         String description = "Step " + step_json_object.get("id").getAsString() + " in Galaxy history " + analysisData.get("history_id").getAsString() + ".\n";
         description += "The tool exited with code " + step_json_object.get("exit_code").getAsString() + "\n";
         description += "Outputs:\n";
@@ -195,10 +196,13 @@ public class IntermediateData extends NonProcessedData {
         step.setSubmissionDate(dateFormat.format(dateNow));
         step.setLastEditionDate(dateFormat.format(dateNow));
         step.addOwner(new User(emsuser, ""));
-        step.setStepName(step_json_object.get("tool_id").getAsString());
+        if (step_json_object.has("step_name")) {
+            step.setStepName(step_json_object.get("step_name").getAsString());
+        } else {
+            step.setStepName(step_json_object.get("tool_id").getAsString());
+        }
         step.setStepNumber(step_json_object.get("id").getAsInt());
 
-        
         return step;
     }
 }

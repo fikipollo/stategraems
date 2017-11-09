@@ -226,21 +226,38 @@ public abstract class Step implements Comparable<Step> {
         return this.step_number - anotherInstance.step_number;
     }
 
-    protected static String getParameterDescription(JsonObject parameter, int level) {
-        String description = "";
-        for (int i = 0; i < level; i++) {
-            description += "  ";
+    protected static String getParameterDescription(JsonElement parameter, int level) {
+        if (parameter.isJsonPrimitive()) {
+            return parameter.getAsString() + "\n";
         }
 
-        for (Map.Entry<String, JsonElement> member : parameter.entrySet()) {
-            description += "- " + member.getKey() + ": ";
-            if (member.getValue().isJsonPrimitive()) {
-                description += member.getValue().getAsString() + "\n";
-            } else {
-                description += "\n" + Step.getParameterDescription(member.getValue().getAsJsonObject(), level + 1);
+        if (parameter.isJsonArray()) {
+            String description = "";
+            String prefix = "";
+            for (int i = 0; i < level; i++) {
+                prefix += "  ";
             }
+
+            for (JsonElement element : parameter.getAsJsonArray()) {
+                description += prefix + Step.getParameterDescription(element, level + 1);
+            }
+
+            return description;
         }
 
-        return description;
+        if (parameter.isJsonObject()) {
+            String description = "";
+            String prefix = "";
+            for (int i = 0; i < level; i++) {
+                prefix += "  ";
+            }
+
+            for (Map.Entry<String, JsonElement> member : parameter.getAsJsonObject().entrySet()) {
+                description += prefix + "- " + member.getKey() + ": " + Step.getParameterDescription(member.getValue(), level + 1);
+            }
+            return description;
+        }
+
+        return "";
     }
 }

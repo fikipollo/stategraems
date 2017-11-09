@@ -29,6 +29,12 @@
                     "name": "tags",
                     "label": "Sample tags",
                     "type": "tag"
+                },
+                {
+                    "name": "isPublic",
+                    "label": "Public samples",
+                    "type": "checkbox",
+                    "help" : "Public samples are visible to all the users in the application. Private samples are visible within a study that uses the sample and by sample\\'s owners. Note that only owners can manipulate the information even if the samples are public."
                 }
             ]
         },

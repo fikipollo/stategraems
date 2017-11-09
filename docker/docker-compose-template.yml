@@ -1,0 +1,56 @@
+############################################################
+# Launcher for STATegraEMS container
+# This is a template, the following values must be replaced:
+#   - $${INSTANCE_NAME}, name for the instance
+#   - $${INSTANCE_PORT_1}, port number for STATegraEMS instance
+#   - $${ADMIN_USER}, email for admin user
+#   - $${ADMIN_PASS}, password for admin user
+#   - $${MYSQL_ROOT_PASSWORD}, password for the mysql server
+# Optional params, Uncomment theM and change the values to not use default values.
+#   - $${MYSQL_ROOT_USER}, root user for the mysql server
+#   - $${MYSQL_DATABASE_NAME}, database name for the mysql server
+#   - $${MYSQL_HOST}, host for the mysql server
+#   - $${MYSQL_EMS_USER}, name for the mysql user for the EMS database
+#   - $${MYSQL_EMS_PASS}, password for the mysql user for the EMS database
+############################################################
+
+version: '2'
+services:
+
+    $${INSTANCE_NAME}-ems:
+      image: fikipollo/stategraems
+      container_name: $${INSTANCE_NAME}-ems
+      environment:
+        - EMS_ADMIN_USER=$${ADMIN_USER}
+        - EMS_ADMIN_PASSWORD=$${ADMIN_PASS}
+        - MYSQL_ROOT_PASSWORD=$${MYSQL_ROOT_PASSWORD}
+        ##OPTIONAL PARAMS (DEFAULT VALUES IF REMOVED)
+        #- MYSQL_ROOT_USER=$${MYSQL_ROOT_USER}
+        #- MYSQL_DATABASE_NAME=$${MYSQL_DATABASE_NAME}
+        #- MYSQL_HOST=$${MYSQL_HOST}
+        #- MYSQL_EMS_USER=$${MYSQL_EMS_USER}
+      links:
+        - $${INSTANCE_NAME}-mysql:stategraems-mysql
+      depends_on:
+        - $${INSTANCE_NAME}-mysql
+      volumes_from:
+        - $${INSTANCE_NAME}-data
+      ports:
+        - "$${INSTANCE_PORT_1}:8080"
+
+    $${INSTANCE_NAME}-mysql:
+      image: mysql:5.7
+      container_name: $${INSTANCE_NAME}-mysql
+      environment:
+        - MYSQL_ROOT_PASSWORD=$${MYSQL_ROOT_PASSWORD}
+      depends_on:
+        - $${INSTANCE_NAME}-data
+      volumes_from:
+        - $${INSTANCE_NAME}-data
+
+    $${INSTANCE_NAME}-data:
+      image: busybox
+      container_name: $${INSTANCE_NAME}-data
+      volumes:
+        - /data/$${INSTANCE_NAME}-data/mysql:/var/lib/mysql
+        - /data/$${INSTANCE_NAME}-data/data:/data

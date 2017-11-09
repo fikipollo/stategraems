@@ -20,18 +20,18 @@
 package classes;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import java.io.BufferedReader;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
+import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Stack;
-import org.apache.commons.io.FileUtils;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -56,12 +56,13 @@ public class Experiment {
     String submission_date;
     String last_edition_date;
     String[] tags;
-    String data_dir_type; //local_dir, ftp_dir, irods_dir, seeddms_dir
+    String data_dir_type; //local_directory, ftp_server, seeddms_server...
     String data_dir_host;
     String data_dir_port;
     String data_dir_user;
     String data_dir_pass;
     String data_dir_path;
+    String data_dir_apikey;
 
     User[] experiment_owners;
     User[] experiment_members;
@@ -324,10 +325,18 @@ public class Experiment {
     public void setDataDirectoryPass(String data_dir_pass) {
         this.data_dir_pass = data_dir_pass;
     }
+    
+    public String getDataDirectoryApiKey() {
+        return data_dir_apikey;
+    }
+
+    public void setDataDirectoryApiKey(String apiKey) {
+        this.data_dir_apikey = apiKey;
+    }
 
     public String getDataDirectoryPath() {
-        if(data_dir_path != null){
-            return (data_dir_path.lastIndexOf("/") == data_dir_path.length()-1)? data_dir_path : data_dir_path + "/";
+        if (data_dir_path != null) {
+            return (data_dir_path.lastIndexOf("/") == data_dir_path.length() - 1) ? data_dir_path : data_dir_path + "/";
         }
         return null;
     }
@@ -358,256 +367,172 @@ public class Experiment {
         return this.toJSON();
     }
 
-    public String getExperimentDataDirectoryContent() throws Exception {
-        if ("local_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.getLocalDirectoryContent();
-        } else if ("ftp_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.getFTPDirectoryContent();
-        } else if ("irods_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.getIRODSDirectoryContent();
-        } else if ("seeddms_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.getSeedDMSDirectoryContent();
-        }
-        return null;
+    public Map<String, String> getDataDirectoryInformation() {
+        HashMap<String, String> info = new HashMap<String, String>();
+        info.put("type", this.data_dir_type);
+        info.put("host", this.data_dir_host);
+        info.put("port", this.data_dir_port);
+        info.put("user", this.data_dir_user);
+        info.put("pass", this.data_dir_pass);
+        info.put("root", this.data_dir_path.replaceFirst("/$", ""));
+        return info;
     }
 
-    public String getLocalDirectoryContent() throws Exception {
-        String dirURL = this.getDataDirectoryPath();
+    public String export(String tmpDir, String format, String templatesDir) throws Exception {
+        String content = "";
+        this.data_dir_pass = "*********";
+        if ("json".equalsIgnoreCase(format)) {
+            content = this.toJSON();
+        } else if ("xml".equalsIgnoreCase(format)) {
+            content = "<?xml version=\"1.0\"?>\n";
+            content += "<experiment id=\"" + this.getExperimentID() + "\">\n";
+            JsonObject experiment = new JsonParser().parse(this.toJSON()).getAsJsonObject();
 
-        dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/");
-        ArrayList<String> lines = new ArrayList<String>();
-
-        if (dirURL == null) {
-            throw new IOException("Invalid data directory");
-        }
-
-        File f = new File(dirURL + ".stategraems_dir");
-        if (f.exists()) {
-            String[] script = null;
-            script = new String[]{"find", dirURL};
-
-            Runtime rt = Runtime.getRuntime();
-            Process dumpProcess = rt.exec(script);
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(dumpProcess.getInputStream()));
-            String line = br.readLine();
-            String output = "";
-            while (line != null) {
-                output += "\n" + line;
-                lines.add(line);
-                line = br.readLine();
-            }
-            BufferedReader err = new BufferedReader(new InputStreamReader(dumpProcess.getErrorStream()));
-            line = err.readLine();
-            while (line != null) {
-                output += "\n" + line;
-                line = err.readLine();
-            }
-
-            int exitCode = dumpProcess.waitFor();
-
-            if (exitCode != 0) {
-                throw new FileNotFoundException("Failed while getting directory tree for the Experiment " + this.getExperimentID() + " . Error: " + output);
-            }
-
-        } else if (dirURL.isEmpty()) {
-            //IF THE DIRECTORY WAS NOT SPECIFIED, LETS TRY TO READ THE FILE CONTAINING THE DIRECTORY CONTENT
-            //WHICH SHOULD BE CREATED BY THE ADMIN AND UPDATED PERIODICALLY
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(this.getDataDirectoryPath() + "/" + this.getExperimentID() + "/experimentDataDirectoryContent.txt"));
-                try {
-                    String line = br.readLine();
-                    while (line != null) {
-                        lines.add(line);
-                        line = br.readLine();
-                    }
-                } finally {
-                    br.close();
-                }
-            } catch (FileNotFoundException e) {
-                lines.add("The data directory for this study is not valid.");
-            }
+            content += this.generateXMLContent(experiment, 1);
+            content += "</experiment>\n";
         } else {
-            lines.add("The data directory for this study is not valid.");
-        }
+            ArrayList<Pair> elements = this.processElementContent(templatesDir, this.toJSON());
 
-        if (lines.size() > 0) {
-            Iterator it = lines.iterator();
-            String line = (String) it.next();
-            if (line.charAt(line.length() - 1) == '/') {
-                line = line.substring(0, line.length() - 1);
-            }
-
-            Directory directory = new Directory(line);
-
-            Stack<Directory> directoryStack = new Stack<Directory>();
-            directoryStack.push(directory);
-
-            while (it.hasNext()) {
-                line = (String) it.next();
-                if (line.charAt(line.length() - 1) == '/') {
-                    line = line.substring(0, line.length() - 1);
-                }
-
-                directory = new Directory(line);
-
-                //IF THE CURRENT DIR IS A DIRECT CHILD DIRECTORY
-                if ((directoryStack.lastElement().getPath() + "/" + directory.getName()).equals(directory.getPath())) {
-                    directoryStack.lastElement().addChild(directory);
-                    directoryStack.push(directory);
-                } else {
-                    while (!(directoryStack.lastElement().getPath() + "/" + directory.getName()).equals(directory.getPath())) {
-                        directoryStack.pop();
-                    }
-                    directoryStack.lastElement().addChild(directory);
-                    directoryStack.push(directory);
-                }
-            }
-
-            return directoryStack.get(0).toJSONString(0);
-        }
-
-        return null;
-    }
-
-    public String getFTPDirectoryContent() throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String getIRODSDirectoryContent() throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String getSeedDMSDirectoryContent() throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String addExperimentDataDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        if ("local_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.addLocalDirectoryContent(files, parent_dir_path);
-        } else if ("ftp_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.addFTPDirectoryContent(files, parent_dir_path);
-        } else if ("irods_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.addIRODSDirectoryContent(files, parent_dir_path);
-        } else if ("seeddms_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.addSeedDMSDirectoryContent(files, parent_dir_path);
-        }
-        return null;
-    }
-
-    public String addLocalDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        String dirURL = this.getDataDirectoryPath();
-        dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/") + parent_dir_path;
-        dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/");
-        
-        File parent_dir = new File(dirURL);
-        if(!parent_dir.exists()){
-            parent_dir.mkdirs();
-        }
-        
-        for(File file : files){
-            FileUtils.copyFile(file, new File(dirURL + file.getName()));
-        }
-        
-        return null;
-    }
-
-    public String addFTPDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String addIRODSDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String addSeedDMSDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-    
-    
-    public String deleteExperimentDataDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        if ("local_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.deleteLocalDirectoryContent(files, parent_dir_path);
-        } else if ("ftp_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.deleteFTPDirectoryContent(files, parent_dir_path);
-        } else if ("irods_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.deleteIRODSDirectoryContent(files, parent_dir_path);
-        } else if ("seeddms_dir".equalsIgnoreCase(this.data_dir_type)) {
-            return this.deleteSeedDMSDirectoryContent(files, parent_dir_path);
-        }
-        return null;
-    }
-
-    public String deleteLocalDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        String dirURL = this.getDataDirectoryPath();
-        dirURL = (dirURL.endsWith("/") ? dirURL : dirURL + "/");
-        
-        
-        return null;
-    }
-
-    public String deleteFTPDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String deleteIRODSDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-
-    public String deleteSeedDMSDirectoryContent(File[] files, String parent_dir_path) throws Exception {
-        throw new IOException("Invalid data directory");
-    }
-}
-
-class Directory {
-
-    String name;
-    String path;
-    ArrayList<Directory> children;
-
-    public Directory(String path) {
-        this.name = path.substring(path.lastIndexOf("/") + 1);
-        this.path = path;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public ArrayList<Directory> getChildrens() {
-        return children;
-    }
-
-    public void setChildrens(ArrayList<Directory> children) {
-        this.children = children;
-    }
-
-    public void addChild(Directory child) {
-        if (this.children == null) {
-            this.children = new ArrayList<Directory>();
-        }
-        this.children.add(child);
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String toJSONString(int level) {
-        String childrenCode = "";
-        if (this.children != null) {
-            for (int i = 0; i < children.size(); i++) {
-                childrenCode += children.get(i).toJSONString(level + 1) + ((i + 1) < children.size() ? "," : "");
+            if ("html".equals(format)) {
+                content = this.generateHTMLContent(elements);
+            } else {
+                throw new Exception(format + " is not a valid format");
             }
         }
-        return "{\"text\" : \"" + name + "\"" + (childrenCode.equals("") ? "" : ", \"nodes\" :[" + childrenCode + "]") + "}";
+
+        File file = new File(tmpDir + File.separator + this.experiment_id + "." + format);
+        PrintWriter writer = new PrintWriter(file);
+        writer.println(content);
+        writer.close();
+        return file.getAbsolutePath();
+    }
+
+    private ArrayList<Pair> processElementContent(String templatesDir, String jsonObject) throws FileNotFoundException {
+        ArrayList<Pair> elements = new ArrayList<Pair>();
+        ArrayList<Pair> fields = processTemplateFile(templatesDir + File.separator + "experiment-form.json");
+        JsonObject analysis = new JsonParser().parse(jsonObject).getAsJsonObject();
+
+        elements.add(new Pair("Study details", "", 0, "title"));
+        elements.add(new Pair("", "", 1, "section"));
+        for (Pair field : fields) {
+            elements.add(new Pair(field.value, this.getJsonElementAsString(analysis.get(field.label)), 2, "field"));
+        }
+
+        return elements;
+    }
+
+    private ArrayList<Pair> processTemplateFile(String template) throws FileNotFoundException {
+        ArrayList<Pair> content = new ArrayList<Pair>();
+        JsonParser parser = new JsonParser();
+        JsonElement jsonElement = parser.parse(new FileReader(template));
+
+        JsonArray sections = jsonElement.getAsJsonObject().get("content").getAsJsonArray();
+        JsonArray fields;
+        for (JsonElement element : sections) {
+            fields = element.getAsJsonObject().get("fields").getAsJsonArray();
+            for (JsonElement field : fields) {
+                content.add(new Pair(field.getAsJsonObject().get("name").getAsString(), field.getAsJsonObject().get("label").getAsString(), 0, "field"));
+            }
+        }
+
+        return content;
+    }
+
+    private String getJsonElementAsString(JsonElement element) {
+        String value = "";
+        if (element == null) {
+            return "-";
+        } else if (element.isJsonArray()) {
+            JsonArray array = element.getAsJsonArray();
+            for (JsonElement subelement : array) {
+                value = this.getJsonElementAsString(subelement);
+            }
+        } else if (element.isJsonObject()) {
+            JsonObject object = element.getAsJsonObject();
+
+            for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
+                value += entry.getKey() + ":" + this.getJsonElementAsString(entry.getValue());
+            }
+        } else if (element.isJsonPrimitive()) {
+            value += element.toString().replaceAll("\"", "") + "\n";
+        }
+        return value;
+    }
+
+    private String generateXMLContent(JsonElement jsonCode, int level) {
+        String content = "";
+        if (jsonCode.isJsonPrimitive()) {
+            content += jsonCode.getAsString();
+        } else if (jsonCode.isJsonArray()) {
+            content += "\n";
+            for (JsonElement subelement : jsonCode.getAsJsonArray()) {
+                content += this.generateXMLContent(subelement, level + 1);
+            }
+            content += "\n";
+            content += String.join("", Collections.nCopies(level - 1, "\t"));
+        } else if (jsonCode.isJsonObject()) {
+            for (Map.Entry<String, JsonElement> entry : jsonCode.getAsJsonObject().entrySet()) {
+                content += String.join("", Collections.nCopies(level, "\t")) + "<" + entry.getKey() + ">" + this.generateXMLContent(entry.getValue(), level + 1) + "</" + entry.getKey() + ">\n";
+            }
+        }
+        return content;
+    }
+
+    private String generateHTMLContent(ArrayList<Pair> elements) {
+        String content
+                = "<html>"
+                + " <head>"
+                + "  <title>STATegra EMS report</title>"
+                + "  <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\">"
+                + " </head>"
+                + " <body style=\"background: #fbfbfb;\">"
+                + "  <div style=\"max-width: 1024px; margin: auto; background: #fff; padding:50px 10px;\">"
+                + "   <button value=\"Print this page\" onclick=\"window.print()\" class=\"btn-primary hidden-print btn btn-rigth pull-right\"> <span class=\"glyphicon glyphicon-print\" aria-hidden=\"true\"></span> Print this page </button>"
+                + "   <table style=\" width: 100%; \"><tbody>";
+        int lastLevel = 0;
+
+        for (Pair element : elements) {
+
+            while (lastLevel > element.level) {
+                content += "</tbody></table></td></tr>";
+                lastLevel--;
+            }
+            if ("title".equals(element.type)) {
+                content += "<tr><td colspan='2'>" + "<h" + (element.level + 1) + ">" + element.label + "</h" + (element.level + 1) + ">" + "</td></tr>";
+            } else if ("section".equals(element.type)) {
+                content += "<tr><td style=\"width:20px;\"></td><td><table style=\" width: 100%; \" " + (element.level > 0 ? "class='table table-striped table-bordered'" : "") + " ><tbody>";
+            } else {
+                content += "<tr><td><b>" + element.label + "</b></td><td>" + element.value.replaceAll("\\n", "<br>") + "</td></tr>";
+            }
+            lastLevel = element.level;
+        }
+        content += "</tbody></table>";
+        content += "</div></body></html>";
+        return content;
+    }
+
+    private class Pair {
+
+        String name;
+        String label;
+        String value;
+        int level;
+        String type;
+
+        public Pair(String name, String label, String value, int level, String type) {
+            this.name = name;
+            this.label = label;
+            this.value = value;
+            this.level = level;
+            this.type = type;
+        }
+
+        public Pair(String label, String value, int level, String type) {
+            this.label = label;
+            this.value = value;
+            this.level = level;
+            this.type = type;
+        }
+
     }
 }
